@@ -1,3 +1,3 @@
 <template>
-    dada la jhoem
+    Đây là home
 </template>

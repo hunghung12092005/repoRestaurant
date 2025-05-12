@@ -10,7 +10,7 @@
     <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
     @stack('styles')
     <link rel="stylesheet" href="{{ asset('style.css') }}">
-    
+
 </head>
 <body>
     <div class="container">
