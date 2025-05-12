@@ -1,3 +1,3 @@
 <template>
-    Đây là trang home
+    Đây là trang chủ
 </template>
