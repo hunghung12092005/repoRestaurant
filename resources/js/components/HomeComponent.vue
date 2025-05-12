@@ -212,7 +212,7 @@
     font-family: 'Poppins', sans-serif;
 }
 
-:root { 
+:root {
     --main-color: #16B978;
     --second-color: #081B54;
 }
@@ -245,14 +245,14 @@ header {
 #menu-icon { font-size: 24px; cursor: pointer; z-index: 10000; display: none; }
 
 /* Home Section */
-.home { 
-    width: 100%; 
-    min-height: 100vh; 
-    display: flex; 
-    flex-wrap: wrap; 
-    align-items: center; 
-    background: url('https://i.postimg.cc/pX41q1RD/Background-1-2x.png') no-repeat center; 
-    background-size: cover; 
+.home {
+    width: 100%;
+    min-height: 100vh;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    background: url('https://i.postimg.cc/pX41q1RD/Background-1-2x.png') no-repeat center;
+    background-size: cover;
     gap: 1rem;
 }
 
@@ -266,12 +266,12 @@ header {
 
 /* About Section */
 
-.about { 
-    display: flex; 
-    align-items: center; 
-    flex-direction: column; 
-    background: url('https://i.postimg.cc/vZgq6RgJ/about-bg.jpg') no-repeat center; 
-    background-size: cover; 
+.about {
+    display: flex;
+    align-items: center;
+    flex-direction: column;
+    background: url('https://i.postimg.cc/vZgq6RgJ/about-bg.jpg') no-repeat center;
+    background-size: cover;
 }
 
     .about h1 { font-size: 2.5rem; color: #FFF; margin-bottom: 2rem; text-transform: uppercase; }
@@ -315,14 +315,14 @@ header {
 
     .shop-box h2 { font-size: 1.2rem; color: var(--main-color); letter-spacing: 1px; padding: 10px; text-align: center; }
     .shop-box h3 { font-size: 1rem; font-weight: 500; color: var(--second-color); padding: 10px; text-align: center; }
-    .shop-box .bxs-cart-add { 
-        position: absolute; 
-        right: 0; 
-        bottom: 0; 
-        font-size: 20px; 
-        background-color: var(--main-color); 
+    .shop-box .bxs-cart-add {
+        position: absolute;
+        right: 0;
+        bottom: 0;
+        font-size: 20px;
+        background-color: var(--main-color);
         border-radius: 4px 0 0 4px;
-        color: #FFF; 
+        color: #FFF;
         padding: 10px;
         transition: .3s;
         cursor: pointer;
@@ -425,7 +425,7 @@ header {
     .about h1 { font-size: 2rem; }
     .heading h2 { font-size: 1.6rem; }
     .contact-info h2 { font-size: 1.6rem; }
-    
+
 }
 
 </style>
