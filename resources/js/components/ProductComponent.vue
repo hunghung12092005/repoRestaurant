@@ -1,3 +1,3 @@
 <template>
-    Đây là product
+    Đây là products
 </template>
