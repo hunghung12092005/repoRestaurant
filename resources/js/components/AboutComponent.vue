@@ -1,3 +1,3 @@
 <template>
-    Đây là about
+    Đây là trang about
 </template>
