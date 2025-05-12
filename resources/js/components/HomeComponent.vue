@@ -429,3 +429,30 @@ header {
 }
 
 </style>
+<script setup>
+import { ref, onMounted, onUnmounted } from 'vue';
+
+const headerRef = ref(null);
+const navbarRef = ref(null);
+const navbarActive = ref(false);
+
+const toggleMenu = () => {
+  navbarActive.value = !navbarActive.value;
+};
+
+const handleScroll = () => {
+  if (headerRef.value) {
+    console.log("scrollY:", window.scrollY);
+    headerRef.value.classList.toggle('active', window.scrollY > 0);
+  }
+};
+
+
+onMounted(() => {
+  window.addEventListener('scroll', handleScroll);
+});
+
+onUnmounted(() => {
+  window.removeEventListener('scroll', handleScroll);
+});
+</script>
