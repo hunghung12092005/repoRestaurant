@@ -1,7 +1,7 @@
 <template>
   <div>
     <header ref="headerRef">
-      <a href="#" class="logo">
+      <a href="/" class="logo">
         <img src="https://i.postimg.cc/s2Ywg6YR/logo.png" alt="Foodie Logo" />
         Sea Foodie
       </a>

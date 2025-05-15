@@ -44,7 +44,7 @@ h1{
 	font-size: 4em;
 	font-family: 'Raleway', sans-serif;
 	margin: 0 auto;
-	margin-top: 30px;
+	margin-top: 80px;
 	width: 500px;
 	color: #F90;
 	text-align: center;
@@ -72,7 +72,7 @@ h1{
 	width: 235px;
 	height: 104px;
 	margin-left: -235px;
-	position: absolute;	
+	position: absolute;
 	animation: myfirst 24s;
 	-webkit-animation: myfirst 24s;
 	animation-iteration-count: infinite;
@@ -98,11 +98,11 @@ header{
 }
 
 #form{
-	height: 100%;	
+	height: 100%;
 	background-color: #98d4f3;
 	overflow: hidden;
 	position: relative;
-	
+
 }
 form{
 	margin: 0 auto;
@@ -110,14 +110,14 @@ form{
 	padding-top: 40px;
 	color: white;
 	position: relative;
-	
-	
+
+
 }
 label, input, textarea{
-	display: block;	
+	display: block;
 }
 input, textarea{
-	width: 500px;	
+	width: 500px;
 	border: none;
 	border-radius: 20px;
 	outline: none;
@@ -129,19 +129,19 @@ input, textarea{
 	-webkit-transition: border 0.5s;
 	-moz-transition: border 0.5s;
 	-o-transition: border 0.5s;
-	border: solid 3px #98d4f3;	
+	border: solid 3px #98d4f3;
 	-webkit-box-sizing:border-box;
 	-moz-box-sizing:border-box;
 	box-sizing:border-box;
-	
+
 }
 input:focus, textarea:focus{
-	border: solid 3px #77bde0;	
+	border: solid 3px #77bde0;
 }
 
 textarea{
-	height: 100px;	
-	resize: none; 
+	height: 100px;
+	resize: none;
 	overflow: auto;
 }
 input[type="submit"]{
@@ -159,7 +159,7 @@ input[type="submit"]{
 }
 input[type="submit"]:hover{
 	background-color: #e58f0e;
-	
+
 }
 label{
 	font-size: 1.5em;
@@ -179,7 +179,7 @@ label{
 }
 
 .formgroup{
-	background-image: url('http://www.geertjanhendriks.nl/codepen/form/pixel.gif');	
+	background-image: url('http://www.geertjanhendriks.nl/codepen/form/pixel.gif');
 }
 .formgroup-active{
 	background-image: url('http://www.geertjanhendriks.nl/codepen/form/octo.png');
@@ -213,7 +213,7 @@ $('document').ready(function(){
 
 function errorfield(field){
 	$(field).addClass('formgroup-error');
-	console.log(field);	
+	console.log(field);
 }
 
 $("#waterform").submit(function() {
@@ -229,6 +229,6 @@ if($('#email').val() == "") {
 }
   if(stopsubmit) return false;
 });
-		
+
 });
 </script>
