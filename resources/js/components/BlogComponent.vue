@@ -146,7 +146,7 @@ export default {
       blogPosts: [
         {
           image: 'https://dishify-html.wpthemeverse.com/images/blog-list-1.png',
-          link: 'blog-single.html',
+          link: '/blog-detail',
           date: '5 Apr, 2025', /* Updated date to current year */
           category: 'Italian',
           title: 'Discovering Deliciousness, One Recipe at a Time',
@@ -154,7 +154,7 @@ export default {
         },
         {
           image: 'https://dishify-html.wpthemeverse.com/images/blog-list-2.png',
-          link: 'blog-single.html',
+          link: '/blog-detail',
           date: '5 Apr, 2025', /* Updated date to current year */
           category: 'Pizza & Fast Food',
           title: 'Indulge in Delicious Creations',
@@ -162,7 +162,7 @@ export default {
         },
         {
           image: 'https://dishify-html.wpthemeverse.com/images/blog-list-3.png',
-          link: 'blog-single.html',
+          link: '/blog-detail',
           date: '5 Apr, 2025', /* Updated date to current year */
           category: 'Pizza & Fast Food',
           title: 'Painting Palates with Flavorful Delights',
@@ -170,7 +170,7 @@ export default {
         },
         {
           image: 'https://dishify-html.wpthemeverse.com/images/blog-list-4.png',
-          link: 'blog-single.html',
+          link: '/blog-detail',
           date: '5 Apr, 2025', /* Updated date to current year */
           category: 'Desserts',
           title: 'Stories Behind the Dishes We Love',
@@ -178,7 +178,7 @@ export default {
         },
         {
           image: 'https://dishify-html.wpthemeverse.com/images/blog-list-5.png',
-          link: 'blog-single.html',
+          link: '/blog-detail',
           date: '5 Apr, 2025', /* Updated date to current year */
           category: 'Italian',
           title: 'Recipes and Reviews for Food Enthusiasts',
@@ -186,7 +186,7 @@ export default {
         },
         {
           image: 'https://dishify-html.wpthemeverse.com/images/blog-list-1.png',
-          link: 'blog-single.html',
+          link: '/blog-detail',
           date: '5 Apr, 2025', /* Updated date to current year */
           category: 'Sea Food',
           title: 'Tales from the Gastronomic World',
@@ -203,19 +203,19 @@ export default {
       popularPosts: [
         {
           image: 'https://dishify-html.wpthemeverse.com/images/blog_detail-small-1.png',
-          link: 'blog-single.html',
+          link: '/blog-detail',
           title: 'Discovering Deliciousness,',
           date: 'April 5, 2025' /* Updated date to current year */
         },
         {
           image: 'https://dishify-html.wpthemeverse.com/images/blog_detail-small-2.png',
-          link: 'blog-single.html',
+          link: '/blog-detail',
           title: 'Indulge in Delicious Creations',
           date: 'April 5, 2025' /* Updated date to current year */
         },
         {
           image: 'https://dishify-html.wpthemeverse.com/images/blog_detail-small-3.png',
-          link: 'blog-single.html',
+          link: '/blog-detail',
           title: 'Painting Palates with Flavorful',
           date: 'April 5, 2025' /* Updated date to current year */
         }
