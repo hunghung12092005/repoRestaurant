@@ -13,9 +13,7 @@
 
 </head>
 <body>
-    <div class="container">
         @yield('content')
-    </div>
 
     <!-- JS Bootstrap -->
     @stack('js')

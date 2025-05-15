@@ -10,13 +10,6 @@ import ReservationComponent from './components/ReservationComponent.vue';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import 'bootstrap';
 
-
-
-
-
-
-
-
 // Cấu hình router
 const routes = [
     { path: '/', component: HomeComponent },
