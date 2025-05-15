@@ -9,13 +9,11 @@
     <div class="sisf-page-title sisf-m sisf-title--standard sisf-alignment--center">
       <div class="sisf-m-inner">
         <div class="sisf-m-content sisf-content-grid">
-          <h1 class="sisf-m-title entry-title">Foodie Journal</h1>
-          <p class="sisf-m-subtitle">Discover culinary stories, recipes, and inspiration</p>
+          <h1 class="sisf-m-title entry-title">Blog Grid</h1>
         </div>
       </div>
     </div>
   </div>
-
   <!-- Page Section -->
   <div class="sisf-page-section blog-section section">
     <div class="sisf-grid sisf-layout--template">
@@ -24,7 +22,7 @@
           <!-- Blog Grid -->
           <div class="col-lg-9">
             <div class="row">
-              <div class="col-lg-6" v-for="(post, index) in blogPosts" :key="index">
+              <div class="col-lg-6 col-md-6" v-for="(post, index) in blogPosts" :key="index">
                 <div class="sisf-blog">
                   <div class="sisf-blog-item">
                     <div class="sisf-e-inner">
@@ -33,22 +31,16 @@
                           <a :href="post.link">
                             <figure class="image-anime reveal">
                               <img :src="post.image" class="image-fluid" alt="Dishify">
-                              <div class="post-category-badge">{{ post.category }}</div>
                             </figure>
                           </a>
-                        </div>
-                        <div class="sisf-e-media-video" v-else-if="post.type === 'video'">
-                          <video class="blog-video" autoplay muted loop controls>
-                            <source :src="post.video" type="video/mp4">
-                          </video>
                         </div>
                       </div>
                       <div class="sisf-e-content">
                         <div class="sisf-e-info sisf-info--top mb-2 d-flex align-items-center">
                           <div class="sisf-e-info-date">
-                            <i class="far fa-calendar me-1"></i> {{ post.date }}
+                            <a href="blogs.html">{{ post.date }}</a>
                           </div>
-                          <span class="sisf-e-info-divider">.</span>
+                          <span class="sisf-e-info-divider">·</span>
                           <div class="sisf-e-info-category">
                             <a href="blogs.html">{{ post.category }}</a>
                           </div>
@@ -62,9 +54,6 @@
                         <div class="sisf-m-button">
                           <a :href="post.link" class="btn-default blog-button">
                             <span>VIEW MORE <i class="fa-solid fa-arrow-right"></i></span>
-                            <span class="sisf-m-icon">
-                              <span class="sisf-m-icon-inner"></span>
-                            </span>
                           </a>
                         </div>
                       </div>
@@ -73,52 +62,22 @@
                 </div>
               </div>
             </div>
-
-            <div class="blog-pagination mt-5" v-if="filteredPosts.length > 0">
-              <button
-                class="pagination-btn"
-                :disabled="currentPage === 1"
-                @click="currentPage--"
-              >
-                <i class="fas fa-chevron-left"></i>
-              </button>
-
-              <button
-                v-for="page in totalPages"
-                :key="page"
-                class="pagination-btn"
-                :class="{ active: currentPage === page }"
-                @click="currentPage = page"
-              >
-                {{ page }}
-              </button>
-
-              <button
-                class="pagination-btn"
-                :disabled="currentPage === totalPages"
-                @click="currentPage++"
-              >
-                <i class="fas fa-chevron-right"></i>
-              </button>
-            </div>
           </div>
-
           <!-- Blog Sidebar -->
           <div class="col-lg-3 col-md-3">
             <div class="sisf-page-sidebar bg-white">
               <!-- Search Widget -->
               <div class="sidebar-widget widget_search">
-                <h3 class="sidebar-title">Search Articles</h3>
                 <div class="sisf-search-form">
                   <div class="sisf-search-form-inner">
                     <input
                       type="search"
                       class="sisf-search-form-field"
                       v-model="searchQuery"
-                      placeholder="Search articles..."
-                      @keyup.enter="searchPosts"
+                      placeholder="Search…"
+                      required
                     />
-                    <button type="submit" class="sisf-search-form-button" @click="searchPosts">
+                    <button type="submit" class="sisf-search-form-button">
                       <i class="fa-solid fa-magnifying-glass"></i>
                     </button>
                   </div>
@@ -127,16 +86,13 @@
               <div class="sidebar-separator">
                 <hr class="separator sidebar-line" />
               </div>
-
               <!-- Categories Widget -->
               <div class="sidebar-widget widget_categories">
                 <h3 class="sidebar-title">Categories</h3>
                 <div class="product-categories">
                   <ul class="product-categories-list">
                     <li class="product-categories-list-item" v-for="(category, index) in categories" :key="index">
-                      <a :href="category.link">
-                        <span>{{ category.name }}</span>
-                      </a>
+                      <a :href="category.link">{{ category.name }}</a>
                     </li>
                   </ul>
                 </div>
@@ -144,10 +100,9 @@
               <div class="sidebar-separator">
                 <hr class="separator sidebar-line" />
               </div>
-
               <!-- Popular Posts Widget -->
               <div class="sidebar-widget widget_popular_blog">
-                <h3 class="sidebar-title">Trending Now</h3>
+                <h3 class="sidebar-title">Popular Posts</h3>
                 <div class="sidebar_blog-list">
                   <ul class="blog-list-widget">
                     <li v-for="(post, index) in popularPosts" :key="index">
@@ -157,7 +112,6 @@
                       <div class="sisf-blog-content">
                         <h5 class="sisf-blog-title"><a :href="post.link">{{ post.title }}</a></h5>
                         <div class="sisf-date">
-                          <i class="far fa-calendar me-1"></i>
                           <span class="publish-date">{{ post.date }}</span>
                         </div>
                       </div>
@@ -168,41 +122,11 @@
               <div class="sidebar-separator">
                 <hr class="separator sidebar-line" />
               </div>
-
               <!-- Popular Tags Widget -->
               <div class="sidebar-widget widget_popular_tag">
                 <h3 class="sidebar-title">Popular Tags</h3>
                 <div class="sidebar_tag-list">
-                  <a
-                    href="#"
-                    class="tag"
-                    v-for="(tag, index) in tags"
-                    :key="index"
-                    @click.prevent="filterByTag(tag.name)"
-                  >
-                    #{{ tag.name }}
-                  </a>
-                </div>
-              </div>
-              <div class="sidebar-separator">
-                <hr class="separator sidebar-line" />
-              </div>
-              <!-- Follow Us Widget -->
-              <div class="sidebar-widget widget_follow_us">
-                <h3 class="sidebar-title">Follow Us</h3>
-                <div class="sisf-author-info text-center">
-                  <a class="sisf-author-info-image mb-3 d-block" href="#">
-                    <img src="https://dishify-html.wpthemeverse.com/images/our_banner.png" class="image-fluid" alt="Dishify" />
-                  </a>
-                  <h4 class="sisf-author-info-name mb-3"><a href="#"><span class="fn">David Parker</span></a></h4>
-                  <p class="sisf-author-info-description mb-0">Passionate Food Entrepreneur</p>
-                </div>
-                <div class="sisf-social-links-widget my-4">
-                  <ul class="sisf-social-list d-flex justify-content-between">
-                    <li class="sisf-social-icon mb-0" v-for="(social, index) in socialLinks" :key="index">
-                      <a :href="social.link"><i :class="social.icon"></i></a>
-                    </li>
-                  </ul>
+                  <a :href="tag.link" class="tag" v-for="(tag, index) in tags" :key="index">{{ tag.name }}</a>
                 </div>
               </div>
             </div>
@@ -219,92 +143,81 @@ export default {
   data() {
     return {
       searchQuery: '',
-      activeCategory: null,
-      activeTag: null,
-      currentPage: 1,
-      postsPerPage: 4,
-      email: '',
       blogPosts: [
         {
           image: 'https://dishify-html.wpthemeverse.com/images/blog-list-1.png',
           link: 'blog-single.html',
           date: '5 Apr, 2025', /* Updated date to current year */
           category: 'Italian',
-          author: 'Chef Marco',
           title: 'Discovering Deliciousness, One Recipe at a Time',
-          excerpt: 'Discovering Deliciousness, One Recipe at a Time invites you on a culinary journey filled with tantalizing flavors, aromatic spices, and mouthwatering dishes. It’s an explorat...'
+          excerpt: 'Discovering Deliciousness, One Recipe at a Time invites you on a culinary journey filled with tantalizing flavors, aromatic spices, and mouthwatering dishes...'
         },
         {
           image: 'https://dishify-html.wpthemeverse.com/images/blog-list-2.png',
           link: 'blog-single.html',
           date: '5 Apr, 2025', /* Updated date to current year */
           category: 'Pizza & Fast Food',
-          author: 'Chef Sophia',
           title: 'Indulge in Delicious Creations',
-          excerpt: 'Indulge in delicious creations that tantalize your taste buds and transport you to a world of culinary delight. From mouthwatering desserts to savory delights, our menu is a sympho...'
+          excerpt: 'Indulge in delicious creations that tantalize your taste buds and transport you to a world of culinary delight...'
         },
         {
           image: 'https://dishify-html.wpthemeverse.com/images/blog-list-3.png',
           link: 'blog-single.html',
           date: '5 Apr, 2025', /* Updated date to current year */
           category: 'Pizza & Fast Food',
-          author: 'Chef Antonio',
           title: 'Painting Palates with Flavorful Delights',
-          excerpt: 'Nestled within the vibrant heart of a bustling city, Painting Palates with Flavorful Delights stands as a beacon of culinary creativity, inviting patrons on a journey of gastronomi...'
+          excerpt: 'Nestled within the vibrant heart of a bustling city, Painting Palates with Flavorful Delights stands as a beacon of culinary creativity...'
         },
         {
           image: 'https://dishify-html.wpthemeverse.com/images/blog-list-4.png',
           link: 'blog-single.html',
           date: '5 Apr, 2025', /* Updated date to current year */
           category: 'Desserts',
-          author: 'Pastry Chef Emma',
           title: 'Stories Behind the Dishes We Love',
-          excerpt: '“Stories Behind the Dishes We Love” delves into the captivating narratives intertwined with some of the most beloved culinary creations from around the globe. Through i...'
+          excerpt: '“Stories Behind the Dishes We Love” delves into the captivating narratives intertwined with some of the most beloved culinary creations...'
         },
         {
           image: 'https://dishify-html.wpthemeverse.com/images/blog-list-5.png',
           link: 'blog-single.html',
           date: '5 Apr, 2025', /* Updated date to current year */
           category: 'Italian',
-          author: 'Chef Giovanni',
           title: 'Recipes and Reviews for Food Enthusiasts',
-          excerpt: 'Recipes and Reviews for Food Enthusiasts is a platform designed to cater to the discerning palates and culinary curiosities of passionate food lovers. Bursting with a tantalizing a...'
+          excerpt: 'Recipes and Reviews for Food Enthusiasts is a platform designed to cater to the discerning palates and culinary curiosities of passionate food lovers...'
         },
         {
           image: 'https://dishify-html.wpthemeverse.com/images/blog-list-1.png',
           link: 'blog-single.html',
           date: '5 Apr, 2025', /* Updated date to current year */
           category: 'Sea Food',
-          author: 'Chef Pierre',
           title: 'Tales from the Gastronomic World',
-          excerpt: 'Amidst the bustling streets and quiet corners of the gastronomic world lie tales waiting to be told—stories that evoke the tantalizing aroma of spices, the sizzle of a hot pan, a...'
+          excerpt: 'Amidst the bustling streets and quiet corners of the gastronomic world lie tales waiting to be told—stories that evoke the tantalizing aroma of spices...'
         }
       ],
       categories: [
-        { name: 'Desserts', link: '#' },
-        { name: 'Italian', link: '#' },
-        { name: 'Mexican', link: '#' },
-        { name: 'Pizza & Fast Food', link: '#' },
-        { name: 'Sea Food', link: '#' }
+        { name: 'Desserts', link: 'blogs.html' },
+        { name: 'Italian', link: 'blogs.html' },
+        { name: 'Mexican', link: 'blogs.html' },
+        { name: 'Pizza & Fast Food', link: 'blogs.html' },
+        { name: 'Sea Food', link: 'blogs.html' }
       ],
       popularPosts: [
         {
-          image: '/images/blog_detail-small-1.png',
+          image: 'https://dishify-html.wpthemeverse.com/images/blog_detail-small-1.png',
           link: 'blog-single.html',
           title: 'Discovering Deliciousness,',
-          date: 'April 5, 2024'
+          date: 'April 5, 2025' /* Updated date to current year */
         },
         {
-          image: '/images/blog_detail-small-2.png',
+          image: 'https://dishify-html.wpthemeverse.com/images/blog_detail-small-2.png',
           link: 'blog-single.html',
           title: 'Indulge in Delicious Creations',
           date: 'April 5, 2025' /* Updated date to current year */
         },
         {
-          image: '/images/blog_detail-small-3.png',
+          image: 'https://dishify-html.wpthemeverse.com/images/blog_detail-small-3.png',
           link: 'blog-single.html',
           title: 'Painting Palates with Flavorful',
-          date: 'April 5, 2024'
+          date: 'April 5, 2025' /* Updated date to current year */
         }
       ],
       tags: [
@@ -313,59 +226,36 @@ export default {
         { name: 'Mexican', link: 'blogs.html' },
         { name: 'Pizza & Fast Food', link: 'blogs.html' },
         { name: 'Sea Food', link: 'blogs.html' }
-      ],
-      socialLinks: [
-        { link: '#', icon: 'fa-brands fa-facebook' },
-        { link: '#', icon: 'fa-brands fa-x-twitter' },
-        { link: '#', icon: 'fa-brands fa-linkedin' },
-        { link: '#', icon: 'fa-brands fa-instagram' }
       ]
     };
   }
-}
+};
 </script>
 
 <style scoped>
-/* Base Styles */
-:root {
-  --primary-color: #FF6B6B;
-  --primary-dark: #E05555;
-  --secondary-color: #FFD166;
-  --accent-color: #06D6A0;
-  --dark-color: #2D2D2D;
-  --medium-color: #6C757D;
-  --light-color: #F8F9FA;
-  --lighter-color: #FFFFFF;
-  --border-color: #E9ECEF;
-  --shadow-color: rgba(0, 0, 0, 0.1);
-  --font-heading: 'Cormorant Infant', serif;
-  --font-body: 'Work Sans', sans-serif;
-  --transition: all 0.3s ease;
-}
+/* Bootstrap and custom styles should be included in your project */
+@import url('https://fonts.googleapis.com/css2?family=Cormorant+Infant:ital,wght@0,300;0,400;0,500;0,600;0,700;1,300;1,400;1,500;1,600;1,700&family=Work+Sans:ital,wght@0,100..900;1,100..900&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Cherish&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Corinthia:wght@400;700&display=swap');
 
-/* Banner Styles */
+/* Hero Banner Styles */
 .sisf-banner {
   position: relative;
   width: 100%;
-  height: 450px;
   overflow: hidden;
-  margin-bottom: 60px;
 }
 
 .banner-img {
   width: 100%;
-  height: 100%;
 }
 
 .banner-img figure {
   margin: 0;
-  height: 100%;
 }
 
 .banner-img img {
   width: 100%;
-  height: 100%;
-  object-fit: cover;
+  height: auto;
   display: block;
 }
 
@@ -376,139 +266,244 @@ export default {
   transform: translate(-50%, -50%);
   width: 100%;
   text-align: center;
-  color: white;
-  text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.3);
 }
 
 .sisf-m-title {
-  font-family: var(--font-heading);
-  font-size: 4rem;
-  font-weight: 700;
-  margin: 0 0 15px;
-  letter-spacing: 1px;
-}
-
-.sisf-m-subtitle {
-  font-family: var(--font-heading);
-  font-size: 1.5rem;
-  font-weight: 400;
+  font-size: 48px;
+  color: #fff;
+  text-transform: uppercase;
   margin: 0;
   text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+  font-family: 'Cormorant Infant', serif;
 }
 
-/* Blog Grid Styles */
+/* Blog Section Styles */
 .sisf-page-section {
   padding: 60px 0;
+  background: #f8f7f7;
 }
 
 .sisf-blog-item {
   margin-bottom: 30px;
-  background: white;
-  border-radius: 8px;
-  overflow: hidden;
-  box-shadow: 0 5px 15px var(--shadow-color);
-  transition: var(--transition);
-  height: 100%;
-}
-
-.sisf-blog-item:hover {
-  transform: translateY(-5px);
-  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
 }
 
 .sisf-e-media-image img {
   width: 100%;
-  height: auto;
+  height: 200px;
+  object-fit: cover;
+  display: block;
 }
 
 .sisf-e-content {
   padding: 20px;
+  min-height: 300px; /* Ensure equal height for all posts */
+}
+
+.sisf-e-info {
+  display: flex;
+  align-items: center;
+}
+
+.sisf-e-info-date a,
+.sisf-e-info-category a {
+  color: #888;
+  font-size: 14px;
+  text-decoration: none;
+  font-family: 'Work Sans', sans-serif;
+}
+
+.sisf-e-info-date a:hover,
+.sisf-e-info-category a:hover {
+  color: #f4a261;
+}
+
+.sisf-e-info-divider {
+  margin: 0 5px;
+  color: #888;
 }
 
 .sisf-e-title {
-  font-size: 24px;
-  margin-bottom: 10px;
+  font-size: 20px;
+  margin: 10px 0;
+  font-weight: 600;
+  font-family: 'Cormorant Infant', serif;
+}
+
+.sisf-e-title-link {
+  color: #333;
+  text-decoration: none;
+}
+
+.sisf-e-title-link:hover {
+  color: #f4a261;
 }
 
 .sisf-e-excerpt {
-  font-size: 16px;
+  font-size: 14px;
   color: #666;
+  line-height: 1.6;
+  margin-bottom: 15px;
+  font-family: 'Work Sans', sans-serif;
 }
 
 .btn-default {
   display: inline-flex;
   align-items: center;
-  padding: 10px 20px;
-  background: #000;
+  padding: 8px 15px;
+  background: #f4a261;
   color: #fff;
   text-transform: uppercase;
-  font-size: 14px;
+  font-size: 12px;
+  border: none;
+  text-decoration: none;
+  border-radius: 3px;
+  transition: background 0.3s;
+  font-family: 'Work Sans', sans-serif;
 }
 
 .btn-default:hover {
-  background: #333;
+  background: #e76f51;
 }
 
+/* Sidebar Styles */
 .sisf-page-sidebar {
   padding: 20px;
-  border: 1px solid #eee;
+  border: 1px solid #eee; /* Restored border */
+  background: #fff;
 }
 
 .sidebar-title {
-  font-size: 20px;
+  font-size: 18px;
   margin-bottom: 15px;
+  color: #333;
+  font-weight: 600;
+  text-align: start;
+  font-family: 'Cormorant Infant', serif;
 }
 
 .sisf-search-form {
-  position: relative;
-  margin-bottom: 25px;
+  display: flex;
+  align-items: center;
+  border: 1px solid #ddd;
+  border-radius: 5px;
+  overflow: hidden;
 }
 
 .sisf-search-form-inner {
   display: flex;
-  align-items: center;
-}
-
-.sisf-search-form-field {
-  flex: 1;
-  padding: 12px 20px;
-  border: none;
-  padding: 10px;
   width: 100%;
 }
 
-.sisf-search-form-button {
-  padding: 0 20px;
-  background: var(--primary-color);
-  color: white;
+.sisf-search-form-field {
   border: none;
   padding: 10px;
+  width: 100%;
+  font-size: 14px;
+  outline: none;
+  font-family: 'Work Sans', sans-serif;
 }
 
-.product-categories-list li,
-.blog-list-widget li,
-.sidebar_tag-list a,
-.sisf-social-list li {
+.sisf-search-form-button {
+  background: none;
+  border: none;
+  padding: 10px;
+  cursor: pointer;
+}
+
+.sisf-search-form-button i {
+  color: #888;
+}
+
+.product-categories-list {
+  padding: 0;
+  margin: 0;
+  list-style: none;
+}
+
+.product-categories-list li {
   margin-bottom: 10px;
+  text-align: start;
+}
+
+.product-categories-list a {
+  color: #333;
+  font-size: 14px;
+  text-decoration: none;
+  font-family: 'Work Sans', sans-serif;
+}
+
+.product-categories-list a:hover {
+  color: #f4a261;
+}
+
+.blog-list-widget {
+  padding: 0;
+  margin: 0;
+  list-style: none;
+}
+
+.blog-list-widget li {
+  display: flex;
+  align-items: center;
+  margin-bottom: 15px;
+}
+
+.sisf-blog-image {
+  flex-shrink: 0;
+}
+
+.sisf-blog-image img {
+  width: 60px;
+  height: 60px;
+  object-fit: cover;
+  border-radius: 5px;
+}
+
+.sisf-blog-content {
+  flex-grow: 1;
+  margin-left: 15px;
+  text-align: start;
+}
+
+.sisf-blog-title {
+  margin: 0;
+}
+
+.sisf-blog-title a {
+  font-size: 14px;
+  color: #333;
+  text-decoration: none;
+  font-family: 'Work Sans', sans-serif;
+}
+
+.sisf-blog-title a:hover {
+  color: #f4a261;
+}
+
+.publish-date {
+  font-size: 12px;
+  color: #f4a261;
+  font-family: 'Work Sans', sans-serif;
 }
 
 .sidebar_tag-list a {
   display: inline-block;
   padding: 5px 10px;
-  background: #f5f5f5;
+  background: #f1f1f1;
+  color: #333;
   margin-right: 5px;
   margin-bottom: 5px;
+  text-decoration: none;
+  border-radius: 3px;
+  font-family: 'Work Sans', sans-serif;
 }
 
-.sisf-social-list {
-  padding: 0;
-  list-style: none;
+.sidebar_tag-list a:hover {
+  background: #ddd;
 }
 
-.sisf-social-icon a {
-  font-size: 18px;
-  color: #000;
+.sidebar-separator hr {
+  border: 2px solid #5f5c59;
+  border-top: 1px solid #eee;
 }
-
-/* Add more styles as needed from the original CSS files */
 </style>
