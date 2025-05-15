@@ -10,20 +10,23 @@
       <ul class="navbar" :class="{ active: navbarActive }" ref="navbarRef">
         <li><router-link to="/">Home</router-link></li>
         <li><router-link to="/about">About</router-link></li>
-        <li><router-link to="/products">Shop</router-link></li>
-        <li><router-link to="/blog">Blog</router-link></li>
-        <li><router-link to="/customer">Customer</router-link></li>
         <li><router-link to="/contact">Contact</router-link></li>
+        <li><router-link to="/blog">Blog</router-link></li>
+        <li><router-link to="/reservation">Reservation</router-link></li>
+        <li><a :href="loginUrl">Login</a></li>
       </ul>
     </header>
 
-    <router-view />
+    <!-- Đặt RouterView vào phần thân -->
+    <main>
+      <RouterView></RouterView>
+    </main>
   </div>
 </template>
-
 <script setup>
 import { ref, onMounted, onUnmounted } from 'vue';
-
+import { RouterView } from 'vue-router';
+const loginUrl = import.meta.env.VITE_LOGIN_URL; // Đường dẫn sẽ được lấy từ biến môi trường .env
 const headerRef = ref(null);
 const navbarRef = ref(null);
 const navbarActive = ref(false);
@@ -145,5 +148,12 @@ header {
   cursor: pointer;
   z-index: 10000;
   display: none;
+}
+
+/* Styles cho phần thân */
+main {
+  padding-top: 80px; /* Để tránh nội dung bị che bởi header */
+  min-height: calc(100vh - 80px); /* Chiếm toàn bộ chiều cao còn lại */
+  width: 100%;
 }
 </style>
