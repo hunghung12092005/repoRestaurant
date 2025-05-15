@@ -12,7 +12,8 @@
         <li><router-link to="/about">About</router-link></li>
         <li><router-link to="/products">Shop</router-link></li>
         <li><router-link to="/customer">Customer</router-link></li>
-        <li><router-link to="/contact">Contact</router-link></li>
+        <li><router-link to="/reservation">Reservation</router-link></li>
+
       </ul>
     </header>
 
