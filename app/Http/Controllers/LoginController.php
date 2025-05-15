@@ -134,7 +134,7 @@ class LoginController extends Controller
             'id' => $userWithAuth->id,
             'role' => $userWithAuth->role
         ]);
-
+        
         if ($userWithAuth->role === 'admin') {
             session([
                 'admin' => 'admin',

@@ -107,10 +107,10 @@ header{
 form{
 	margin: 0 auto;
 	width: 500px;
-	padding-top: 40px;
+	padding-top: 10px;
 	color: white;
 	position: relative;
-
+	margin-bottom: 20px;
 
 }
 label, input, textarea{

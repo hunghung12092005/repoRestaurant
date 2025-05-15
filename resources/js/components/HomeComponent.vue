@@ -1,7 +1,13 @@
 <template>
     <section class="home" id="home">
-        <div class="home-text">
-            <span>Welcome to our</span>
+        <div v-if="userName" class="home-text">
+            <span>hh to our</span>
+            <h1>Xin chào <br>{{ userName }}</h1>
+            <p>Nhà Hàng Vinpearl Thanh Hóa sẵn sàng phục vụ</p>
+            <a href="#" class="btn">Xem  Menu</a>
+        </div>
+        <div v-else class="home-text">
+            <span>hh to our</span>
             <h1>Healthy Food <br>Collection!</h1>
             <p>Discover our carefully curated selection of nutritious and delicious meals, made with fresh ingredients
                 to nourish your body and delight your taste buds</p>
@@ -158,7 +164,7 @@
             </div>
         </div>
     </section>
-    
+
     <section class="customer" id="customer">
         <div class="heading">
             <h2>Our Customer's</h2>
@@ -270,68 +276,79 @@
     scroll-behavior: smooth;
     font-family: 'Poppins', sans-serif;
 }
+
 /* slider quảng cáo */
 body {
-  align-items: center;
-  background: #E3E3E3;
-  display: flex;
-  height: 100vh;
-  justify-content: center;
+    align-items: center;
+    background: #E3E3E3;
+    display: flex;
+    height: 100vh;
+    justify-content: center;
 }
 
 @-webkit-keyframes scroll {
-  0% {
-    transform: translateX(0);
-  }
-  100% {
-    transform: translateX(calc(-250px * 7));
-  }
+    0% {
+        transform: translateX(0);
+    }
+
+    100% {
+        transform: translateX(calc(-250px * 7));
+    }
 }
 
 @keyframes scroll {
-  0% {
-    transform: translateX(0);
-  }
-  100% {
-    transform: translateX(calc(-250px * 7));
-  }
+    0% {
+        transform: translateX(0);
+    }
+
+    100% {
+        transform: translateX(calc(-250px * 7));
+    }
 }
+
 .slider {
-  background: white;
-  box-shadow: 0 10px 20px -5px rgba(0, 0, 0, 0.125);
-  height: 100px;
-  margin: auto;
-  overflow: hidden;
-  position: relative;
-  width: 960px;
+    background: white;
+    box-shadow: 0 10px 20px -5px rgba(0, 0, 0, 0.125);
+    height: 100px;
+    margin: auto;
+    overflow: hidden;
+    position: relative;
+    width: 960px;
 }
-.slider::before, .slider::after {
-  background: linear-gradient(to right, white 0%, rgba(255, 255, 255, 0) 100%);
-  content: "";
-  height: 100px;
-  position: absolute;
-  width: 200px;
-  z-index: 2;
-}
+
+.slider::before,
 .slider::after {
-  right: 0;
-  top: 0;
-  transform: rotateZ(180deg);
+    background: linear-gradient(to right, white 0%, rgba(255, 255, 255, 0) 100%);
+    content: "";
+    height: 100px;
+    position: absolute;
+    width: 200px;
+    z-index: 2;
 }
+
+.slider::after {
+    right: 0;
+    top: 0;
+    transform: rotateZ(180deg);
+}
+
 .slider::before {
-  left: 0;
-  top: 0;
+    left: 0;
+    top: 0;
 }
+
 .slider .slide-track {
-  -webkit-animation: scroll 40s linear infinite;
-          animation: scroll 40s linear infinite;
-  display: flex;
-  width: calc(250px * 14);
+    -webkit-animation: scroll 40s linear infinite;
+    animation: scroll 40s linear infinite;
+    display: flex;
+    width: calc(250px * 14);
 }
+
 .slider .slide {
-  height: 100px;
-  width: 250px;
+    height: 100px;
+    width: 250px;
 }
+
 /* end quảng cáo */
 :root {
     --main-color: #16B978;
@@ -847,4 +864,16 @@ onMounted(() => {
 onUnmounted(() => {
     window.removeEventListener('scroll', handleScroll);
 });
+</script>
+<script>
+export default {
+    data() {
+        return {
+            userName: null, // Biến để lưu tên người dùng
+        };
+    },
+    created() {
+        this.userName = window.userSession.name;
+    }
+};
 </script>

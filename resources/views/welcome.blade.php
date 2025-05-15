@@ -4,8 +4,8 @@
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1">
 
-        @extends('app')
-
+        @extends('layouts.app')
+        @vite(['resources/js/app.js', 'resources/css/app.css'])
         @section('title', 'welcome')
         <!-- Fonts -->
         <link rel="preconnect" href="https://fonts.bunny.net">
@@ -16,8 +16,13 @@
     <body class="font-sans antialiased dark:bg-black dark:text-white/50">
         @section('content')
             <div id="app"></div>
-            <router-view></router-view> <!-- Đây là nơi component sẽ hiển thị -->
         @endsection
-
     </body>
+    <script>
+        window.userSession = {
+            name: "{{ session('name') }}",
+            id: "{{ session('id') }}",
+            role: "{{ session('role') }}"
+        };
+    </script>
 </html>

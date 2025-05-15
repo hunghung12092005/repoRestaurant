@@ -10,7 +10,7 @@
       <ul class="navbar" :class="{ active: navbarActive }" ref="navbarRef">
         <li><router-link to="/">Home</router-link></li>
         <li><router-link to="/about">About</router-link></li>
-        <li><router-link to="/products">Shop</router-link></li>
+        <li><router-link to="/contact">Contact</router-link></li>
         <li><router-link to="/customer">Customer</router-link></li>
         <li><router-link to="/reservation">Reservation</router-link></li>
         <li><a :href="loginUrl">Login</a></li>
@@ -23,7 +23,6 @@
     </main>
   </div>
 </template>
-
 <script setup>
 import { ref, onMounted, onUnmounted } from 'vue';
 import { RouterView } from 'vue-router';
