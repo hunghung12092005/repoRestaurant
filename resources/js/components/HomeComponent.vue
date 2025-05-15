@@ -466,9 +466,9 @@ header.active .navbar a {
 
 .btn {
     padding: 10px 20px;
-    border: 2px solid var(--main-color);
+    border: 2px solid blue;
     border-radius: 40px;
-    color: var(--main-color);
+    color: blue;
     font-weight: 500;
     transition: .3s;
 }
@@ -476,7 +476,7 @@ header.active .navbar a {
 .btn:hover {
     letter-spacing: 2px;
     color: #FFF;
-    background: var(--main-color);
+    background: blue;
 }
 
 /* About Section */
@@ -714,7 +714,7 @@ form textarea {
 
 form .btn {
     max-width: 150px;
-    background: var(--main-color);
+    background: blue;
     color: #FFF;
     text-transform: uppercase;
     font-weight: bold;
@@ -725,7 +725,7 @@ form .btn {
 }
 
 form .btn:hover {
-    background: var(--second-color);
+    background: gray;
 }
 
 .address {

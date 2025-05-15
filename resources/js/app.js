@@ -7,6 +7,7 @@ import AboutComponent from './components/AboutComponent.vue';
 import ProductComponent from './components/ProductComponent.vue';
 import ContactComponent from './components/ContactComponent.vue';
 import ReservationComponent from './components/ReservationComponent.vue';
+import BlogComponent from './components/BlogComponent.vue';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import 'bootstrap';
 
@@ -15,6 +16,7 @@ const routes = [
     { path: '/', component: HomeComponent },
     { path: '/about', component: AboutComponent },
     { path: '/products', component: ProductComponent },
+    { path: '/blog', component: BlogComponent },
     { path: '/contact', component: ContactComponent },
     { path: '/reservation', component: ReservationComponent },
 ];
