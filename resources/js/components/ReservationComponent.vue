@@ -20,7 +20,8 @@
       <div class="container margin_120_100 pb-0">
         <div class="row justify-content-center">
           <div class="col-lg-6 text-center d-none d-lg-block">
-            <img src="https://www.ansonika.com/foores/img/chef.png" width="400" height="733" alt="Chef" class="img-fluid" />
+            <img src="https://www.ansonika.com/foores/img/chef.png" width="400" height="733" alt="Chef"
+              class="img-fluid" />
           </div>
           <div class="col-lg-6 col-md-8">
             <div class="main_title">
@@ -42,9 +43,10 @@
                     </h3>
                     <div class="calendar-wrapper">
                       <div class="calendar-header">
-                        <button @click="prevMonth" class="calendar-nav"><</button>
-                        <span>{{ selectedMonth }} {{ selectedYear }}</span>
-                        <button @click="nextMonth" class="calendar-nav">></button>
+                        <button @click="prevMonth" class="calendar-nav">
+                          <</button>
+                            <span>{{ selectedMonth }} {{ selectedYear }}</span>
+                            <button @click="nextMonth" class="calendar-nav">></button>
                       </div>
                       <div class="calendar-body">
                         <div class="calendar-days">
@@ -54,15 +56,10 @@
                           <!-- Empty slots for days before the first day of the month -->
                           <span v-for="n in firstDayOffset" :key="'empty-' + n" class="empty-day"></span>
                           <!-- Actual days -->
-                          <span
-                            v-for="day in daysInMonth"
-                            :key="day"
-                            :class="{
-                              'disabled': isDayDisabled(day),
-                              'selected': day === selectedDay && !isDayDisabled(day)
-                            }"
-                            @click="selectDay(day)"
-                          >
+                          <span v-for="day in daysInMonth" :key="day" :class="{
+                            'disabled': isDayDisabled(day),
+                            'selected': day === selectedDay && !isDayDisabled(day)
+                          }" @click="selectDay(day)">
                             {{ day }}
                           </span>
                         </div>
@@ -80,14 +77,8 @@
                       </h4>
                       <div class="radio-grid">
                         <div v-for="time in timeOptions" :key="time.value" class="radio-item">
-                          <input
-                            type="radio"
-                            :id="'time_' + time.value"
-                            name="time"
-                            :value="time.value"
-                            v-model="form.time"
-                            class="required"
-                          />
+                          <input type="radio" :id="'time_' + time.value" name="time" :value="time.value"
+                            v-model="form.time" class="required" />
                           <label :for="'time_' + time.value">{{ time.label }}</label>
                         </div>
                       </div>
@@ -99,14 +90,8 @@
                       </h4>
                       <div class="radio-grid">
                         <div v-for="num in peopleOptions" :key="num" class="radio-item">
-                          <input
-                            type="radio"
-                            :id="'people_' + num"
-                            name="people"
-                            :value="num"
-                            v-model="form.people"
-                            class="required"
-                          />
+                          <input type="radio" :id="'people_' + num" name="people" :value="num" v-model="form.people"
+                            class="required" />
                           <label :for="'people_' + num">{{ num }}</label>
                         </div>
                       </div>
@@ -121,59 +106,34 @@
                         Name
                         <span class="required-label" v-if="showRequired && !form.name_reserve">Required</span>
                       </label>
-                      <input
-                        type="text"
-                        name="name_reserve"
-                        v-model="form.name_reserve"
-                        class="form-control required"
-                        placeholder="First and Last Name"
-                      />
+                      <input type="text" name="name_reserve" v-model="form.name_reserve" class="form-control required"
+                        placeholder="First and Last Name" />
                     </div>
                     <div class="form-group">
                       <label class="input-label">
                         Email
                         <span class="required-label" v-if="showRequired && !form.email_reserve">Required</span>
                       </label>
-                      <input
-                        type="email"
-                        name="email_reserve"
-                        v-model="form.email_reserve"
-                        class="form-control required"
-                        placeholder="Your Email"
-                      />
+                      <input type="email" name="email_reserve" v-model="form.email_reserve"
+                        class="form-control required" placeholder="Your Email" />
                     </div>
                     <div class="form-group">
                       <label class="input-label">
                         Phone
                         <span class="required-label" v-if="showRequired && !form.telephone_reserve">Required</span>
                       </label>
-                      <input
-                        type="text"
-                        name="telephone_reserve"
-                        v-model="form.telephone_reserve"
-                        class="form-control required"
-                        placeholder="Your Telephone"
-                      />
+                      <input type="text" name="telephone_reserve" v-model="form.telephone_reserve"
+                        class="form-control required" placeholder="Your Telephone" />
                     </div>
                     <div class="form-group">
                       <label class="input-label">Note</label>
-                      <textarea
-                        class="form-control"
-                        name="opt_message_reserve"
-                        v-model="form.opt_message_reserve"
-                        placeholder="Please provide any additional info"
-                      ></textarea>
+                      <textarea class="form-control" name="opt_message_reserve" v-model="form.opt_message_reserve"
+                        placeholder="Please provide any additional info"></textarea>
                     </div>
                     <div class="form-group terms">
                       <label class="container_check">
-                        <input
-                          type="checkbox"
-                          name="terms"
-                          v-model="form.terms"
-                          true-value="Yes"
-                          false-value=""
-                          class="required"
-                        />
+                        <input type="checkbox" name="terms" v-model="form.terms" true-value="Yes" false-value=""
+                          class="required" />
                         <span class="checkmark"></span>
                         I accept the
                         <a href="#" data-bs-toggle="modal" data-bs-target="#terms-txt">Terms and conditions</a>
@@ -186,29 +146,15 @@
                 <!-- Wizard Navigation -->
                 <div id="bottom-wizard">
                   <!-- Show Prev button only on steps 2 and 3 -->
-                  <button
-                    v-if="currentStep > 1"
-                    type="button"
-                    class="backward"
-                    @click="prevStep"
-                  >
+                  <button v-if="currentStep > 1" type="button" class="backward" @click="prevStep">
                     Prev
                   </button>
                   <!-- Show Next button only on steps 1 and 2 -->
-                  <button
-                    v-if="currentStep < 3"
-                    type="button"
-                    class="forward"
-                    @click="nextStep"
-                  >
+                  <button v-if="currentStep < 3" type="button" class="forward" @click="nextStep">
                     Next
                   </button>
                   <!-- Show Submit button only on step 3 -->
-                  <button
-                    v-if="currentStep === 3"
-                    type="submit"
-                    class="submit"
-                  >
+                  <button v-if="currentStep === 3" type="submit" class="submit">
                     Submit
                   </button>
                 </div>
@@ -393,7 +339,8 @@ export default {
 }
 
 .main_title {
-  text-align: left; /* Align to the left */
+  text-align: left;
+  /* Align to the left */
 }
 
 .main_title h2 {
@@ -439,7 +386,8 @@ export default {
   width: 100%;
   padding: 10px 0;
   border: none;
-  border-bottom: 1px solid #ddd; /* Bottom border only */
+  border-bottom: 1px solid #ddd;
+  /* Bottom border only */
   border-radius: 0;
   background: transparent;
 }
@@ -455,7 +403,8 @@ export default {
 
 textarea.form-control {
   height: 100px;
-  border: 1px solid #ddd; /* Full border for textarea */
+  border: 1px solid #ddd;
+  /* Full border for textarea */
   padding: 10px;
 }
 
@@ -486,7 +435,7 @@ textarea.form-control {
   border-radius: 3px;
 }
 
-.container_check input:checked ~ .checkmark {
+.container_check input:checked~.checkmark {
   background-color: #007bff;
   border-color: #007bff;
 }
@@ -497,7 +446,7 @@ textarea.form-control {
   display: none;
 }
 
-.container_check input:checked ~ .checkmark:after {
+.container_check input:checked~.checkmark:after {
   display: block;
 }
 
@@ -544,7 +493,8 @@ textarea.form-control {
   display: inline-block;
 }
 
-.calendar-days, .calendar-dates {
+.calendar-days,
+.calendar-dates {
   display: grid;
   grid-template-columns: repeat(7, 1fr);
   gap: 5px;
@@ -577,7 +527,8 @@ textarea.form-control {
   cursor: not-allowed;
 }
 
-.calendar-dates span:hover:not(.disabled), .calendar-dates span.selected {
+.calendar-dates span:hover:not(.disabled),
+.calendar-dates span.selected {
   background: #007bff;
   color: white;
 }
@@ -621,10 +572,12 @@ textarea.form-control {
   text-align: center;
 }
 
-.radio-item input[type="radio"]:checked + label {
-  background: #007bff; /* Changed to blue color */
+.radio-item input[type="radio"]:checked+label {
+  background: #007bff;
+  /* Changed to blue color */
   color: white;
-  border-color: #007bff; /* Changed to blue color */
+  border-color: #007bff;
+  /* Changed to blue color */
 }
 
 #bottom-wizard {
@@ -645,7 +598,8 @@ textarea.form-control {
   margin-right: 10px;
 }
 
-#bottom-wizard .forward, #bottom-wizard .submit {
+#bottom-wizard .forward,
+#bottom-wizard .submit {
   background: #007bff;
   color: white;
 }
