@@ -9,9 +9,15 @@ use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Str;
 use Laravel\Socialite\Facades\Socialite;
-
+//use Kreait\Firebase\Auth as FirebaseAuth; // Import đúng lớp
 class LoginController extends Controller
 {
+    // protected $auth;
+
+    // public function __construct(FirebaseAuth $auth)
+    // {
+    //     $this->auth = $auth;
+    // }
     // Hiển thị trang đăng nhập
     public function showLoginForm()
     {
@@ -91,7 +97,7 @@ class LoginController extends Controller
         Auth::logout(); // Đăng xuất người dùng
         // Xóa tất cả dữ liệu trong session
         session()->flush(); // Thay vì session_destroy()
-        return redirect()->route('login')->with('success', 'Bạn đã đăng xuất thành công.');
+        return redirect('/')->with('success', 'Bạn đã đăng xuất thành công.');
     }
     //login Google
     public function redirectToGoogle()
@@ -126,7 +132,7 @@ class LoginController extends Controller
 
         // Lấy thông tin người dùng đã đăng nhập
         $userWithAuth = Auth::user();
-       // dd($userWithAuth);
+        // dd($userWithAuth);
 
         // Lưu thông tin vào session
         session([
@@ -134,7 +140,7 @@ class LoginController extends Controller
             'id' => $userWithAuth->id,
             'role' => $userWithAuth->role
         ]);
-        
+
         if ($userWithAuth->role === 'admin') {
             session([
                 'admin' => 'admin',
@@ -144,7 +150,42 @@ class LoginController extends Controller
         // Chuyển hướng đến trang chính
         return redirect()->to('/');
     }
-    //quên mk
+
+    // public function handleFacebookCallback(Request $request)
+    // {
+    //     $socialTokenId = $request->input('social-login-tokenId');
+
+    //     try {
+    //         // Xác thực token
+    //         $verifiedIdToken = $this->auth->verifyIdToken($socialTokenId);
+
+    //         // Kiểm tra claims
+    //         $claims = $verifiedIdToken->claims();
+    //         $email = $claims->get('email');
+    //         $userId = $claims->get('sub');
+
+    //         // Kiểm tra người dùng đã tồn tại chưa
+    //         $user = User::where('email', $email)->first();
+
+    //         if (!$user) {
+    //             // Nếu không tồn tại, tạo mới người dùng
+    //             $user = new User();
+    //             $user->name = $claims->get('name');
+    //             $user->email = $email;
+    //             $user->firebase_uid = $userId; // Lưu UID của Firebase
+    //             $user->password = bcrypt(Str::random(8));
+    //             $user->save();
+    //         }
+
+    //         // Đăng nhập người dùng
+    //         Auth::login($user);
+
+    //         // Redirect đến trang mà bạn muốn
+    //         return redirect()->intended('/');
+    //     } catch (\Exception $e) {
+    //         return redirect()->route('login')->withErrors(['msg' => 'Error verifying token.']);
+    //     }
+    // }
     public function showForgotPasswordForm()
     {
         return view('auth.forgotpassword');

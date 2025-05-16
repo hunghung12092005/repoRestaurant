@@ -13,7 +13,13 @@
         <li><router-link to="/contact">Contact</router-link></li>
         <li><router-link to="/blog">Blog</router-link></li>
         <li><router-link to="/reservation">Reservation</router-link></li>
-        <li><a :href="loginUrl">Login</a></li>
+
+        <!-- Kiểm tra session admin -->
+        <li v-if="isAdmin"><a :href="adminPanel">Admin Panel</a></li>
+
+        <!-- Hiển thị Login hoặc Logout -->
+        <li v-if="!isLogin"><a :href="loginUrl">Login</a></li>
+        <li v-if="isLogin"><a @click.prevent="logout">Logout</a></li>
       </ul>
     </header>
 
@@ -27,6 +33,7 @@
 import { ref, onMounted, onUnmounted } from 'vue';
 import { RouterView } from 'vue-router';
 const loginUrl = import.meta.env.VITE_LOGIN_URL; // Đường dẫn sẽ được lấy từ biến môi trường .env
+const adminPanel = import.meta.env.VITE_ADMIN_URL; // Đường dẫn sẽ được lấy từ biến môi trường .env
 const headerRef = ref(null);
 const navbarRef = ref(null);
 const navbarActive = ref(false);
@@ -37,7 +44,7 @@ const toggleMenu = () => {
 
 const handleScroll = () => {
   if (headerRef.value) {
-    console.log("scrollY:", window.scrollY);
+    //console.log("scrollY:", window.scrollY);
     headerRef.value.classList.toggle('active', window.scrollY > 0);
   }
 };
@@ -54,7 +61,23 @@ onUnmounted(() => {
 
 <script>
 export default {
+  data() {
+    return {
+      navbarActive: false,
+      isAdmin: window.userSession.admin === 'admin', // Kiểm tra nếu admin
+      isLogin: window.userSession.id !== undefined, // Kiểm tra nếu đã đăng nhập
+      loginUrl: '/login',
+    };
+  },
+  methods: {
+    logout() {
+      // Logic để đăng xuất, ví dụ gọi API
+      // Sau khi đăng xuất, có thể chuyển hướng hoặc làm mới trang
+      window.location.href = '/logout'; // Thay đổi đường dẫn theo logic của bạn
+    },
+  },
   name: 'App'
+
 }
 </script>
 
@@ -152,8 +175,10 @@ header {
 
 /* Styles cho phần thân */
 main {
-  padding-top: 80px; /* Để tránh nội dung bị che bởi header */
-  min-height: calc(100vh - 80px); /* Chiếm toàn bộ chiều cao còn lại */
+  padding-top: 80px;
+  /* Để tránh nội dung bị che bởi header */
+  min-height: calc(100vh - 80px);
+  /* Chiếm toàn bộ chiều cao còn lại */
   width: 100%;
 }
 

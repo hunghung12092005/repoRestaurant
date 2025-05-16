@@ -14,6 +14,14 @@
 
     </head>
     <body class="font-sans antialiased dark:bg-black dark:text-white/50">
+        @if (session('error'))
+            <div class="alert alert-success alert-dismissible fade show" role="alert">
+                {{ session('error') }}
+                <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+        @endif
         @section('content')
             <div id="app"></div>
         @endsection
@@ -22,7 +30,8 @@
         window.userSession = {
             name: "{{ session('name') }}",
             id: "{{ session('id') }}",
-            role: "{{ session('role') }}"
+            role: "{{ session('role') }}",
+            admin: "{{ session('admin') }}"
         };
     </script>
 </html>
