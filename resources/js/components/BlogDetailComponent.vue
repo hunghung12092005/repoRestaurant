@@ -19,7 +19,7 @@
   <div class="sisf-page-section section">
     <div class="sisf-grid sisf-layout--template">
       <div class="sisf-grid-inner container">
-        <div class="row">
+        <div class="row"> 
           <div class="col-lg-9">
             <div class="sisf-blog sisf-blog-single">
               <div class="sisf-blog-item">
@@ -27,7 +27,7 @@
                   <div class="sisf-e-media">
                     <div class="sisf-e-media-image">
                       <a href="#">
-                        <figure class="image-anime reveal">
+                        <figure class="image-anime reveal"> 
                           <img src="https://dishify-html.wpthemeverse.com/images/blog-single-1.png" class="image-fluid" alt="Dishify">
                         </figure>
                       </a>
@@ -51,17 +51,10 @@
                       <p>Embark on a quest to uncover the secrets of gastronomic delights, as each recipe unfolds a story of tradition, innovation, and passion. Delve into the vibrant tapestry of ingredients, from farm-fresh produce to exotic spices sourced from distant lands, weaving together a symphony of flavors that dance on your palate.</p>
                       <p>Through meticulous experimentation and a dash of inspiration, Discovering Deliciousness, One Recipe at a Time transforms ordinary ingredients into extraordinary culinary masterpieces. It’s a testament to the power of experimentation and the joy of culinary discovery, encouraging home cooks and food enthusiasts alike to step out of their comfort zones and embrace the thrill of trying something new.</p>
                     </div>
-<<<<<<< HEAD
                     <div class="row align-items-center">
                       <div class="col-md-5">
                         <figure class="image-anime reveal">
                           <img src="https://dishify-html.wpthemeverse.com/images/blog-single-2.png" class="image-fluid" alt="Dishify">
-=======
-                    <div class="row">
-                      <div class="col-md-4">
-                        <figure class="image-anime reveal">
-                          <img src="https://dishify-html.wpthemeverse.com/images/blog-single-1.png" class="image-fluid" alt="Dishify">
->>>>>>> ceadb37b3d5638efa2671a87778ce6b256dd2e8b
                         </figure>
                       </div>
                       <div class="col-md-7">
@@ -250,8 +243,8 @@
                 <div class="review_form">
                   <h2 class="comment-reply-title">Add Comment</h2>
                   <form id="commentform" @submit.prevent="submitComment">
-                    <p class="comment-notes">Your email address will not be published. Required fields are marked
-                      <span class="required">*</span>
+                    <p class="comment-notes">Your email address will not be published. Required fields are marked 
+                      <span class="required">*</span>                                             
                     </p>
                     <div class="review_form_box">
                       <div class="form_box-grid d-flex justify-content-between gap-4">
@@ -266,14 +259,14 @@
                         <textarea id="comment" name="comment" v-model="commentForm.comment" placeholder="Your Review *" cols="45" rows="8" maxlength="65525" required></textarea>
                       </div>
                       <div class="form-check d-flex align-items-center">
-                        <input class="form-check-input" v-model="commentForm.cookiesConsent" name="wp-comment-cookies-consent" type="checkbox" value="yes">
+                        <input class="form-check-input" v-model="commentForm.cookiesConsent" name="wp-comment-cookies-consent" type="checkbox" value="yes"> 
                         <label class="form-check-label ms-2 mt-1">Save my name, and email in this browser for the next time I comment.</label>
                       </div>
                       <div class="sisf-m-button mt-4">
                         <button type="submit" class="btn-default blog-button border-0"><span>Submit<i class="fa-solid fa-arrow-right"></i></span>
-                          <span class="sisf-m-icon">
-                            <span class="sisf-m-icon-inner">
-                            </span>
+                          <span class="sisf-m-icon">		
+                            <span class="sisf-m-icon-inner">		
+                            </span>	
                           </span>
                         </button>
                       </div>
@@ -283,7 +276,7 @@
               </div>
             </div>
           </div>
-          <!-- Blog Sidebar Start -->
+          <!-- Blog Sidebar Start -->   
           <div class="col-lg-3">
             <div class="sisf-page-sidebar bg-white">
               <div class="sidebar-widget widget_search">
@@ -306,7 +299,7 @@
                     <li class="product-categories-list-item" v-for="(category, index) in categories" :key="index">
                       <a :href="category.link">
                         <span>{{ category.name }}</span>
-                      </a>
+                      </a>                
                     </li>
                   </ul>
                 </div>
@@ -677,7 +670,6 @@ export default {
   border: 2px solid #5f5c59;
   border-top: 1px solid #eee;
 }
-<<<<<<< HEAD
 
 /* Updated styles for icon-list-item to align icon and text horizontally */
 .icon-list-items {
@@ -735,6 +727,3 @@ export default {
   margin-top: 10px; /* Add spacing above the text */
 }
 </style>
-=======
-</style>
->>>>>>> ceadb37b3d5638efa2671a87778ce6b256dd2e8b
