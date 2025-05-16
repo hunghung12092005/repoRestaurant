@@ -4,7 +4,7 @@
             <span>hh to our</span>
             <h1>Xin chào <br>{{ userName }}</h1>
             <p>Nhà Hàng Vinpearl Thanh Hóa sẵn sàng phục vụ</p>
-            <a href="#" class="btn">Xem  Menu</a>
+            <a href="/menu" class="btn">Xem  Menu</a>
         </div>
         <div v-else class="home-text">
             <span>hh to our</span>

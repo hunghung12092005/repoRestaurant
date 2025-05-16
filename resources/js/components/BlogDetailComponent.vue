@@ -51,17 +51,14 @@
                       <p>Embark on a quest to uncover the secrets of gastronomic delights, as each recipe unfolds a story of tradition, innovation, and passion. Delve into the vibrant tapestry of ingredients, from farm-fresh produce to exotic spices sourced from distant lands, weaving together a symphony of flavors that dance on your palate.</p>
                       <p>Through meticulous experimentation and a dash of inspiration, Discovering Deliciousness, One Recipe at a Time transforms ordinary ingredients into extraordinary culinary masterpieces. It’s a testament to the power of experimentation and the joy of culinary discovery, encouraging home cooks and food enthusiasts alike to step out of their comfort zones and embrace the thrill of trying something new.</p>
                     </div>
-<<<<<<< HEAD
                     <div class="row align-items-center">
                       <div class="col-md-5">
                         <figure class="image-anime reveal">
                           <img src="https://dishify-html.wpthemeverse.com/images/blog-single-2.png" class="image-fluid" alt="Dishify">
-=======
                     <div class="row">
                       <div class="col-md-4">
                         <figure class="image-anime reveal">
                           <img src="https://dishify-html.wpthemeverse.com/images/blog-single-1.png" class="image-fluid" alt="Dishify">
->>>>>>> ceadb37b3d5638efa2671a87778ce6b256dd2e8b
                         </figure>
                       </div>
                       <div class="col-md-7">
@@ -677,7 +674,6 @@ export default {
   border: 2px solid #5f5c59;
   border-top: 1px solid #eee;
 }
-<<<<<<< HEAD
 
 /* Updated styles for icon-list-item to align icon and text horizontally */
 .icon-list-items {
@@ -735,6 +731,3 @@ export default {
   margin-top: 10px; /* Add spacing above the text */
 }
 </style>
-=======
-</style>
->>>>>>> ceadb37b3d5638efa2671a87778ce6b256dd2e8b
