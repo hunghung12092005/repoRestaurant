@@ -76,7 +76,7 @@
 
     <!-- Delicious Discovery Section Start -->
     <div class="delicious-discovery section sisf-extended-grid sisf-extended-grid--left">
-      <div class="container">
+      <div class="container-fluid p-0">
         <div class="row align-items-center">
           <div class="col-md-6 ps-0">
             <div class="sisf-e-img-holder">
@@ -92,7 +92,7 @@
               <h2 class="sisf-m-title">Global Cuisine at Your Fingertips</h2>
               <div class="sisf-m-text pb-4">
                 <p>
-                  A culinary journey that transcends taste, inviting patrons to savor not just flavors, but narratives woven into each dish. From the heritage of ingredients to the passion of chefs, every element unfolds a tale, creating an immersive dining experience that delights both palate and imagination. A culinary journey that transcends taste, inviting patrons to savor not just flavors, but narratives woven into each dish.
+                  A culinary journey that transcends taste, inviting patrons to savor not just flavors, but narratives woven into each dish. From the heritage of ingredients to the passion of chefs, every element unfolds a tale, creating an immersive dining experience that delights both palate and imagination. A culinary journey that transcends taste, inviting patrons to savor not just flavors, but narratives woven into each dish. From the heritage of ingredients to the passion of chefs, every element unfolds a tale, creating an immersive dining experience that delights both palate and imagination.
                 </p>
               </div>
             </div>
@@ -105,7 +105,7 @@
 
     <!-- Flavors Of The World Section Start -->
     <div class="flavors-of-the-world section sisf-extended-grid sisf-extended-grid--left">
-      <div class="container ps-0">
+      <div class="container-fluid ps-0">
         <div class="row align-items-center">
           <div class="col-md-2">
             <figure>
@@ -121,7 +121,7 @@
             <!-- Section Title Start -->
             <div class="sisf-sis-section-title section-title wow fadeInRight" data-wow-delay="0.2s">
               <h3 class="sisf-m-subtitle">Flavors of the World</h3>
-              <h2 class="sisf-m-title text-white">Exploring the<br />World</h2>
+              <h2 class="sisf-m-title text-white">Exploring the World</h2>
               <div class="sisf-m-text">
                 <p class="text-white">
                   A culinary journey that transcends taste, inviting patrons to savor not just flavors, but narratives woven into each dish. From the heritage of ingredients to the passion.
@@ -154,8 +154,8 @@
     <div class="section gallery-section position-relative pb-0">
       <div class="container-fluid p-0">
         <div class="row gallery-items page-gallery-box">
-          <div class="col-lg-6 col-md-6 col-12">
-            <!-- image gallery start -->
+          <!-- Row 1 -->
+          <div class="col-lg-3 col-md-6 col-12">
             <div class="photo-gallery wow fadeInUp" data-wow-delay="0.2s">
               <a href="https://dishify-html.wpthemeverse.com/images/gallery_img1.png">
                 <figure class="image-anime">
@@ -163,70 +163,70 @@
                 </figure>
               </a>
             </div>
-            <div class="row">
-              <div class="col-lg-6 col-12">
-                <div class="photo-gallery wow fadeInUp" data-wow-delay="0.3s">
-                  <a href="https://dishify-html.wpthemeverse.com/images/gallery_img6.png">
-                    <figure class="image-anime">
-                      <img src="https://dishify-html.wpthemeverse.com/images/gallery_img6.png" alt="Dishify" />
-                    </figure>
-                  </a>
-                </div>
-              </div>
-              <div class="col-lg-6 col-12">
-                <div class="photo-gallery wow fadeInUp" data-wow-delay="0.4s">
-                  <a href="https://dishify-html.wpthemeverse.com/images/gallery_img5.png">
-                    <figure class="image-anime">
-                      <img src="https://dishify-html.wpthemeverse.com/images/gallery_img5.png" alt="Dishify" />
-                    </figure>
-                  </a>
-                </div>
-              </div>
-            </div>
-            <!-- image gallery end -->
           </div>
           <div class="col-lg-3 col-md-6 col-12">
-            <!-- image gallery start -->
-            <div class="photo-gallery img-gallery wow fadeInUp" data-wow-delay="0.2s">
+            <div class="photo-gallery wow fadeInUp" data-wow-delay="0.3s">
+              <a href="https://dishify-html.wpthemeverse.com/images/gallery_img6.png">
+                <figure class="image-anime">
+                  <img src="https://dishify-html.wpthemeverse.com/images/gallery_img6.png" alt="Dishify" />
+                </figure>
+              </a>
+            </div>
+          </div>
+          <div class="col-lg-3 col-md-6 col-12">
+            <div class="photo-gallery wow fadeInUp" data-wow-delay="0.4s">
+              <a href="https://dishify-html.wpthemeverse.com/images/gallery_img5.png">
+                <figure class="image-anime">
+                  <img src="https://dishify-html.wpthemeverse.com/images/gallery_img5.png" alt="Dishify" />
+                </figure>
+              </a>
+            </div>
+          </div>
+          <div class="col-lg-3 col-md-6 col-12">
+            <div class="photo-gallery wow fadeInUp" data-wow-delay="0.5s">
               <a href="https://dishify-html.wpthemeverse.com/images/gallery_img2.png">
                 <figure class="image-anime">
                   <img src="https://dishify-html.wpthemeverse.com/images/gallery_img2.png" alt="Dishify" />
                 </figure>
               </a>
             </div>
-            <div class="photo-gallery wow fadeInUp" data-wow-delay="0.3s">
+          </div>
+          <!-- Row 2 -->
+          <div class="col-lg-3 col-md-6 col-12">
+            <div class="photo-gallery wow fadeInUp" data-wow-delay="0.2s">
               <a href="https://dishify-html.wpthemeverse.com/images/gallery_img_1.png">
                 <figure class="image-anime">
                   <img src="https://dishify-html.wpthemeverse.com/images/gallery_img_1.png" alt="Dishify" />
                 </figure>
               </a>
             </div>
-            <!-- image gallery end -->
           </div>
           <div class="col-lg-3 col-md-6 col-12">
-            <!-- image gallery start -->
-            <div class="photo-gallery wow fadeInUp" data-wow-delay="0.2s">
+            <div class="photo-gallery wow fadeInUp" data-wow-delay="0.3s">
               <a href="https://dishify-html.wpthemeverse.com/images/gallery_img_5.png">
                 <figure class="image-anime">
                   <img src="https://dishify-html.wpthemeverse.com/images/gallery_img_5.png" alt="Dishify" />
                 </figure>
               </a>
             </div>
-            <div class="photo-gallery wow fadeInUp" data-wow-delay="0.3s">
+          </div>
+          <div class="col-lg-3 col-md-6 col-12">
+            <div class="photo-gallery wow fadeInUp" data-wow-delay="0.4s">
               <a href="https://dishify-html.wpthemeverse.com/images/gallery_img_4.png">
                 <figure class="image-anime">
                   <img src="https://dishify-html.wpthemeverse.com/images/gallery_img_4.png" alt="Dishify" />
                 </figure>
               </a>
             </div>
-            <div class="photo-gallery wow fadeInUp" data-wow-delay="0.4s">
+          </div>
+          <div class="col-lg-3 col-md-6 col-12">
+            <div class="photo-gallery wow fadeInUp" data-wow-delay="0.5s">
               <a href="https://dishify-html.wpthemeverse.com/images/gallery_img3.png">
                 <figure class="image-anime">
                   <img src="https://dishify-html.wpthemeverse.com/images/gallery_img3.png" alt="Dishify" />
                 </figure>
               </a>
             </div>
-            <!-- image gallery end -->
           </div>
         </div>
       </div>
@@ -235,7 +235,7 @@
 
     <!-- Testimonial Section Start -->
     <div class="testimonial section">
-      <div class="container">
+      <div class="container-fluid">
         <div class="row">
           <div class="col-12 text-center">
             <!-- Section Title Start -->
@@ -434,6 +434,15 @@ export default {
   text-align: center;
   color: #fff;
 }
+
+.colinary-journey .sisf-m-subtitle {
+  font-family: 'Cherish', cursive;
+  color: #f24709e8;
+  font-size: 50px;
+  line-height: 1.2;
+  margin-bottom: 10px;
+}
+
 .sisf-page-title h1 {
   font-size: 3rem;
   font-family: 'Cormorant Infant', serif;
@@ -441,6 +450,56 @@ export default {
 .section {
   padding: 60px 0;
 }
+
+/* Delicious Discovery Section Specific Styles */
+.delicious-discovery {
+  position: relative;
+  background: #fff;
+  background-image: url(https://png.pngtree.com/thumb_back/fh260/background/20231227/pngtree-crinkled-ivory-space-paper-textured-background-image_13861197.png);
+  background-size: cover;
+  background-position: center;
+}
+.delicious-discovery .sisf-sis-section-title {
+  padding: 0 20px;
+}
+.delicious-discovery .sisf-m-subtitle {
+  font-family: 'Cherish', cursive;
+  color: #f24709e8;
+  font-size: 50px;
+  line-height: 1.2;
+  margin-bottom: 10px;
+}
+.delicious-discovery .sisf-m-title {
+  font-family: 'Cormorant Infant', serif;
+  font-size: 3rem;
+  font-weight: 700;
+  color: #333;
+  line-height: 1.2;
+  margin-bottom: 20px;
+}
+.delicious-discovery .sisf-m-text p {
+  font-family: 'Work Sans', sans-serif;
+  color: #666;
+  font-size: 1rem;
+  line-height: 1.6;
+  max-width: 500px;
+}
+
+.sisf-e-img-holder {
+  margin-left: 0;
+  padding-left: 0;
+}
+.sisf-e-img-holder figure {
+  margin: 0;
+}
+.sisf-e-img-holder img {
+  max-width: 100%;
+  height: auto;
+  display: block;
+  margin-left: 0;
+}
+
+/* General Section Styles */
 .sisf-sis-section-title h3 {
   font-family: 'Cherish', cursive;
   color: #f15a22;
@@ -456,7 +515,6 @@ export default {
   color: #666;
 }
 .colinary-journey img,
-.delicious-discovery img,
 .flavors-of-the-world img {
   max-width: 100%;
   height: auto;
@@ -489,7 +547,8 @@ export default {
 }
 .photo-gallery img {
   width: 100%;
-  height: auto;
+  height: 300px; 
+  object-fit: cover; 
   transition: transform 0.3s;
 }
 .photo-gallery img:hover {
@@ -603,8 +662,17 @@ export default {
   .sisf-page-title h1 {
     font-size: 2rem;
   }
-  .sisf-sis-section-title h2 {
-    font-size: 1.8rem;
+  .delicious-discovery .sisf-m-title {
+    font-size: 2rem;
+  }
+  .delicious-discovery .sisf-m-subtitle {
+    font-size: 1.2rem;
+  }
+  .delicious-discovery .sisf-m-text p {
+    font-size: 0.9rem;
+  }
+  .photo-gallery img {
+    height: 150px; /* Smaller height on mobile */
   }
 }
 </style>
