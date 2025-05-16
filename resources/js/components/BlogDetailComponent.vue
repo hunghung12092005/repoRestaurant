@@ -51,22 +51,22 @@
                       <p>Embark on a quest to uncover the secrets of gastronomic delights, as each recipe unfolds a story of tradition, innovation, and passion. Delve into the vibrant tapestry of ingredients, from farm-fresh produce to exotic spices sourced from distant lands, weaving together a symphony of flavors that dance on your palate.</p>
                       <p>Through meticulous experimentation and a dash of inspiration, Discovering Deliciousness, One Recipe at a Time transforms ordinary ingredients into extraordinary culinary masterpieces. It’s a testament to the power of experimentation and the joy of culinary discovery, encouraging home cooks and food enthusiasts alike to step out of their comfort zones and embrace the thrill of trying something new.</p>
                     </div>
-                    <div class="row">
-                      <div class="col-md-4">
-                        <figure class="image-anime reveal"> 
-                          <img src="https://dishify-html.wpthemeverse.com/images/blog-single-1.png" class="image-fluid" alt="Dishify">
+                    <div class="row align-items-center">
+                      <div class="col-md-5">
+                        <figure class="image-anime reveal">
+                          <img src="https://dishify-html.wpthemeverse.com/images/blog-single-2.png" class="image-fluid" alt="Dishify">
                         </figure>
                       </div>
-                      <div class="col-md-8">
-                        <div class="sisf-m-icon-wrapper">
-                          <div class="sisf-m-icon-holder">
-                            <div class="sisf-e-qoute-background-text fa-solid fa-quote-left"></div>
+                      <div class="col-md-7">
+                        <div class="sisf-m-icon-wrapper d-flex align-items-start">
+                          <div class="sisf-m-icon-holder me-3">
+                            <div class="sisf-e-quote-background-text fa-solid fa-quote-left"></div>
                           </div>
-                          <div class="sisf-m-content mt-4">
-                            <h4 class="sisf-m-title">
+                          <div class="sisf-m-content">
+                            <h4 class="sisf-m-title mb-3">
                               <span class="sisf-m-title-text">Culinary Adventures: Unveiling Delectable Delights, One Recipe at a Time</span>
                             </h4>
-                            <div class="sisf-m-text mt-4">Embark on a journey through the tantalizing world of gastronomy with our collection of meticulously crafted recipes. From mouthwatering mains to indulgent desserts, each dish promises to awaken your taste buds and inspire your culinary creativity. Join us as we explore the art of cooking and discover deliciousness, one recipe at a time.</div>
+                            <div class="sisf-m-text">Embark on a journey through the tantalizing world of gastronomy with our collection of meticulously crafted recipes. From mouthwatering mains to indulgent desserts, each dish promises to awaken your taste buds and inspire your culinary creativity. Join us as we explore the art of cooking and discover deliciousness, one recipe at a time.</div>
                           </div>
                         </div>
                       </div>
@@ -534,10 +534,9 @@ export default {
   background: #e76f51;
 }
 
-/* Sidebar Styles */
 .sisf-page-sidebar {
   padding: 20px;
-  border: 1px solid #eee; /* Restored border */
+  border: 1px solid #eee;
   background: #fff;
 }
 
@@ -617,10 +616,6 @@ export default {
   margin-bottom: 15px;
 }
 
-.sisf-blog-image {
-  flex-shrink: 0;
-}
-
 .sisf-blog-image img {
   width: 60px;
   height: 60px;
@@ -674,5 +669,61 @@ export default {
 .sidebar-separator hr {
   border: 2px solid #5f5c59;
   border-top: 1px solid #eee;
+}
+
+/* Updated styles for icon-list-item to align icon and text horizontally */
+.icon-list-items {
+  padding: 0;
+  margin: 0;
+  list-style: none;
+}
+
+.icon-list-item {
+  display: flex;
+  align-items: center; /* Vertically center the icon and text */
+  margin-bottom: 10px;
+}
+
+.sisf-e-icon {
+  margin-right: 10px; /* Adjust spacing between icon and text */
+}
+
+.sisf-e-icon img {
+  width: 20px; /* Adjust icon size as needed */
+  height: 20px;
+}
+
+.icon-list-text {
+  font-size: 18px;
+  color: #666;
+  font-family: 'Work Sans', sans-serif;
+  line-height: 1; /* Ensure text aligns properly with icon */
+}
+
+.sisf-m-icon-wrapper {
+  display: flex;
+  align-items: flex-start;
+  margin-top: 20px; /* Add spacing above the content */
+}
+
+.sisf-e-quote-background-text {
+  font-size: 48px; /* Adjust size for the quote icon */
+  color: #f4a261; /* Change color to match design */
+  line-height: 1; /* Ensure proper vertical alignment */
+  margin-top: 10px; /* Add space above the quote icon */
+}
+
+.sisf-m-title-text {
+  font-size: 24px; /* Increase title font size */
+  font-weight: 700; /* Make title bold */
+  color: #333; /* Dark text color */
+  font-family: 'Cormorant Infant', serif; /* Use desired font */
+}
+
+.sisf-m-text {
+  font-size: 16px; /* Increase text size for readability */
+  color: #666; /* Gray text color */
+  line-height: 1.6; /* Improve line spacing */
+  margin-top: 10px; /* Add spacing above the text */
 }
 </style>
