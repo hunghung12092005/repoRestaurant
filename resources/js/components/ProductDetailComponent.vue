@@ -175,13 +175,6 @@
           </div>
         </div>
       </div>
-      <!-- Decorative Shapes -->
-      <!-- <div class="shop-detsils-shape1 bounce-animate2">
-        <img src="https://images.unsplash.com/photo-1618477461853-c0c7219c87f0" alt="shape">
-      </div>
-      <div class="shop-detsils-shape2 bounce-animate3">
-        <img src="https://images.unsplash.com/photo-1618477461853-c0c7219c87f0" alt="shape">
-      </div> -->
     </div>
   </div>
 </template>
