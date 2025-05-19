@@ -29,7 +29,7 @@ const routes = [
 ];
 
 const router = createRouter({
-    history: createWebHistory(), // Sử dụng history mode
+    history: createWebHistory(), 
     routes
 });
 
