@@ -113,7 +113,7 @@
                 <div class="shop-img">
                     <img src="https://i.postimg.cc/kXq3PgHT/shop1.jpg" alt="shop image">
                 </div>
-                <h3>White Sauce Salad with Lentils</h3>
+                <h3><a href="/product-detail">White Sauce Salad with Lentils</a></h3>
                 <h2>$ 9.99</h2>
                 <i class='bx bxs-cart-add'></i>
             </div>

@@ -10,6 +10,7 @@ import ReservationComponent from './components/ReservationComponent.vue';
 import BlogComponent from './components/BlogComponent.vue';
 import MenuComponent from './components/MenuComponent.vue';
 import BlogDetailComponent from './components/BlogDetailComponent.vue';
+import ProductDetailComponent from './components/ProductDetailComponent.vue';
 import AdminDashboardComponent from './components/AdminDashboardComponent.vue';
 
 import 'bootstrap/dist/css/bootstrap.min.css';
@@ -23,13 +24,14 @@ const routes = [
     { path: '/blog', component: BlogComponent },
     { path: '/menu', component: MenuComponent },
     { path: '/blog-detail', component: BlogDetailComponent },
+    { path: '/product-detail', component: ProductDetailComponent },
     { path: '/contact', component: ContactComponent },
     { path: '/reservation', component: ReservationComponent },
     { path: '/admin-dashboard', component: AdminDashboardComponent },
 ];
 
 const router = createRouter({
-    history: createWebHistory(), 
+    history: createWebHistory(),
     routes
 });
 

@@ -1,225 +1,383 @@
 <template>
-  <section class="menu section">
-    <h2 class="section__title">Menu Của Chúng Tôi</h2>
-    <div class="menu__tabs">
-      <button @click="currentTab = 'breakfast'" :class="{ active: currentTab === 'breakfast' }">Bữa sáng</button>
-      <button @click="currentTab = 'lunch'" :class="{ active: currentTab === 'lunch' }">Bữa trưa</button>
-      <button @click="currentTab = 'dinner'" :class="{ active: currentTab === 'dinner' }">Bữa tối</button>
-    </div>
-
-    <div class="menu__items">
-      <div
-        v-for="(item, index) in filteredItems"
-        :key="index"
-        class="menu__item"
-      >
-        <img :src="item.image" :alt="item.name" class="menu__img" />
-        <div class="menu__details">
-          <div class="menu__title">
-            <h3>{{ item.name }}</h3>
-            <span class="menu__price">${{ item.price }}</span>
-          </div>
-          <p>{{ item.description }}</p>
+  <div class="menu-board">
+    <h1 class="main-title">Welcome to Our Delicious Menu</h1>
+    <div class="menu-container">
+      <div class="menu-section">
+        <div class="menu-image">
+          <img src="https://media.istockphoto.com/id/1268693109/vi/anh/g%C3%A0-n%C6%B0%E1%BB%9Bng.jpg?s=612x612&w=0&k=20&c=XHWMnYeNN-zC2nkP8nwMfOpAVGMcTYKA4GzrYVIoOLg=" alt="Chicken Image" />
+        </div>
+        <div class="menu-items">
+          <h2># Chicken</h2>
+          <ul>
+            <li>Chicken Food ............ <span>$25.00</span></li>
+            <li>Chicken Burger ............ <span>$70.00</span></li>
+            <li>Chicken Meal ............ <span>$10.00</span></li>
+            <li>Fried Chicken ............ <span>$31.00</span></li>
+            <li>Chicken Wings ............ <span>$22.00</span></li>
+            <li>Grilled Chicken ............ <span>$45.00</span></li>
+            <li>Spicy Chicken ............ <span>$28.00</span></li>
+            <li>Chicken Strips ............ <span>$18.00</span></li>
+            <li>Chicken Nuggets ............ <span>$15.00</span></li>
+            <li>BBQ Chicken ............ <span>$35.00</span></li>
+          </ul>
+        </div>
+      </div>
+      <div class="menu-section reverse">
+        <div class="menu-image">
+          <img src="https://media.istockphoto.com/id/1442417585/vi/anh/ng%C6%B0%E1%BB%9Di-nh%E1%BA%ADn-%C4%91%C6%B0%E1%BB%A3c-m%E1%BB%99t-mi%E1%BA%BFng-pizza-pepperoni-ph%C3%B4-mai.jpg?s=612x612&w=0&k=20&c=5e9ycu8KvpKcIVIwNmEGaxr8yh9x8IMdpeIJ3HdtSxU=" alt="Pizza Image" />
+        </div>
+        <div class="menu-items">
+          <h2># Pizza</h2>
+          <ul>
+            <li>Margherita Sushi Pizza ............ <span>$30.00</span></li>
+            <li>Sausage Pizza ............ <span>$32.00</span></li>
+            <li>Original Pizza ............ <span>$31.00</span></li>
+            <li>Pepperoni Pizza ............ <span>$55.00</span></li>
+            <li>Italian Pizza ............ <span>$32.00</span></li>
+            <li>Vegetarian Pizza ............ <span>$28.00</span></li>
+            <li>Supreme Pizza ............ <span>$40.00</span></li>
+            <li>Cheese Pizza ............ <span>$27.00</span></li>
+            <li>Seafood Pizza ............ <span>$45.00</span></li>
+            <li>Hawaiian Pizza ............ <span>$33.00</span></li>
+          </ul>
+        </div>
+      </div>
+      <div class="menu-section">
+        <div class="menu-image">
+          <img src="https://ngochieu.com.vn/l3fkjizn4pr57n5e/lich-su-ra-doi-mon-bit-tet-ngon.jpg" alt="Beef Image" />
+        </div>
+        <div class="menu-items">
+          <h2># Beef</h2>
+          <ul>
+            <li>Beef Steak ............ <span>$50.00</span></li>
+            <li>Beef Burger ............ <span>$45.00</span></li>
+            <li>Grilled Beef ............ <span>$38.00</span></li>
+            <li>Beef Ribs ............ <span>$55.00</span></li>
+            <li>Beef Stir-Fry ............ <span>$30.00</span></li>
+            <li>Beef Tacos ............ <span>$20.00</span></li>
+            <li>Beef Curry ............ <span>$35.00</span></li>
+            <li>Beef Skewers ............ <span>$25.00</span></li>
+            <li>Beef Meatballs ............ <span>$18.00</span></li>
+            <li>Roast Beef ............ <span>$40.00</span></li>
+          </ul>
+        </div>
+      </div>
+      <div class="menu-section reverse">
+        <div class="menu-image">
+          <img src="https://i0.wp.com/inchefmode.com/wp-content/uploads/2022/07/PARKROYAL-COLLECTION-Pickering_Lime-Restaurant_Lobsterfest-2022-1-scaled.jpg?resize=810%2C535&ssl=1" alt="Seafood Image" />
+        </div>
+        <div class="menu-items">
+          <h2># Seafood</h2>
+          <ul>
+            <li>Grilled Salmon ............ <span>$45.00</span></li>
+            <li>Shrimp Cocktail ............ <span>$30.00</span></li>
+            <li>Fried Fish ............ <span>$25.00</span></li>
+            <li>Seafood Paella ............ <span>$40.00</span></li>
+            <li>Crab Legs ............ <span>$50.00</span></li>
+            <li>Clam Chowder ............ <span>$28.00</span></li>
+            <li>Lobster Tail ............ <span>$60.00</span></li>
+            <li>Shrimp Scampi ............ <span>$35.00</span></li>
+            <li>Fish and Chips ............ <span>$22.00</span></li>
+            <li>Oyster Platter ............ <span>$45.00</span></li>
+          </ul>
+        </div>
+      </div>
+      <div class="menu-section">
+        <div class="menu-image">
+          <img src="https://thumb.photo-ac.com/e2/e2f2753c5c96aea862484af6845522b7_t.jpeg" alt="Dessert Image" />
+        </div>
+        <div class="menu-items">
+          <h2># Desserts</h2>
+          <ul>
+            <li>Chocolate Cake ............ <span>$15.00</span></li>
+            <li>Apple Pie ............ <span>$12.00</span></li>
+            <li>Ice Cream Sundae ............ <span>$10.00</span></li>
+            <li>Cheesecake ............ <span>$14.00</span></li>
+            <li>Tiramisu ............ <span>$16.00</span></li>
+            <li>Fruit Tart ............ <span>$13.00</span></li>
+            <li>Brownies ............ <span>$11.00</span></li>
+            <li>Pudding ............ <span>$9.00</span></li>
+            <li>Creme Brulee ............ <span>$18.00</span></li>
+            <li>Macarons ............ <span>$20.00</span></li>
+          </ul>
         </div>
       </div>
     </div>
-
-    <div class="menu__btn">
-      <button>Xem thêm</button>
-    </div>
-  </section>
+  </div>
 </template>
 
 <script>
 export default {
+  name: 'MenuComponent',
   data() {
     return {
-      currentTab: 'breakfast',
-      breakfastItems: [
-        {
-          name: 'Bánh Mì Gà',
-          price: 24,
-          description: 'Bánh mì gà nướng thơm ngon với rau xà lách, cà chua và sốt mayo.',
-          image: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSmWZ9OBxXbdPPVS7wMmzb0JvzVs_yTVmn5Ew&s'
-        },
-        {
-          name: 'Cà Phê Đen',
-          price: 20,
-          description: 'Cà phê đen thơm lừng, được pha chế hoàn hảo.',
-          image: 'https://file.hstatic.net/1000274203/article/tac_dung_cua_ca_phe_den_2a1a0e12486f430cb893203b10dea6c7.jpg'
-        },
-        {
-          name: 'Bánh Mì Trứng',
-          price: 22,
-          description: 'Bánh mì nóng giòn kẹp trứng chiên và rau thơm.',
-          image: 'https://cdn1z.reatimes.vn/media/uploaded/17/2017/05/21/banh-mi-trung-viet-nam-mon-an-sang-ngon-nhat-the-gioi-hinh-anh-1-1-tieudungplus.jpg'
-        },
-        {
-          name: 'Sinh Tố Dâu',
-          price: 15,
-          description: 'Sinh tố dâu tươi mát, ngọt dịu.',
-          image: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcR4viLoyHDeoN2EwnTHhWNOU4URm_7ZIB0AyQ&s'
-        },
+      chickenItems: [
+        { name: 'Chicken Food', price: '$25.00' },
+        { name: 'Chicken Burger', price: '$70.00' },
+        { name: 'Chicken Meal', price: '$10.00' },
+        { name: 'Fried Chicken', price: '$31.00' },
+        { name: 'Chicken Wings', price: '$22.00' },
+        { name: 'Grilled Chicken', price: '$45.00' },
+        { name: 'Spicy Chicken', price: '$28.00' },
+        { name: 'Chicken Strips', price: '$18.00' },
+        { name: 'Chicken Nuggets', price: '$15.00' },
+        { name: 'BBQ Chicken', price: '$urous35.00' },
       ],
-      lunchItems: [
-        {
-          name: 'Cơm Gà Hải Nam',
-          price: 35,
-          description: 'Gà luộc mềm, cơm thơm béo cùng nước chấm đặc trưng.',
-          image: 'https://storage.googleapis.com/onelife-public/blog.onelife.vn/2021/10/cach-lam-com-ga-hai-nam-mon-chinh-128712856017.jpg'
-        },
-        {
-          name: 'Phở Bò',
-          price: 30,
-          description: 'Phở bò truyền thống với nước dùng đậm đà.',
-          image: 'https://www.cleanipedia.com/images/5iwkm8ckyw6v/1nkKwq9bh6895XmQbw1u57/ff61e91cc6b72de45c919eec412face3/aHVvbmctZGFuLWNhY2gtbmF1LXBoby1iby1jaHVhbi12aS1uZ29haS1oYW5nLXRob20tbmdvbi1oYXAtZGFuLmpwZw/600w/t%C3%B4-ph%E1%BB%9F-b%C3%B2-v%E1%BB%9Bi-h%C3%A0nh%2C-rau-m%C3%B9i%2C-%E1%BB%9Bt%2C-v%C3%A0-chanh-c%E1%BA%A1nh-%E1%BA%A5m-n%C6%B0%E1%BB%9Bc-ch%E1%BA%A5m..jpg'
-        },
-        {
-          name: 'Bún Thịt Nướng',
-          price: 32,
-          description: 'Bún kèm thịt nướng, rau sống và nước mắm chua ngọt.',
-          image: 'https://cdn.tgdd.vn/2021/12/CookRecipe/GalleryStep/3-3.jpg'
-        },
-        {
-          name: 'Gỏi Cuốn',
-          price: 28,
-          description: 'Gỏi cuốn tươi ngon, ăn kèm nước chấm đặc biệt.',
-          image: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRmZMNTkaFVX25zsQkPxsGK9K4wukuws-BhPg&s'
-        }
+      pizzaItems: [
+        { name: 'Margherita Sushi Pizza', price: '$30.00' },
+        { name: 'Sausage Pizza', price: '$32.00' },
+        { name: 'Original Pizza', price: '$31.00' },
+        { name: 'Pepperoni Pizza', price: '$55.00' },
+        { name: 'Italian Pizza', price: '$32.00' },
+        { name: 'Vegetarian Pizza', price: '$28.00' },
+        { name: 'Supreme Pizza', price: '$40.00' },
+        { name: 'Cheese Pizza', price: '$27.00' },
+        { name: 'Seafood Pizza', price: '$45.00' },
+        { name: 'Hawaiian Pizza', price: '$33.00' },
       ],
-      dinnerItems: [
-        {
-          name: 'Lẩu Hải Sản',
-          price: 55,
-          description: 'Lẩu đậm đà với tôm, mực, cá, rau và nước dùng thơm ngon.',
-          image: 'https://www.cet.edu.vn/wp-content/uploads/2018/01/lau-hai-san.jpg'
-        },
-        {
-          name: 'Tôm Rim Mặn',
-          price: 40,
-          description: 'Tôm rim với nước mắm và tiêu, ăn cùng cơm trắng.',
-          image: 'https://haisanloccantho.com/wp-content/uploads/2024/11/thuong-thuc-mon-tom-rim-man-ngot.jpg'
-        },
-        {
-          name: 'Canh Chua Cá',
-          price: 38,
-          description: 'Canh chua cá lóc kiểu miền Nam, thanh mát.',
-          image: 'https://i-giadinh.vnecdn.net/2021/03/19/ca2-1616122035-2163-1616122469.jpg'
-        },
-        {
-          name: 'Mực Nướng Sa Tế',
-          price: 45,
-          description: 'Mực nướng thơm phức, cay nồng cùng sa tế đặc biệt.',
-          image: 'https://static.hawonkoo.vn/hwk02/images/2023/10/cach-lam-muc-nuong-sa-te-bang-noi-chien-khong-dau-1.jpg'
-        }
-      ]
+      beefItems: [
+        { name: 'Beef Steak', price: '$50.00' },
+        { name: 'Beef Burger', price: '$45.00' },
+        { name: 'Grilled Beef', price: '$38.00' },
+        { name: 'Beef Ribs', price: '$55.00' },
+        { name: 'Beef Stir-Fry', price: '$30.00' },
+        { name: 'Beef Tacos', price: '$20.00' },
+        { name: 'Beef Curry', price: '$35.00' },
+        { name: 'Beef Skewers', price: '$25.00' },
+        { name: 'Beef Meatballs', price: '$18.00' },
+        { name: 'Roast Beef', price: '$40.00' },
+      ],
+      seafoodItems: [
+        { name: 'Grilled Salmon', price: '$45.00' },
+        { name: 'Shrimp Cocktail', price: '$30.00' },
+        { name: 'Fried Fish', price: '$25.00' },
+        { name: 'Seafood Paella', price: '$40.00' },
+        { name: 'Crab Legs', price: '$50.00' },
+        { name: 'Clam Chowder', price: '$28.00' },
+        { name: 'Lobster Tail', price: '$60.00' },
+        { name: 'Shrimp Scampi', price: '$35.00' },
+        { name: 'Fish and Chips', price: '$22.00' },
+        { name: 'Oyster Platter', price: '$45.00' },
+      ],
+      dessertItems: [
+        { name: 'Chocolate Cake', price: '$15.00' },
+        { name: 'Apple Pie', price: '$12.00' },
+        { name: 'Ice Cream Sundae', price: '$10.00' },
+        { name: 'Cheesecake', price: '$14.00' },
+        { name: 'Tiramisu', price: '$16.00' },
+        { name: 'Fruit Tart', price: '$13.00' },
+        { name: 'Brownies', price: '$11.00' },
+        { name: 'Pudding', price: '$9.00' },
+        { name: 'Creme Brulee', price: '$18.00' },
+        { name: 'Macarons', price: '$20.00' },
+      ],
     };
   },
-  computed: {
-    filteredItems() {
-      if (this.currentTab === 'breakfast') return this.breakfastItems;
-      if (this.currentTab === 'lunch') return this.lunchItems;
-      if (this.currentTab === 'dinner') return this.dinnerItems;
-      return [];
-    }
-  }
 };
 </script>
 
 <style scoped>
-.section {
-  padding: 2rem;
-  text-align: center;
-}
-
-.section__title {
-  font-size: 2rem;
-  color: #d92d3a;
-  margin-bottom: 1.5rem;
-}
-
-.menu__tabs {
-  display: flex;
-  justify-content: center;
-  gap: 1rem;
-  margin-bottom: 2rem;
-}
-
-.menu__tabs button {
-  padding: 0.5rem 1rem;
-  border: none;
-  background-color: #eee;
-  font-weight: bold;
-  cursor: pointer;
-  border-radius: 5px;
-  transition: background 0.3s;
-}
-
-.menu__tabs .active {
-  background-color: #d92d3a;
-  color: white;
-}
-
-.menu__items {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: center;
-  gap: 2rem;
-}
-
-.menu__item {
-  width: 250px;
-  text-align: left;
-  border: 1px solid #eee;
-  border-radius: 8px;
-  overflow: hidden;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-  background: #fff;
+.menu-board {
+  font-family: 'Poppins', sans-serif;
+  min-height: 100vh;
+  background: linear-gradient(135deg, #fdfbfb 0%, #ebedee 100%);
   display: flex;
   flex-direction: column;
+  align-items: center;
+  padding: 40px 20px;
+  overflow-x: hidden;
 }
 
-.menu__img {
-  width: 100%;
-  height: 160px;
-  object-fit: cover;
+.main-title {
+  color: #1a2a44;
+  font-size: 2.8em;
+  font-weight: 700;
+  margin-bottom: 40px;
+  text-align: center;
+  letter-spacing: 0.5px;
+  animation: fadeInDown 1s ease-out;
+}
+
+.main-title::after {
+  content: '';
   display: block;
+  width: 80px;
+  height: 3px;
+  background: #ff6b6b;
+  margin: 10px auto;
+  border-radius: 2px;
 }
 
-.menu__details {
-  padding: 1rem;
+.menu-container {
+  width: 100%;
+  max-width: 1100px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
 }
 
-.menu__title {
+.menu-section {
+  display: flex;
+  align-items: stretch;
+  background: #ffffff;
+  padding: 25px;
+  border-radius: 15px;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.08);
+  width: 100%;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  animation: fadeInUp 0.6s ease-out forwards;
+  animation-delay: calc(var(--index) * 0.15s);
+  opacity: 0;
+}
+
+.menu-section:nth-child(1) { --index: 1; }
+.menu-section:nth-child(2) { --index: 2; }
+.menu-section:nth-child(3) { --index: 3; }
+.menu-section:nth-child(4) { --index: 4; }
+.menu-section:nth-child(5) { --index: 5; }
+
+.menu-section:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.12);
+}
+
+.menu-section.reverse {
+  flex-direction: row-reverse;
+}
+
+.menu-image {
+  flex: 0 0 45%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 10px;
+}
+
+.menu-image img {
+  width: 100%;
+  height: 450px;
+  margin-top: 50px;
+  object-fit: cover;
+  border-radius: 10px;
+  transition: transform 0.3s ease;
+}
+
+.menu-image img:hover {
+  transform: scale(1.03);
+}
+
+.menu-items {
+  flex: 0 0 55%;
+  padding: 15px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.menu-items h2 {
+  color: #1a2a44;
+  font-size: 1.8em;
+  font-weight: 600;
+  margin-bottom: 15px;
+  border-bottom: 2px solid #ff6b6b;
+  padding-bottom: 8px;
+}
+
+.menu-items ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.menu-items li {
   display: flex;
   justify-content: space-between;
-  align-items: center;
+  padding: 10px 0;
+  font-size: 1.1em;
+  color: #2d3748;
+  border-bottom: 1px dotted #e2e8f0;
+  transition: color 0.2s ease;
 }
 
-.menu__title h3 {
-  margin: 0;
-  color: #b23234;
-  font-size: 1.1rem;
+.menu-items li:hover {
+  color: #ff6b6b;
+}
+
+.menu-items li span {
+  color: #ff6b6b;
   font-weight: 600;
 }
 
-.menu__price {
-  font-weight: bold;
-  font-style: italic;
-  color: #333;
+@media (max-width: 1024px) {
+  .menu-section {
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .menu-section.reverse {
+    flex-direction: column;
+  }
+
+  .menu-image {
+    flex: 0 0 100%;
+    max-width: 350px;
+  }
+
+  .menu-image img {
+    height: 250px;
+  }
+
+  .menu-items {
+    flex: 0 0 100%;
+    text-align: center;
+  }
+
+  .menu-items h2 {
+    font-size: 1.6em;
+  }
 }
 
-.menu__btn {
-  margin-top: 2rem;
+@media (max-width: 480px) {
+  .main-title {
+    font-size: 2em;
+  }
+
+  .menu-section {
+    padding: 15px;
+  }
+
+  .menu-image img {
+    height: 200px;
+  }
+
+  .menu-items h2 {
+    font-size: 1.4em;
+  }
+
+  .menu-items li {
+    font-size: 1em;
+  }
 }
 
-.menu__btn button {
-  background-color: #d92d3a;
-  color: white;
-  border: none;
-  padding: 0.7rem 1.5rem;
-  font-weight: bold;
-  border-radius: 8px;
-  cursor: pointer;
+@keyframes fadeInDown {
+  from {
+    opacity: 0;
+    transform: translateY(-15px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(15px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 </style>
