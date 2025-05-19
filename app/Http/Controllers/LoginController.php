@@ -9,6 +9,9 @@ use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Str;
 use Laravel\Socialite\Facades\Socialite;
+use Tymon\JWTAuth\Exceptions\JWTException;
+use Tymon\JWTAuth\Facades\JWTAuth;
+
 //use Kreait\Firebase\Auth as FirebaseAuth; // Import đúng lớp
 class LoginController extends Controller
 {
@@ -25,40 +28,29 @@ class LoginController extends Controller
     }
 
     // Xử lý yêu cầu đăng nhập
-    public function login(Request $request)
-    {
-        // Xác thực dữ liệu nhập vào
-        $request->validate([
-            'email' => 'required|email',
-            'password' => 'required|min:6',
-        ]);
+    // public function login(Request $request)
+    // {
+    //     // Xác thực dữ liệu nhập vào
+    //     $request->validate([
+    //         'email' => 'required|email',
+    //         'password' => 'required|min:6',
+    //     ]);
 
-        // Kiểm tra thông tin xác thực
-        if (Auth::attempt(['email' => $request->email, 'password' => $request->password])) {
-            // Nếu thành công, chuyển hướng đến trang chính
-            $user = Auth::user();
+    //     // Kiểm tra thông tin xác thực và lấy token
+    //     if (!$token = JWTAuth::attempt($request->only('email', 'password'))) {
+    //         return redirect()->back()->withErrors(['userFind' => 'Thông tin đăng nhập không chính xác.']);
+    //     }
 
-            // Gán tên vào session
-            session([
-                'name' => $user->name,
-                'id' => $user->id,
-                'role' => $user->role
-            ]);
-            if (session('role') === 'admin') {
-                session([
-                    'admin' => 'admin',
-                ]);
-            }
-            //$id = session('name'); // Lấy giá trị 'id' từ session
-            //dd($id); // Hiển thị giá trị 'id'
-            return redirect()->to('/')->with('success', 'Đăng nhập thành công!');
-        }
+    //     // Lấy thông tin người dùng dựa trên email
+    //     $user = User::where('email', $request->email)->first();
 
-        // Nếu thất bại, quay lại với thông báo lỗi
-        return redirect()->back()->withErrors([
-            'userFind' => 'Thông tin đăng nhập không chính xác.',
-        ])->withInput();
-    }
+    //     // Chuyển hướng đến view với token và thông tin người dùng
+    //     return redirect('/')->with([
+    //         'token' => $token,
+    //         'user' => $user,
+    //     ]);
+    // }
+
 
     // Hiển thị trang đăng ký
     public function showRegistrationForm()
@@ -67,29 +59,31 @@ class LoginController extends Controller
     }
 
     // Xử lý yêu cầu đăng ký
-    public function register(Request $request)
-    {
-        // dd(1);
-        // Xác thực dữ liệu nhập vào
-        $request->validate([
-            'name' => 'required|string|max:255',
-            'email' => 'required|string|email|max:255|unique:users',
-            'password' => 'required|string|min:6|confirmed',
-        ]);
-        $role = 'client';
-        // Tạo người dùng mới
-        $user = User::create([
-            'name' => $request->name,
-            'email' => $request->email,
-            'role' => $role,
-            'password' => Hash::make($request->password), // Mã hóa mật khẩu
-        ]);
+    // public function register(Request $request)
+    // {
+    //     // dd(1);
+    //     // Xác thực dữ liệu nhập vào
+    //     $request->validate([
+    //         'name' => 'required|string|max:255',
+    //         'email' => 'required|string|email|max:255|unique:users',
+    //         'password' => 'required|string|min:6|confirmed',
+    //     ]);
+    //     $role = 'client';
+    //     // Tạo người dùng mới
+    //     $user = User::create([
+    //         'name' => $request->name,
+    //         'email' => $request->email,
+    //         'role' => $role,
+    //         'password' => Hash::make($request->password), // Mã hóa mật khẩu
+    //     ]);
 
-        // Đăng nhập người dùng sau khi đăng ký
-        Auth::login($user);
+    //     // Đăng nhập người dùng sau khi đăng ký
+    //     Auth::login($user);
 
-        return redirect()->route('login')->with('success', 'Đăng ký thành công! Bạn đã được đăng nhập.');
-    }
+    //     return redirect()->route('login')->with('success', 'Đăng ký thành công! Bạn đã được đăng nhập.');
+    // }
+
+
 
     // Đăng xuất
     public function logout()
@@ -108,48 +102,32 @@ class LoginController extends Controller
     }
 
     public function handleGoogleCallback()
-    {
-        $user = Socialite::driver('google')->user();
-        //dd($user);
+{
+    $user = Socialite::driver('google')->user();
 
-        // Tìm người dùng theo email
-        $authUser = User::where('email', $user->email)->first();
-        $role = 'client';
+    $authUser = User::where('email', $user->email)->first();
+    $role = 'client';
 
-        if (!$authUser) {
-            // Nếu chưa có người dùng, tạo mới
-            $authUser = User::create([
-                'name' => $user->name,
-                'email' => $user->email,
-                'role' => $role,
-                'google_id' => $user->id,
-                'password' => bcrypt(rand(16, 20)), // Tạo mật khẩu ngẫu nhiên
-            ]);
-        }
-
-        // Đăng nhập người dùng
-        Auth::login($authUser, true);
-
-        // Lấy thông tin người dùng đã đăng nhập
-        $userWithAuth = Auth::user();
-        // dd($userWithAuth);
-
-        // Lưu thông tin vào session
-        session([
-            'name' => $userWithAuth->name,
-            'id' => $userWithAuth->id,
-            'role' => $userWithAuth->role
+    if (!$authUser) {
+        // Nếu chưa có người dùng, tạo mới
+        $authUser = User::create([
+            'name' => $user->name,
+            'email' => $user->email,
+            'role' => $role,
+            'google_id' => $user->id,
+            'password' => bcrypt(rand(16, 20)), // Tạo mật khẩu ngẫu nhiên
         ]);
-
-        if ($userWithAuth->role === 'admin') {
-            session([
-                'admin' => 'admin',
-            ]);
-        }
-
-        // Chuyển hướng đến trang chính
-        return redirect()->to('/');
     }
+
+    // Đăng nhập người dùng
+    Auth::login($authUser, true);
+
+    // Tạo token JWT
+    $token = JWTAuth::fromUser($authUser);
+
+    // Chuyển hướng về trang chính, kèm theo token và user
+    return redirect('/?token=' . $token . '&user=' . urlencode(json_encode($authUser)));
+}
 
     // public function handleFacebookCallback(Request $request)
     // {

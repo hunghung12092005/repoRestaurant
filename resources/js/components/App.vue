@@ -12,31 +12,38 @@
         <li><router-link to="/about">About</router-link></li>
         <li><router-link to="/contact">Contact</router-link></li>
         <li><router-link to="/blog">Blog</router-link></li>
+        <li><router-link to="/testJwt">testJwt</router-link></li>
         <li><router-link to="/reservation">Reservation</router-link></li>
-
-        <!-- Kiểm tra session admin -->
-        <li v-if="isAdmin"><a :href="adminPanel">Admin Panel</a></li>
-
-        <!-- Hiển thị Login hoặc Logout -->
-        <li v-if="!isLogin"><a :href="loginUrl">Login</a></li>
-        <li v-if="isLogin"><a @click.prevent="logout">Logout</a></li>
+        <li v-if="isAdmin">
+          <a @click.prevent="adminPanel">Vào admin</a>
+        </li>
+        <li v-if="isLogin">
+          <span>Xin chào, {{ userInfo.name }}!</span>
+          <a @click.prevent="logout">Đăng Xuất</a>
+        </li>
+        
+        <li v-else>
+          <router-link to="/login">Đăng Nhập</router-link>
+        </li>
       </ul>
     </header>
 
-    <!-- Đặt RouterView vào phần thân -->
     <main>
       <RouterView></RouterView>
     </main>
   </div>
 </template>
+
 <script setup>
 import { ref, onMounted, onUnmounted } from 'vue';
-import { RouterView } from 'vue-router';
-const loginUrl = import.meta.env.VITE_LOGIN_URL; // Đường dẫn sẽ được lấy từ biến môi trường .env
-const adminPanel = import.meta.env.VITE_ADMIN_URL; // Đường dẫn sẽ được lấy từ biến môi trường .env
+import axiosConfig from '../axiosConfig'; // Import axiosConfig
+
 const headerRef = ref(null);
 const navbarRef = ref(null);
 const navbarActive = ref(false);
+const userInfo = ref(null);
+const isLogin = ref(false);
+const isAdmin = ref(false); // Biến để kiểm tra quyền admin
 
 const toggleMenu = () => {
   navbarActive.value = !navbarActive.value;
@@ -44,42 +51,70 @@ const toggleMenu = () => {
 
 const handleScroll = () => {
   if (headerRef.value) {
-    //console.log("scrollY:", window.scrollY);
     headerRef.value.classList.toggle('active', window.scrollY > 0);
   }
 };
 
+// Hàm lấy thông tin người dùng
+const fetchUserInfo = async () => {
+  try {
+    const response = await axiosConfig.get('/api/protected');
+    userInfo.value = response.data.user; // Lưu thông tin người dùng
+    isLogin.value = true; // Đánh dấu là đã đăng nhập
+   // console.log(1);
+    // Kiểm tra vai trò
+    if (userInfo.value.role === 'admin') {
+      isAdmin.value = true; // Đánh dấu là admin
+    } else {
+      isAdmin.value = false; // Không phải admin
+    }
+    
+  } catch (error) {
+    console.error('Error fetching user info:', error.response ? error.response.data : error.message);
+  }
+};
 
+// Xử lý token và thông tin người dùng từ query params
+const urlParams = new URLSearchParams(window.location.search);
+const token = urlParams.get('token');
+const user = urlParams.get('user');
+
+if (token && user) {
+  localStorage.setItem('token', token);
+  localStorage.setItem('userInfo', user);
+  userInfo.value = JSON.parse(user); // Lưu thông tin người dùng
+  // Chuyển hướng về trang chính
+  // window.location.href = '/'; // Sửa lại đường dẫn nếu cần
+}
+
+// Lifecycle hooks
 onMounted(() => {
+  fetchUserInfo(); // Gọi hàm lấy thông tin người dùng khi component được mount
   window.addEventListener('scroll', handleScroll);
 });
 
 onUnmounted(() => {
   window.removeEventListener('scroll', handleScroll);
 });
+
+// Hàm logout
+const logout = () => {
+  localStorage.removeItem('token'); // Xóa token
+  localStorage.removeItem('userInfo'); // Xóa thông tin người dùng
+  window.location.href = '/'; // Chuyển hướng
+};
+
+// Hàm adminPanel
+const adminPanel = () => {
+  window.location.href = '/admin'; // Chuyển hướng
+};
 </script>
 
-<script>
-export default {
-  data() {
-    return {
-      navbarActive: false,
-      isAdmin: window.userSession.admin === 'admin', // Kiểm tra nếu admin
-      isLogin: window.userSession.id !== undefined, // Kiểm tra nếu đã đăng nhập
-      loginUrl: '/login',
-    };
-  },
-  methods: {
-    logout() {
-      // Logic để đăng xuất, ví dụ gọi API
-      // Sau khi đăng xuất, có thể chuyển hướng hoặc làm mới trang
-      window.location.href = '/logout'; // Thay đổi đường dẫn theo logic của bạn
-    },
-  },
-  name: 'App'
+<style scoped>
+/* Các style của bạn tại đây */
+</style>
 
-}
-</script>
+
 
 <style scoped>
 @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&family=Turret+Road:wght@400;500;700;800&display=swap');

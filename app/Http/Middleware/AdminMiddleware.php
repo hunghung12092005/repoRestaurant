@@ -8,17 +8,16 @@ class AdminMiddleware
 {
     public function handle($request, Closure $next)
     {
-       // Kiểm tra giá trị của session 'admin'
-       $admin = session('admin');
+        // Lấy người dùng đã xác thực
+        $user = Auth::user();
 
-       // Nếu session 'admin' không tồn tại hoặc không đúng, chuyển hướng
-       if (empty($admin) || $admin !== 'admin') {
-           return redirect('/')->with('error', 'Bạn không có quyền truy cập.');
-       }
+        // Kiểm tra xem người dùng có phải là admin không
+        if (!$user || $user->role !== 'admin') {
+            return redirect('/')->with('error', 'Bạn không có quyền truy cập.');
+        }
 
-       // Nếu có session 'admin', tiếp tục với request
-       return $next($request);
-
-}
+        // Nếu có quyền admin, tiếp tục với request
+        return $next($request);
+    }
 } 
 ?>

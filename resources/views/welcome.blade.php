@@ -26,12 +26,12 @@
             <div id="app"></div>
         @endsection
     </body>
-    <script>
+    {{-- <script>
         window.userSession = {
-            name: "{{ session('name') }}",
-            id: "{{ session('id') }}",
-            role: "{{ session('role') }}",
-            admin: "{{ session('admin') }}"
+            name: "{{ session('name') ?? '' }}",
+            id: "{{ session('id') ?? '' }}",
+            role: "{{ session('role') ?? '' }}",
+            admin: "{{ session('admin') ?? '' }}"
         };
-    </script>
+    </script> --}}
 </html>

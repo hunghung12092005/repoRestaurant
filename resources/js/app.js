@@ -4,11 +4,12 @@ import { createRouter, createWebHistory } from 'vue-router';
 import App from './components/App.vue';
 import HomeComponent from './components/HomeComponent.vue';
 import AboutComponent from './components/AboutComponent.vue';
-import ProductComponent from './components/ProductComponent.vue';
 import ContactComponent from './components/ContactComponent.vue';
 import ReservationComponent from './components/ReservationComponent.vue';
 import BlogComponent from './components/BlogComponent.vue';
 import MenuComponent from './components/MenuComponent.vue';
+import LoginComponent from './components/Login.vue';
+import testJwt from './components/testTokenJwt.vue';
 import BlogDetailComponent from './components/BlogDetailComponent.vue';
 
 import 'bootstrap/dist/css/bootstrap.min.css';
@@ -18,11 +19,12 @@ import 'bootstrap';
 const routes = [
     { path: '/', component: HomeComponent },
     { path: '/about', component: AboutComponent },
-    { path: '/products', component: ProductComponent },
+    { path: '/testJwt', component: testJwt },
     { path: '/blog', component: BlogComponent },
     { path: '/menu', component: MenuComponent },
     { path: '/blog-detail', component: BlogDetailComponent },
     { path: '/contact', component: ContactComponent },
+    { path: '/login', component: LoginComponent },
     { path: '/reservation', component: ReservationComponent },
 ];
 

@@ -1,12 +1,12 @@
 <template>
     <section class="home" id="home">
-        <div v-if="userName" class="home-text">
+        <!-- <div v-if="userName" class="home-text">
             <span>hh to our</span>
             <h1>Xin chào <br>{{ userName }}</h1>
             <p>Nhà Hàng Vinpearl Thanh Hóa sẵn sàng phục vụ</p>
             <a href="#" class="btn">Xem  Menu</a>
-        </div>
-        <div v-else class="home-text">
+        </div> -->
+        <div  class="home-text">
             <span>hh to our</span>
             <h1>Healthy Food <br>Collection!</h1>
             <p>Discover our carefully curated selection of nutritious and delicious meals, made with fresh ingredients
@@ -866,14 +866,14 @@ onUnmounted(() => {
 });
 </script>
 <script>
-export default {
-    data() {
-        return {
-            userName: null, // Biến để lưu tên người dùng
-        };
-    },
-    created() {
-        this.userName = window.userSession.name;
-    }
-};
+// export default {
+//     data() {
+//         return {
+//             userName: null, // Biến để lưu tên người dùng
+//         };
+//     },
+//     created() {
+//         this.userName = window.userSession.name;
+//     }
+// };
 </script>

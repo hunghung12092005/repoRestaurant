@@ -4,14 +4,8 @@ use App\Http\Controllers\Admin\AdminController;
 use App\Http\Controllers\LoginController;
 use App\Http\Middleware\AdminMiddleware;
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\api\LoginController as ApiLoginController;
 
-
-// Định nghĩa route cho login trước
-Route::get('login', [LoginController::class, 'showLoginForm'])->name('login');
-Route::get('logout', [LoginController::class, 'logout'])->name('logout');
-Route::post('handlelogin', [LoginController::class, 'login'])->name('login.login');
-Route::post('handleregister', [LoginController::class, 'register'])->name('login.register');
-// Route cho đăng nhập Google
 Route::get('auth/google', [LoginController::class, 'redirectToGoogle'])->name('auth.google');
 
 // Route cho callback từ Google
@@ -24,8 +18,14 @@ Route::group(['middleware' => AdminMiddleware::class], function () {
     Route::get('/admin', [AdminController::class, 'index'])->name('admin.index');
 });
 
-
+// Route cho API
+Route::get('/api/protected', [ApiLoginController::class, 'someProtectedRoute']);
+Route::post('/api/login', [ApiLoginController::class, 'login']);
+Route::post('/api/register', [ApiLoginController::class, 'register']);
 // Route wildcard cuối cùng (tương tự 404)
-Route::get('/{any}', function () {
-    return view('welcome'); // Hoặc view chính của bạn
-})->where('any', '.*');
+    // Route::get('/', function () {
+    //     return view('welcome'); // Hoặc view chính của bạn
+    // });
+    Route::get('/{any}', function () {
+        return view('welcome'); // Hoặc view chính của bạn
+    })->where('any', '.*');
