@@ -4,14 +4,14 @@
             <span>hh to our</span>
             <h1>Xin chào <br>{{ userName }}</h1>
             <p>Nhà Hàng Vinpearl Thanh Hóa sẵn sàng phục vụ</p>
-            <a href="#" class="btn">Xem  Menu</a>
+            <a href="/menu" class="btn">Xem  Menu</a>
         </div>
         <div v-else class="home-text">
             <span>hh to our</span>
             <h1>Healthy Food <br>Collection!</h1>
             <p>Discover our carefully curated selection of nutritious and delicious meals, made with fresh ingredients
                 to nourish your body and delight your taste buds</p>
-            <a href="/menu" class="btn">Our Menu</a>
+            <a href="/menu" class="btn">Xem Menu</a>
         </div>
         <div class="home-img">
             <img src="https://i.postimg.cc/gJBk5PMz/salad.png" alt="food image">
