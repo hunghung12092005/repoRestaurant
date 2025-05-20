@@ -14,6 +14,7 @@
         <li><router-link to="/blog">Blog</router-link></li>
         <li><router-link to="/menu-list">Menu</router-link></li>
         <li><router-link to="/testJwt">testJwt</router-link></li>
+        <li><router-link to="/menu">menu</router-link></li>
         <li><router-link to="/reservation">Reservation</router-link></li>
         <li v-if="isAdmin">
           <a @click.prevent="adminPanel">Vào admin</a>
@@ -31,6 +32,7 @@
 
     <main>
       <RouterView></RouterView>
+      <footer>đây là footer </footer>
     </main>
   </div>
 </template>
