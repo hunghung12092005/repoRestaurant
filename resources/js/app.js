@@ -11,6 +11,8 @@ import MenuComponent from './components/MenuComponent.vue';
 import LoginComponent from './components/Login.vue';
 import testJwt from './components/testTokenJwt.vue';
 import BlogDetailComponent from './components/BlogDetailComponent.vue';
+import ProductDetailComponent from './components/ProductDetailComponent.vue';
+import AdminDashboardComponent from './components/AdminDashboardComponent.vue';
 
 import 'bootstrap/dist/css/bootstrap.min.css';
 import 'bootstrap';
@@ -23,13 +25,15 @@ const routes = [
     { path: '/blog', component: BlogComponent },
     { path: '/menu', component: MenuComponent },
     { path: '/blog-detail', component: BlogDetailComponent },
+    { path: '/product-detail', component: ProductDetailComponent },
     { path: '/contact', component: ContactComponent },
     { path: '/login', component: LoginComponent },
     { path: '/reservation', component: ReservationComponent },
+    { path: '/admin-dashboard', component: AdminDashboardComponent },
 ];
 
 const router = createRouter({
-    history: createWebHistory(), // Sử dụng history mode
+    history: createWebHistory(),
     routes
 });
 

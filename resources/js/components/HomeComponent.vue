@@ -11,7 +11,7 @@
             <h1>Healthy Food <br>Collection!</h1>
             <p>Discover our carefully curated selection of nutritious and delicious meals, made with fresh ingredients
                 to nourish your body and delight your taste buds</p>
-            <a href="/menu" class="btn">Our Menu</a>
+            <a href="/menu" class="btn">Xem Menu</a>
         </div>
         <div class="home-img">
             <img src="https://i.postimg.cc/gJBk5PMz/salad.png" alt="food image">
@@ -113,7 +113,7 @@
                 <div class="shop-img">
                     <img src="https://i.postimg.cc/kXq3PgHT/shop1.jpg" alt="shop image">
                 </div>
-                <h3>White Sauce Salad with Lentils</h3>
+                <h3><a href="/product-detail">White Sauce Salad with Lentils</a></h3>
                 <h2>$ 9.99</h2>
                 <i class='bx bxs-cart-add'></i>
             </div>
