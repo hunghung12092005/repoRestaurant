@@ -8,6 +8,7 @@ import ContactComponent from './components/ContactComponent.vue';
 import ReservationComponent from './components/ReservationComponent.vue';
 import BlogComponent from './components/BlogComponent.vue';
 import MenuComponent from './components/MenuComponent.vue';
+import MenuListComponent from './components/MenuListComponent.vue';
 import LoginComponent from './components/Login.vue';
 import testJwt from './components/testTokenJwt.vue';
 import BlogDetailComponent from './components/BlogDetailComponent.vue';
@@ -24,6 +25,7 @@ const routes = [
     { path: '/testJwt', component: testJwt },
     { path: '/blog', component: BlogComponent },
     { path: '/menu', component: MenuComponent },
+    { path: '/menu-list', component: MenuListComponent },
     { path: '/blog-detail', component: BlogDetailComponent },
     { path: '/product-detail', component: ProductDetailComponent },
     { path: '/contact', component: ContactComponent },

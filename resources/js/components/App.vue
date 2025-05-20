@@ -12,6 +12,7 @@
         <li><router-link to="/about">About</router-link></li>
         <li><router-link to="/contact">Contact</router-link></li>
         <li><router-link to="/blog">Blog</router-link></li>
+        <li><router-link to="/menu-list">Menu</router-link></li>
         <li><router-link to="/testJwt">testJwt</router-link></li>
         <li><router-link to="/reservation">Reservation</router-link></li>
         <li v-if="isAdmin">
@@ -21,7 +22,7 @@
           <span>Xin chào, {{ userInfo.name }}!</span>
           <a @click.prevent="logout">Đăng Xuất</a>
         </li>
-        
+
         <li v-else>
           <router-link to="/login">Đăng Nhập</router-link>
         </li>
@@ -68,7 +69,7 @@ const fetchUserInfo = async () => {
     } else {
       isAdmin.value = false; // Không phải admin
     }
-    
+
   } catch (error) {
     console.error('Error fetching user info:', error.response ? error.response.data : error.message);
   }
