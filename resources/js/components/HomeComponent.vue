@@ -6,7 +6,7 @@
             <p>Nhà Hàng Vinpearl Thanh Hóa sẵn sàng phục vụ</p>
             <a href="#" class="btn">Xem  Menu</a>
         </div> -->
-        <div  class="home-text">
+        <div class="home-text">
             <span>hh to our</span>
             <h1>Healthy Food <br>Collection!</h1>
             <p>Discover our carefully curated selection of nutritious and delicious meals, made with fresh ingredients
@@ -17,42 +17,17 @@
             <img src="https://i.postimg.cc/gJBk5PMz/salad.png" alt="food image">
         </div>
     </section>
-    <sliderComponent/>
+    <sliderComponent />
 
     <section class="about" id="about">
         <h1>Today Deal's</h1>
-
         <div class="about-container">
-            <div class="about-box">
+            <div class="about-box" v-for="itemTop in topItems" :key="itemTop.id">
                 <div class="box-img">
                     <img src="https://i.postimg.cc/TwS5bmvJ/about1.png" alt="about image">
                 </div>
-                <h3>Chicken and Eggs Salad (Extra Portion)</h3>
-                <h2>$ 14.99</h2>
-            </div>
-
-            <div class="about-box">
-                <div class="box-img">
-                    <img src="https://i.postimg.cc/wxw6TJd1/about2.png" alt="about image">
-                </div>
-                <h3>Chicken and Eggs Salad</h3>
-                <h2>$ 9.99</h2>
-            </div>
-
-            <div class="about-box">
-                <div class="box-img">
-                    <img src="https://i.postimg.cc/zXWHL0Dd/about3.png" alt="about image">
-                </div>
-                <h3>Green Salad with Cheese</h3>
-                <h2>$ 7.99</h2>
-            </div>
-
-            <div class="about-box">
-                <div class="box-img">
-                    <img src="https://i.postimg.cc/9QLmz798/about4.png" alt="about image">
-                </div>
-                <h3>Mixed Colorful Salad</h3>
-                <h2>$ 9.99</h2>
+                <h3>{{ itemTop.Name }}</h3>
+                <h2> {{ itemTop.Price }}$</h2>
             </div>
         </div>
     </section>
@@ -65,59 +40,23 @@
         </div>
 
         <div class="shop-container">
-            <div class="shop-box">
+            <div class="shop-box" v-for="item in menuItems" :key="item.id">
                 <div class="shop-img">
-                    <img src="https://i.postimg.cc/kXq3PgHT/shop1.jpg" alt="shop image">
+                    <LazyImage v-if="item.images.length > 0" :src="`/${item.images[0]?.url}`"
+                        :alt="item.images[0]?.alt_text" />
                 </div>
-                <h3><a href="/product-detail">White Sauce Salad with Lentils</a></h3>
-                <h2>$ 9.99</h2>
-                <i class='bx bxs-cart-add'></i>
+                <h3>
+                    <a :href="`/product-detail/${item.id}`">{{ item.Name }} - {{ item.category.name }}</a>
+                </h3>
+                <h2>$ {{ item.Price }}</h2>
+                <i class='bx  bx-heart-plus'></i>
             </div>
-
-            <div class="shop-box">
-                <div class="shop-img">
-                    <img src="https://i.postimg.cc/SxLGFmwf/shop2.jpg" alt="shop image">
-                </div>
-                <h3>Green Sauce Salad with Beetroot</h3>
-                <h2>$ 7.99</h2>
-                <i class='bx bxs-cart-add'></i>
-            </div>
-
-            <div class="shop-box">
-                <div class="shop-img">
-                    <img src="https://i.postimg.cc/43mqJ7sT/shop3.jpg" alt="shop image">
-                </div>
-                <h3>Salad Fruit with Condensed Milk</h3>
-                <h2>$ 4.99</h2>
-                <i class='bx bxs-cart-add'></i>
-            </div>
-
-            <div class="shop-box">
-                <div class="shop-img">
-                    <img src="https://i.postimg.cc/Y2GF1pqq/shop4.jpg" alt="shop image">
-                </div>
-                <h3>Rainbow Salad</h3>
-                <h2>$ 9.99</h2>
-                <i class='bx bxs-cart-add'></i>
-            </div>
-
-            <div class="shop-box">
-                <div class="shop-img">
-                    <img src="https://i.postimg.cc/fyDhTz8j/shop5.jpg" alt="shop image">
-                </div>
-                <h3>Green Salad with Lentils</h3>
-                <h2>$ 7.99</h2>
-                <i class='bx bxs-cart-add'></i>
-            </div>
-
-            <div class="shop-box">
-                <div class="shop-img">
-                    <img src="https://i.postimg.cc/KzQ0BmZ5/shop6.jpg" alt="shop image">
-                </div>
-                <h3>Salad with Mushroom and Seeds</h3>
-                <h2>$ 9.99</h2>
-                <i class='bx bxs-cart-add'></i>
-            </div>
+        </div>
+        <!-- Phân trang -->
+        <div>
+            <button @click="prevPage" :disabled="currentPage === 1">Trước</button>
+            <span>Trang {{ currentPage }} / {{ totalPages }}</span>
+            <button @click="nextPage" :disabled="currentPage === totalPages">Tiếp</button>
         </div>
     </section>
 
@@ -179,42 +118,16 @@
         </div>
     </section>
 
-    <section class="contact" id="contact">
-        <div class="heading">
-            <h2>Contact us</h2>
-            <p>We'd love to hear from you!</p>
-        </div>
 
-        <div class="contact-container">
-            <div class="contact-info">
-                <h2>Get in Touch</h2>
-                <p>We're always here to help you with your healthy food needs. Whether you have a question, feedback, or
-                    just want to say hello, our team is here to assist you. Please use the form below to get in touch
-                    with us, or find us on social media for the latest updates and promotions</p>
-                <div class="address">
-                    <i class='bx bxs-map'><span>44 Street NYC, USA 10001</span></i>
-                    <i class='bx bxs-phone'><span>+1 100 104 40001</span></i>
-                    <i class='bx bxs-envelope'><span>contact@foodie.com</span></i>
-                </div>
-
-                <div class="social">
-                    <a href="#"><i class='bx bxl-facebook'></i></a>
-                    <a href="#"><i class='bx bxl-twitter'></i></a>
-                    <a href="#"><i class='bx bxl-instagram'></i></a>
-                </div>
-            </div>
-
-            <div class="contact-form">
-                <form action="">
-                    <input type="text" placeholder="Name">
-                    <input type="email" placeholder="Email">
-                    <textarea name="" id="" cols="30" rows="10" placeholder="Write your Message"></textarea>
-                    <input type="button" value="Submit" class="btn">
-                </form>
-            </div>
-        </div>
-    </section>
-
+    <!-- <div>
+    <h1>Menu Items</h1>
+    <ul v-if="menuItems.length">
+      <li v-for="item in menuItems" :key="item.id">
+        {{ item.Name }} - {{ item.Description }} - {{ item.category.name }}
+      </li>
+    </ul>
+    <p v-else>No menu items available.</p>
+  </div> -->
     <div class="copyright">
         <p>&#169; 2025 <span>ULTRA CODE</span> All rights reserved</p>
     </div>
@@ -725,31 +638,57 @@ form .btn:hover {
 <script setup>
 import { ref, onMounted, onUnmounted } from 'vue';
 import sliderComponent from './sliderComponent.vue';
-const headerRef = ref(null);
-const navbarRef = ref(null);
-const navbarActive = ref(false);
+import LazyImage from './LazyImage.vue'; // Import component
+const menuItems = ref([]);
+const topItems = ref([]);
+const currentPage = ref(1);
+const totalPages = ref(1);
 
-const toggleMenu = () => {
-    navbarActive.value = !navbarActive.value;
+const fetchMenuItems = async (page = 1) => {
+    try {
+        const response = await fetch(`/api/menu-items?page=${page}`);
+        if (!response.ok) {
+            throw new Error(`Lỗi HTTP! Trạng thái: ${response.status}`);
+        }
+        const data = await response.json();
+        menuItems.value = data.allMenuItems.data;
+        topItems.value = data.topPriceItems.data;
+        totalPages.value = data.allMenuItems.last_page;
+        currentPage.value = data.allMenuItems.current_page;
+    } catch (error) {
+        console.error('Lỗi khi lấy dữ liệu:', error);
+    }
 };
-
-const handleScroll = () => {
-    if (headerRef.value) {
-        console.log("scrollY:", window.scrollY);
-        headerRef.value.classList.toggle('active', window.scrollY > 0);
+const fetchTopPriceItems = async () => {
+    try {
+        const response = await fetch('/api/menu-items');
+        if (!response.ok) {
+            throw new Error(`Lỗi HTTP! Trạng thái: ${response.status}`);
+        }
+        const data = await response.json();
+        topItems.value = data.topPriceItems;
+    } catch (error) {
+        console.error('Lỗi khi lấy dữ liệu:', error);
+    }
+};
+const prevPage = () => {
+    if (currentPage.value > 1) {
+        fetchMenuItems(currentPage.value - 1);
     }
 };
 
-
+const nextPage = () => {
+    if (currentPage.value < totalPages.value) {
+        fetchMenuItems(currentPage.value + 1);
+    }
+};
 onMounted(() => {
-    window.addEventListener('scroll', handleScroll);
-});
-
-onUnmounted(() => {
-    window.removeEventListener('scroll', handleScroll);
+    fetchMenuItems();
+    fetchTopPriceItems();
 });
 </script>
 <script>
+
 // export default {
 //     data() {
 //         return {
