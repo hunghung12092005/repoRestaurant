@@ -126,7 +126,7 @@ class LoginController extends Controller
     $token = JWTAuth::fromUser($authUser);
 
     // Chuyển hướng về trang chính, kèm theo token và user
-    return redirect('/?token=' . $token . '&user=' . urlencode(json_encode($authUser)));
+    return redirect('http://localhost:5173/?token=' . $token . '&user=' . urlencode(json_encode($authUser)));
 }
 
     // public function handleFacebookCallback(Request $request)

@@ -23,14 +23,14 @@ Route::group(['middleware' => AdminMiddleware::class], function () {
 Route::get('/upload', [UploadController::class, 'create']);
 Route::post('/upload', [UploadController::class, 'store']);
 // Route cho API
-Route::get('/api/protected', [ApiLoginController::class, 'someProtectedRoute']);
-Route::post('/api/login', [ApiLoginController::class, 'login']);
-Route::post('/api/register', [ApiLoginController::class, 'register']);
-Route::get('/api/menu-items', [MenuItemController::class, 'index']);
+// Route::get('/api/protected', [ApiLoginController::class, 'someProtectedRoute']);
+// Route::post('/api/login', [ApiLoginController::class, 'login']);
+// Route::post('/api/register', [ApiLoginController::class, 'register']);
+// Route::get('/api/menu-items', [MenuItemController::class, 'index']);
 // Route wildcard cuối cùng (tương tự 404)
-    // Route::get('/', function () {
-    //     return view('welcome'); // Hoặc view chính của bạn
-    // });
-    Route::get('/{any}', function () {
+    Route::get('/', function () {
         return view('welcome'); // Hoặc view chính của bạn
-    })->where('any', '.*');
+    });
+    // Route::get('/{any}', function () {
+    //     return view('welcome'); // Hoặc view chính của bạn
+    // })->where('any', '.*');

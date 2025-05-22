@@ -132,7 +132,7 @@ return [
          * Application Service Providers...
          */
         App\Providers\AppServiceProvider::class,
-        App\Providers\RouterServiceProvider::class,
+        App\Providers\CustomRouteServiceProvider::class,
     ])->toArray(),
 
 ];

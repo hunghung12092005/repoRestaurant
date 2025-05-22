@@ -5,7 +5,7 @@ namespace App\Providers;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Foundation\Support\Providers\RouteServiceProvider;
-class RouterServiceProvider extends RouteServiceProvider
+class CustomRouteServiceProvider  extends RouteServiceProvider
 {
     /**
      * Register services.
