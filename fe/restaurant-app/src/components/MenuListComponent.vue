@@ -4,6 +4,7 @@
     <div class="flex justify-between items-center mb-6">
       <a href="#" class="text-sm text-gray-600 hover:text-gray-800">Recent Gallery</a>
       <h1 class="text-3xl font-bold text-gray-800">Our All Menu</h1>
+      <div></div>
     </div>
 
     <!-- Navigation Tabs -->
