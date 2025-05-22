@@ -33,7 +33,7 @@
                     <path d="M5.61 14.24c-.23-.68-.36-1.41-.36-2.24s.13-1.56.36-2.24V6.8H2.36A11.97 11.97 0 000 12c0 1.86.43 3.62 1.19 5.16l4.42-2.92z" fill="#FBBC05"/>
                     <path d="M12 4.91c1.62 0 3.07.56 4.21 1.66l3.15-3.15C17.46 1.8 15 1 12 1 7.42 1 3.53 3.25 2.36 6.8l4.25 2.96c.9-2.7 3.42-4.75 6.39-4.75z" fill="#EA4335"/>
                 </svg>
-                Đăng Nhập với Google
+                Đăng nhập với Google
             </button>
         </form>
         <div v-if="errorMessage" class="error-message">{{ errorMessage }}</div>
