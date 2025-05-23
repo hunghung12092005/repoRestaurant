@@ -2,7 +2,7 @@
   <div class="staff-container">
     <!-- Header Section -->
     <div class="header-section mb-4">
-      <h5 class="fw-bold">Staff Management</h5>
+      <h5 class="fw-bold">Quản lý Nhân viên</h5>
       <div class="d-flex justify-content-between align-items-center mt-3">
         <!-- Search Form -->
         <div class="search-form">
@@ -10,14 +10,14 @@
             type="text"
             class="form-control"
             v-model="searchQuery"
-            placeholder="Search by name or email..."
+            placeholder="Tìm kiếm theo tên hoặc email..."
             @input="filterStaffs"
           />
           <i class="bi bi-search search-icon"></i>
         </div>
         <!-- Add New Staff Button -->
         <button class="btn btn-primary" @click="addNewStaff">
-          <i class="bi bi-plus-circle me-2"></i>Add New Staff
+          <i class="bi bi-plus-circle me-2"></i>Thêm Nhân viên Mới
         </button>
       </div>
     </div>
@@ -29,12 +29,12 @@
           <table class="table table-hover table-bordered mb-0">
             <thead class="table-light">
               <tr>
-                <th scope="col">ID</th>
-                <th scope="col">Name</th>
+                <th scope="col">Mã NV</th>
+                <th scope="col">Tên</th>
                 <th scope="col">Email</th>
-                <th scope="col">Role</th>
-                <th scope="col">Department</th>
-                <th scope="col">Actions</th>
+                <th scope="col">Vai trò</th>
+                <th scope="col">Phòng ban</th>
+                <th scope="col">Hành động</th>
               </tr>
             </thead>
             <tbody>
@@ -54,7 +54,7 @@
                 </td>
               </tr>
               <tr v-if="!filteredStaffs.length">
-                <td colspan="6" class="text-center text-muted">No staff found</td>
+                <td colspan="6" class="text-center text-muted">Không tìm thấy nhân viên</td>
               </tr>
             </tbody>
           </table>
@@ -65,21 +65,18 @@
 </template>
 
 <script setup>
-import { ref, onMounted, computed } from 'vue';
-import axiosConfig from '../axiosConfig.js'; // Import axiosConfig để gọi API
+import { ref, computed } from 'vue';
 
-const staffs = ref([]);
+// Dữ liệu nhân viên tĩnh
+const staffs = ref([
+  { id: 1, name: 'Nguyễn Văn A', email: 'nguyenvana@example.com', role: 'Quản lý', department: 'Bếp' },
+  { id: 2, name: 'Trần Thị B', email: 'tranthib@example.com', role: 'Nhân viên phục vụ', department: 'Dịch vụ' },
+  { id: 3, name: 'Lê Văn C', email: 'levanc@example.com', role: 'Đầu bếp', department: 'Bếp' },
+  { id: 4, name: 'Phạm Thị D', email: 'phamthid@example.com', role: 'Lễ tân', department: 'Tiếp tân' },
+  { id: 5, name: 'Hoàng Văn E', email: 'hoangvane@example.com', role: 'Nhân viên dọn dẹp', department: 'Dọn phòng' },
+]);
+
 const searchQuery = ref('');
-
-// Lấy danh sách nhân viên từ API
-const fetchStaffs = async () => {
-  try {
-    const response = await axiosConfig.get('http://127.0.0.1:8000/api/staffs'); // Giả định API endpoint
-    staffs.value = response.data.staffs || [];
-  } catch (error) {
-    console.error('Error fetching staffs:', error.response ? error.response.data : error.message);
-  }
-};
 
 // Lọc danh sách nhân viên theo searchQuery
 const filteredStaffs = computed(() => {
@@ -104,22 +101,17 @@ const editStaff = (staff) => {
 
 // Xóa nhân viên
 const deleteStaff = async (id) => {
-  if (confirm('Are you sure you want to delete this staff?')) {
+  if (confirm('Bạn có chắc chắn muốn xóa nhân viên này không?')) {
     try {
-      await axiosConfig.delete(`http://127.0.0.1:8000/api/staffs/${id}`); // Giả định API endpoint
+      // Giả lập xóa nhân viên (không gọi API)
       staffs.value = staffs.value.filter(staff => staff.id !== id); // Cập nhật danh sách
-      alert('Staff deleted successfully!');
+      alert('Xóa nhân viên thành công!');
     } catch (error) {
-      console.error('Error deleting staff:', error.response ? error.response.data : error.message);
-      alert('Failed to delete staff.');
+      console.error('Lỗi khi xóa nhân viên:', error);
+      alert('Xóa nhân viên thất bại.');
     }
   }
 };
-
-// Gọi API khi component được mounted
-onMounted(() => {
-  fetchStaffs();
-});
 
 // Hàm lọc khi nhập liệu
 const filterStaffs = () => {
