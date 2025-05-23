@@ -1,352 +1,195 @@
 <template>
-  <div class="dashboard">
-    <aside class="sidebar">
-      <div class="logo">
-        <span class="logo-icon">🍽️</span> Reztro
+  <div>
+    <!-- Stats Cards -->
+    <div class="row row-cols-1 row-cols-md-4 g-4" id="statsCards">
+      <div class="col">
+        <div class="card h-100 bg-white shadow-sm border-0 rounded-4 p-3 text-center">
+          <h3 class="fw-bold text-dark" id="newBookingValue">New Booking</h3>
+          <p class="text-muted mb-1">1,879</p>
+          <p class="text-success mb-0" id="newBookingChange"><i class="bi bi-arrow-up"></i> +7.5%</p>
+        </div>
       </div>
-      <nav>
-        <ul>
-          <li class="active"><i class="icon-dashboard"></i> Dashboard</li>
-          <li><i class="icon-orders"></i> Orders</li>
-          <li><i class="icon-messages"></i> Messages <span class="badge">1</span></li>
-          <li><i class="icon-calendar"></i> Calendar</li>
-          <li><i class="icon-menu"></i> Menu</li>
-          <li><i class="icon-inventory"></i> Inventory</li>
-          <li><i class="icon-reviews"></i> Reviews</li>
-        </ul>
-      </nav>
-    </aside>
+      <div class="col">
+        <div class="card h-100 bg-white shadow-sm border-0 rounded-4 p-3 text-center">
+          <h3 class="fw-bold text-dark" id="availableRoomsValue">Available Rooms</h3>
+          <p class="text-muted mb-1">55</p>
+          <p class="text-warning mb-0" id="availableRoomsChange"><i class="bi bi-arrow-down"></i> -5.7%</p>
+        </div>
+      </div>
+      <div class="col">
+        <div class="card h-100 bg-white shadow-sm border-0 rounded-4 p-3 text-center">
+          <h3 class="fw-bold text-dark" id="revenueValue">Revenue</h3>
+          <p class="text-muted mb-1">$2,287</p>
+          <p class="text-success mb-0" id="revenueChange"><i class="bi bi-arrow-up"></i> +5.3%</p>
+        </div>
+      </div>
+      <div class="col">
+        <div class="card h-100 bg-white shadow-sm border-0 rounded-4 p-3 text-center">
+          <h3 class="fw-bold text-dark" id="checkOutValue">Checkout</h3>
+          <p class="text-muted mb-1">567</p>
+          <p class="text-warning mb-0" id="checkOutChange"><i class="bi bi-arrow-down"></i> -2.4%</p>
+        </div>
+      </div>
+    </div>
 
-    <main class="main-content">
-      <header>
-        <h2>Hello Orlando, welcome back!</h2>
-        <form class="search-bar">
-          <span class="search-icon">🔍</span>
-          <input type="text" placeholder="Search anything..." />
-        </form>
-        <div class="user-info">
-          <span class="user-name">Orlando Laurentius</span>
-          <img
-            src="https://media.istockphoto.com/id/1300845620/vector/user-icon-flat-isolated-on-white-background-user-symbol-vector-illustration.jpg?s=612x612&w=0&k=20&c=yBeyba0hUkh14_jgv1OKqIH0CCSWU_4ckRkAoy2p73o="
-            alt="User Avatar"
-            class="avatar"
-          />
-          <span class="role-badge">Admin</span>
-        </div>
-      </header>
-
-      <section class="stats">
-        <div class="stat-card">
-          <div class="stat-icon">
-            <span class="icon-orders">📦</span>
-          </div>
-          <div class="stat-content">
-            <h3>Total Orders</h3>
-            <p>48,652 <span class="trend up">+1.8%</span></p>
+    <!-- Room Availability and Reservation -->
+    <div class="row mt-4">
+      <div class="col-md-5">
+        <div class="card p-3 shadow-sm rounded-3 h-100 d-flex flex-column">
+          <h5 class="fw-bold">Room Availability</h5>
+          <div class="flex-grow-1">
+            <canvas ref="roomAvailabilityChart"></canvas>
           </div>
         </div>
-        <div class="stat-card">
-          <div class="stat-icon">
-            <span class="icon-customers">👥</span>
-          </div>
-          <div class="stat-content">
-            <h3>Total Customers</h3>
-            <p>12,48</p>
-          </div>
-        </div>
-        <div class="stat-card">
-          <div class="stat-icon">
-            <span class="icon-revenue">💰</span>
-          </div>
-          <div class="stat-content">
-            <h3>Total Revenue</h3>
-            <p>$215,860 <span class="trend up">+2.3%</span></p>
+      </div>
+      <div class="col-md-7">
+        <div class="card p-3 shadow-sm rounded-3 h-100 d-flex flex-column">
+          <h5 class="fw-bold">Reservation</h5>
+          <div class="legend d-flex justify-content-end mb-2"></div>
+          <div class="flex-grow-1">
+            <canvas ref="reservationChart"></canvas>
           </div>
         </div>
-      </section>
-
-      <section class="charts">
-        <div class="chart-card">
-          <div class="chart-header">
-            <h3>Total Revenue</h3>
-            <span class="filter">Last 8 Months</span>
-          </div>
-          <div class="chart-placeholder">Revenue Chart</div>
-          <p class="total">$184,839</p>
-        </div>
-        <div class="chart-card">
-          <div class="chart-header">
-            <h3>Top Categories</h3>
-            <span class="filter">This Month</span>
-          </div>
-          <div class="chart-placeholder">Pie Chart</div>
-          <ul class="categories">
-            <li><span class="dot seafood"></span> Seafood 30%</li>
-            <li><span class="dot beverages"></span> Beverages 25%</li>
-            <li><span class="dot dessert"></span> Dessert 25%</li>
-            <li><span class="dot pasta"></span> Pasta 20%</li>
-          </ul>
-        </div>
-      </section>
-
-      <section class="orders-trending">
-        <div class="orders-overview">
-          <div class="chart-header">
-            <h3>Orders Overview</h3>
-            <span class="filter">This Week</span>
-          </div>
-          <div class="chart-placeholder">Bar Chart</div>
-          <p class="highlight">118 orders (Thursday)</p>
-          <div class="order-types">
-            <div class="chart-header">
-              <h4>Order Types</h4>
-              <span class="filter">This Month</span>
-            </div>
-            <ul>
-              <li>Dine-in <span>45%</span> <span class="count">900</span></li>
-              <li>Takeaway <span>30%</span> <span class="count">600</span></li>
-              <li>Online <span>25%</span> <span class="count">500</span></li>
-            </ul>
-          </div>
-        </div>
-
-        <div class="trending-menus">
-          <div class="chart-header">
-            <h3>Trending Menus</h3>
-            <span class="filter">This Week</span>
-          </div>
-          <div class="menu-card">
-            <img
-              src="https://t3.ftcdn.net/jpg/05/62/54/06/360_F_562540618_fPHXG2UTKO2j7G46ITuoZcRtLnv2G0MQ.jpg"
-              alt="Grilled Chicken Delight"
-            />
-            <h4>Grilled Chicken Delight</h4>
-            <div class="rating">★ 4.9 <span>(350)</span></div>
-            <p class="price">$18.00</p>
-          </div>
-          <div class="menu-card">
-            <img
-              src="https://images.smuckers.ca/images/recipes/29/Sunny-Citrus-Pound-Cake_desktop.jpg"
-              alt="Sunny Citrus Cake"
-            />
-            <h4>Sunny Citrus Cake</h4>
-            <div class="rating">★ 4.8 <span>(400)</span></div>
-            <p class="price">$8.50</p>
-          </div>
-          <div class="menu-card">
-            <img src="https://example.com/shrimp-salad.jpg" alt="Fiery Shrimp Salad" />
-            <h4>Fiery Shrimp Salad</h4>
-            <div class="rating">★ 4.7 <span>(270)</span></div>
-            <p class="price">$12.00</p>
-          </div>
-        </div>
-      </section>
-
-      <section class="recent-orders">
-        <div class="chart-header">
-          <h3>Recent Orders</h3>
-          <span class="filter">This Week</span>
-          <a href="#" class="see-all">See All Orders</a>
-        </div>
-        <div class="order-search">
-          <span>🔍</span> Search orderholder...
-        </div>
-        <table>
-          <thead>
-            <tr>
-              <th>Order ID</th>
-              <th>Photo</th>
-              <th>Menu</th>
-              <th>Qty</th>
-              <th>Price</th>
-              <th>Customer</th>
-              <th>Status</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr>
-              <td>ORD025</td>
-              <td><img src="https://example.com/sushi.jpg" alt="Salmon Sushi Roll" /></td>
-              <td>Salmon Sushi Roll</td>
-              <td>3</td>
-              <td>$30.00</td>
-              <td>Dana White</td>
-              <td><span class="status on-process">On Process</span></td>
-            </tr>
-            <tr>
-              <td>ORD026</td>
-              <td><img src="https://example.com/spaghetti.jpg" alt="Spaghetti Carbonara" /></td>
-              <td>Spaghetti Carbonara</td>
-              <td>1</td>
-              <td>$15.00</td>
-              <td>Eve Carter</td>
-              <td><span class="status cancelled">Cancelled</span></td>
-            </tr>
-            <tr>
-              <td>ORD027</td>
-              <td><img src="https://example.com/cheeseburger.jpg" alt="Classic Cheeseburger" /></td>
-              <td>Classic Cheeseburger</td>
-              <td>1</td>
-              <td>$10.00</td>
-              <td>Charlie Brown</td>
-              <td><span class="status completed">Completed</span></td>
-            </tr>
-          </tbody>
-        </table>
-      </section>
-
-      <section class="reviews-activity">
-        <div class="customer-reviews">
-          <div class="chart-header">
-            <h3>Customer Reviews</h3>
-            <a href="#" class="see-all">See More Reviews</a>
-          </div>
-          <div class="review-card">
-            <img src="https://example.com/pasta.jpg" alt="Classic Italian Penne" />
-            <h4>Classic Italian Penne</h4>
-            <p>
-              This pasta divine! The flavor is unforgettable taste. Highly recommend for pasta lovers!
-            </p>
-            <div class="rating">★★★★★ <span>Sarah M. - Oct 5 2025</span></div>
-          </div>
-          <div class="review-card">
-            <img src="https://example.com/pizza.jpg" alt="Smokey Supreme Pizza" />
-            <h4>Smokey Supreme Pizza</h4>
-            <p>Crispy crust, generous toppings and one of the best pizzas I’ve had!</p>
-            <div class="rating">★★★★☆ <span>Michael R. - Oct 15 2025</span></div>
-          </div>
-        </div>
-
-        <div class="recent-activity">
-          <h3>Recent Activity</h3>
-          <ul>
-            <li>
-              Sylvester Quilt
-              <span>updated inventory - 10 units of "Organic Chicken Breast" 11:00 AM</span>
-            </li>
-            <li>
-              Maria Kings <span>marked order #ORD028 as completed 10:45 AM</span>
-            </li>
-            <li>
-              William Smith
-              <span>added new reservation for 4 guests at 7:00 PM 10:30 AM</span>
-            </li>
-          </ul>
-        </div>
-      </section>
-
-      <footer>
-        <p>© 2025 Reztro Petadraw. Privacy Policy, Terms & Conditions, Contact</p>
-        <div class="social-icons">
-          <span>🐦</span>
-          <span>📷</span>
-          <span>📘</span>
-        </div>
-      </footer>
-
-      <button class="upgrade-btn">Upgrade Now</button>
-    </main>
+      </div>
+    </div>
   </div>
 </template>
 
-<script>
-export default {
-  name: 'AdminDashboard',
+<script setup>
+import { onMounted, ref } from 'vue';
+import Chart from 'chart.js/auto';
+import ChartDataLabels from 'chartjs-plugin-datalabels';
+
+Chart.register(ChartDataLabels); // Đăng ký plugin datalabels
+
+const roomAvailabilityChart = ref(null);
+const reservationChart = ref(null);
+let roomChartInstance = null;
+let reservationChartInstance = null;
+
+const roomAvailabilityData = {
+  labels: ['Occupied', 'Reserved', 'Available', 'Not Ready'],
+  datasets: [{
+    data: [125, 87, 57, 25],
+    backgroundColor: ['#f4a261', '#e9c46a', '#a8d5ba', '#d3d3d3'],
+    borderWidth: 1,
+    borderColor: '#fff'
+  }]
 };
+
+const roomAvailabilityConfig = {
+  type: 'pie',
+  data: roomAvailabilityData,
+  options: {
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: {
+      legend: {
+        position: 'right',
+        labels: {
+          boxWidth: 10,
+          padding: 10
+        }
+      },
+      datalabels: {
+        color: '#fff', // Màu chữ bên trong
+        font: {
+          weight: 'bold',
+          size: 14
+        },
+        formatter: (value) => value, // Hiển thị giá trị số
+        anchor: 'center', // Đặt nhãn ở trung tâm
+        align: 'center'
+      }
+    }
+  }
+};
+
+const reservationData = {
+  labels: ['01 Jan', '02 Jan', '03 Jan', '04 Jan', '05 Jan', '06 Jan', '07 Jan', '08 Jan'],
+  datasets: [{
+    label: 'Booked',
+    data: [44, 55, 41, 67, 13, 43, 55, 64],
+    backgroundColor: '#6a0dad',
+    borderRadius: 8,
+    barThickness: 25,
+    stack: 'Stack 0'
+  }, {
+    label: 'Canceled',
+    data: [13, 23, 20, 18, 13, 27, 12, 9],
+    backgroundColor: '#f4a261',
+    borderRadius: 8,
+    barThickness: 25,
+    stack: 'Stack 0'
+  }]
+};
+
+const reservationConfig = {
+  type: 'bar',
+  data: reservationData,
+  options: {
+    responsive: true,
+    maintainAspectRatio: false,
+    scales: {
+      x: {
+        stacked: true
+      },
+      y: {
+        stacked: true,
+        beginAtZero: true,
+        max: 100,
+        ticks: {
+          stepSize: 20
+        }
+      }
+    },
+    plugins: {
+      legend: {
+        position: 'top',
+        align: 'end',
+        labels: {
+          boxWidth: 10,
+          padding: 10
+        }
+      }, datalabels: {
+        color: '#fff', // Màu chữ bên trong
+        font: {
+          weight: 'bold',
+          size: 14
+        },
+        formatter: (value) => value, // Hiển thị giá trị số
+        anchor: 'center', // Đặt nhãn ở trung tâm
+        align: 'center'
+      }
+    }
+  }
+};
+
+onMounted(() => {
+  const roomCtx = roomAvailabilityChart.value.getContext('2d');
+  roomChartInstance = new Chart(roomCtx, roomAvailabilityConfig);
+
+  const resCtx = reservationChart.value.getContext('2d');
+  reservationChartInstance = new Chart(resCtx, reservationConfig);
+});
 </script>
 
 <style scoped>
-/* General Layout */
-.dashboard {
-  display: flex;
-  height: 100vh;
-  font-family: 'Poppins', sans-serif;
-  background: #f9f5f0;
-}
-
-/* Sidebar */
-.sidebar {
-  width: 220px;
-  background: #fff;
-  padding: 30px 20px;
-  box-shadow: 2px 0 5px rgba(0, 0, 0, 0.05);
-}
-.logo {
-  display: flex;
-  align-items: center;
-  font-size: 20px;
-  font-weight: 600;
-  color: #333;
-  margin-bottom: 30px;
-}
-.logo-icon {
-  margin-right: 10px;
-}
-nav ul {
-  list-style: none;
-  padding: 0;
-}
-nav ul li {
-  padding: 12px 15px;
-  margin: 5px 0;
-  border-radius: 8px;
-  display: flex;
-  align-items: center;
-  font-size: 16px;
-  color: #666;
-  cursor: pointer;
+.card {
   transition: all 0.3s ease;
 }
-nav ul li.active,
-nav ul li:hover {
-  background: #ff6200;
-  color: #fff;
-}
-nav ul li i {
-  margin-right: 10px;
-}
-.badge {
-  background: #ff6200;
-  color: #fff;
-  border-radius: 12px;
-  padding: 2px 8px;
-  font-size: 12px;
-  margin-left: auto;
+
+.card:hover {
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
 }
 
-/* Main Content */
-.main-content {
-  flex: 1;
-  padding: 30px;
-  overflow-y: auto;
-}
-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin-bottom: 30px;
-}
-header h2 {
-  font-size: 24px;
-  font-weight: 600;
-  color: #333;
-}
-.search-bar,
-.order-search {
-  display: flex;
-  align-items: center;
-  background: #fff;
-  border: 1px solid #ddd;
-  border-radius: 8px;
-  padding: 8px 12px;
-  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
-}
 .search-bar .search-icon,
 .order-search span {
   margin-right: 8px;
   font-size: 16px;
   color: #666;
 }
+
 .search-bar input,
 .order-search span + * {
   border: none;
@@ -355,25 +198,30 @@ header h2 {
   color: #666;
   width: 200px;
 }
+
 .search-bar input::placeholder,
 .order-search span + *::placeholder {
   color: #999;
 }
+
 .user-info {
   display: flex;
   align-items: center;
 }
+
 .user-info .user-name {
   font-size: 16px;
   color: #333;
   margin-right: 10px;
 }
+
 .user-info .avatar {
   width: 32px;
   height: 32px;
   border-radius: 50%;
   margin-right: 10px;
 }
+
 .user-info .role-badge {
   background: #ff6200;
   color: #fff;
@@ -389,6 +237,7 @@ header h2 {
   gap: 20px;
   margin-bottom: 30px;
 }
+
 .stat-card {
   flex: 1;
   background: #fff;
@@ -399,9 +248,11 @@ header h2 {
   align-items: center;
   transition: transform 0.2s ease;
 }
+
 .stat-card:hover {
   transform: translateY(-2px);
 }
+
 .stat-icon {
   width: 50px;
   height: 50px;
@@ -412,10 +263,12 @@ header h2 {
   justify-content: center;
   margin-right: 15px;
 }
+
 .stat-icon span {
   font-size: 24px;
   color: #fff;
 }
+
 .stat-content h3 {
   font-size: 14px;
   font-weight: 500;
@@ -423,6 +276,7 @@ header h2 {
   margin: 0 0 5px 0;
   text-transform: uppercase;
 }
+
 .stat-content p {
   font-size: 24px;
   font-weight: 600;
@@ -430,12 +284,14 @@ header h2 {
   margin: 0;
   line-height: 1.2;
 }
+
 .stat-content .trend {
   font-size: 12px;
   padding: 2px 6px;
   border-radius: 10px;
   margin-left: 8px;
 }
+
 .stat-content .trend.up {
   background: #d4edda;
   color: #155724;
@@ -447,6 +303,7 @@ header h2 {
   gap: 20px;
   margin-bottom: 30px;
 }
+
 .chart-card {
   flex: 1;
   background: #fff;
@@ -454,275 +311,39 @@ header h2 {
   border-radius: 12px;
   box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
 }
+
 .chart-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
   margin-bottom: 15px;
 }
-.chart-header h3,
-.chart-header h4 {
-  font-size: 18px;
-  font-weight: 600;
-  color: #333;
-  margin: 0;
-}
-.chart-header .filter {
-  font-size: 14px;
-  color: #999;
-}
-.chart-placeholder {
-  height: 150px;
-  background: #f1f1f1;
-  border-radius: 8px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: #999;
-  font-size: 14px;
-}
-.chart-card .total {
-  font-size: 20px;
-  font-weight: 600;
-  color: #333;
-  margin-top: 15px;
-}
-.categories {
-  list-style: none;
-  padding: 0;
-  margin-top: 15px;
-}
-.categories li {
-  font-size: 14px;
-  color: #666;
-  margin: 5px 0;
-  display: flex;
-  align-items: center;
-}
-.categories .dot {
-  width: 10px;
-  height: 10px;
-  border-radius: 50%;
-  display: inline-block;
-  margin-right: 10px;
-}
-.dot.seafood { background: #ff6200; }
-.dot.beverages { background: #666; }
-.dot.dessert { background: #ccc; }
-.dot.pasta { background: #999; }
 
-/* Orders and Trending Section */
-.orders-trending {
-  display: flex;
-  gap: 20px;
-  margin-bottom: 30px;
-}
-.orders-overview,
-.trending-menus {
-  background: #fff;
-  padding: 20px;
-  border-radius: 12px;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
-}
-.orders-overview {
-  flex: 2;
-}
-.trending-menus {
-  flex: 1;
-}
-.orders-overview .highlight {
-  font-size: 16px;
-  color: #333;
-  margin: 15px 0;
-}
-.order-types ul {
-  list-style: none;
-  padding: 0;
-}
-.order-types li {
-  display: flex;
-  justify-content: space-between;
-  font-size: 14px;
-  color: #666;
-  margin: 10px 0;
-}
-.order-types li .count {
-  font-weight: 600;
-  color: #333;
-}
-.trending-menus .menu-card {
-  background: #fff;
-  border-radius: 12px;
-  margin-bottom: 15px;
-  text-align: center;
-}
-.menu-card img {
-  width: 100%;
-  height: 120px;
-  object-fit: cover;
-  border-radius: 12px;
-}
-.menu-card h4 {
-  font-size: 16px;
-  font-weight: 600;
-  color: #333;
-  margin: 10px 0 5px;
-}
-.menu-card .rating {
-  font-size: 14px;
-  color: #ff6200;
-}
-.menu-card .rating span {
-  color: #999;
-}
-.menu-card .price {
-  font-size: 16px;
-  font-weight: 600;
-  color: #333;
-  margin: 5px 0 0;
+/* Cập nhật kích thước font cho h3 trong Stats Cards */
+.row-cols-1.row-cols-md-4 .card h3 {
+  font-size: 1rem; /* Giảm từ 1.25rem xuống 1rem */
 }
 
-/* Recent Orders */
-.recent-orders {
-  background: #fff;
-  padding: 20px;
-  border-radius: 12px;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
-  margin-bottom: 30px;
-}
-.recent-orders table {
-  width: 100%;
-  border-collapse: collapse;
-}
-.recent-orders th,
-.recent-orders td {
-  padding: 12px;
-  text-align: left;
-  font-size: 14px;
-  color: #666;
-}
-.recent-orders th {
-  font-weight: 600;
-  color: #333;
-}
-.recent-orders td img {
-  width: 40px;
-  height: 40px;
-  border-radius: 8px;
-}
-.recent-orders .status {
-  padding: 5px 10px;
-  border-radius: 12px;
-  font-size: 12px;
-}
-.status.on-process {
-  background: #fff3cd;
-  color: #856404;
-}
-.status.completed {
-  background: #d4edda;
-  color: #155724;
-}
-.status.cancelled {
-  background: #f8d7da;
-  color: #721c24;
-}
-.see-all {
-  font-size: 14px;
-  color: #ff6200;
-  text-decoration: none;
+.card p.text-muted {
+  font-size: 1rem;
 }
 
-/* Reviews and Activity */
-.reviews-activity {
-  display: flex;
-  gap: 20px;
-  margin-bottom: 30px;
-}
-.customer-reviews,
-.recent-activity {
-  background: #fff;
-  padding: 20px;
-  border-radius: 12px;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
-}
-.customer-reviews {
-  flex: 2;
-}
-.reviews-activity .review-card {
-  display: inline-block;
-  width: 48%;
-  vertical-align: top;
-  margin-right: 2%;
-}
-.review-card img {
-  width: 100%;
-  height: 120px;
-  object-fit: cover;
-  border-radius: 12px;
-}
-.review-card h4 {
-  font-size: 16px;
-  font-weight: 600;
-  color: #333;
-  margin: 10px 0 5px;
-}
-.review-card p {
-  font-size: 14px;
-  color: #666;
-  margin: 5px 0;
-}
-.review-card .rating {
-  font-size: 14px;
-  color: #ff6200;
-}
-.review-card .rating span {
-  color: #999;
-  margin-left: 10px;
-}
-.recent-activity {
-  flex: 1;
-}
-.recent-activity ul {
-  list-style: none;
-  padding: 0;
-}
-.recent-activity li {
-  font-size: 14px;
-  color: #666;
-  margin: 15px 0;
-}
-.recent-activity li span {
-  color: #999;
-  display: block;
+.card p.text-success,
+.card p.text-warning {
+  font-size: 0.9rem;
 }
 
-/* Footer */
-footer {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  font-size: 14px;
-  color: #999;
-  margin-top: 30px;
-}
-.social-icons span {
-  margin-left: 10px;
-  font-size: 16px;
+.legend {
+  position: relative;
 }
 
-/* Upgrade Button */
-.upgrade-btn {
-  position: fixed;
-  bottom: 30px;
-  left: 30px;
-  background: #ff6200;
-  color: #fff;
-  padding: 10px 20px;
-  border: none;
-  border-radius: 8px;
-  cursor: pointer;
-  font-size: 14px;
-  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+@media (max-width: 768px) {
+  .row-cols-1.row-cols-md-4 .card {
+    min-height: 120px;
+  }
+
+  .row-cols-1.row-cols-md-4 .card h3 {
+    font-size: 0.9rem; /* Giảm thêm trên mobile nếu cần */
+  }
 }
 </style>

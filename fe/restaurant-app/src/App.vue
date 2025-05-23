@@ -1,76 +1,150 @@
 <template>
   <div>
-    <header ref="headerRef">
-      <nav class="navbar navbar-expand-lg navbar-light fixed-top" :class="{ 'active': navbarActive }">
-        <div class="container-fluid">
-          <!-- Logo -->
-          <a class="navbar-brand" href="/">
-            <img src="https://i.postimg.cc/s2Ywg6YR/logo.png" alt="Foodie Logo" class="logo-img" />
-            Sea Foodie
-          </a>
-
-          <!-- Toggle Button for Mobile -->
-          <button class="navbar-toggler" type="button" @click="toggleMenu" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
-            <span class="navbar-toggler-icon"></span>
-          </button>
-
-          <!-- Navbar Links -->
-          <div class="collapse navbar-collapse" id="navbarNav" ref="navbarRef" :class="{ 'show': navbarActive }">
-            <ul class="navbar-nav ms-auto">
-              <li class="nav-item">
-                <router-link class="nav-link" to="/">Home</router-link>
-              </li>
-              <li class="nav-item">
-                <router-link class="nav-link" to="/about">About</router-link>
-              </li>
-              <li class="nav-item">
-                <router-link class="nav-link" to="/contact">Contact</router-link>
-              </li>
-              <li class="nav-item">
-                <router-link class="nav-link" to="/blog">Blog</router-link>
-              </li>
-              <li class="nav-item dropdown">
-                <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                  Menu
-                </a>
-                <ul class="dropdown-menu">
-                  <li><router-link class="dropdown-item" to="/menu-list">Menu</router-link></li>
-                  <li><router-link class="dropdown-item" to="/menu">menu</router-link></li>
-                </ul>
-              </li>
-              <li class="nav-item">
-                <router-link class="nav-link" to="/reservation">Reservation</router-link>
-              </li>
-              <li class="nav-item dropdown" v-if="isLogin">
-                <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                  Xin chào, {{ userInfo.name }}!
-                </a>
-                <ul class="dropdown-menu dropdown-menu-end">
-                  <li><router-link class="dropdown-item" to="/testJwt">testJwt</router-link></li>
-                  <li v-if="isAdmin"><a class="dropdown-item" @click.prevent="adminPanel">Vào admin</a></li>
-                  <li><a class="dropdown-item logout-link" @click.prevent="logout">Đăng Xuất</a></li>
-                </ul>
-              </li>
-              <li class="nav-item" v-else>
-                <router-link class="nav-link" to="/login">Đăng Nhập</router-link>
-              </li>
-            </ul>
+    <!-- Kiểm tra nếu route là /admin thì hiển thị layout admin -->
+    <div v-if="$route.path.startsWith('/admin')" class="d-flex">
+      <!-- Sidebar -->
+      <div class="sidebar">
+        <div class="header text-center p-3 border-bottom">
+          <img src="https://i.postimg.cc/s2Ywg6YR/logo.png" alt="Luxuria Logo" class="rounded-circle" />
+          <span class="fw-bold">Sea Foodie</span>
+        </div>
+        <div class="profile text-center p-3 border-bottom">
+          <img src="https://www.einfosoft.com/templates/admin/luxuria/source/light/assets/images/admin.jpg" alt="Profile Picture" class="rounded-circle" />
+          <p class="mb-0 text-muted">{{ userInfo.name || 'Admin' }}</p>
+          <p class="text-muted">{{ userInfo.email || 'admin@seafoodie.com' }}</p>
+          <div class="icons d-flex justify-content-center mt-2">
+            <i class="bi bi-person mx-2" @click="goToProfile"></i>
+            <i class="bi bi-pencil mx-2" @click="editProfile"></i>
+            <i class="bi bi-bookmark-check mx-2"></i>
+            <i class="bi bi-box-arrow-right mx-2" @click.prevent="logout"></i>
           </div>
         </div>
-      </nav>
-    </header>
+        <ul class="nav flex-column">
+          <li class="nav-item">
+            <router-link class="nav-link" to="/admin/dashboard"><i class="bi bi-grid"></i> Dashboard</router-link>
+          </li>
+          <li class="nav-item">
+            <router-link class="nav-link" to="/admin/occupancy"><i class="bi bi-house-door"></i> Occupancy <span class="badge bg-danger">5</span></router-link>
+          </li>
+          <li class="nav-item">
+            <router-link class="nav-link" to="/admin/bookings"><i class="bi bi-book"></i> Bookings</router-link>
+          </li>
+          <li class="nav-item">
+            <router-link class="nav-link" to="/admin/rooms"><i class="bi bi-building"></i> Rooms</router-link>
+          </li>
+          <li class="nav-item">
+            <router-link class="nav-link" to="/admin/staffs"><i class="bi bi-people"></i> Staffs</router-link>
+          </li>
+          <li class="nav-item">
+            <router-link class="nav-link" to="/admin/departments"><i class="bi bi-gear"></i> Departments</router-link>
+          </li>
+          <li class="nav-item">
+            <router-link class="nav-link" to="/admin/housekeeping"><i class="bi bi-house"></i> Housekeeping</router-link>
+          </li>
+          <li class="nav-item">
+            <router-link class="nav-link" to="/admin/leave-management"><i class="bi bi-calendar"></i> Leave Management</router-link>
+          </li>
+          <li class="nav-item">
+            <router-link class="nav-link" to="/"><i class="bi bi-box-arrow-left"></i> Thoát</router-link>
+          </li>
+        </ul>
+      </div>
 
-    <main>
-      <RouterView></RouterView>
-      <footer class="text-center py-3">đây là footer</footer>
-    </main>
+      <!-- Main Content -->
+      <div class="main-content">
+        <!-- Top Navbar -->
+        <div class="navbar-top" :class="{ 'scrolled': navbarActive }">
+          <div class="d-flex align-items-center">
+            <i class="bi bi-globe"></i>
+            <i class="bi bi-bell mx-3"></i>
+            <span>{{ userInfo.name || 'Admin' }}</span>
+          </div>
+        </div>
+
+        <!-- Dynamic Content -->
+        <main class="admin-main">
+          <RouterView></RouterView>
+        </main>
+        <footer class="admin-footer text-center py-3">Admin Footer - Sea Foodie</footer>
+      </div>
+    </div>
+
+    <!-- Layout cho các route không phải admin -->
+    <div v-else>
+      <header ref="headerRef">
+        <nav class="navbar navbar-expand-lg navbar-light fixed-top" :class="{ 'active': navbarActive }">
+          <div class="container-fluid">
+            <!-- Logo -->
+            <a class="navbar-brand" href="/">
+              <img src="https://i.postimg.cc/s2Ywg6YR/logo.png" alt="Foodie Logo" class="logo-img" />
+              Sea Foodie
+            </a>
+
+            <!-- Toggle Button for Mobile -->
+            <button class="navbar-toggler" type="button" @click="toggleMenu" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+              <span class="navbar-toggler-icon"></span>
+            </button>
+
+            <!-- Navbar Links -->
+            <div class="collapse navbar-collapse" id="navbarNav" ref="navbarRef" :class="{ 'show': navbarActive }">
+              <ul class="navbar-nav ms-auto">
+                <li class="nav-item">
+                  <router-link class="nav-link" to="/">Home</router-link>
+                </li>
+                <li class="nav-item">
+                  <router-link class="nav-link" to="/about">About</router-link>
+                </li>
+                <li class="nav-item">
+                  <router-link class="nav-link" to="/contact">Contact</router-link>
+                </li>
+                <li class="nav-item">
+                  <router-link class="nav-link" to="/blog">Blog</router-link>
+                </li>
+                <li class="nav-item dropdown">
+                  <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                    Menu
+                  </a>
+                  <ul class="dropdown-menu">
+                    <li><router-link class="dropdown-item" to="/menu-list">Menu</router-link></li>
+                    <li><router-link class="dropdown-item" to="/menu">menu</router-link></li>
+                  </ul>
+                </li>
+                <li class="nav-item">
+                  <router-link class="nav-link" to="/reservation">Reservation</router-link>
+                </li>
+                <li class="nav-item dropdown" v-if="isLogin">
+                  <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                    Xin chào, {{ userInfo.name }}!
+                  </a>
+                  <ul class="dropdown-menu dropdown-menu-end">
+                    <li><router-link class="dropdown-item" to="/testJwt">testJwt</router-link></li>
+                    <li v-if="isAdmin"><a class="dropdown-item" @click.prevent="adminPanel">Vào admin</a></li>
+                    <li><a class="dropdown-item logout-link" @click.prevent="logout">Đăng Xuất</a></li>
+                  </ul>
+                </li>
+                <li class="nav-item" v-else>
+                  <router-link class="nav-link" to="/login">Đăng Nhập</router-link>
+                </li>
+              </ul>
+            </div>
+          </div>
+        </nav>
+      </header>
+
+      <main>
+        <RouterView></RouterView>
+        <footer class="text-center py-3">đây là footer</footer>
+      </main>
+    </div>
   </div>
 </template>
 
 <script setup>
 import { ref, onMounted, onUnmounted } from 'vue';
+import { useRoute } from 'vue-router';
 import axiosConfig from './axiosConfig.js';
 
+const route = useRoute();
 const headerRef = ref(null);
 const navbarRef = ref(null);
 const navbarActive = ref(false);
@@ -78,9 +152,13 @@ const userInfo = ref(null);
 const isLogin = ref(false);
 const isAdmin = ref(false);
 
+const toggleMenu = () => {
+  navbarActive.value = !navbarActive.value;
+};
+
 const handleScroll = () => {
-  if (headerRef.value) {
-    navbarActive.value = window.scrollY > 0; // Cập nhật trực tiếp navbarActive
+  if (headerRef.value || route.path.startsWith('/admin')) {
+    navbarActive.value = window.scrollY > 50;
   }
 };
 
@@ -109,14 +187,13 @@ if (token && user) {
   userInfo.value = JSON.parse(user);
 }
 
-onMounted(() => {
-  fetchUserInfo();
-  window.addEventListener('scroll', handleScroll);
-});
+const goToProfile = () => {
+  window.location.href = '/admin/profile';
+};
 
-onUnmounted(() => {
-  window.removeEventListener('scroll', handleScroll);
-});
+const editProfile = () => {
+  window.location.href = '/admin/edit-profile';
+};
 
 const logout = () => {
   localStorage.removeItem('token');
@@ -127,32 +204,46 @@ const logout = () => {
 const adminPanel = () => {
   window.location.href = '/admin';
 };
+
+onMounted(() => {
+  fetchUserInfo();
+  window.addEventListener('scroll', handleScroll);
+});
+
+onUnmounted(() => {
+  window.removeEventListener('scroll', handleScroll);
+});
 </script>
 
 <style scoped>
-@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&family=Turret+Road:wght@400;500;700;800&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Arial&display=swap');
 @import url('https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css');
+@import url('https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css');
 
 :root {
   --main-color: #16B978;
   --second-color: #081B54;
+  --text-muted: #6c757d;
+  --border-color: #eee;
+  --badge-bg: #dc3545;
 }
 
 * {
   margin: 0;
   padding: 0;
   box-sizing: border-box;
-  font-family: 'Poppins', sans-serif;
+  font-family: 'Arial', sans-serif;
 }
 
+/* Styles cho layout thông thường */
 .navbar {
   transition: background-color 0.3s ease, color 0.3s ease;
   padding: 10px 15px;
-  background-color: transparent; /* Nền trong suốt khi chưa cuộn */
+  background-color: transparent;
 }
 
 .navbar.active {
-  background-color: #081B54 !important;
+  background-color: var(--second-color) !important;
   box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
 }
 
@@ -168,17 +259,17 @@ const adminPanel = () => {
 .navbar.active .navbar-brand,
 .navbar.active .nav-link,
 .navbar.active .dropdown-toggle {
-  color: #fff !important; /* Đổi màu chữ thành trắng khi cuộn */
+  color: #fff !important;
 }
 
 .logo-img {
   width: 35px;
   margin-right: 10px;
-  filter: brightness(0); /* Đổi logo thành màu đen khi chưa cuộn */
+  filter: brightness(0);
 }
 
 .navbar.active .logo-img {
-  filter: brightness(100); /* Đổi logo thành màu trắng khi cuộn */
+  filter: brightness(100);
 }
 
 .nav-link {
@@ -227,27 +318,234 @@ footer {
   color: #fff;
 }
 
-/* Ensure mobile menu looks good */
+/* Admin Layout Styles */
+body {
+  background-color: #f5f7fb;
+  height: 100%;
+  overflow-y: auto;
+}
+
+.sidebar {
+  height: 100vh;
+  background-color: #fff;
+  box-shadow: 2px 0 5px rgba(0, 0, 0, 0.1);
+  padding-top: 20px;
+  position: fixed;
+  width: 250px;
+  z-index: 1000;
+}
+
+.sidebar .header {
+  text-align: center;
+  padding: 20px;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.sidebar .header img {
+  width: 30px;
+  margin-right: 10px;
+  vertical-align: middle;
+}
+
+.sidebar .header span {
+  font-size: 1.5rem;
+  vertical-align: middle;
+  color: var(--badge-bg);
+}
+
+.sidebar .profile {
+  text-align: center;
+  padding: 20px 0;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.sidebar .profile img {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  margin-bottom: 10px;
+}
+
+.sidebar .profile p {
+  margin: 0;
+  font-size: 0.9rem;
+  color: var(--text-muted);
+}
+
+.sidebar .profile .icons {
+  display: flex;
+  justify-content: center;
+  margin-top: 10px;
+}
+
+.sidebar .profile .icons i {
+  font-size: 1.2rem;
+  margin: 0 5px;
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: color 0.3s ease;
+}
+
+.sidebar .profile .icons i:hover {
+  color: var(--main-color);
+}
+
+.sidebar .nav-link {
+  color: var(--text-muted);
+  padding: 10px 20px;
+  display: flex;
+  align-items: center;
+  transition: all 0.3s ease;
+}
+
+.sidebar .nav-link:hover,
+.sidebar .nav-link.router-link-active {
+  color: var(--main-color);
+  background-color: #f8f9fa;
+}
+
+.sidebar .nav-link i {
+  margin-right: 10px;
+}
+
+.sidebar .nav-link .badge {
+  margin-left: auto;
+  background-color: var(--badge-bg);
+}
+
+.main-content {
+  margin-left: 250px;
+  padding: 20px;
+  padding-top: 60px;
+  min-height: 100vh;
+  background-color: #f5f7fb;
+  width: calc(100% - 250px);
+  overflow-y: auto;
+}
+
+.navbar-top {
+  padding: 10px 20px;
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  position: fixed;
+  top: 0;
+  left: 250px;
+  right: 0;
+  z-index: 900;
+  height: 50px;
+  background-color: #f5f7fb;
+  transition: background-color 0.1s ease;
+}
+
+.navbar-top.scrolled {
+  background-color: #ffffff;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+}
+
+.navbar-top .d-flex i {
+  font-size: 1.2rem;
+  color: var(--text-muted);
+  cursor: pointer;
+}
+
+.navbar-top .d-flex span {
+  font-weight: 500;
+  color: var(--text-muted);
+}
+
+.admin-main {
+  padding: 20px 20px 0; /* Thêm padding-top 20px để tạo khoảng cách với top-bar */
+  min-height: calc(100vh - 50px - 60px); /* Điều chỉnh để trừ top navbar */
+  width: 100%;
+  background-color: #f5f7fb;
+}
+
+/* Đảm bảo nội dung trong admin-main mở rộng đúng */
+.admin-main > * {
+  width: 100%;
+}
+
+.admin-footer {
+  background-color: var(--second-color);
+  color: #000000;
+}
+
+/* Mobile menu styles */
 @media (max-width: 991px) {
-  .navbar-nav {
+  .navbar-collapse {
+    position: fixed;
+    top: 0;
+    right: 0;
+    height: 100vh;
+    width: 250px;
     background-color: #fff;
+    transform: translateX(100%);
+    transition: transform 0.3s ease-in-out;
+    padding: 20px;
+    z-index: 1000;
+    box-shadow: -2px 0 10px rgba(0, 0, 0, 0.1);
+  }
+
+  .navbar-collapse.show {
+    transform: translateX(0);
+  }
+
+  .navbar-nav {
+    flex-direction: column;
+    background-color: transparent;
     padding: 10px;
-    border-radius: 5px;
   }
 
   .navbar.active .navbar-nav {
-    background-color: var(--second-color);
+    background-color: transparent;
+  }
+
+  .nav-link,
+  .dropdown-toggle {
+    color: #000 !important;
+    padding: 15px !important;
   }
 
   .navbar.active .nav-link,
   .navbar.active .dropdown-toggle {
-    color: #fff !important;
+    color: #000 !important;
   }
 
   .nav-link:hover,
   .dropdown-item:hover {
     background-color: var(--main-color);
     color: #fff !important;
+  }
+
+  .dropdown-menu {
+    background-color: #f8f9fa;
+    margin-left: 10px;
+  }
+
+  /* Admin mobile styles */
+  .sidebar {
+    width: 200px;
+    transform: translateX(-100%);
+    transition: transform 0.3s ease-in-out;
+  }
+
+  .sidebar.show {
+    transform: translateX(0);
+  }
+
+  .main-content {
+    margin-left: 0;
+    width: 100%;
+  }
+
+  .navbar-top {
+    left: 0;
+    width: 100%;
+  }
+
+  .admin-main {
+    padding-top: 70px; /* Tăng padding-top trên mobile để tạo khoảng cách lớn hơn */
   }
 }
 </style>
