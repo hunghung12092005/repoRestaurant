@@ -215,7 +215,7 @@ onUnmounted(() => {
 }
 
 .navbar.active {
-  background-color: var(--second-color) !important;
+  background-color: #081B54 !important;
   box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
 }
 
