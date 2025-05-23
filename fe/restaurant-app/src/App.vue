@@ -20,33 +20,15 @@
           </div>
         </div>
         <ul class="nav flex-column">
-          <li class="nav-item">
-            <router-link class="nav-link" to="/admin/dashboard"><i class="bi bi-grid"></i> Dashboard</router-link>
-          </li>
-          <li class="nav-item">
-            <router-link class="nav-link" to="/admin/occupancy"><i class="bi bi-house-door"></i> Occupancy <span class="badge bg-danger">5</span></router-link>
-          </li>
-          <li class="nav-item">
-            <router-link class="nav-link" to="/admin/bookings"><i class="bi bi-book"></i> Bookings</router-link>
-          </li>
-          <li class="nav-item">
-            <router-link class="nav-link" to="/admin/rooms"><i class="bi bi-building"></i> Rooms</router-link>
-          </li>
-          <li class="nav-item">
-            <router-link class="nav-link" to="/admin/staffs"><i class="bi bi-people"></i> Staffs</router-link>
-          </li>
-          <li class="nav-item">
-            <router-link class="nav-link" to="/admin/departments"><i class="bi bi-gear"></i> Departments</router-link>
-          </li>
-          <li class="nav-item">
-            <router-link class="nav-link" to="/admin/housekeeping"><i class="bi bi-house"></i> Housekeeping</router-link>
-          </li>
-          <li class="nav-item">
-            <router-link class="nav-link" to="/admin/leave-management"><i class="bi bi-calendar"></i> Leave Management</router-link>
-          </li>
-          <li class="nav-item">
-            <router-link class="nav-link" to="/"><i class="bi bi-box-arrow-left"></i> Thoát</router-link>
-          </li>
+          <li class="nav-item "><router-link class="nav-link" to="/admin/dashboard"><i class="bi bi-grid"></i> Dashboard</router-link></li>
+          <li class="nav-item"><router-link class="nav-link" to="/admin/occupancy"><i class="bi bi-house-door"></i> Occupancy <span class="badge bg-danger">5</span></router-link></li>
+          <li class="nav-item"><router-link class="nav-link" to="/admin/bookings"><i class="bi bi-book"></i> Bookings</router-link></li>
+          <li class="nav-item"><router-link class="nav-link" to="/admin/rooms"><i class="bi bi-building"></i> Rooms</router-link></li>
+          <li class="nav-item"><router-link class="nav-link" to="/admin/staffs"><i class="bi bi-people"></i> Staffs</router-link></li>
+          <li class="nav-item"><router-link class="nav-link" to="/admin/departments"><i class="bi bi-gear"></i> Departments</router-link></li>
+          <li class="nav-item"><router-link class="nav-link" to="/admin/housekeeping"><i class="bi bi-house"></i> Housekeeping</router-link></li>
+          <li class="nav-item"><router-link class="nav-link" to="/admin/leave-management"><i class="bi bi-calendar"></i> Leave Management</router-link></li>
+          <li class="nav-item"><router-link class="nav-link" to="/"><i class="bi bi-box-arrow-left"></i> Thoát</router-link></li>
         </ul>
       </div>
 
@@ -88,18 +70,10 @@
             <!-- Navbar Links -->
             <div class="collapse navbar-collapse" id="navbarNav" ref="navbarRef" :class="{ 'show': navbarActive }">
               <ul class="navbar-nav ms-auto">
-                <li class="nav-item">
-                  <router-link class="nav-link" to="/">Home</router-link>
-                </li>
-                <li class="nav-item">
-                  <router-link class="nav-link" to="/about">About</router-link>
-                </li>
-                <li class="nav-item">
-                  <router-link class="nav-link" to="/contact">Contact</router-link>
-                </li>
-                <li class="nav-item">
-                  <router-link class="nav-link" to="/blog">Blog</router-link>
-                </li>
+                <li class="nav-item"><router-link class="nav-link" to="/">Home</router-link></li>
+                <li class="nav-item"><router-link class="nav-link" to="/about">About</router-link></li>
+                <li class="nav-item"><router-link class="nav-link" to="/contact">Contact</router-link></li>
+                <li class="nav-item"><router-link class="nav-link" to="/blog">Blog</router-link></li>
                 <li class="nav-item dropdown">
                   <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
                     Menu
@@ -109,9 +83,7 @@
                     <li><router-link class="dropdown-item" to="/menu">menu</router-link></li>
                   </ul>
                 </li>
-                <li class="nav-item">
-                  <router-link class="nav-link" to="/reservation">Reservation</router-link>
-                </li>
+                <li class="nav-item"><router-link class="nav-link" to="/reservation">Reservation</router-link></li>
                 <li class="nav-item dropdown" v-if="isLogin">
                   <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
                     Xin chào, {{ userInfo.name }}!
@@ -333,6 +305,13 @@ body {
   position: fixed;
   width: 250px;
   z-index: 1000;
+  overflow-y: auto; /* Enable vertical scrolling */
+  scrollbar-width: none; /* Hide scrollbar for Firefox */
+}
+
+/* Hide scrollbar for WebKit browsers (Chrome, Safari, etc.) */
+.sidebar::-webkit-scrollbar {
+  display: none; /* Hide the scrollbar */
 }
 
 .sidebar .header {
@@ -455,13 +434,12 @@ body {
 }
 
 .admin-main {
-  padding: 20px 20px 0; /* Thêm padding-top 20px để tạo khoảng cách với top-bar */
-  min-height: calc(100vh - 50px - 60px); /* Điều chỉnh để trừ top navbar */
+  padding: 20px 20px 0;
+  min-height: calc(100vh - 50px - 60px);
   width: 100%;
   background-color: #f5f7fb;
 }
 
-/* Đảm bảo nội dung trong admin-main mở rộng đúng */
 .admin-main > * {
   width: 100%;
 }
@@ -528,6 +506,12 @@ body {
     width: 200px;
     transform: translateX(-100%);
     transition: transform 0.3s ease-in-out;
+    overflow-y: auto; /* Ensure scrolling on mobile */
+    scrollbar-width: none; /* Hide scrollbar for Firefox */
+  }
+
+  .sidebar::-webkit-scrollbar {
+    display: none; /* Hide scrollbar for WebKit browsers */
   }
 
   .sidebar.show {
@@ -545,7 +529,7 @@ body {
   }
 
   .admin-main {
-    padding-top: 70px; /* Tăng padding-top trên mobile để tạo khoảng cách lớn hơn */
+    padding-top: 70px;
   }
 }
 </style>
