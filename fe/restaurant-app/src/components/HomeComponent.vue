@@ -11,7 +11,7 @@
             <h1>Healthy Food <br>Collection!</h1>
             <p>Discover our carefully curated selection of nutritious and delicious meals, made with fresh ingredients
                 to nourish your body and delight your taste buds</p>
-            <a href="/menu" class="btn">Xem Menu</a>
+            <a href="/menu-list" class="btn">Xem Menu</a>
         </div>
         <div class="home-img">
             <img src="https://i.postimg.cc/gJBk5PMz/salad.png" alt="food image">

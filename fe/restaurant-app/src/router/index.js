@@ -13,6 +13,7 @@ import BlogDetailComponent from '../components/BlogDetailComponent.vue';
 import ProductDetailComponent from '../components/ProductDetailComponent.vue';
 import AdminDashboardComponent from '../components/AdminDashboardComponent.vue';
 import AdminStaffsComponent from '../components/AdminStaffsComponent.vue';
+import AdminRoomComponent from '../components/AdminRoomComponent.vue';
 
 
 const routes = [
@@ -86,6 +87,12 @@ const routes = [
     path: '/admin/staffs',
     name: 'AdminStaffs',
     component: AdminStaffsComponent,
+    meta: { requiresAdmin: true },
+  },
+  {
+    path: '/admin/rooms',
+    name: 'AdminRoom',
+    component: AdminRoomComponent,
     meta: { requiresAdmin: true },
   }
 ];
