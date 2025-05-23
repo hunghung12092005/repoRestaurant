@@ -1,17 +1,20 @@
 import { createRouter, createWebHistory } from 'vue-router';
 import App from '../App.vue';
-import HomeComponent from '../components/HomeComponent.vue'
-import AboutComponent from '../components/AboutComponent.vue'
-import contact from '../components/ContactComponent.vue'
-import ReservationComponent from '../components/ReservationComponent.vue'
-import BlogComponent from '../components/BlogComponent.vue'
-import MenuComponent from '../components/MenuComponent.vue'
-import MenuListComponent from '../components/MenuListComponent.vue'
-import LoginComponent from '../components/Login.vue'
-import testJwt from '../components/testTokenJwt.vue'
-import BlogDetailComponent from '../components/BlogDetailComponent.vue'
-import ProductDetailComponent from '../components/ProductDetailComponent.vue'
-import AdminDashboardComponent from '../components/AdminDashboardComponent.vue'
+import HomeComponent from '../components/HomeComponent.vue';
+import AboutComponent from '../components/AboutComponent.vue';
+import ContactComponent from '../components/ContactComponent.vue';
+import ReservationComponent from '../components/ReservationComponent.vue';
+import BlogComponent from '../components/BlogComponent.vue';
+import MenuComponent from '../components/MenuComponent.vue';
+import MenuListComponent from '../components/MenuListComponent.vue';
+import LoginComponent from '../components/Login.vue';
+import TestJwtComponent from '../components/testTokenJwt.vue';
+import BlogDetailComponent from '../components/BlogDetailComponent.vue';
+import ProductDetailComponent from '../components/ProductDetailComponent.vue';
+import AdminDashboardComponent from '../components/AdminDashboardComponent.vue';
+import AdminStaffsComponent from '../components/AdminStaffsComponent.vue';
+
+
 const routes = [
   {
     path: '/',
@@ -25,8 +28,8 @@ const routes = [
   },
   {
     path: '/contact',
-    name: 'contact',
-    component: contact,
+    name: 'ContactComponent',
+    component: ContactComponent,
   },
   {
     path: '/reservation',
@@ -34,7 +37,7 @@ const routes = [
     component: ReservationComponent,
   },
   {
-    path: '/BlogComponent',
+    path: '/blog',
     name: 'BlogComponent',
     component: BlogComponent,
   },
@@ -55,25 +58,53 @@ const routes = [
   },
   {
     path: '/testJwt',
-    name: 'testJwt',
-    component: testJwt,
+    name: 'TestJwtComponent',
+    component: TestJwtComponent,
   },
   {
-    path: '/blog',
+    path: '/blog-detail',
     name: 'BlogDetailComponent',
     component: BlogDetailComponent,
   },
   {
-    path: '/ProductDetailComponent',
+    path: '/product-detail',
     name: 'ProductDetailComponent',
     component: ProductDetailComponent,
   },
-  // Thêm các route khác ở đây
+  // Admin routes
+  {
+    path: '/admin',
+    redirect: '/admin/dashboard', // Chuyển hướng /admin đến /admin/dashboard
+  },
+  {
+    path: '/admin/dashboard',
+    name: 'AdminDashboard',
+    component: AdminDashboardComponent,
+    meta: { requiresAdmin: true },
+  },
+  {
+    path: '/admin/staffs',
+    name: 'AdminStaffs',
+    component: AdminStaffsComponent,
+    meta: { requiresAdmin: true },
+  }
 ];
 
 const router = createRouter({
   history: createWebHistory(),
   routes,
+});
+
+// Route Guard để kiểm tra quyền admin
+router.beforeEach((to, from, next) => {
+  const userInfo = JSON.parse(localStorage.getItem('userInfo') || '{}');
+  const isAdmin = userInfo.role === 'admin';
+
+  if (to.meta.requiresAdmin && !isAdmin) {
+    next('/login'); // Chuyển hướng về login nếu không phải admin
+  } else {
+    next(); // Cho phép truy cập
+  }
 });
 
 export default router;
