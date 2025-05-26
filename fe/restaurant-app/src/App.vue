@@ -32,25 +32,6 @@
         </ul>
       </div>
 
-<<<<<<< HEAD
-      <ul class="navbar" :class="{ active: navbarActive }" ref="navbarRef">
-        <li><router-link to="/">Home</router-link></li>
-        <li><router-link to="/about">About</router-link></li>
-        <li><router-link to="/contact">Contact</router-link></li>
-        <li><router-link to="/blog">Blog</router-link></li>
-        <li><router-link to="/menu-list">Menu</router-link></li>
-        <li><router-link to="/testJwt">testJwt</router-link></li>
-        <li><router-link to="/menu">menu</router-link></li>
-        <li><router-link to="/ghn">ghn</router-link></li>
-        <li><router-link to="/reservation">Reservation</router-link></li>
-        <li v-if="isAdmin">
-          <a @click.prevent="adminPanel">Vào admin</a>
-        </li>
-        <li v-if="isLogin">
-          <span>Xin chào, {{ userInfo.name }}!</span>
-          <a @click.prevent="logout">Đăng Xuất</a>
-        </li>
-=======
       <!-- Main Content -->
       <div class="main-content">
         <!-- Top Navbar -->
@@ -61,7 +42,6 @@
             <span>{{ userInfo.name || 'Admin' }}</span>
           </div>
         </div>
->>>>>>> bde4c42f2a8e7fa66d8337d8e58e747b46edfe1a
 
         <!-- Dynamic Content -->
         <main class="admin-main">
@@ -133,17 +113,9 @@
 
 <script setup>
 import { ref, onMounted, onUnmounted } from 'vue';
-<<<<<<< HEAD
-import axiosConfig from './axiosConfig.js'; // Import axiosConfig
-import { provide } from 'vue';
-import Footer from './components/Footer.vue';
-const apiUrl = 'http://localhost:8000'; // Cung cấp URL cơ bản
-provide('apiUrl', apiUrl);// cung cấp cho các thằng con
-=======
 import { useRoute } from 'vue-router';
 import axiosConfig from './axiosConfig.js';
 import { provide } from 'vue';
->>>>>>> bde4c42f2a8e7fa66d8337d8e58e747b46edfe1a
 
 const route = useRoute();
 const headerRef = ref(null);
@@ -151,18 +123,6 @@ const navbarRef = ref(null);
 const navbarActive = ref(false);
 const userInfo = ref(null);
 const isLogin = ref(false);
-<<<<<<< HEAD
-const isAdmin = ref(false); // Biến để kiểm tra quyền admin
-
-// Hàm lấy thông tin người dùng
-const fetchUserInfo = async () => {
-  try {
-    const response = await axiosConfig.get('http://127.0.0.1:8000/api/protected');
-    userInfo.value = response.data.user; // Lưu thông tin người dùng
-    isLogin.value = true; // Đánh dấu là đã đăng nhập
-    // console.log(1);
-    // Kiểm tra vai trò
-=======
 const isAdmin = ref(false);
 const apiUrl = 'http://localhost:8000';
 provide('apiUrl', apiUrl);
@@ -181,7 +141,6 @@ const fetchUserInfo = async () => {
     const response = await axiosConfig.get('http://127.0.0.1:8000/api/protected');
     userInfo.value = response.data.user;
     isLogin.value = true;
->>>>>>> bde4c42f2a8e7fa66d8337d8e58e747b46edfe1a
     if (userInfo.value.role === 'admin') {
       isAdmin.value = true;
     } else {
@@ -197,7 +156,7 @@ const token = urlParams.get('token');
 const user = urlParams.get('user');
 
 if (token && user) {
-  localStorage.setItem('tokenJwt', token);
+  localStorage.setItem('token', token);
   localStorage.setItem('userInfo', user);
   userInfo.value = JSON.parse(user);
 }
@@ -224,33 +183,10 @@ onMounted(() => {
   fetchUserInfo();
   window.addEventListener('scroll', handleScroll);
 });
-const toggleMenu = () => {
-  navbarActive.value = !navbarActive.value;
-};
 
-const handleScroll = () => {
-  if (headerRef.value) {
-    headerRef.value.classList.toggle('active', window.scrollY > 0);
-  }
-};
 onUnmounted(() => {
   window.removeEventListener('scroll', handleScroll);
 });
-<<<<<<< HEAD
-
-// Hàm logout
-const logout = () => {
-  localStorage.removeItem('tokenJwt'); // Xóa token
-  localStorage.removeItem('userInfo'); // Xóa thông tin người dùng
-  window.location.href = '/'; // Chuyển hướng
-};
-
-// Hàm adminPanel
-const adminPanel = () => {
-  window.location.href = '/admin'; // Chuyển hướng
-};
-=======
->>>>>>> bde4c42f2a8e7fa66d8337d8e58e747b46edfe1a
 </script>
 
 <style scoped>
@@ -357,10 +293,6 @@ footer {
   color: #fff;
 }
 
-<<<<<<< HEAD
-
-
-=======
 /* Admin Layout Styles */
 body {
   background-color: #f5f7fb;
@@ -603,5 +535,4 @@ body {
     padding-top: 70px;
   }
 }
->>>>>>> bde4c42f2a8e7fa66d8337d8e58e747b46edfe1a
 </style>

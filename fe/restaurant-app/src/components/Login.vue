@@ -50,7 +50,6 @@
         </div>
         <div v-if="userInfo" class="user-info">
             <h2>Xin chào, {{ userInfo.name }}!</h2>
-<<<<<<< HEAD
         </div> -->
     <div class="main-login">
         <form @submit.prevent="submitForm" class="form">
@@ -158,10 +157,6 @@
     </div>
     
     <Footer></Footer>
-=======
-        </div>
-    </div>
->>>>>>> bde4c42f2a8e7fa66d8337d8e58e747b46edfe1a
 </template>
 
 <script setup>
@@ -252,35 +247,10 @@ function showAlert(message) {
     }, 2000);
 }
 </script>
-<<<<<<< HEAD
 <style scoped>
 .main-login {
     position: relative;
     background-color: rgba(15, 141, 172, 0.2);
-=======
-
-<style scoped>
-.auth-container {
-    max-width: 450px;
-    margin: 50px auto;
-    padding: 30px;
-    border-radius: 12px;
-    background: linear-gradient(135deg, #ffffff, #f8f9fa);
-    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
-    transition: transform 0.3s ease;
-}
-
-.auth-container:hover {
-    transform: translateY(-5px);
-}
-
-.auth-title {
-    font-size: 2rem;
-    font-weight: 700;
-    color: #2c3e50;
-    text-align: center;
-    margin-bottom: 20px;
->>>>>>> bde4c42f2a8e7fa66d8337d8e58e747b46edfe1a
 }
 
 .main-login::before {
@@ -299,7 +269,6 @@ function showAlert(message) {
 .form {
     display: flex;
     flex-direction: column;
-<<<<<<< HEAD
     gap: 10px;
     padding: 30px;
     width: 450px;
@@ -411,148 +380,6 @@ function showAlert(message) {
     background-color: white;
     cursor: pointer;
     transition: 0.2s ease-in-out;
-=======
-    gap: 20px;
-}
-
-.form-group {
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-}
-
-label {
-    font-size: 1rem;
-    font-weight: 600;
-    color: #34495e;
-}
-
-input {
-    padding: 12px 15px;
-    border: 1px solid #dfe6e9;
-    border-radius: 8px;
-    font-size: 1rem;
-    transition: all 0.3s ease;
-    background-color: #f9fbfc;
-}
-
-input:focus {
-    outline: none;
-    border-color: #007bff;
-    box-shadow: 0 0 8px rgba(0, 123, 255, 0.3);
-    background-color: #fff;
-}
-
-.submit-button, .google-button {
-    padding: 12px;
-    border: none;
-    border-radius: 8px;
-    font-size: 1rem;
-    font-weight: 600;
-    cursor: pointer;
-    transition: all 0.3s ease;
-}
-
-.submit-button {
-    background-color: #007bff;
-    color: white;
-}
-
-.submit-button:hover {
-    background-color: #0056b3;
-    transform: translateY(-2px);
-}
-
-.google-button {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 10px;
-    background-color: #ffffff;
-    color: #2c3e50;
-    border: 1px solid #dfe6e9;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
-}
-
-.google-button:hover {
-    background-color: #f1f3f5;
-    transform: translateY(-2px);
-}
-
-.google-icon {
-    width: 24px;
-    height: 24px;
-}
-
-.toggle-link {
-    font-size: 0.9rem;
-    text-align: center;
-    cursor: pointer;
-}
-
-.plain-text {
-    color: #000000; /* Màu đen cho văn bản thường */
-}
-
-.link-text {
-    color: #007bff;
-    transition: color 0.3s ease;
-}
-
-.link-text:hover {
-    color: #0056b3;
-    text-decoration: underline;
-}
-
-.error-message {
-    color: #e74c3c;
-    font-size: 0.9rem;
-    text-align: center;
-    margin-top: 15px;
-}
-
-.user-info {
-    text-align: center;
-    margin-top: 20px;
-}
-
-.alert {
-    padding: 10px;
-    border-radius: 8px;
-    font-size: 0.9rem;
-    text-align: center;
-}
-
-.alert-success {
-    background-color: #d4edda;
-    color: #155724;
-}
-
-.alert-danger {
-    background-color: #f8d7da;
-    color: #721c24;
-}
-
-/* Responsive Design */
-@media (max-width: 480px) {
-    .auth-container {
-        margin: 20px;
-        padding: 20px;
-    }
-
-    .auth-title {
-        font-size: 1.5rem;
-    }
-
-    .submit-button, .google-button {
-        font-size: 0.9rem;
-        padding: 10px;
-    }
-
-    .toggle-link {
-        font-size: 0.85rem;
-    }
->>>>>>> bde4c42f2a8e7fa66d8337d8e58e747b46edfe1a
 }
 
 .btn:hover {
