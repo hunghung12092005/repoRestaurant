@@ -27,8 +27,8 @@ const routes = [
   },
   {
     path: '/contact',
-    name: 'contact',
-    component: contact,
+    name: 'ContactComponent',
+    component: ContactComponent,
   },
   {
     path: '/reservation',
@@ -36,7 +36,7 @@ const routes = [
     component: ReservationComponent,
   },
   {
-    path: '/BlogComponent',
+    path: '/blog',
     name: 'BlogComponent',
     component: BlogComponent,
   },
@@ -57,16 +57,16 @@ const routes = [
   },
   {
     path: '/testJwt',
-    name: 'testJwt',
-    component: testJwt,
+    name: 'TestJwtComponent',
+    component: TestJwtComponent,
   },
   {
-    path: '/blog',
+    path: '/blog-detail',
     name: 'BlogDetailComponent',
     component: BlogDetailComponent,
   },
   {
-    path: '/ProductDetailComponent',
+    path: '/product-detail',
     name: 'ProductDetailComponent',
     component: ProductDetailComponent,
   },
@@ -86,6 +86,18 @@ const routes = [
 const router = createRouter({
   history: createWebHistory(),
   routes,
+});
+
+// Route Guard để kiểm tra quyền admin
+router.beforeEach((to, from, next) => {
+  const userInfo = JSON.parse(localStorage.getItem('userInfo') || '{}');
+  const isAdmin = userInfo.role === 'admin';
+
+  if (to.meta.requiresAdmin && !isAdmin) {
+    next('/login'); // Chuyển hướng về login nếu không phải admin
+  } else {
+    next(); // Cho phép truy cập
+  }
 });
 
 export default router;
