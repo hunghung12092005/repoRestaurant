@@ -8,3 +8,5 @@
 # ở môi trường local thì vào xammp/php tìm file php.ini và bỏ dấu ; của :extension=sodium
 # npm install chart.js
 # npm install chartjs-plugin-datalabels
+# npm install vue3-select
+
