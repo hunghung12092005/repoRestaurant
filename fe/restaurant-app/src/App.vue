@@ -115,6 +115,7 @@
 import { ref, onMounted, onUnmounted } from 'vue';
 import { useRoute } from 'vue-router';
 import axiosConfig from './axiosConfig.js';
+import { provide } from 'vue';
 
 const route = useRoute();
 const headerRef = ref(null);
@@ -123,7 +124,8 @@ const navbarActive = ref(false);
 const userInfo = ref(null);
 const isLogin = ref(false);
 const isAdmin = ref(false);
-
+const apiUrl = 'http://localhost:8000';
+provide('apiUrl', apiUrl);
 const toggleMenu = () => {
   navbarActive.value = !navbarActive.value;
 };
@@ -191,6 +193,7 @@ onUnmounted(() => {
 @import url('https://fonts.googleapis.com/css2?family=Arial&display=swap');
 @import url('https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css');
 @import url('https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css');
+@import url('https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"');
 
 :root {
   --main-color: #16B978;
