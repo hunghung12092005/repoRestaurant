@@ -165,6 +165,7 @@
 
         </div>
     </div>
+    <Footer></Footer>
 </template>
 
 <script setup>
@@ -173,7 +174,7 @@ import axios from 'axios';
 import VSelect from 'vue3-select';
 import 'vue3-select/dist/vue3-select.css';
 import loading from '../loading.vue';
-
+import Footer from '../Footer.vue';
 const provinces = ref([]);
 const districts = ref([]);
 const wards = ref([]);

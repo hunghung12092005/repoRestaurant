@@ -1,56 +1,4 @@
 <template>
-<<<<<<< HEAD
-    <!-- <div class="auth-container">
-        <h1>{{ isLogin ? 'Đăng Nhập' : 'Đăng Ký' }}</h1>
-=======
-    <div class="auth-container">
-        <h1 class="auth-title">{{ isLogin ? 'Đăng Nhập' : 'Đăng Ký' }}</h1>
->>>>>>> bde4c42f2a8e7fa66d8337d8e58e747b46edfe1a
-        <form @submit.prevent="submitForm" class="auth-form">
-            <!-- Alert Bootstrap -->
-    <!-- <div id="alert" class="alert alert-dismissible fade" role="alert" style="display: none;">
-                <span id="alertMessage"></span>
-            </div>
-            <div class="form-group">
-                <label for="email">Email:</label>
-                <input type="email" id="email" v-model="email" required placeholder="Nhập email của bạn" />
-            </div>
-            <div class="form-group">
-                <label for="password">Mật Khẩu:</label>
-                <input type="password" id="password" v-model="password" required placeholder="Nhập mật khẩu" />
-            </div>
-            <div v-if="!isLogin" class="form-group">
-                <label for="name">Tên:</label>
-                <input type="text" id="name" v-model="name" required placeholder="Nhập tên của bạn" />
-            </div>
-            <button type="submit" class="submit-button">
-                {{ isLogin ? 'Đăng Nhập' : 'Đăng Ký' }}
-            </button>
-            <div class="toggle-link" @click="toggleForm">
-                <span v-if="isLogin" class="plain-text">Chưa có tài khoản? </span>
-                <span v-if="!isLogin" class="plain-text">Đã có tài khoản? </span>
-                <span class="link-text">{{ isLogin ? 'Đăng ký' : 'Đăng nhập' }}</span>
-            </div>
-            <button type="button" @click="loginWithGoogle" class="google-button">
-                <svg class="google-icon" viewBox="0 0 24 24">
-                    <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.51h5.84c-.25 1.37-.99 2.53-2.11 3.3v2.74h3.41c2-1.85 3.16-4.58 3.16-7.8z" fill="#4285F4"/>
-                    <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.41-2.74c-1.01.68-2.3 1.09-3.87 1.09-2.97 0-5.49-2.01-6.39-4.71H2.36v2.96A11.97 11.97 0 0012 23z" fill="#34A853"/>
-                    <path d="M5.61 14.24c-.23-.68-.36-1.41-.36-2.24s.13-1.56.36-2.24V6.8H2.36A11.97 11.97 0 000 12c0 1.86.43 3.62 1.19 5.16l4.42-2.92z" fill="#FBBC05"/>
-                    <path d="M12 4.91c1.62 0 3.07.56 4.21 1.66l3.15-3.15C17.46 1.8 15 1 12 1 7.42 1 3.53 3.25 2.36 6.8l4.25 2.96c.9-2.7 3.42-4.75 6.39-4.75z" fill="#EA4335"/>
-                </svg>
-                Đăng nhập với Google
-            </button>
-        </form>
-        <div v-if="errorMessage" class="alert alert-warning alert-dismissible fade show" role="alert">
-            <strong>{{ errorMessage }}!</strong> Nhập lại.
-            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-        </div>
-        <div v-if="errorMessage" class="alert alert-danger" role="alert">
-            {{ errorMessage }}
-        </div>
-        <div v-if="userInfo" class="user-info">
-            <h2>Xin chào, {{ userInfo.name }}!</h2>
-        </div> -->
     <div class="main-login">
         <form @submit.prevent="submitForm" class="form">
             <div v-if="errorMessage" class="alert alert-warning alert-dismissible fade show" role="alert">
@@ -155,7 +103,6 @@
             </div>
         </form>
     </div>
-    
     <Footer></Footer>
 </template>
 
@@ -261,9 +208,12 @@ function showAlert(message) {
     right: 0;
     bottom: 0;
     background: url('https://cf.bstatic.com/xdata/images/hotel/max1280x900/295360783.jpg?k=cb6a93f5158c7887b4e8e92e1f901cf96e049f40f5168617a96420deafe6a5e8&o=&hp=1');
-    background-size: cover; /* Đảm bảo hình ảnh phủ toàn bộ */
-    opacity: 0.5; /* Độ mờ của hình nền */
-    z-index: -1; /* Đặt lớp phủ phía dưới nội dung */
+    background-size: cover;
+    /* Đảm bảo hình ảnh phủ toàn bộ */
+    opacity: 0.5;
+    /* Độ mờ của hình nền */
+    z-index: -1;
+    /* Đặt lớp phủ phía dưới nội dung */
 }
 
 .form {

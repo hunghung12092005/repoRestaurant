@@ -1,19 +1,20 @@
 import { createRouter, createWebHistory } from 'vue-router';
 import App from '../App.vue';
-import HomeComponent from '../components/HomeComponent.vue'
-import AboutComponent from '../components/AboutComponent.vue'
-import ContactComponent from '../components/ContactComponent.vue'
-import ReservationComponent from '../components/ReservationComponent.vue'
-import BlogComponent from '../components/BlogComponent.vue'
-import MenuComponent from '../components/MenuComponent.vue'
-import MenuListComponent from '../components/MenuListComponent.vue'
-import LoginComponent from '../components/Login.vue'
-import TestJwtComponent from '../components/testTokenJwt.vue'
-import BlogDetailComponent from '../components/BlogDetailComponent.vue'
-import ProductDetailComponent from '../components/ProductDetailComponent.vue'
-import AdminDashboardComponent from '../components/AdminDashboardComponent.vue'
-import mainghn from '../components/ghn/mainghn.vue';
-import shopOnline from '../components/ShopOnline/menu_online.vue';
+import HomeComponent from '../components/HomeComponent.vue';
+import AboutComponent from '../components/AboutComponent.vue';
+import ContactComponent from '../components/ContactComponent.vue';
+import ReservationComponent from '../components/ReservationComponent.vue';
+import BlogComponent from '../components/BlogComponent.vue';
+import MenuComponent from '../components/MenuComponent.vue';
+import MenuListComponent from '../components/MenuListComponent.vue';
+import LoginComponent from '../components/Login.vue';
+import TestJwtComponent from '../components/testTokenJwt.vue';
+import BlogDetailComponent from '../components/BlogDetailComponent.vue';
+import ProductDetailComponent from '../components/ProductDetailComponent.vue';
+import AdminDashboardComponent from '../components/AdminDashboardComponent.vue';
+import AdminStaffsComponent from '../components/AdminStaffsComponent.vue';
+
+
 const routes = [
   {
     path: '/',
@@ -70,17 +71,23 @@ const routes = [
     name: 'ProductDetailComponent',
     component: ProductDetailComponent,
   },
+  // Admin routes
   {
-    path: '/ghn',
-    name: 'mainghn',
-    component: mainghn,
+    path: '/admin',
+    redirect: '/admin/dashboard', // Chuyển hướng /admin đến /admin/dashboard
   },
   {
-    path: '/shop-online',
-    name: 'shop-online',
-    component: shopOnline,
+    path: '/admin/dashboard',
+    name: 'AdminDashboard',
+    component: AdminDashboardComponent,
+    meta: { requiresAdmin: true },
   },
-  // Thêm các route khác ở đây
+  {
+    path: '/admin/staffs',
+    name: 'AdminStaffs',
+    component: AdminStaffsComponent,
+    meta: { requiresAdmin: true },
+  }
 ];
 
 const router = createRouter({
