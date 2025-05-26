@@ -117,20 +117,7 @@
             </div>
         </div>
     </section>
-
-
-    <!-- <div>
-    <h1>Menu Items</h1>
-    <ul v-if="menuItems.length">
-      <li v-for="item in menuItems" :key="item.id">
-        {{ item.Name }} - {{ item.Description }} - {{ item.category.name }}
-      </li>
-    </ul>
-    <p v-else>No menu items available.</p>
-  </div> -->
-    <div class="copyright">
-        <p>&#169; 2025 <span>ULTRA CODE</span> All rights reserved</p>
-    </div>
+    <Footer></Footer>
 </template>
 <style scoped>
 @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&family=Turret+Road:wght@400;500;700;800&display=swap');
@@ -638,10 +625,11 @@ form .btn:hover {
 <script setup>
 import { ref, onMounted, onUnmounted } from 'vue';
 import axios from 'axios';
-
 import sliderComponent from './sliderComponent.vue';
 import LazyImage from './LazyImage.vue'; // Import component
-
+import { inject } from 'vue';
+import Footer from './Footer.vue';
+const apiUrl = inject('apiUrl');
 const menuItems = ref([]);
 const topItems = ref([]);
 const currentPage = ref(1);
@@ -649,7 +637,7 @@ const totalPages = ref(1);
 
 const fetchMenuItems = async (page = 1) => {
     try {
-        const response = await axios.get(`http://localhost:8000/api/menu-items`, {
+        const response = await axios.get(`${apiUrl}/api/menu-items`, {
             params: { page }
         });
         menuItems.value = response.data.allMenuItems.data;
@@ -662,7 +650,7 @@ const fetchMenuItems = async (page = 1) => {
 };
 const fetchTopPriceItems = async () => {
     try {
-        const response = await axios.get(`http://localhost:8000/api/menu-items`);
+        const response = await axios.get(`${apiUrl}/api/menu-items`);
         topItems.value = response.data.topPriceItems;
     } catch (error) {
         console.error('Lỗi khi lấy dữ liệu:', error);
@@ -687,16 +675,4 @@ onMounted(() => {
     fetchTopPriceItems();
 });
 </script>
-<script>
 
-// export default {
-//     data() {
-//         return {
-//             userName: null, // Biến để lưu tên người dùng
-//         };
-//     },
-//     created() {
-//         this.userName = window.userSession.name;
-//     }
-// };
-</script>

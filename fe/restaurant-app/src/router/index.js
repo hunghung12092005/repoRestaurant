@@ -12,6 +12,8 @@ import testJwt from '../components/testTokenJwt.vue'
 import BlogDetailComponent from '../components/BlogDetailComponent.vue'
 import ProductDetailComponent from '../components/ProductDetailComponent.vue'
 import AdminDashboardComponent from '../components/AdminDashboardComponent.vue'
+import mainghn from '../components/ghn/mainghn.vue';
+import shopOnline from '../components/ShopOnline/menu_online.vue';
 const routes = [
   {
     path: '/',
@@ -67,6 +69,16 @@ const routes = [
     path: '/ProductDetailComponent',
     name: 'ProductDetailComponent',
     component: ProductDetailComponent,
+  },
+  {
+    path: '/ghn',
+    name: 'mainghn',
+    component: mainghn,
+  },
+  {
+    path: '/shop-online',
+    name: 'shop-online',
+    component: shopOnline,
   },
   // Thêm các route khác ở đây
 ];

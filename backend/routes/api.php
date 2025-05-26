@@ -1,12 +1,17 @@
 <?php
 use App\Http\Controllers\api\LoginController as ApiLoginController;
 use App\Http\Controllers\api\MenuItemController;
+use App\Http\Controllers\api\ShopOnlineController;
 use Illuminate\Support\Facades\Route;
 
 use App\Http\Controllers\LoginController;
+use App\Models\ShopOnline;
 
 Route::get('/protected', [ApiLoginController::class, 'someProtectedRoute']);
 
 Route::post('/login', [ApiLoginController::class, 'login']);
 Route::post('/register', [ApiLoginController::class, 'register']);
 Route::get('/menu-items', [MenuItemController::class, 'index']);
+//bán hàng online
+Route::get('/items-online', [ShopOnlineController::class, 'index']);
+Route::get('/items-online/{id}', [ShopOnlineController::class, 'show']); 

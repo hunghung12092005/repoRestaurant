@@ -15,6 +15,7 @@
         <li><router-link to="/menu-list">Menu</router-link></li>
         <li><router-link to="/testJwt">testJwt</router-link></li>
         <li><router-link to="/menu">menu</router-link></li>
+        <li><router-link to="/ghn">ghn</router-link></li>
         <li><router-link to="/reservation">Reservation</router-link></li>
         <li v-if="isAdmin">
           <a @click.prevent="adminPanel">Vào admin</a>
@@ -32,14 +33,20 @@
 
     <main>
       <RouterView></RouterView>
-      <footer>đây là footer </footer>
     </main>
+
+    
+    
   </div>
 </template>
 
 <script setup>
 import { ref, onMounted, onUnmounted } from 'vue';
 import axiosConfig from './axiosConfig.js'; // Import axiosConfig
+import { provide } from 'vue';
+import Footer from './components/Footer.vue';
+const apiUrl = 'http://localhost:8000'; // Cung cấp URL cơ bản
+provide('apiUrl', apiUrl);// cung cấp cho các thằng con
 
 const headerRef = ref(null);
 const navbarRef = ref(null);
@@ -48,23 +55,13 @@ const userInfo = ref(null);
 const isLogin = ref(false);
 const isAdmin = ref(false); // Biến để kiểm tra quyền admin
 
-const toggleMenu = () => {
-  navbarActive.value = !navbarActive.value;
-};
-
-const handleScroll = () => {
-  if (headerRef.value) {
-    headerRef.value.classList.toggle('active', window.scrollY > 0);
-  }
-};
-
 // Hàm lấy thông tin người dùng
 const fetchUserInfo = async () => {
   try {
     const response = await axiosConfig.get('http://127.0.0.1:8000/api/protected');
     userInfo.value = response.data.user; // Lưu thông tin người dùng
     isLogin.value = true; // Đánh dấu là đã đăng nhập
-   // console.log(1);
+    // console.log(1);
     // Kiểm tra vai trò
     if (userInfo.value.role === 'admin') {
       isAdmin.value = true; // Đánh dấu là admin
@@ -83,7 +80,7 @@ const token = urlParams.get('token');
 const user = urlParams.get('user');
 
 if (token && user) {
-  localStorage.setItem('token', token);
+  localStorage.setItem('tokenJwt', token);
   localStorage.setItem('userInfo', user);
   userInfo.value = JSON.parse(user); // Lưu thông tin người dùng
   // Chuyển hướng về trang chính
@@ -95,14 +92,22 @@ onMounted(() => {
   fetchUserInfo(); // Gọi hàm lấy thông tin người dùng khi component được mount
   window.addEventListener('scroll', handleScroll);
 });
+const toggleMenu = () => {
+  navbarActive.value = !navbarActive.value;
+};
 
+const handleScroll = () => {
+  if (headerRef.value) {
+    headerRef.value.classList.toggle('active', window.scrollY > 0);
+  }
+};
 onUnmounted(() => {
   window.removeEventListener('scroll', handleScroll);
 });
 
 // Hàm logout
 const logout = () => {
-  localStorage.removeItem('token'); // Xóa token
+  localStorage.removeItem('tokenJwt'); // Xóa token
   localStorage.removeItem('userInfo'); // Xóa thông tin người dùng
   window.location.href = '/'; // Chuyển hướng
 };
@@ -214,6 +219,8 @@ main {
   /* Chiếm toàn bộ chiều cao còn lại */
   width: 100%;
 }
+
+
 
 
 </style>
