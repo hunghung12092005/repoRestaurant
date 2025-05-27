@@ -4,13 +4,13 @@
     <div class="sisf-banner position-relative">
       <div class="banner-img">
         <figure>
-          <img src="https://dishify-html.wpthemeverse.com/images/dishify-about-banner.png" alt="Dishify" />
+          <img style="opacity: 0.9;" src="https://cf.bstatic.com/xdata/images/hotel/max1280x900/295360783.jpg?k=cb6a93f5158c7887b4e8e92e1f901cf96e049f40f5168617a96420deafe6a5e8&o=&hp=1" alt="Dishify" />
         </figure>
       </div>
       <div class="sisf-page-title sisf-m sisf-title--standard sisf-alignment--center">
         <div class="sisf-m-inner">
           <div class="sisf-m-content sisf-content-grid">
-            <h1 class="sisf-m-title entry-title">About Us</h1>
+            <h1 class="sisf-m-title entry-title text-info">Về An Phú Villa</h1>
           </div>
         </div>
       </div>
@@ -30,10 +30,12 @@
             <!-- Section Title Start -->
             <div class="sisf-sis-section-title sisf-center-text text-center section-title wow fadeInLeft" data-wow-delay="0.2s">
               <h3 class="sisf-m-subtitle">Spice Odyssey</h3>
-              <h2 class="sisf-m-title">A Culinary Journey</h2>
+              <h2 class="sisf-m-title">Thiết Kế Sang Trọng</h2>
               <div class="sisf-m-text text-center">
                 <p>
-                  A culinary journey that transcends taste, inviting patrons to savor not just flavors, but narratives woven into each dish. From the heritage of ingredients to the passion of chefs, every element unfolds a tale, creating an immersive dining experience that delights both palate and imagination. A culinary journey that transcends taste, inviting patrons to savor not just flavors, but narratives woven into each dish.
+                  Với thiết kế hiện đại và sang trọng, mỗi góc nhỏ của villa đều được chăm chút tỉ mỉ, mang đến cảm giác thoải mái và ấm cúng.
+                  Tiện Nghi Đầy Đủ: Villa được trang bị đầy đủ tiện nghi hiện đại, từ bể bơi riêng, phòng gym đến khu vực nướng BBQ, phục vụ mọi nhu cầu của khách hàng.
+                  Dịch Vụ Chăm Sóc Khách Hàng: Đội ngũ nhân viên chuyên nghiệp và thân thiện luôn sẵn sàng phục vụ, đảm bảo mang đến trải nghiệm nghỉ dưỡng tuyệt vời cho bạn.
                 </p>
               </div>
             </div>
@@ -58,13 +60,13 @@
           <div class="col-md-8">
             <div class="text-end">
               <figure>
-                <img src="https://dishify-html.wpthemeverse.com/images/dishify-culinary_img1.png" alt="Dishify" />
+                <img src="https://cf.bstatic.com/xdata/images/hotel/max1280x900/295359142.jpg?k=85a076e98de0459cd6ad0776faf1fdfb772d40abe3faba412718ec7708a741af&o=&hp=1" alt="Dishify" />
               </figure>
             </div>
           </div>
           <div class="col-md-2">
             <div class="float">
-              <figure>
+              <figure class="md-none">
                 <img src="https://dishify-html.wpthemeverse.com/images/dishify-culinary_img3.png" alt="Dishify" />
               </figure>
             </div>
@@ -81,18 +83,20 @@
           <div class="col-md-6 ps-0">
             <div class="sisf-e-img-holder">
               <figure>
-                <img src="https://dishify-html.wpthemeverse.com/images/global_img.png" alt="Dishify" />
+                <img src="https://cf.bstatic.com/xdata/images/hotel/max1280x900/295357855.jpg?k=e956a0891f88b860876d453220cc9ff153fd59f65f4b3d8d1db7ccdaac8d36bb&o=&hp=1" alt="Dishify" />
               </figure>
             </div>
           </div>
           <div class="col-md-6">
             <!-- Section Title Start -->
             <div class="sisf-sis-section-title section-title wow fadeInRight" data-wow-delay="0.2s">
-              <h3 class="sisf-m-subtitle">The Joy of Eating</h3>
-              <h2 class="sisf-m-title">Global Cuisine at Your Fingertips</h2>
+              <h3 class="sisf-m-subtitle">An Phú Villa</h3>
+              <h2 class="sisf-m-title">Địa Điểm Lý Tưởng: Nằm ở vị trí đắc địa, villa dễ dàng tiếp cận các điểm tham quan nổi tiếng và các hoạt động giải trí thú vị.
+
+</h2>
               <div class="sisf-m-text pb-4">
                 <p>
-                  A culinary journey that transcends taste, inviting patrons to savor not just flavors, but narratives woven into each dish. From the heritage of ingredients to the passion of chefs, every element unfolds a tale, creating an immersive dining experience that delights both palate and imagination. A culinary journey that transcends taste, inviting patrons to savor not just flavors, but narratives woven into each dish. From the heritage of ingredients to the passion of chefs, every element unfolds a tale, creating an immersive dining experience that delights both palate and imagination.
+                  Dịch Vụ Chăm Sóc Khách Hàng: Đội ngũ nhân viên chuyên nghiệp và thân thiện luôn sẵn sàng phục vụ, đảm bảo mang đến trải nghiệm nghỉ dưỡng tuyệt vời cho bạn.
                 </p>
               </div>
             </div>
@@ -109,22 +113,22 @@
         <div class="row align-items-center">
           <div class="col-md-2">
             <figure>
-              <img src="https://dishify-html.wpthemeverse.com/images/dishify-exploring_img2.png" alt="Dishify" />
+              <img src="https://cf.bstatic.com/xdata/images/hotel/max1280x900/295360022.jpg?k=995816ce11821db9feb3a04bd749e466fbccb3296ef10f63321447072dced539&o=&hp=1" alt="Dishify" />
             </figure>
           </div>
           <div class="col-md-4">
             <figure>
-              <img src="https://dishify-html.wpthemeverse.com/images/dishify-exploring_img1.png" alt="Dishify" />
+              <img src="https://cf.bstatic.com/xdata/images/hotel/max1280x900/295358128.jpg?k=52d82ad91a7e3508fa83259b8d3d74bc01b14aa684a3c9d35dd92111be2ba07b&o=&hp=1" alt="Dishify" />
             </figure>
           </div>
           <div class="col-md-6">
             <!-- Section Title Start -->
             <div class="sisf-sis-section-title section-title wow fadeInRight" data-wow-delay="0.2s">
-              <h3 class="sisf-m-subtitle">Flavors of the World</h3>
-              <h2 class="sisf-m-title text-white">Exploring the World</h2>
+              <h3 class="sisf-m-subtitle">Trung Bình</h3>
+              <h2 class="sisf-m-title text-white">Đánh giá dịch vụ</h2>
               <div class="sisf-m-text">
                 <p class="text-white">
-                  A culinary journey that transcends taste, inviting patrons to savor not just flavors, but narratives woven into each dish. From the heritage of ingredients to the passion.
+                  An Phú Villa tự hào mang đến trải nghiệm ẩm thực đa dạng, từ các món ăn truyền thống Việt Nam đến các hương vị quốc tế. Chúng tôi cam kết sử dụng nguyên liệu tươi ngon nhất và công thức nấu ăn độc đáo để mang đến cho bạn những món ăn ngon miệng và đáng nhớ.
                 </p>
               </div>
             </div>
@@ -157,27 +161,27 @@
           <!-- Row 1 -->
           <div class="col-lg-3 col-md-6 col-12">
             <div class="photo-gallery wow fadeInUp" data-wow-delay="0.2s">
-              <a href="https://dishify-html.wpthemeverse.com/images/gallery_img1.png">
+              <a href="https://cf.bstatic.com/xdata/images/hotel/max1280x900/295360421.jpg?k=912ab7e26fa24f68c7b960d4e5d50427b6c24a2e4b097a784bb48c00bf7c586e&o=&hp=1">
                 <figure class="image-anime">
-                  <img src="https://dishify-html.wpthemeverse.com/images/gallery_img1.png" alt="Dishify" />
+                  <img src="https://cf.bstatic.com/xdata/images/hotel/max1280x900/295360421.jpg?k=912ab7e26fa24f68c7b960d4e5d50427b6c24a2e4b097a784bb48c00bf7c586e&o=&hp=1" alt="Dishify" />
                 </figure>
               </a>
             </div>
           </div>
           <div class="col-lg-3 col-md-6 col-12">
             <div class="photo-gallery wow fadeInUp" data-wow-delay="0.3s">
-              <a href="https://dishify-html.wpthemeverse.com/images/gallery_img6.png">
+              <a href="https://cf.bstatic.com/xdata/images/hotel/max1280x900/295359388.jpg?k=1f0387e902c13ec8887814c55a81b08ff9588518731ad96ddc815ac1e0c763cc&o=&hp=1">
                 <figure class="image-anime">
-                  <img src="https://dishify-html.wpthemeverse.com/images/gallery_img6.png" alt="Dishify" />
+                  <img src="https://cf.bstatic.com/xdata/images/hotel/max1280x900/295359388.jpg?k=1f0387e902c13ec8887814c55a81b08ff9588518731ad96ddc815ac1e0c763cc&o=&hp=1" alt="Dishify" />
                 </figure>
               </a>
             </div>
           </div>
           <div class="col-lg-3 col-md-6 col-12">
             <div class="photo-gallery wow fadeInUp" data-wow-delay="0.4s">
-              <a href="https://dishify-html.wpthemeverse.com/images/gallery_img5.png">
+              <a href="https://cf.bstatic.com/xdata/images/hotel/max1280x900/295357582.jpg?k=caefb9fdf722380646ccae0044361d1b6d45adeaf3b55c895f49a50ae1570cc4&o=&hp=1">
                 <figure class="image-anime">
-                  <img src="https://dishify-html.wpthemeverse.com/images/gallery_img5.png" alt="Dishify" />
+                  <img src="https://cf.bstatic.com/xdata/images/hotel/max1280x900/295357582.jpg?k=caefb9fdf722380646ccae0044361d1b6d45adeaf3b55c895f49a50ae1570cc4&o=&hp=1" alt="Dishify" />
                 </figure>
               </a>
             </div>
@@ -203,18 +207,18 @@
           </div>
           <div class="col-lg-3 col-md-6 col-12">
             <div class="photo-gallery wow fadeInUp" data-wow-delay="0.3s">
-              <a href="https://dishify-html.wpthemeverse.com/images/gallery_img_5.png">
+              <a href="https://cf.bstatic.com/xdata/images/hotel/max1280x900/295360818.jpg?k=b08f0eb89eb45fab0a5f8a0c8054deb0abea5c7c57893ffd1ac1a53f3d2af5ab&o=&hp=1">
                 <figure class="image-anime">
-                  <img src="https://dishify-html.wpthemeverse.com/images/gallery_img_5.png" alt="Dishify" />
+                  <img src="https://cf.bstatic.com/xdata/images/hotel/max1280x900/295360818.jpg?k=b08f0eb89eb45fab0a5f8a0c8054deb0abea5c7c57893ffd1ac1a53f3d2af5ab&o=&hp=1" alt="Dishify" />
                 </figure>
               </a>
             </div>
           </div>
           <div class="col-lg-3 col-md-6 col-12">
             <div class="photo-gallery wow fadeInUp" data-wow-delay="0.4s">
-              <a href="https://dishify-html.wpthemeverse.com/images/gallery_img_4.png">
+              <a href="https://cf.bstatic.com/xdata/images/hotel/max1280x900/295376354.jpg?k=ec2887bc1c3d422bb59acf15f5e900adbbc76ab214b90e5753ff1d6e44661be4&o=&hp=1">
                 <figure class="image-anime">
-                  <img src="https://dishify-html.wpthemeverse.com/images/gallery_img_4.png" alt="Dishify" />
+                  <img src="https://cf.bstatic.com/xdata/images/hotel/max1280x900/295376354.jpg?k=ec2887bc1c3d422bb59acf15f5e900adbbc76ab214b90e5753ff1d6e44661be4&o=&hp=1" alt="Dishify" />
                 </figure>
               </a>
             </div>
@@ -240,8 +244,8 @@
           <div class="col-12 text-center">
             <!-- Section Title Start -->
             <div class="sisf-sis-section-title sisf-center-text section-title wow bounceIn" data-wow-delay="0.2s">
-              <h3 class="sisf-m-subtitle">Testimonials</h3>
-              <h2 class="sisf-m-title">Words From Customers</h2>
+              <h3 class="sisf-m-subtitle">Giám Đốc AN PHÚ Villa</h3>
+              <h2 class="sisf-m-title">Giám Đốc AN PHÚ Villa</h2>
             </div>
             <!-- Section Title End -->
             <div class="carousel">
@@ -260,23 +264,8 @@
                   </div>
                 </div>
               </div>
-              <!-- Left and right controls -->
-              <button class="carousel-control-prev" @click="prevTestimonial">
-                <span class="carousel-control-prev-icon"></span>
-              </button>
-              <button class="carousel-control-next" @click="nextTestimonial">
-                <span class="carousel-control-next-icon"></span>
-              </button>
-              <!-- Pagination -->
-              <div class="carousel-indicators">
-                <button
-                  v-for="(testimonial, index) in testimonials"
-                  :key="index"
-                  :class="{ active: currentTestimonial === index }"
-                  @click="goToTestimonial(index)"
-                  :aria-label="'Slide ' + (index + 1)"
-                ></button>
-              </div>
+            
+              
             </div>
           </div>
         </div>
@@ -284,52 +273,7 @@
     </div>
     <!-- Testimonial Section End -->
 
-    <!-- Blog Section Start -->
-    <div class="letest-blog-section section">
-      <div class="container-fluid">
-        <div class="row">
-          <div class="col-12">
-            <!-- Section Title Start -->
-            <div class="sisf-sis-section-title text-center sisf-center-text section-title wow bounceIn" data-wow-delay="0.2s">
-              <h3 class="sisf-m-subtitle">Welcome</h3>
-              <h2 class="sisf-m-title">Latest Blog</h2>
-            </div>
-            <!-- Section Title End -->
-          </div>
-        </div>
-        <div class="row">
-          <div class="col-md-4" v-for="(blog, index) in blogs" :key="index">
-            <div class="letest-blog sisf-blog-item mb-0">
-              <div class="sisf-e-inner">
-                <div class="sisf-e-media">
-                  <div class="sisf-e-media-image">
-                    <a :href="blog.link">
-                      <img :src="blog.image" alt="Dishify" />
-                    </a>
-                  </div>
-                </div>
-                <div class="sisf-e-content">
-                  <div class="sisf-e-info sisf-info--top">
-                    <div class="sisf-e-info-item sisf-e-info-category mb-3">
-                      <a href="blogs.html">{{ blog.category }}</a>
-                    </div>
-                  </div>
-                  <div class="sisf-e-text">
-                    <h5 class="sisf-e-title entry-title">
-                      <a class="sisf-e-title-link" :href="blog.link">{{ blog.title }}</a>
-                    </h5>
-                  </div>
-                  <div class="sisf-e-info-item sisf-e-info-date entry-date">
-                    <a href="blogs.html">{{ blog.date }}</a>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-    <!-- Blog Section End -->
+   
   </div>
 </template>
 
@@ -339,31 +283,19 @@ export default {
   data() {
     return {
       skills: [
-        { country: 'United States', percent: '92%' },
-        { country: 'Germany', percent: '84%' },
-        { country: 'India', percent: '48%' },
-        { country: 'Australia', percent: '38%' },
-        { country: 'South Africa', percent: '88%' },
+        { country: 'Sang Trọng', percent: '92%' },
+        { country: 'Ấm Cúng', percent: '84%' },
+        { country: 'Tiện nghi', percent: '98%' },
+        { country: 'Mát mẻ', percent: '88%' },
+        { country: 'Thoái mái', percent: '88%' },
       ],
       testimonials: [
         {
           image: 'https://dishify-html.wpthemeverse.com/images/testimonial-chris.png',
-          name: 'Chris Veldor',
-          job: 'Food Blogger',
-          text: 'Vestibulum eu quam nec neque pellentesque efficitur id eget nisl. Proin porta est convallis lacus blandit pretium sed non enim. Maecenas lacinia non orci at aliquam. Donec finibus, Proin urna bibendum ultricies est laoreet. Proin porta est convallis lacus blandit pretium sed non enim.',
-        },
-        {
-          image: 'https://dishify-html.wpthemeverse.com/images/testimonial-chris.png',
-          name: 'Chris Veldor',
-          job: 'Food Blogger',
-          text: 'Vestibulum eu quam nec neque pellentesque efficitur id eget nisl. Proin porta est convallis lacus blandit pretium sed non enim. Maecenas lacinia non orci at aliquam. Donec finibus, Proin urna bibendum ultricies est laoreet. Proin porta est convallis lacus blandit pretium sed non enim.',
-        },
-        {
-          image: 'https://dishify-html.wpthemeverse.com/images/testimonial-chris.png',
-          name: 'Chris Veldor',
-          job: 'Food Blogger',
-          text: 'Vestibulum eu quam nec neque pellentesque efficitur id eget nisl. Proin porta est convallis lacus blandit pretium sed non enim. Maecenas lacinia non orci at aliquam. Donec finibus, Proin urna bibendum ultricies est laoreet. Proin porta est convallis lacus blandit pretium sed non enim.',
-        },
+          name: 'Tên Giám Đốc',
+          job: 'Main-Boss',
+          text: 'Đại diện pháp lý của An Phú Villa, chúng tôi cam kết mang đến dịch vụ tốt nhất cho khách hàng. Với đội ngũ nhân viên chuyên nghiệp và tận tâm, chúng tôi luôn sẵn sàng đáp ứng mọi nhu cầu của bạn.',
+        }
       ],
       currentTestimonial: 0,
       blogs: [
@@ -520,7 +452,7 @@ export default {
   height: auto;
 }
 .flavors-of-the-world {
-  background: #1a1a1a;
+  background: wheat;
 }
 .skillbar {
   margin-bottom: 20px;
@@ -658,6 +590,9 @@ export default {
 
 /* Responsive Adjustments */
 @media (max-width: 767px) {
+  .float{
+    display: none;
+  }
   .sisf-page-title h1 {
     font-size: 2rem;
   }
@@ -772,7 +707,7 @@ export default {
   height: auto;
 }
 .flavors-of-the-world {
-  background: #1a1a1a;
+  background: rgb(125, 201, 218);
 }
 .skillbar {
   margin-bottom: 20px;

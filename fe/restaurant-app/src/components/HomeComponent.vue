@@ -7,14 +7,14 @@
             <a href="#" class="btn">Xem  Menu</a>
         </div> -->
         <div class="home-text">
-            <span>hh to our</span>
-            <h1>Healthy Food <br>Collection!</h1>
-            <p>Discover our carefully curated selection of nutritious and delicious meals, made with fresh ingredients
-                to nourish your body and delight your taste buds</p>
+            <span>Sầm Sơn Beach</span>
+            <h1>An Phú Villa <br>Kính chào quý khách!</h1>
+            
             <a href="/menu" class="btn">Xem Menu</a>
         </div>
         <div class="home-img">
-            <img src="https://i.postimg.cc/gJBk5PMz/salad.png" alt="food image">
+            <img src="https://png.pngtree.com/png-clipart/20240318/original/pngtree-cutout-isolated-background-young-adult-asian-travel-couple-carry-luggage-for-png-image_14613197.png" alt="food image">
+            <!-- <img src="https://i.postimg.cc/gJBk5PMz/salad.png" alt="food image"> -->
         </div>
     </section>
     <sliderComponent />
@@ -166,7 +166,6 @@ header {
 }
 
 header.active {
-    background: var(--second-color);
     box-shadow: 0 0 4px rgb(14 55 54 / 15%);
 }
 
@@ -214,40 +213,85 @@ header.active .navbar a {
 
 /* Home Section */
 .home {
+    position: relative; /* Để lớp overlay có thể được định vị tương đối */
     width: 100%;
     min-height: 100vh;
     display: flex;
     flex-wrap: wrap;
     align-items: center;
-    background: url('https://i.postimg.cc/pX41q1RD/Background-1-2x.png') no-repeat center;
-    background-size: cover;
     gap: 1rem;
+    z-index: 1;
+}
+
+.home::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: url('https://cf.bstatic.com/xdata/images/hotel/max1280x900/295358148.jpg?k=d4a1fb8f7b887222adc3cb467756a1777ed12ad9730190665871adaa7822dd31&o=&hp=1') no-repeat center;
+    background-size: cover;
+    opacity: 0.4; /* Độ mờ của hình nền */
+    z-index: -1; /* Đưa lớp overlay ra phía sau */
 }
 
 .home-text {
     flex: 1 1 17rem;
+    z-index: 2; /* Đảm bảo văn bản nằm trên lớp overlay */
 }
 
 .home-text span {
     font-size: 1rem;
-    font-weight: 600;
+    font-weight: 400;
     text-transform: uppercase;
+    text-align: center;
     color: var(--main-color);
+    animation: fade-in 1s ease-in-out; /* Hiệu ứng mờ vào */
 }
 
 .home-text h1 {
     font-size: 4rem;
-    color: var(--second-color);
+    color: rgb(21, 20, 20);
+    animation: bounce 3s infinite; /* Hiệu ứng nhảy */
 }
 
 .home-text p {
     margin: 0.5rem 0 1.4rem;
+    animation: fade-in 2.5s ease-in-out; /* Hiệu ứng mờ vào */
+}
+
+/* Hiệu ứng nhảy */
+@keyframes bounce {
+    0%,50%, 100% {
+        transform: translateY(0);
+    }
+    40% {
+        transform: translateY(-10px);
+    }
+    60% {
+        transform: translateY(-5px);
+    }
+}
+
+/* Hiệu ứng mờ vào */
+@keyframes fade-in {
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
+    }
 }
 
 .home-img {
-    flex: 1 1 17rem;
+    flex: 1 1 17rem
 }
-
+@media (max-width: 991px) {
+    .home-text {
+        text-align: center;
+    }
+}
 .btn {
     padding: 10px 20px;
     border: 2px solid blue;

@@ -46,6 +46,7 @@ body .footer {
   position: relative;
   grid-area: footer;
   min-height: 12rem;
+  margin-bottom: 10px;
 }
 
 body .footer .bubbles {

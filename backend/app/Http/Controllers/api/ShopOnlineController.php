@@ -16,6 +16,11 @@ class ShopOnlineController extends Controller
         $items = ShopOnline::all();
         return response()->json($items);
     }
+    public function getIteam50k()
+    {
+        $items = ShopOnline::where('price', '>', 50000)->get();
+        return response()->json($items);
+    }
 
     /**
      * Store a newly created resource in storage.
@@ -31,11 +36,9 @@ class ShopOnlineController extends Controller
     public function show($id)
     {
         $item = ShopOnline::find($id);
-
         if (!$item) {
             return response()->json(['message' => 'Sản phẩm không tồn tại'], 404);
         }
-
         return response()->json($item);
     }
 

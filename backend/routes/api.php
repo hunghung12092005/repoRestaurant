@@ -12,6 +12,7 @@ use App\Models\ShopOnline;
 
 Route::apiResource('employees', EmployeeController::class); // Thêm dấu ;
 Route::get('/departments', [DepartmentController::class, 'index']);
+//
 Route::get('/protected', [ApiLoginController::class, 'someProtectedRoute']);
 Route::post('/login', [ApiLoginController::class, 'login']);
 Route::post('/register', [ApiLoginController::class, 'register']);
@@ -20,3 +21,4 @@ Route::get('/menu-items', [MenuItemController::class, 'index']);
 Route::get('/items-online', [ShopOnlineController::class, 'index']);
 Route::get('/items-online/{id}', [ShopOnlineController::class, 'show']); 
 Route::get('/menu-items', [MenuItemController::class, 'index']);
+Route::get('api/items-online/50k', [ShopOnlineController::class, 'getIteam50k']);

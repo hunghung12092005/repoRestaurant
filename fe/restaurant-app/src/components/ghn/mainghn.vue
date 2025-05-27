@@ -114,7 +114,7 @@
                             <label
                                 class="inline-flex justify-between w-full items-center rounded-lg p-2 border border-transparent has-[:checked]:border-indigo-500 has-[:checked]:text-indigo-900 has-[:checked]:bg-indigo-50 has-[:checked]:font-bold hover:bg-slate-200 transition-all cursor-pointer has-[:checked]:transition-all has-[:checked]:duration-500 duration-500 relative [&amp;_p]:has-[:checked]:translate-y-0 [&amp;_p]:has-[:checked]:transition-transform [&amp;_p]:has-[:checked]:duration-500 [&amp;_p]:has-[:checked]:opacity-100 overflow-hidden">
                                 <div class="inline-flex items-center justify-center gap-2 relative">
-                                    <img class="w-full " src="https://i.gyazo.com/566d62fd25cf0867e0033fb1b9b47927.png"
+                                    <img class=" " style="width: 100%;" src="https://i.gyazo.com/566d62fd25cf0867e0033fb1b9b47927.png"
                                         alt="">
 
                                 </div>
@@ -165,7 +165,7 @@
 
         </div>
     </div>
-    <Footer></Footer>
+    <!-- <Footer></Footer> -->
 </template>
 
 <script setup>

@@ -105,7 +105,6 @@
 
       <main>
         <RouterView></RouterView>
-        <footer class="text-center py-3">đây là footer</footer>
       </main>
     </div>
   </div>
@@ -130,11 +129,11 @@ const toggleMenu = () => {
   navbarActive.value = !navbarActive.value;
 };
 
-const handleScroll = () => {
-  if (headerRef.value || route.path.startsWith('/admin')) {
-    navbarActive.value = window.scrollY > 50;
-  }
-};
+// const handleScroll = () => {
+//   if (headerRef.value || route.path.startsWith('/admin')) {
+//     navbarActive.value = window.scrollY > 50;
+//   }
+// };
 
 const fetchUserInfo = async () => {
   try {
@@ -156,7 +155,7 @@ const token = urlParams.get('token');
 const user = urlParams.get('user');
 
 if (token && user) {
-  localStorage.setItem('token', token);
+  localStorage.setItem('tokenJwt', token);
   localStorage.setItem('userInfo', user);
   userInfo.value = JSON.parse(user);
 }
@@ -181,8 +180,9 @@ const adminPanel = () => {
 
 onMounted(() => {
   fetchUserInfo();
-  window.addEventListener('scroll', handleScroll);
+  //window.addEventListener('scroll', handleScroll);
 });
+
 
 onUnmounted(() => {
   window.removeEventListener('scroll', handleScroll);
@@ -193,7 +193,6 @@ onUnmounted(() => {
 @import url('https://fonts.googleapis.com/css2?family=Arial&display=swap');
 @import url('https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css');
 @import url('https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css');
-@import url('https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"');
 
 :root {
   --main-color: #16B978;

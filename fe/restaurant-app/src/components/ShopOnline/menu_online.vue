@@ -1,5 +1,8 @@
 <template>
     <div class="container body">
+            <div>
+                <router-link :to="{ name: 'detailMenu', params: { id: '12313' } }">Go to Menu with ID 123</router-link>
+            </div>
         <div class="row">
             <div class="col-lg-2 col-md-6 column">
             </div>
@@ -13,7 +16,6 @@
 </template>
 
 <style scoped>
-
 /* From Uiverse.io by iSweat-exe */
 .column {
     background-color: #f8f9fa;
@@ -29,3 +31,6 @@
     margin-right: 0;
 }
 </style>
+<script setup>
+
+</script>

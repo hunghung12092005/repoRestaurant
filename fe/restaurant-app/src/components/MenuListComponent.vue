@@ -4,27 +4,35 @@
     <div class="menu-container">
       <div class="menu-section">
         <div class="menu-image">
-          <img src="https://media.istockphoto.com/id/1268693109/vi/anh/g%C3%A0-n%C6%B0%E1%BB%9Bng.jpg?s=612x612&w=0&k=20&c=XHWMnYeNN-zC2nkP8nwMfOpAVGMcTYKA4GzrYVIoOLg=" alt="Chicken Image" />
+          <img
+            src="https://media.istockphoto.com/id/1268693109/vi/anh/g%C3%A0-n%C6%B0%E1%BB%9Bng.jpg?s=612x612&w=0&k=20&c=XHWMnYeNN-zC2nkP8nwMfOpAVGMcTYKA4GzrYVIoOLg="
+            alt="Chicken Image" />
         </div>
         <div class="menu-items">
           <h2># Chicken</h2>
-          <ul>
-            <li>Chicken Food ............ <span>$25.00</span></li>
-            <li>Chicken Burger ............ <span>$70.00</span></li>
-            <li>Chicken Meal ............ <span>$10.00</span></li>
-            <li>Fried Chicken ............ <span>$31.00</span></li>
-            <li>Chicken Wings ............ <span>$22.00</span></li>
-            <li>Grilled Chicken ............ <span>$45.00</span></li>
-            <li>Spicy Chicken ............ <span>$28.00</span></li>
-            <li>Chicken Strips ............ <span>$18.00</span></li>
-            <li>Chicken Nuggets ............ <span>$15.00</span></li>
-            <li>BBQ Chicken ............ <span>$35.00</span></li>
+          <ul v-for="item in menuItems" :key="item.name">
+            <li>{{ item.Name }} <span>${{ item.Price }} </span><!-- From Uiverse.io by JaydipPrajapati1910 -->
+              <button class="button">
+                <svg viewBox="0 0 16 16" class="bi bi-cart-check" height="24" width="24"
+                  xmlns="http://www.w3.org/2000/svg" fill="#fff">
+                  <path
+                    d="M11.354 6.354a.5.5 0 0 0-.708-.708L8 8.293 6.854 7.146a.5.5 0 1 0-.708.708l1.5 1.5a.5.5 0 0 0 .708 0l3-3z">
+                  </path>
+                  <path
+                    d="M.5 1a.5.5 0 0 0 0 1h1.11l.401 1.607 1.498 7.985A.5.5 0 0 0 4 12h1a2 2 0 1 0 0 4 2 2 0 0 0 0-4h7a2 2 0 1 0 0 4 2 2 0 0 0 0-4h1a.5.5 0 0 0 .491-.408l1.5-8A.5.5 0 0 0 14.5 3H2.89l-.405-1.621A.5.5 0 0 0 2 1H.5zm3.915 10L3.102 4h10.796l-1.313 7h-8.17zM6 14a1 1 0 1 1-2 0 1 1 0 0 1 2 0zm7 0a1 1 0 1 1-2 0 1 1 0 0 1 2 0z">
+                  </path>
+                </svg>
+              </button>
+            </li>
+
           </ul>
         </div>
       </div>
       <div class="menu-section reverse">
         <div class="menu-image">
-          <img src="https://media.istockphoto.com/id/1442417585/vi/anh/ng%C6%B0%E1%BB%9Di-nh%E1%BA%ADn-%C4%91%C6%B0%E1%BB%A3c-m%E1%BB%99t-mi%E1%BA%BFng-pizza-pepperoni-ph%C3%B4-mai.jpg?s=612x612&w=0&k=20&c=5e9ycu8KvpKcIVIwNmEGaxr8yh9x8IMdpeIJ3HdtSxU=" alt="Pizza Image" />
+          <img
+            src="https://media.istockphoto.com/id/1442417585/vi/anh/ng%C6%B0%E1%BB%9Di-nh%E1%BA%ADn-%C4%91%C6%B0%E1%BB%A3c-m%E1%BB%99t-mi%E1%BA%BFng-pizza-pepperoni-ph%C3%B4-mai.jpg?s=612x612&w=0&k=20&c=5e9ycu8KvpKcIVIwNmEGaxr8yh9x8IMdpeIJ3HdtSxU="
+            alt="Pizza Image" />
         </div>
         <div class="menu-items">
           <h2># Pizza</h2>
@@ -64,7 +72,9 @@
       </div>
       <div class="menu-section reverse">
         <div class="menu-image">
-          <img src="https://i0.wp.com/inchefmode.com/wp-content/uploads/2022/07/PARKROYAL-COLLECTION-Pickering_Lime-Restaurant_Lobsterfest-2022-1-scaled.jpg?resize=810%2C535&ssl=1" alt="Seafood Image" />
+          <img
+            src="https://i0.wp.com/inchefmode.com/wp-content/uploads/2022/07/PARKROYAL-COLLECTION-Pickering_Lime-Restaurant_Lobsterfest-2022-1-scaled.jpg?resize=810%2C535&ssl=1"
+            alt="Seafood Image" />
         </div>
         <div class="menu-items">
           <h2># Seafood</h2>
@@ -106,7 +116,7 @@
   </div>
 </template>
 
-<script>
+<!-- <script>
 export default {
   name: 'MenuComponent',
   data() {
@@ -174,13 +184,58 @@ export default {
     };
   },
 };
+</script> -->
+<script setup>
+import axios from 'axios';
+import { inject, ref } from 'vue';
+const apiUrl = inject('apiUrl');
+import { onMounted } from 'vue';
+const menuItems = ref([]);
+const getMenu = async () => {
+  try {
+    const response = await axios.get(`${apiUrl}/api/menu-items`);
+    //console.log(menuItems.value);
+    menuItems.value = response.data.topPriceItems;
+  } catch (error) {
+    console.error('There has been a problem with your fetch operation:', error);
+  }
+};
+onMounted(() => {
+  getMenu();
+});
 </script>
-
 <style scoped>
+/* From Uiverse.io by JaydipPrajapati1910 */
+.button {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 10px 15px;
+  gap: 15px;
+  outline-offset: -3px;
+  border-radius: 5px;
+  border: none;
+  cursor: pointer;
+  transition: 400ms;
+  background-color: rgb(73, 198, 236);
+
+}
+
+.button svg path {
+  transition: 400ms;
+}
+
+.button:hover {
+  background-color: transparent;
+}
+
+.button:hover svg path {
+  fill: #181717;
+}
+
 .menu-board {
   font-family: 'Poppins', sans-serif;
   min-height: 100vh;
-  background: linear-gradient(135deg, #fdfbfb 0%, #ebedee 100%);
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -219,9 +274,9 @@ export default {
 .menu-section {
   display: flex;
   align-items: stretch;
-  background: #ffffff;
   padding: 25px;
   border-radius: 15px;
+  border: 2px solid white;
   box-shadow: 0 6px 20px rgba(0, 0, 0, 0.08);
   width: 100%;
   transition: transform 0.3s ease, box-shadow 0.3s ease;
@@ -230,11 +285,25 @@ export default {
   opacity: 0;
 }
 
-.menu-section:nth-child(1) { --index: 1; }
-.menu-section:nth-child(2) { --index: 2; }
-.menu-section:nth-child(3) { --index: 3; }
-.menu-section:nth-child(4) { --index: 4; }
-.menu-section:nth-child(5) { --index: 5; }
+.menu-section:nth-child(1) {
+  --index: 1;
+}
+
+.menu-section:nth-child(2) {
+  --index: 2;
+}
+
+.menu-section:nth-child(3) {
+  --index: 3;
+}
+
+.menu-section:nth-child(4) {
+  --index: 4;
+}
+
+.menu-section:nth-child(5) {
+  --index: 5;
+}
 
 .menu-section:hover {
   transform: translateY(-5px);
@@ -364,6 +433,7 @@ export default {
     opacity: 0;
     transform: translateY(-15px);
   }
+
   to {
     opacity: 1;
     transform: translateY(0);
@@ -375,6 +445,7 @@ export default {
     opacity: 0;
     transform: translateY(15px);
   }
+
   to {
     opacity: 1;
     transform: translateY(0);
