@@ -24,7 +24,6 @@
                 </svg>
               </button>
             </li>
-
           </ul>
         </div>
       </div>
