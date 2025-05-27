@@ -3,10 +3,10 @@ import App from '../App.vue';
 import HomeComponent from '../components/HomeComponent.vue';
 import AboutComponent from '../components/AboutComponent.vue';
 import ContactComponent from '../components/ContactComponent.vue';
-import ReservationComponent from '../components/ReservationComponent.vue';
+import ReservationComponent from '../components/booking_table/ReservationComponent.vue';
 import BlogComponent from '../components/BlogComponent.vue';
-import MenuComponent from '../components/MenuComponent.vue';
-import MenuListComponent from '../components/MenuListComponent.vue';
+import MenuComponent from '../components/menu_item/MenuComponent.vue';
+import MenuListComponent from '../components/menu_item/MenuListComponent.vue';
 import LoginComponent from '../components/Login.vue';
 import TestJwtComponent from '../components/testTokenJwt.vue';
 import BlogDetailComponent from '../components/BlogDetailComponent.vue';
@@ -14,9 +14,9 @@ import ProductDetailComponent from '../components/ProductDetailComponent.vue';
 import AdminDashboardComponent from '../components/AdminDashboardComponent.vue';
 import AdminStaffsComponent from '../components/AdminStaffsComponent.vue';
 import AdminDepartmentsComponent from '../components/AdminDepartmentsComponent.vue';
-
-
-
+import ghn from '../components/ghn/mainghn.vue'
+import menu_online from '../components/ShopOnline/menu_online.vue';
+import detailMenu from '../components/ShopOnline/detailMenu.vue';
 const routes = [
   {
     path: '/',
@@ -72,6 +72,23 @@ const routes = [
     path: '/product-detail',
     name: 'ProductDetailComponent',
     component: ProductDetailComponent,
+  },
+  {
+    path: '/ghn',
+    name: 'ghn',
+    component: ghn,
+  },
+  {
+    path: '/menu_online',
+    name: 'menu_online',
+    component: menu_online,
+   ///props: { msg: 'Hello from Route!' } truyền ngay props vào component
+  },
+  {
+    path: '/detailMenu/:id', // Định nghĩa route với param id
+    name: 'detailMenu',
+    component: detailMenu,
+    props: true // Kích hoạt props để truyền param
   },
   // Admin routes
   {
