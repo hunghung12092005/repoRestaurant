@@ -11,9 +11,9 @@ import LoginComponent from '../components/Login.vue';
 import TestJwtComponent from '../components/testTokenJwt.vue';
 import BlogDetailComponent from '../components/BlogDetailComponent.vue';
 import ProductDetailComponent from '../components/ProductDetailComponent.vue';
-import AdminDashboardComponent from '../components/AdminDashboardComponent.vue';
-import AdminStaffsComponent from '../components/AdminStaffsComponent.vue';
-import AdminDepartmentsComponent from '../components/AdminDepartmentsComponent.vue';
+import AdminDashboardComponent from '../components/admin/AdminDashboardComponent.vue';
+import AdminStaffsComponent from '../components/admin/AdminStaffsComponent.vue';
+import AdminDepartmentsComponent from '../components/admin/AdminDepartmentsComponent.vue';
 import ghn from '../components/ghn/mainghn.vue'
 import menu_online from '../components/ShopOnline/menu_online.vue';
 import detailMenu from '../components/ShopOnline/detailMenu.vue';
