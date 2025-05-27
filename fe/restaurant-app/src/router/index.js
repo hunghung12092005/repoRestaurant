@@ -14,6 +14,7 @@ import ProductDetailComponent from '../components/ProductDetailComponent.vue';
 import AdminDashboardComponent from '../components/AdminDashboardComponent.vue';
 import AdminStaffsComponent from '../components/AdminStaffsComponent.vue';
 import AdminRoomComponent from '../components/AdminRoomComponent.vue';
+import AdminBookingComponent from '../components/AdminBookingComponent.vue';
 
 
 const routes = [
@@ -93,6 +94,12 @@ const routes = [
     path: '/admin/rooms',
     name: 'AdminRoom',
     component: AdminRoomComponent,
+    meta: { requiresAdmin: true },
+  },
+  {
+    path: '/admin/bookings',
+    name: 'AdminBooking',
+    component: AdminBookingComponent,
     meta: { requiresAdmin: true },
   }
 ];
