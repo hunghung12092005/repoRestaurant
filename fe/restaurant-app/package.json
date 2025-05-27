@@ -14,6 +14,7 @@
     "chart.js": "^4.4.9",
     "chartjs-plugin-datalabels": "^2.2.0",
     "vue": "^3.5.13",
+    "vue-multiselect": "^3.2.0",
     "vue-router": "^4.5.1",
     "vue3-select": "^0.1.2"
   },
