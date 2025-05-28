@@ -22,3 +22,5 @@ Route::get('/items-online', [ShopOnlineController::class, 'index']);
 Route::get('/items-online/{id}', [ShopOnlineController::class, 'show']); 
 Route::get('/menu-items', [MenuItemController::class, 'index']);
 Route::get('api/items-online/50k', [ShopOnlineController::class, 'getIteam50k']);
+//menu items
+Route::post('/menu-itemsarray/{ids}', [MenuItemController::class, 'getItemArray']);

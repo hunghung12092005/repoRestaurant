@@ -46,7 +46,6 @@ body .footer {
   position: relative;
   grid-area: footer;
   min-height: 12rem;
-  margin-bottom: 10px;
 }
 
 body .footer .bubbles {
@@ -161,6 +160,25 @@ body .footer .content>div .image {
 
   100% {
     bottom: var(--distance, 10rem);
+  }
+}
+@media (max-width: 600px) {
+  body .footer .content {
+    grid-template-columns: 1fr;
+    text-align: center;
+  }
+
+  body .footer .content>div {
+    align-items: center;
+  }
+
+  body .footer .content>div>div {
+    flex-direction: row;
+    justify-content: center;
+  }
+
+  body .footer .content>div>div>* {
+    margin-right: 0.25rem;
   }
 }
 </style>

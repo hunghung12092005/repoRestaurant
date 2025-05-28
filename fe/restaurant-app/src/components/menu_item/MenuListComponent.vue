@@ -1,7 +1,32 @@
 <template>
+  <loading v-if="isLoading" />
+  <div v-if="showAlert" class="success">
+    <div class="flex">
+      <div class="flex-shrink-0">
+        <svg aria-hidden="true" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"
+          class="succes-svg">
+          <path clip-rule="evenodd"
+            d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
+            fill-rule="evenodd"></path>
+        </svg>
+      </div>
+      <div class="success-prompt-wrap">
+        <p class="success-prompt-heading">Tạo đơn thành công!</p>
+
+      </div>
+    </div>
+  </div>
   <div class="menu-board">
+    <!-- <AlertSuccess v-if="showAlert" message="Thêm món thành công!" message2="Đây là thông báo phụ!" /> -->
     <h1 class="main-title">Welcome to Our Delicious Menu</h1>
     <div class="menu-container">
+      <div class="fix-left">
+        <p>Đã thêm <strong>{{ count }}</strong> món ăn</p>
+        <router-link :to="{ name: 'detailOrderMenu', params: { ids: JSON.stringify(currentItem) } }">
+          <div class="btn-main">Xem đơn hàng </div>
+        </router-link>
+
+      </div>
       <div class="menu-section">
         <div class="menu-image">
           <img
@@ -9,10 +34,10 @@
             alt="Chicken Image" />
         </div>
         <div class="menu-items">
-          <h2># Chicken</h2>
+          <h2># Chicken <!-- {{ count }} - {{ currentItem }} --></h2>
           <ul v-for="item in menuItems" :key="item.name">
-            <li>{{ item.Name }} <span>${{ item.Price }} </span><!-- From Uiverse.io by JaydipPrajapati1910 -->
-              <button class="button">
+            <li>{{ item.Name }} <span>${{ item.Price }} </span>
+              <button class="button" @click="toggleAlert(item.id)">
                 <svg viewBox="0 0 16 16" class="bi bi-cart-check" height="24" width="24"
                   xmlns="http://www.w3.org/2000/svg" fill="#fff">
                   <path
@@ -46,6 +71,17 @@
             <li>Cheese Pizza ............ <span>$27.00</span></li>
             <li>Seafood Pizza ............ <span>$45.00</span></li>
             <li>Hawaiian Pizza ............ <span>$33.00</span></li>
+            <button class="button">
+              <svg viewBox="0 0 16 16" class="bi bi-cart-check" height="24" width="24"
+                xmlns="http://www.w3.org/2000/svg" fill="#fff">
+                <path
+                  d="M11.354 6.354a.5.5 0 0 0-.708-.708L8 8.293 6.854 7.146a.5.5 0 1 0-.708.708l1.5 1.5a.5.5 0 0 0 .708 0l3-3z">
+                </path>
+                <path
+                  d="M.5 1a.5.5 0 0 0 0 1h1.11l.401 1.607 1.498 7.985A.5.5 0 0 0 4 12h1a2 2 0 1 0 0 4 2 2 0 0 0 0-4h7a2 2 0 1 0 0 4 2 2 0 0 0 0-4h1a.5.5 0 0 0 .491-.408l1.5-8A.5.5 0 0 0 14.5 3H2.89l-.405-1.621A.5.5 0 0 0 2 1H.5zm3.915 10L3.102 4h10.796l-1.313 7h-8.17zM6 14a1 1 0 1 1-2 0 1 1 0 0 1 2 0zm7 0a1 1 0 1 1-2 0 1 1 0 0 1 2 0z">
+                </path>
+              </svg>
+            </button>
           </ul>
         </div>
       </div>
@@ -187,16 +223,40 @@ export default {
 <script setup>
 import axios from 'axios';
 import { inject, ref } from 'vue';
-const apiUrl = inject('apiUrl');
 import { onMounted } from 'vue';
+import loading from '../loading.vue';
+const apiUrl = inject('apiUrl');
 const menuItems = ref([]);
+const isLoading = ref(false); // Biến để theo dõi trạng thái tải dữ liệu
+//import AlertSuccess from '../AlertSuccess.vue';
+const showAlert = ref(false);
+const count = ref(0); // Biến đếm để theo dõi số lần nhấn nút
+const currentItem = ref([]);
+const toggleAlert = (item) => {
+  currentItem.value.push(item); // Thêm item vào mảng
+  count.value++;
+  showAlert.value = true; // Hiện thông báo
+  setTimeout(() => {
+    showAlert.value = false; // Ẩn thông báo sau 4 giây
+  }, 900);
+};
+// const toggleAlert = () => {
+//   count.value++; // Tăng biến đếm mỗi khi nút được nhấn
+//   showAlert.value = true; // Hiện thông báo
+//   setTimeout(() => {
+//     showAlert.value = false; // Ẩn thông báo sau 2 giây
+//   }, 900);
+// };
 const getMenu = async () => {
+  isLoading.value = true; // Bắt đầu tải dữ liệu
   try {
     const response = await axios.get(`${apiUrl}/api/menu-items`);
     //console.log(menuItems.value);
     menuItems.value = response.data.topPriceItems;
   } catch (error) {
     console.error('There has been a problem with your fetch operation:', error);
+  } finally {
+    isLoading.value = false; // Kết thúc tải dữ liệu
   }
 };
 onMounted(() => {
@@ -204,20 +264,93 @@ onMounted(() => {
 });
 </script>
 <style scoped>
-/* From Uiverse.io by JaydipPrajapati1910 */
+.fix-left {
+  position: fixed;
+  /* Đặt vị trí cố định */
+  bottom: 1rem;
+  /* Cách lề dưới 1rem */
+  right: 1rem;
+  /* Cách lề phải 1rem */
+  background-color: wheat;
+  /* Màu nền */
+  padding: 1rem;
+  border-radius: 0.375rem;
+  z-index: 1000;
+  /* Đảm bảo nó nằm trên các phần tử khác */
+}
+
+/* From Uiverse.io by kennyotsu */
+.flex {
+  display: flex;
+}
+
+.flex-shrink-0 {
+  flex-shrink: 0;
+}
+
+.success {
+  position: fixed;
+  /* Giữ thông báo ở vị trí cố định */
+  padding: 1rem;
+  background-color: #ECFDF5;
+  /* Màu nền */
+  border-radius: 0.375rem;
+  opacity: 0;
+  /* Bắt đầu với độ mờ 0 */
+  transform: translateX(100%);
+  /* Bắt đầu từ bên phải */
+  animation: slide-in 1.3s forwards;
+  /* Chạy animation trong 4 giây */
+  z-index: 1000;
+  /* Đảm bảo nó nằm trên các phần tử khác */
+  right: 1rem;
+  /* Đặt cách lề bên phải */
+  top: 5rem;
+  /* Đặt cách lề bên trên */
+}
+
+@keyframes slide-in {
+  0% {
+    opacity: 0;
+    transform: translateX(100%);
+    /* Bắt đầu bên phải */
+  }
+
+  50% {
+    opacity: 1;
+    /* Hiện ra hoàn toàn */
+    transform: translateX(0);
+    /* Về vị trí ban đầu */
+  }
+
+  100% {
+    opacity: 0;
+    /* Mất đi */
+    transform: translateX(0);
+    /* Giữ vị trí ban đầu */
+  }
+}
+
+.succes-svg {
+  color: rgb(74 222 128);
+  width: 1rem;
+  height: 1rem;
+}
+
+/* end success */
 .button {
   display: flex;
   justify-content: center;
   align-items: center;
-  padding: 10px 15px;
+  padding: 2px 10px;
   gap: 15px;
   outline-offset: -3px;
   border-radius: 5px;
   border: none;
+  margin-left: 15px;
   cursor: pointer;
   transition: 400ms;
   background-color: rgb(73, 198, 236);
-
 }
 
 .button svg path {
@@ -360,10 +493,10 @@ onMounted(() => {
 .menu-items li {
   display: flex;
   justify-content: space-between;
-  padding: 10px 0;
-  font-size: 1.1em;
+  padding: 10px 0px;
+  font-size: 1rem;
   color: #2d3748;
-  border-bottom: 1px dotted #e2e8f0;
+  border-bottom: 1px dotted #16202d;
   transition: color 0.2s ease;
 }
 
@@ -373,7 +506,8 @@ onMounted(() => {
 
 .menu-items li span {
   color: #ff6b6b;
-  font-weight: 600;
+  font-weight: 500;
+  font-size: 1rem;
 }
 
 @media (max-width: 1024px) {
@@ -401,11 +535,15 @@ onMounted(() => {
   }
 
   .menu-items h2 {
-    font-size: 1.6em;
+    font-size: 1.2em;
   }
 }
 
 @media (max-width: 480px) {
+  .menu-container {
+    margin-bottom: 100px;
+  }
+
   .main-title {
     font-size: 2em;
   }
