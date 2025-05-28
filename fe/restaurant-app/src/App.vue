@@ -171,7 +171,7 @@ const editProfile = () => {
 };
 
 const logout = () => {
-  localStorage.removeItem('token');
+  localStorage.removeItem('tokenJwt');
   localStorage.removeItem('userInfo');
   window.location.href = '/';
 };
