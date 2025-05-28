@@ -9,6 +9,8 @@ class Department extends Model
 
     protected $fillable = ['name', 'description', 'manager_id'];
 
+    public $timestamps = false;
+
     public function employees()
     {
         return $this->hasMany(Employee::class, 'department_id');

@@ -5,6 +5,8 @@ use App\Http\Controllers\Controller;
 use App\Models\Department;
 use App\Models\Employee;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Validation\ValidationException;
 
 class DepartmentController extends Controller
 {
@@ -34,54 +36,64 @@ class DepartmentController extends Controller
     }
 
     public function store(Request $request)
-{
-    $validated = $request->validate([
-        'name' => 'required|string|max:100',
-        'description' => 'nullable|string',
-        'manager_id' => 'nullable|exists:employees,employee_id',
-    ]);
+    {
+        try {
+            Log::info('Store department request', ['data' => $request->all()]);
 
-    // Nếu không có manager_id, tìm nhân viên có chức danh chứa "trưởng" trong phòng ban
-    if (empty($validated['manager_id']) && !empty($request->department_id)) {
-        $manager = Employee::where('department_id', $request->department_id)
-            ->where('position', 'like', '%trưởng%')
-            ->first();
-        if ($manager) {
-            $validated['manager_id'] = $manager->employee_id;
+            $validated = $request->validate([
+                'name' => 'required|string|max:100',
+                'description' => 'nullable|string',
+                'manager_id' => 'nullable|exists:employees,employee_id',
+            ]);
+
+            $department = Department::create($validated);
+            Log::info('Department created successfully', ['department_id' => $department->department_id]);
+
+            return response()->json($department->load('manager'), 201);
+        } catch (ValidationException $e) {
+            Log::error('Validation error in store department', ['errors' => $e->errors()]);
+            return response()->json(['message' => 'Validation failed', 'errors' => $e->errors()], 422);
+        } catch (\Exception $e) {
+            Log::error('Error in store department', ['error' => $e->getMessage()]);
+            return response()->json(['message' => 'Failed to create department'], 500);
         }
     }
 
-    $department = Department::create($validated);
-    return response()->json($department->load('manager'), 201);
-}
+    public function update(Request $request, $id)
+    {
+        try {
+            $department = Department::findOrFail($id);
+            Log::info('Update department request', ['department_id' => $id, 'data' => $request->all()]);
 
-public function update(Request $request, $id)
-{
-    $department = Department::findOrFail($id);
-    $validated = $request->validate([
-        'name' => 'required|string|max:100',
-        'description' => 'nullable|string',
-        'manager_id' => 'nullable|exists:employees,employee_id',
-    ]);
+            $validated = $request->validate([
+                'name' => 'required|string|max:100',
+                'description' => 'nullable|string',
+                'manager_id' => 'nullable|exists:employees,employee_id',
+            ]);
 
-    // Tương tự, tự động gán manager_id nếu không có
-    if (empty($validated['manager_id']) && !empty($department->department_id)) {
-        $manager = Employee::where('department_id', $department->department_id)
-            ->where('position', 'like', '%trưởng%')
-            ->first();
-        if ($manager) {
-            $validated['manager_id'] = $manager->employee_id;
+            $department->update($validated);
+            Log::info('Department updated successfully', ['department_id' => $department->department_id]);
+
+            return response()->json($department->load('manager'));
+        } catch (ValidationException $e) {
+            Log::error('Validation error in update department', ['errors' => $e->errors()]);
+            return response()->json(['message' => 'Validation failed', 'errors' => $e->errors()], 422);
+        } catch (\Exception $e) {
+            Log::error('Error in update department', ['error' => $e->getMessage()]);
+            return response()->json(['message' => 'Failed to update department'], 500);
         }
     }
-
-    $department->update($validated);
-    return response()->json($department->load('manager'));
-}
 
     public function destroy($id)
     {
-        $department = Department::findOrFail($id);
-        $department->delete();
-        return response()->json(null, 204);
+        try {
+            $department = Department::findOrFail($id);
+            $department->delete();
+            Log::info('Department deleted successfully', ['department_id' => $id]);
+            return response()->json(null, 204);
+        } catch (\Exception $e) {
+            Log::error('Error in delete department', ['error' => $e->getMessage()]);
+            return response()->json(['message' => 'Failed to delete department'], 500);
+        }
     }
 }

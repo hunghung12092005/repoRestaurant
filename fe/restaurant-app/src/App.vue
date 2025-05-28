@@ -20,7 +20,7 @@
           </div>
         </div>
         <ul class="nav flex-column">
-          <li class="nav-item "><router-link class="nav-link" to="/admin/dashboard"><i class="bi bi-grid"></i> Dashboard</router-link></li>
+          <li class="nav-item"><router-link class="nav-link" to="/admin/dashboard"><i class="bi bi-grid"></i> Dashboard</router-link></li>
           <li class="nav-item"><router-link class="nav-link" to="/admin/occupancy"><i class="bi bi-house-door"></i> Occupancy <span class="badge bg-danger">5</span></router-link></li>
           <li class="nav-item"><router-link class="nav-link" to="/admin/bookings"><i class="bi bi-book"></i> Bookings</router-link></li>
           <li class="nav-item"><router-link class="nav-link" to="/admin/rooms"><i class="bi bi-building"></i> Rooms</router-link></li>
@@ -35,7 +35,7 @@
       <!-- Main Content -->
       <div class="main-content">
         <!-- Top Navbar -->
-        <div class="navbar-top" :class="{ 'scrolled': navbarActive }">
+        <div class="navbar-top" :class="{ 'scrolled': navbarSticky }">
           <div class="d-flex align-items-center">
             <i class="bi bi-globe"></i>
             <i class="bi bi-bell mx-3"></i>
@@ -54,7 +54,7 @@
     <!-- Layout cho các route không phải admin -->
     <div v-else>
       <header ref="headerRef">
-        <nav class="navbar navbar-expand-lg navbar-light fixed-top" :class="{ 'active': navbarActive }">
+        <nav class="navbar navbar-expand-lg navbar-light fixed-top" :class="{ 'active': navbarSticky }">
           <div class="container-fluid">
             <!-- Logo -->
             <a class="navbar-brand" href="/">
@@ -119,21 +119,44 @@ import { provide } from 'vue';
 const route = useRoute();
 const headerRef = ref(null);
 const navbarRef = ref(null);
-const navbarActive = ref(false);
+const navbarActive = ref(false); // Dùng cho trạng thái mở/đóng menu
+const navbarSticky = ref(false); // Dùng cho hiệu ứng sticky của navbar
 const userInfo = ref(null);
 const isLogin = ref(false);
 const isAdmin = ref(false);
 const apiUrl = 'http://localhost:8000';
 provide('apiUrl', apiUrl);
+
+// Biến để theo dõi vị trí cuộn trước đó
+const lastScrollPosition = ref(0);
+
 const toggleMenu = () => {
   navbarActive.value = !navbarActive.value;
 };
 
-// const handleScroll = () => {
-//   if (headerRef.value || route.path.startsWith('/admin')) {
-//     navbarActive.value = window.scrollY > 50;
-//   }
-// };
+const handleScroll = () => {
+  if (headerRef.value || route.path.startsWith('/admin')) {
+    const currentScrollPosition = window.scrollY;
+
+    // Áp dụng hiệu ứng sticky cho navbar trên mọi kích thước màn hình
+    navbarSticky.value = currentScrollPosition > 50;
+
+    lastScrollPosition.value = currentScrollPosition;
+  }
+};
+
+// Đóng menu khi nhấn bên ngoài
+const handleOutsideClick = (event) => {
+  if (window.innerWidth <= 991 && navbarActive.value && navbarRef.value) {
+    const isClickInside = navbarRef.value.contains(event.target);
+    const isToggleButton = event.target.closest('.navbar-toggler');
+
+    // Nếu nhấn bên ngoài menu và không phải nút toggle, đóng menu
+    if (!isClickInside && !isToggleButton) {
+      navbarActive.value = false;
+    }
+  }
+};
 
 const fetchUserInfo = async () => {
   try {
@@ -169,7 +192,7 @@ const editProfile = () => {
 };
 
 const logout = () => {
-  localStorage.removeItem('token');
+  localStorage.removeItem('tokenJwt');
   localStorage.removeItem('userInfo');
   window.location.href = '/';
 };
@@ -180,12 +203,13 @@ const adminPanel = () => {
 
 onMounted(() => {
   fetchUserInfo();
-  //window.addEventListener('scroll', handleScroll);
+  window.addEventListener('scroll', handleScroll);
+  document.addEventListener('click', handleOutsideClick);
 });
-
 
 onUnmounted(() => {
   window.removeEventListener('scroll', handleScroll);
+  document.removeEventListener('click', handleOutsideClick);
 });
 </script>
 
@@ -233,7 +257,11 @@ onUnmounted(() => {
 .navbar.active .navbar-brand,
 .navbar.active .nav-link,
 .navbar.active .dropdown-toggle {
-  color: #fff !important;
+  color: #fff !important; /* Màu trắng cho desktop khi active */
+}
+
+.navbar.active .navbar-toggler-icon {
+  filter: brightness(0) invert(1); /* Đổi màu biểu tượng toggle thành trắng khi active */
 }
 
 .logo-img {
@@ -489,7 +517,11 @@ body {
 
   .navbar.active .nav-link,
   .navbar.active .dropdown-toggle {
-    color: #000 !important;
+    color: #000 !important; /* Màu đen cho mobile khi active */
+  }
+
+  .navbar.active .navbar-toggler-icon {
+    filter: brightness(0) invert(1); /* Đổi màu biểu tượng toggle thành trắng khi active trên mobile */
   }
 
   .nav-link:hover,
@@ -532,6 +564,14 @@ body {
 
   .admin-main {
     padding-top: 70px;
+  }
+}
+
+@media (min-width: 992px) {
+  .navbar.active .navbar-brand,
+  .navbar.active .nav-link,
+  .navbar.active .dropdown-toggle {
+    color: #fff !important; /* Màu trắng cho desktop khi active */
   }
 }
 </style>

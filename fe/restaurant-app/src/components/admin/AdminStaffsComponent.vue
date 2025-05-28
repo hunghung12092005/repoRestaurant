@@ -1,5 +1,10 @@
 <template>
   <div class="staff-container">
+    <!-- Thông báo -->
+    <div v-if="showAlert" :class="['alert', alertType, 'custom-alert']" role="alert">
+      {{ alertMessage }}
+    </div>
+
     <div class="header-section mb-4">
       <h3 class="fw-bold">Quản lý Nhân viên</h3>
       <div class="d-flex justify-content-between align-items-center mt-3">
@@ -40,8 +45,8 @@
               <tr v-for="employee in paginatedEmployees" :key="employee.employee_id">
                 <td><input type="checkbox" class="form-check-input" /></td>
                 <td>{{ employee.name }}</td>
-                <td>{{ employee.gender || 'Không có' }}</td>
-                <td>{{ employee.birth_date || 'Không có' }}</td>
+                <td>{{ formatGender(employee.gender) }}</td>
+                <td>{{ formatDate(employee.birth_date) || 'Không có' }}</td>
                 <td>{{ employee.email }}</td>
                 <td>{{ employee.phone || 'Không có' }}</td>
                 <td>{{ employee.position || 'Không có' }}</td>
@@ -193,10 +198,10 @@
             </div>
             <div class="row">
               <div class="col-md-6 mb-3">
-                <strong>Giới tính:</strong> {{ selectedEmployee.gender || 'Không có' }}
+                <strong>Giới tính:</strong> {{ formatGender(selectedEmployee.gender) || 'Không có' }}
               </div>
               <div class="col-md-6 mb-3">
-                <strong>Ngày sinh:</strong> {{ selectedEmployee.birth_date || 'Không có' }}
+                <strong>Ngày sinh:</strong> {{ formatDate(selectedEmployee.birth_date) || 'Không có' }}
               </div>
             </div>
             <div class="row">
@@ -217,7 +222,7 @@
             </div>
             <div class="row">
               <div class="col-md-6 mb-3">
-                <strong>Ngày tuyển dụng:</strong> {{ selectedEmployee.hire_date || 'Không có' }}
+                <strong>Ngày tuyển dụng:</strong> {{ formatDate(selectedEmployee.hire_date) || 'Không có' }}
               </div>
               <div class="col-md-6 mb-3">
                 <strong>Trạng thái:</strong> {{ selectedEmployee.status || 'Không có' }}
@@ -273,6 +278,43 @@ const staffForm = ref({
 const selectedEmployee = ref({});
 const isEditMode = ref(false);
 
+// Biến trạng thái cho thông báo
+const showAlert = ref(false);
+const alertMessage = ref('');
+const alertType = ref('alert-success');
+
+// Hàm định dạng ngày thành ngày/tháng/năm
+const formatDate = (dateStr) => {
+  if (!dateStr) return '';
+  const date = new Date(dateStr);
+  return date.toLocaleDateString('vi-VN', {
+    day: '2-digit',
+    month: '2-digit',
+    year: 'numeric'
+  });
+};
+
+// Hàm chuyển đổi giới tính sang tiếng Việt
+const formatGender = (gender) => {
+  if (!gender) return '';
+  const genderMap = {
+    'Male': 'Nam',
+    'Female': 'Nữ',
+    'Other': 'Khác'
+  };
+  return genderMap[gender] || gender;
+};
+
+// Hàm hiển thị thông báo
+const showNotification = (message, type = 'success') => {
+  alertType.value = type === 'success' ? 'alert-success' : 'alert-danger';
+  alertMessage.value = message;
+  showAlert.value = true;
+  setTimeout(() => {
+    showAlert.value = false;
+  }, 3000); // Ẩn sau 3 giây
+};
+
 onMounted(async () => {
   await fetchDepartments();
   await fetchEmployees();
@@ -291,7 +333,7 @@ const fetchEmployees = async () => {
     console.log('Dữ liệu nhân viên từ API:', JSON.stringify(employees.value, null, 2));
   } catch (error) {
     console.error('Lỗi khi tải danh sách nhân viên:', error.response ? error.response.data : error.message);
-    alert('Không thể tải danh sách nhân viên.');
+    showNotification('Không thể tải danh sách nhân viên.', 'error');
   }
 };
 
@@ -307,7 +349,7 @@ const fetchDepartments = async () => {
     console.log('Dữ liệu phòng ban:', JSON.stringify(departments.value, null, 2));
   } catch (error) {
     console.error('Lỗi khi tải danh sách phòng ban:', error.response ? error.response.data : error.message);
-    alert('Không thể tải danh sách phòng ban.');
+    showNotification('Không thể tải danh sách phòng ban.', 'error');
   }
 };
 
@@ -358,10 +400,20 @@ const openAddModal = () => {
 const openEditModal = (employee) => {
   isEditMode.value = true;
   staffForm.value = {
-    ...employee,
+    employee_id: employee.employee_id, // Gán rõ ràng employee_id
+    name: employee.name || '',
+    gender: employee.gender || '',
+    email: employee.email || '',
+    phone: employee.phone || '',
+    address: employee.address || '',
+    position: employee.position || '',
     department_id: employee.department_id || null,
-    salary: employee.salary || null
+    salary: employee.salary || null,
+    birth_date: employee.birth_date || '',
+    hire_date: employee.hire_date || '',
+    status: employee.status || ''
   };
+  console.log('Dữ liệu gán vào form:', JSON.stringify(staffForm.value, null, 2));
   const modal = new bootstrap.Modal(document.getElementById('staffModal'));
   modal.show();
 };
@@ -396,16 +448,15 @@ const addEmployee = async () => {
     
     await fetchEmployees();
     window.dispatchEvent(new CustomEvent('refresh-departments'));
-    alert('Thêm nhân viên thành công!');
+    showNotification('Thêm nhân viên thành công!');
     const modal = bootstrap.Modal.getInstance(document.getElementById('staffModal'));
     modal.hide();
   } catch (error) {
     console.error('Lỗi khi thêm nhân viên:', error.response ? error.response.data : error.message);
-    await fetchEmployees(); // Làm mới để kiểm tra
     const errorMessage = error.response?.data?.errors
       ? Object.values(error.response.data.errors).flat().join('; ')
       : error.response?.data?.message || error.message;
-    alert(`Thêm nhân viên thất bại: ${errorMessage}. Dữ liệu có thể đã được lưu, vui lòng kiểm tra bảng.`);
+    showNotification(`Thêm nhân viên thất bại: ${errorMessage}.`, 'error');
   }
 };
 
@@ -425,15 +476,15 @@ const updateEmployee = async () => {
     console.log('Phản hồi từ server:', JSON.stringify(response.data, null, 2));
     await fetchEmployees();
     window.dispatchEvent(new CustomEvent('refresh-departments'));
-    alert('Cập nhật nhân viên thành công!');
+    showNotification('Cập nhật nhân viên thành công!');
     const modal = bootstrap.Modal.getInstance(document.getElementById('staffModal'));
     modal.hide();
   } catch (error) {
     console.error('Lỗi khi cập nhật nhân viên:', error.response ? error.response.data : error.message);
     const errorMessage = error.response?.data?.errors
       ? Object.values(error.response.data.errors).flat().join('; ')
-      : error.response?.data?.message || error.message;
-    alert(`Cập nhật nhân viên thất bại: ${errorMessage}`);
+      : (typeof error.response?.data?.message === 'string' ? error.response?.data?.message : error.message || 'Unknown error');
+    showNotification(`Cập nhật nhân viên thất bại: ${errorMessage}`, 'error');
   }
 };
 
@@ -451,10 +502,10 @@ const deleteEmployee = async (id) => {
       if (paginatedEmployees.value.length === 0 && currentPage.value > 1) {
         currentPage.value--;
       }
-      alert('Xóa nhân viên thành công!');
+      showNotification('Xóa nhân viên thành công!');
     } catch (error) {
       console.error('Lỗi khi xóa nhân viên:', error.response ? error.response.data : error.message);
-      alert(`Xóa nhân viên thất bại: ${error.response?.data?.message || error.message}`);
+      showNotification(`Xóa nhân viên thất bại: ${error.response?.data?.message || error.message}`, 'error');
     }
   }
 };
@@ -533,6 +584,71 @@ const deleteEmployee = async (id) => {
 .custom-scroll::-webkit-scrollbar-thumb {
   background: #16b978;
 }
+
+/* CSS cho thông báo */
+.custom-alert {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  z-index: 1050;
+  min-width: 300px;
+  padding: 15px;
+  border-radius: 8px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  animation: fadeIn 0.3s ease-in, fadeOut 0.3s ease-out 2.7s forwards;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.custom-alert.alert-success {
+  background-color: #d4edda;
+  border-color: #c3e6cb;
+  color: #155724;
+}
+
+.custom-alert.alert-danger {
+  background-color: #f8d7da;
+  border-color: #f5c6cb;
+  color: #721c24;
+}
+
+.custom-alert .close-btn {
+  cursor: pointer;
+  font-size: 1.2rem;
+  line-height: 1;
+  color: inherit;
+  opacity: 0.7;
+  transition: opacity 0.2s;
+}
+
+.custom-alert .close-btn:hover {
+  opacity: 1;
+}
+
+/* Hiệu ứng fade */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes fadeOut {
+  from {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  to {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+}
+
 @media (max-width: 768px) {
   .staff-container {
     padding: 10px;
@@ -552,6 +668,11 @@ const deleteEmployee = async (id) => {
   }
   .btn-primary {
     width: 100%;
+  }
+  .custom-alert {
+    min-width: 250px;
+    right: 10px;
+    top: 10px;
   }
 }
 </style>

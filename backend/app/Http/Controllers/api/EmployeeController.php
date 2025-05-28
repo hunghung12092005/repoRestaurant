@@ -1,5 +1,6 @@
 <?php
 namespace App\Http\Controllers\api;
+
 use App\Http\Controllers\Controller;
 use App\Models\Employee;
 use App\Models\Department;
@@ -28,7 +29,6 @@ class EmployeeController extends Controller
     public function store(Request $request)
     {
         try {
-            // Log dữ liệu đầu vào
             Log::info('Store employee request', ['data' => $request->all()]);
 
             $validated = $request->validate([
@@ -47,24 +47,8 @@ class EmployeeController extends Controller
 
             Log::info('Validated employee data', $validated);
 
-            // Tạo nhân viên
             $employee = Employee::create($validated);
-
-            // Gán manager_id nếu chức danh chứa "trưởng"
-            if (isset($validated['position']) && 
-                stripos(mb_strtolower($validated['position'], 'UTF-8'), 'trưởng') !== false && 
-                $employee->department_id) {
-                $department = Department::find($employee->department_id);
-                if ($department) {
-                    $department->update(['manager_id' => $employee->employee_id]);
-                    Log::info('Assigned manager for department', [
-                        'department_id' => $department->department_id,
-                        'manager_id' => $employee->employee_id
-                    ]);
-                } else {
-                    Log::warning('Department not found', ['department_id' => $employee->department_id]);
-                }
-            }
+            $this->updateDepartmentManager($employee, $validated);
 
             Log::info('Employee created successfully', ['employee_id' => $employee->employee_id]);
 
@@ -83,19 +67,23 @@ class EmployeeController extends Controller
                 'error' => $e->getMessage(),
                 'request' => $request->all()
             ]);
-            return response()->json(['message' => 'Database error occurred'], 500);
+            return response()->json(['message' => 'Database error occurred: ' . $e->getMessage()], 500);
         } catch (\Exception $e) {
             Log::error('Unexpected error in store employee', [
                 'error' => $e->getMessage(),
                 'request' => $request->all()
             ]);
-            return response()->json(['message' => 'An unexpected error occurred'], 500);
+            return response()->json(['message' => 'An unexpected error occurred: ' . $e->getMessage()], 500);
         }
     }
 
     public function update(Request $request, $id)
     {
         try {
+            if (!is_numeric($id)) {
+                throw new \Exception('Invalid employee ID');
+            }
+
             $employee = Employee::findOrFail($id);
             Log::info('Update employee request', ['employee_id' => $id, 'data' => $request->all()]);
 
@@ -113,35 +101,81 @@ class EmployeeController extends Controller
                 'status' => 'nullable|in:Active,Inactive,On Leave',
             ]);
 
+            // Lưu employee_id trước khi update
+            $employeeId = $employee->employee_id;
             $employee->update($validated);
 
-            // Gán hoặc xóa manager_id
-            if (isset($validated['position']) && 
-                stripos(mb_strtolower($validated['position'], 'UTF-8'), 'trưởng') !== false && 
-                $employee->department_id) {
-                $department = Department::find($employee->department_id);
-                if ($department) {
-                    $department->update(['manager_id' => $employee->employee_id]);
-                    Log::info('Updated manager_id', [
-                        'department_id' => $department->department_id,
-                        'manager_id' => $employee->employee_id
-                    ]);
-                }
-            } elseif ($employee->department_id) {
-                $department = Department::where('manager_id', $employee->employee_id)->first();
-                if ($department) {
-                    $department->update(['manager_id' => null]);
-                    Log::info('Removed manager_id', ['department_id' => $department->department_id]);
-                }
+            // Đảm bảo employee_id không bị thay đổi
+            if ($employee->employee_id !== $employeeId) {
+                Log::error('employee_id changed after update', [
+                    'original' => $employeeId,
+                    'new' => $employee->employee_id
+                ]);
+                throw new \Exception('employee_id was unexpectedly changed after update');
             }
+
+            $this->updateDepartmentManager($employee, $validated);
 
             return response()->json($employee->load('department'));
         } catch (ValidationException $e) {
             Log::error('Validation error in update employee', ['errors' => $e->errors()]);
             return response()->json(['message' => 'Validation failed', 'errors' => $e->errors()], 422);
+        } catch (QueryException $e) {
+            Log::error('Database error in update employee', ['error' => $e->getMessage()]);
+            return response()->json(['message' => 'Database error occurred: ' . $e->getMessage()], 500);
         } catch (\Exception $e) {
             Log::error('Error in update employee', ['error' => $e->getMessage()]);
-            return response()->json(['message' => 'Failed to update employee'], 500);
+            return response()->json(['message' => 'Failed to update employee: ' . $e->getMessage()], 500);
+        }
+    }
+
+    private function updateDepartmentManager($employee, $validated)
+    {
+        Log::info('updateDepartmentManager called', ['employee' => $employee->toArray(), 'validated' => $validated]);
+        if (!is_numeric($employee->employee_id)) {
+            Log::error('Invalid employee_id', ['employee_id' => $employee->employee_id]);
+            throw new \Exception('Invalid employee_id: ' . $employee->employee_id);
+        }
+
+        $managerKeywords = ['trưởng', 'giám đốc', 'quản lý'];
+        $isManager = false;
+        if (isset($validated['position'])) {
+            $positionLower = mb_strtolower($validated['position'], 'UTF-8');
+            foreach ($managerKeywords as $keyword) {
+                if (stripos($positionLower, $keyword) !== false) {
+                    $isManager = true;
+                    break;
+                }
+            }
+        }
+
+        if ($employee->department_id) {
+            $department = Department::find($employee->department_id);
+            if (!$department) {
+                Log::warning('Department not found', ['department_id' => $employee->department_id]);
+                return;
+            }
+
+            Log::info('Department found', ['department' => $department->toArray()]);
+            if ($isManager) {
+                if ($department->manager_id && $department->manager_id !== $employee->employee_id) {
+                    Log::warning('Department already has a manager', [
+                        'department_id' => $department->department_id,
+                        'current_manager_id' => $department->manager_id,
+                        'new_manager_id' => $employee->employee_id
+                    ]);
+                }
+                $department->update(['manager_id' => $employee->employee_id]);
+                Log::info('Assigned manager for department', [
+                    'department_id' => $department->department_id,
+                    'manager_id' => $employee->employee_id
+                ]);
+            } else {
+                if ($department->manager_id === $employee->employee_id) {
+                    $department->update(['manager_id' => null]);
+                    Log::info('Removed manager_id', ['department_id' => $department->department_id]);
+                }
+            }
         }
     }
 
@@ -152,12 +186,13 @@ class EmployeeController extends Controller
             $department = Department::where('manager_id', $id)->first();
             if ($department) {
                 $department->update(['manager_id' => null]);
+                Log::info('Removed manager_id', ['department_id' => $department->department_id]);
             }
             $employee->delete();
             return response()->json(['message' => 'Employee deleted successfully']);
         } catch (\Exception $e) {
             Log::error('Error in delete employee', ['error' => $e->getMessage()]);
-            return response()->json(['message' => 'Failed to delete employee'], 500);
+            return response()->json(['message' => 'Failed to delete employee: ' . $e->getMessage()], 500);
         }
     }
 }

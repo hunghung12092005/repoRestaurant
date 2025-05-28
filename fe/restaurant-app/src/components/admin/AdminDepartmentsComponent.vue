@@ -1,5 +1,10 @@
 <template>
   <div class="staff-container">
+    <!-- Thông báo -->
+    <div v-if="showAlert" :class="['alert', alertType, 'custom-alert']" role="alert">
+      {{ alertMessage }}
+    </div>
+
     <div class="header-section mb-4">
       <h3 class="fw-bold">Quản lý Phòng ban</h3>
       <div class="d-flex justify-content-between align-items-center mt-3">
@@ -164,7 +169,7 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue';
+import { ref, computed, onMounted, onUnmounted } from 'vue';
 import axios from 'axios';
 import { inject } from 'vue';
 import * as bootstrap from 'bootstrap';
@@ -191,10 +196,20 @@ const departmentForm = ref({
 const selectedDepartment = ref({});
 const isEditMode = ref(false);
 
-onMounted(async () => {
-  await fetchEmployees();
-  await fetchDepartments();
-});
+// Biến trạng thái cho thông báo
+const showAlert = ref(false);
+const alertMessage = ref('');
+const alertType = ref('alert-success');
+
+// Hàm hiển thị thông báo
+const showNotification = (message, type = 'success') => {
+  alertType.value = type === 'success' ? 'alert-success' : 'alert-danger';
+  alertMessage.value = message;
+  showAlert.value = true;
+  setTimeout(() => {
+    showAlert.value = false;
+  }, 3000); // Ẩn sau 3 giây
+};
 
 const fetchDepartments = async () => {
   try {
@@ -208,8 +223,8 @@ const fetchDepartments = async () => {
     departments.value = response.data;
     console.log('Dữ liệu phòng ban:', JSON.stringify(departments.value, null, 2));
   } catch (error) {
-    console.error('Lỗi khi lấy dữ liệu phòng ban:', error);
-    alert('Không thể tải danh sách phòng ban.');
+    console.error('Lỗi khi lấy dữ liệu phòng ban:', error.response ? error.response.data : error.message);
+    showNotification('Không thể tải danh sách phòng ban.', 'error');
   }
 };
 
@@ -224,8 +239,8 @@ const fetchEmployees = async () => {
     employees.value = response.data;
     console.log('Dữ liệu nhân viên:', employees.value);
   } catch (error) {
-    console.error('Lỗi khi lấy dữ liệu nhân viên:', error);
-    alert('Không thể tải danh sách nhân viên.');
+    console.error('Lỗi khi lấy dữ liệu nhân viên:', error.response ? error.response.data : error.message);
+    showNotification('Không thể tải danh sách nhân viên.', 'error');
   }
 };
 
@@ -292,12 +307,12 @@ const addDepartment = async () => {
     });
     console.log('Phản hồi từ server:', response.data);
     await fetchDepartments();
-    alert('Thêm phòng ban thành công!');
+    showNotification('Thêm phòng ban thành công!');
     const modal = bootstrap.Modal.getInstance(document.getElementById('departmentModal'));
     modal.hide();
   } catch (error) {
     console.error('Lỗi khi thêm phòng ban:', error.response ? error.response.data : error.message);
-    alert('Thêm phòng ban thất bại.');
+    showNotification('Thêm phòng ban thất bại.', 'error');
   }
 };
 
@@ -312,12 +327,12 @@ const updateDepartment = async () => {
     });
     console.log('Phản hồi từ server:', response.data);
     await fetchDepartments();
-    alert('Cập nhật phòng ban thành công!');
+    showNotification('Cập nhật phòng ban thành công!');
     const modal = bootstrap.Modal.getInstance(document.getElementById('departmentModal'));
     modal.hide();
   } catch (error) {
     console.error('Lỗi khi cập nhật phòng ban:', error.response ? error.response.data : error.message);
-    alert('Cập nhật phòng ban thất bại.');
+    showNotification('Cập nhật phòng ban thất bại.', 'error');
   }
 };
 
@@ -336,13 +351,29 @@ const deleteDepartment = async (id) => {
       if (paginatedDepartments.value.length === 0 && currentPage.value > 1) {
         currentPage.value--;
       }
-      alert('Xóa phòng ban thành công!');
+      showNotification('Xóa phòng ban thành công!');
     } catch (error) {
       console.error('Lỗi khi xóa phòng ban:', error.response ? error.response.data : error.message);
-      alert('Xóa phòng ban thất bại.');
+      showNotification('Xóa phòng ban thất bại.', 'error');
     }
   }
 };
+
+// Lắng nghe sự kiện refresh-departments từ component Staffs.vue
+const handleRefreshDepartments = async () => {
+  await fetchDepartments();
+  showNotification('Danh sách phòng ban đã được làm mới do thay đổi nhân viên.');
+};
+
+onMounted(async () => {
+  await fetchEmployees();
+  await fetchDepartments();
+  window.addEventListener('refresh-departments', handleRefreshDepartments);
+});
+
+onUnmounted(() => {
+  window.removeEventListener('refresh-departments', handleRefreshDepartments);
+});
 </script>
 
 <style scoped>
@@ -451,6 +482,71 @@ const deleteDepartment = async (id) => {
 table {
   min-width: 800px;
 }
+
+/* CSS cho thông báo */
+.custom-alert {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  z-index: 1050;
+  min-width: 300px;
+  padding: 15px;
+  border-radius: 8px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  animation: fadeIn 0.3s ease-in, fadeOut 0.3s ease-out 2.7s forwards;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.custom-alert.alert-success {
+  background-color: #d4edda;
+  border-color: #c3e6cb;
+  color: #155724;
+}
+
+.custom-alert.alert-danger {
+  background-color: #f8d7da;
+  border-color: #f5c6cb;
+  color: #721c24;
+}
+
+.custom-alert .close-btn {
+  cursor: pointer;
+  font-size: 1.2rem;
+  line-height: 1;
+  color: inherit;
+  opacity: 0.7;
+  transition: opacity 0.2s;
+}
+
+.custom-alert .close-btn:hover {
+  opacity: 1;
+}
+
+/* Hiệu ứng fade */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes fadeOut {
+  from {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  to {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+}
+
 @media (max-width: 768px) {
   .staff-container {
     padding: 10px;
@@ -477,6 +573,11 @@ table {
   }
   .pagination-controls span {
     font-size: 0.8rem;
+  }
+  .custom-alert {
+    min-width: 250px;
+    right: 10px;
+    top: 10px;
   }
   table {
     min-width: 600px;
