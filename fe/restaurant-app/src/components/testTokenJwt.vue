@@ -12,29 +12,21 @@
     </div>
 </template>
 
-<script>
-import axiosConfig from '../axiosConfig'; // Import axiosConfig
+<script setup>
+import { ref, onMounted, inject } from 'vue';
+import axiosConfig from '../axiosConfig';
 
-export default {
-    data() {
-        return {
-            userInfo: null,
-        };
-    },
-    mounted() {
-        this.fetchUserInfo();
-    },
-    methods: {
-        fetchUserInfo() {
-            axiosConfig.get('http://127.0.0.1:8000/api/protected')
-                .then(response => {
-                    //console.log('Response:', response.data); // Kiểm tra phản hồi
-                    this.userInfo = response.data.user; // Lưu thông tin người dùng
-                })
-                .catch(error => {
-                    console.error('Error:', error.response ? error.response.data : error.message);
-                });
-        }
-    },
+const userInfo = ref(null);
+const apiUrl = inject('apiUrl');
+const fetchUserInfo = () => {
+    axiosConfig.get(`${apiUrl}/api/protected`)
+        .then(response => {
+            userInfo.value = response.data.user;
+        })
+        .catch(error => {
+            console.error('Error:', error.response ? error.response.data : error.message);
+        });
 };
+
+onMounted(fetchUserInfo);
 </script>

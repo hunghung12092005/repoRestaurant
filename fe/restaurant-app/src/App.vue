@@ -105,7 +105,6 @@
 
       <main>
         <RouterView></RouterView>
-        <footer class="text-center py-3">đây là footer</footer>
       </main>
     </div>
   </div>
@@ -115,6 +114,7 @@
 import { ref, onMounted, onUnmounted } from 'vue';
 import { useRoute } from 'vue-router';
 import axiosConfig from './axiosConfig.js';
+import { provide } from 'vue';
 
 const route = useRoute();
 const headerRef = ref(null);
@@ -123,16 +123,17 @@ const navbarActive = ref(false);
 const userInfo = ref(null);
 const isLogin = ref(false);
 const isAdmin = ref(false);
-
+const apiUrl = 'http://localhost:8000';
+provide('apiUrl', apiUrl);
 const toggleMenu = () => {
   navbarActive.value = !navbarActive.value;
 };
 
-const handleScroll = () => {
-  if (headerRef.value || route.path.startsWith('/admin')) {
-    navbarActive.value = window.scrollY > 50;
-  }
-};
+// const handleScroll = () => {
+//   if (headerRef.value || route.path.startsWith('/admin')) {
+//     navbarActive.value = window.scrollY > 50;
+//   }
+// };
 
 const fetchUserInfo = async () => {
   try {
@@ -154,7 +155,7 @@ const token = urlParams.get('token');
 const user = urlParams.get('user');
 
 if (token && user) {
-  localStorage.setItem('token', token);
+  localStorage.setItem('tokenJwt', token);
   localStorage.setItem('userInfo', user);
   userInfo.value = JSON.parse(user);
 }
@@ -168,7 +169,7 @@ const editProfile = () => {
 };
 
 const logout = () => {
-  localStorage.removeItem('token');
+  localStorage.removeItem('tokenJwt');
   localStorage.removeItem('userInfo');
   window.location.href = '/';
 };
@@ -179,8 +180,9 @@ const adminPanel = () => {
 
 onMounted(() => {
   fetchUserInfo();
-  window.addEventListener('scroll', handleScroll);
+  //window.addEventListener('scroll', handleScroll);
 });
+
 
 onUnmounted(() => {
   window.removeEventListener('scroll', handleScroll);

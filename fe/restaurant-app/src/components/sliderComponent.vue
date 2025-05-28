@@ -2,27 +2,6 @@
     <div class="slider">
         <div class="slide-track">
             <div class="slide">
-                <img src="https://kenh14cdn.com/2020/6/10/34-15917753838601541656403.jpeg" height="100" width="250" alt="" />
-            </div>
-            <div class="slide">
-                <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSKcS7ZFtBQJaqYZm-iWEeQFiwrlLC1kq4sJw&s" height="100" width="250" alt="" />
-            </div>
-            <div class="slide">
-                <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQLbq1PVOmsm2xhh3q70ARKZwQVkvobLwnlwDEyGC-gdrrHP5g8LbjI4PR1A9zd49eB1R4&usqp=CAU" height="100" width="250" alt="" />
-            </div>
-            <div class="slide">
-                <img src="https://s3-us-west-2.amazonaws.com/s.cdpn.io/557257/4.png" height="100" width="250" alt="" />
-            </div>
-            <div class="slide">
-                <img src="https://s3-us-west-2.amazonaws.com/s.cdpn.io/557257/5.png" height="100" width="250" alt="" />
-            </div>
-            <div class="slide">
-                <img src="https://s3-us-west-2.amazonaws.com/s.cdpn.io/557257/6.png" height="100" width="250" alt="" />
-            </div>
-            <div class="slide">
-                <img src="https://s3-us-west-2.amazonaws.com/s.cdpn.io/557257/7.png" height="100" width="250" alt="" />
-            </div>
-            <div class="slide">
                 <img src="https://s3-us-west-2.amazonaws.com/s.cdpn.io/557257/1.png" height="100" width="250" alt="" />
             </div>
             <div class="slide">
@@ -110,7 +89,7 @@ body {
 
 .slider .slide-track {
     -webkit-animation: scroll 40s linear infinite;
-    animation: scroll 40s linear infinite;
+    animation: scroll 80s linear infinite;
     display: flex;
     width: calc(250px * 14);
 }
@@ -120,7 +99,7 @@ body {
     width: 250px;
 }
 .slide img{
-    width: 80%;
+    width: 100%;
 }
 /* end quảng cáo */ 
 </style>

@@ -7,14 +7,22 @@
             <a href="#" class="btn">Xem  Menu</a>
         </div> -->
         <div class="home-text">
+
             <span>hh to our</span>
             <h1>Healthy Food <br>Collection!</h1>
             <p>Discover our carefully curated selection of nutritious and delicious meals, made with fresh ingredients
                 to nourish your body and delight your taste buds</p>
             <a href="/menu-list" class="btn">Xem Menu</a>
+
+            <span>Sầm Sơn Beach</span>
+            <h1>An Phú Villa <br>Kính chào quý khách!</h1>
+            
+            <a href="/menu" class="btn">Xem Menu</a>
+
         </div>
         <div class="home-img">
-            <img src="https://i.postimg.cc/gJBk5PMz/salad.png" alt="food image">
+            <img src="https://png.pngtree.com/png-clipart/20240318/original/pngtree-cutout-isolated-background-young-adult-asian-travel-couple-carry-luggage-for-png-image_14613197.png" alt="food image">
+            <!-- <img src="https://i.postimg.cc/gJBk5PMz/salad.png" alt="food image"> -->
         </div>
     </section>
     <sliderComponent />
@@ -117,20 +125,7 @@
             </div>
         </div>
     </section>
-
-
-    <!-- <div>
-    <h1>Menu Items</h1>
-    <ul v-if="menuItems.length">
-      <li v-for="item in menuItems" :key="item.id">
-        {{ item.Name }} - {{ item.Description }} - {{ item.category.name }}
-      </li>
-    </ul>
-    <p v-else>No menu items available.</p>
-  </div> -->
-    <div class="copyright">
-        <p>&#169; 2025 <span>ULTRA CODE</span> All rights reserved</p>
-    </div>
+    
 </template>
 <style scoped>
 @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&family=Turret+Road:wght@400;500;700;800&display=swap');
@@ -179,7 +174,6 @@ header {
 }
 
 header.active {
-    background: var(--second-color);
     box-shadow: 0 0 4px rgb(14 55 54 / 15%);
 }
 
@@ -227,40 +221,85 @@ header.active .navbar a {
 
 /* Home Section */
 .home {
+    position: relative; /* Để lớp overlay có thể được định vị tương đối */
     width: 100%;
     min-height: 100vh;
     display: flex;
     flex-wrap: wrap;
     align-items: center;
-    background: url('https://i.postimg.cc/pX41q1RD/Background-1-2x.png') no-repeat center;
-    background-size: cover;
     gap: 1rem;
+    z-index: 1;
+}
+
+.home::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: url('https://cf.bstatic.com/xdata/images/hotel/max1280x900/295358148.jpg?k=d4a1fb8f7b887222adc3cb467756a1777ed12ad9730190665871adaa7822dd31&o=&hp=1') no-repeat center;
+    background-size: cover;
+    opacity: 0.4; /* Độ mờ của hình nền */
+    z-index: -1; /* Đưa lớp overlay ra phía sau */
 }
 
 .home-text {
     flex: 1 1 17rem;
+    z-index: 2; /* Đảm bảo văn bản nằm trên lớp overlay */
 }
 
 .home-text span {
     font-size: 1rem;
-    font-weight: 600;
+    font-weight: 400;
     text-transform: uppercase;
+    text-align: center;
     color: var(--main-color);
+    animation: fade-in 1s ease-in-out; /* Hiệu ứng mờ vào */
 }
 
 .home-text h1 {
     font-size: 4rem;
-    color: var(--second-color);
+    color: rgb(21, 20, 20);
+    animation: bounce 3s infinite; /* Hiệu ứng nhảy */
 }
 
 .home-text p {
     margin: 0.5rem 0 1.4rem;
+    animation: fade-in 2.5s ease-in-out; /* Hiệu ứng mờ vào */
+}
+
+/* Hiệu ứng nhảy */
+@keyframes bounce {
+    0%,50%, 100% {
+        transform: translateY(0);
+    }
+    40% {
+        transform: translateY(-10px);
+    }
+    60% {
+        transform: translateY(-5px);
+    }
+}
+
+/* Hiệu ứng mờ vào */
+@keyframes fade-in {
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
+    }
 }
 
 .home-img {
-    flex: 1 1 17rem;
+    flex: 1 1 17rem
 }
-
+@media (max-width: 991px) {
+    .home-text {
+        text-align: center;
+    }
+}
 .btn {
     padding: 10px 20px;
     border: 2px solid blue;
@@ -638,10 +677,11 @@ form .btn:hover {
 <script setup>
 import { ref, onMounted, onUnmounted } from 'vue';
 import axios from 'axios';
-
 import sliderComponent from './sliderComponent.vue';
 import LazyImage from './LazyImage.vue'; // Import component
-
+import { inject } from 'vue';
+import Footer from './Footer.vue';
+const apiUrl = inject('apiUrl');
 const menuItems = ref([]);
 const topItems = ref([]);
 const currentPage = ref(1);
@@ -649,7 +689,7 @@ const totalPages = ref(1);
 
 const fetchMenuItems = async (page = 1) => {
     try {
-        const response = await axios.get(`http://localhost:8000/api/menu-items`, {
+        const response = await axios.get(`${apiUrl}/api/menu-items`, {
             params: { page }
         });
         menuItems.value = response.data.allMenuItems.data;
@@ -662,7 +702,7 @@ const fetchMenuItems = async (page = 1) => {
 };
 const fetchTopPriceItems = async () => {
     try {
-        const response = await axios.get(`http://localhost:8000/api/menu-items`);
+        const response = await axios.get(`${apiUrl}/api/menu-items`);
         topItems.value = response.data.topPriceItems;
     } catch (error) {
         console.error('Lỗi khi lấy dữ liệu:', error);
@@ -687,16 +727,4 @@ onMounted(() => {
     fetchTopPriceItems();
 });
 </script>
-<script>
 
-// export default {
-//     data() {
-//         return {
-//             userName: null, // Biến để lưu tên người dùng
-//         };
-//     },
-//     created() {
-//         this.userName = window.userSession.name;
-//     }
-// };
-</script>
