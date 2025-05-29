@@ -1,43 +1,41 @@
 <template>
-  <div class="menu-container">
+  <div class="container py-5 menu-container">
     <!-- Header Section -->
-    <div class="flex justify-between items-center mb-6">
-      <a href="#" class="text-sm text-gray-600 hover:text-gray-800">Recent Gallery</a>
-      <h1 class="text-3xl font-bold text-gray-800">Our All Menu</h1>
+    <div class="d-flex justify-content-between align-items-center mb-4">
+      <a href="#" class="text-muted small text-decoration-none hover-link">Recent Gallery</a>
+      <h1 class="display-6 fw-bold text-primary-emphasis">Our All Menu</h1>
       <div></div>
     </div>
 
     <!-- Navigation Tabs -->
-    <div class="flex space-x-6 border-b border-gray-200 mb-6">
-      <button
-        v-for="tab in tabs"
-        :key="tab"
-        @click="activeTab = tab"
-        :class="[
-          'py-2 px-4 text-sm font-medium',
-          activeTab === tab
-            ? 'bg-yellow-600 text-white rounded-t-md'
-            : 'text-gray-600 hover:text-gray-800'
-        ]"
-      >
-        {{ tab }}
-      </button>
-    </div>
+    <ul class="nav nav-tabs custom-tabs mb-5">
+      <li class="nav-item" v-for="tab in tabs" :key="tab">
+        <button
+          class="nav-link"
+          :class="{ active: activeTab === tab }"
+          @click="activeTab = tab"
+        >
+          {{ tab }}
+        </button>
+      </li>
+    </ul>
 
     <!-- Menu Items Section -->
     <div>
-      <h2 class="text-xl font-semibold text-gray-800 mb-4">{{ activeTab }}</h2>
-      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+      <h2 class="h5 fw-bold text-secondary mb-3">{{ activeTab }}</h2>
+      <div class="row g-4">
         <div
+          class="col-12 col-sm-6 col-lg-3"
           v-for="item in filteredMenuItems"
           :key="item.name"
-          class="bg-gray-100 rounded-lg overflow-hidden shadow-md hover:shadow-lg transition-shadow"
         >
-          <img :src="item.image" alt="Menu item" class="w-full h-48 object-cover" />
-          <div class="p-4">
-            <h3 class="text-lg font-semibold text-gray-800">{{ item.name }}</h3>
-            <p class="text-sm text-gray-600 mt-1">Thing lesser replenish evening called...</p>
-            <p class="text-lg font-bold text-gray-800 mt-2">{{ item.price }}</p>
+          <div class="card h-100 menu-card border-0 shadow-sm hover-card">
+            <img :src="item.image" class="card-img-top rounded-top" alt="Menu item">
+            <div class="card-body bg-white rounded-bottom">
+              <h5 class="card-title text-dark">{{ item.name }}</h5>
+              <p class="card-text text-muted small">Thing lesser replenish evening called...</p>
+              <p class="card-text fw-bold text-success fs-5">{{ item.price }}</p>
+            </div>
           </div>
         </div>
       </div>
@@ -114,16 +112,52 @@ export default {
   }
 };
 </script>
-
 <style scoped>
 .menu-container {
-  max-width: 1200px;
+  background: linear-gradient(to right, #fffbe7, #fdf2f8);
+  border-radius: 20px;
+  max-width: 1200px; 
   margin: 0 auto;
-  padding: 2rem;
-  background-color: #f5f5f5;
+  padding: 3rem 1rem; 
 }
 
-button:focus {
-  outline: none;
+
+.hover-link:hover {
+  color: #ff6f61 !important;
+}
+
+.custom-tabs .nav-link {
+  color: #6c757d;
+  font-weight: 500;
+  background-color: transparent;
+  border: none;
+  border-radius: 10px 10px 0 0;
+  transition: all 0.3s ease;
+}
+
+.custom-tabs .nav-link:hover {
+  color: #ff6f61;
+  background-color: #ffe4e1;
+}
+
+.custom-tabs .nav-link.active {
+  background-color: #ff6f61;
+  color: white !important;
+  font-weight: bold;
+}
+
+.menu-card {
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  border-radius: 15px;
+}
+
+.menu-card img {
+  height: 180px;
+  object-fit: cover;
+}
+
+.hover-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 8px 16px rgba(0,0,0,0.15);
 }
 </style>
