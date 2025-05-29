@@ -29,6 +29,15 @@ class MenuItemController extends Controller
             'topPriceItems' => $topPriceItems,
         ]);
     }
+    public function getItemArray(Request $request) {
+        // Lấy mảng ID từ request
+        $ids = $request->input('ids'); // Đảm bảo rằng mảng ID được gửi dưới dạng JSON
+    
+        // Lấy tất cả các bản ghi tương ứng với mảng ID
+        $items = MenuItems::whereIn('id', $ids)->get();
+        
+        return response()->json($items); // Trả về danh sách các món dưới dạng JSON
+    }
     /**
      * Store a newly created resource in storage.
      */
@@ -44,7 +53,6 @@ class MenuItemController extends Controller
     {
         //
     }
-
     /**
      * Update the specified resource in storage.
      */

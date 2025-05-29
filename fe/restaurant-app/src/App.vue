@@ -80,8 +80,10 @@
                     Menu
                   </a>
                   <ul class="dropdown-menu">
-                    <li><router-link class="dropdown-item" to="/menu-list">Menu</router-link></li>
+                    <li><router-link class="dropdown-item" to="/menu-list">Menu Đặt Món</router-link></li>
                     <li><router-link class="dropdown-item" to="/menu">menu</router-link></li>
+                    <li><router-link class="dropdown-item" to="/product-detail">Chi Tiết Online</router-link></li>
+                    <li><router-link class="dropdown-item" to="/CategoryShopOnline">Menu ShopOnline</router-link></li>
                   </ul>
                 </li>
                 <li class="nav-item"><router-link class="nav-link" to="/reservation">Reservation</router-link></li>

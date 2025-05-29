@@ -116,6 +116,9 @@ export default {
 .menu-container {
   background: linear-gradient(to right, #fffbe7, #fdf2f8);
   border-radius: 20px;
+  max-width: 1200px; 
+  margin: 0 auto;
+  padding: 3rem 1rem; 
 }
 
 .hover-link:hover {
