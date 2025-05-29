@@ -72,7 +72,6 @@
                         Hồ Xuân Hương 23/89 Thành Phố Sầm Sơn<br />
                         City, State ZIP<br />
                         Thời Gian ra Bill: {{ currentDateTime }}<br />
-
                     </p>
 
                     <table>
@@ -147,10 +146,8 @@
                             </div>
                         </div>
                         <div class="page">
-                            <div class="margin"></div>
                             <p>Nếu gặp vấn đề khi chuyển khoản vui lòng liên hệ nhân viên: 0123471331 hoặc nhắn tin qua
                                 chatbot của hệ thống để được hỗ trợ kịp thời</p>
-
                             <div class="btn-main">
                                 Tiến hành chuyển khoản
                                 <div class="arrow-wrapper">
@@ -216,6 +213,7 @@ const currentDateTime = ref(getCurrentDateTime()); // Khởi tạo với thời 
 //lấy dữ liệu đơn hàng
 
 const detailOrder = async () => {
+    isLoading.value = true; // Bắt đầu loading
     try {
         const response = await axios.get(`${apiUrl}/api/items-online/2`);
         orderB.value = response.data;
@@ -227,6 +225,8 @@ const detailOrder = async () => {
         //updateTotalPrice();
     } catch (error) {
         console.log(error);
+    } finally {
+        isLoading.value = false; // Kết thúc loading
     }
 };
 
@@ -419,14 +419,15 @@ onMounted(() => {
     position: relative;
     box-sizing: border-box;
     max-width: 100%;
+    text-align: center;
     font-family: cursive;
-    font-size: 20px;
+    font-size: 14px;
     border-radius: 10px;
     margin-left: 0 auto;
     background-image: linear-gradient(rgba(57, 186, 241,0.04) 1.1rem, white 1.3rem);
     background-size: 100% 1.2rem;
     line-height: 1.2rem;
-    padding: 1.4rem 0.5rem 0.3rem 4.5rem;
+    padding: 1.4rem 0rem;
 }
 
 .page::before,
@@ -447,7 +448,6 @@ onMounted(() => {
 }
 
 .page::after {
-    right: 15px;
     transform: skew(5deg) rotate(5deg);
 }
 
@@ -456,17 +456,11 @@ onMounted(() => {
     box-shadow: 0 2px 14px rgba(0, 0, 0, 0.4);
 }
 
-.margin {
-    position: absolute;
-    border-left: 1px solid #d88;
-    height: 100%;
-    left: 3.3rem;
-    top: 0;
-}
+
 
 .page p {
-    margin: 0;
-    padding-top: 10px;
+    margin: 0 auto;
+    width: 100%;
     text-indent: 2rem;
     padding-bottom: 1.8rem;
     color: black;
@@ -476,6 +470,7 @@ onMounted(() => {
 @media (max-width: 768px) {
     .page {
         width: 100%;
+        text-align: center;
     }
 
 }
@@ -493,7 +488,7 @@ onMounted(() => {
     padding: 0.8em;
     outline: none;
     border: 2px solid rgb(156, 136, 203);
-    background-color: transparent;
+    border-color: rgb(150, 150, 200);
     border-radius: 10px;
     width: 100%;
 }
@@ -506,7 +501,7 @@ onMounted(() => {
     margin-left: 0.5em;
     pointer-events: none;
     transition: all 0.3s ease;
-    color: rgb(100, 100, 100);
+    
 }
 
 .inputGroup :is(input:focus, input:valid)~label {
@@ -514,7 +509,7 @@ onMounted(() => {
     margin: 0em;
     margin-left: 1.3em;
     padding: 0.4em;
-    background-color: white;
+    background-color: rgba(250, 250, 250,0.9);
 }
 
 .inputGroup :is(input:focus, input:valid) {

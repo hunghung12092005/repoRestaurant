@@ -17,6 +17,8 @@ import AdminDepartmentsComponent from '../components/admin/AdminDepartmentsCompo
 import ghn from '../components/ghn/mainghn.vue'
 import menu_online from '../components/ShopOnline/menu_online.vue';
 import detailMenu from '../components/ShopOnline/detailMenu.vue';
+import detailOrderMenu from '../components/menu_item/detailOrderMenu.vue';
+import CategoryShopOnline from '../components/ShopOnline/CategoryShopOnline.vue';
 const routes = [
   {
     path: '/',
@@ -49,11 +51,6 @@ const routes = [
     component: MenuComponent,
   },
   {
-    path: '/menu-list',
-    name: 'MenuListComponent',
-    component: MenuListComponent,
-  },
-  {
     path: '/login',
     name: 'LoginComponent',
     component: LoginComponent,
@@ -79,6 +76,11 @@ const routes = [
     component: ghn,
   },
   {
+    path: '/CategoryShopOnline',
+    name: 'CategoryShopOnline',
+    component: CategoryShopOnline,
+  },
+  {
     path: '/menu_online',
     name: 'menu_online',
     component: menu_online,
@@ -88,6 +90,17 @@ const routes = [
     path: '/detailMenu/:id', // Định nghĩa route với param id
     name: 'detailMenu',
     component: detailMenu,
+    props: true // Kích hoạt props để truyền param
+  },
+  {
+    path: '/menu-list',
+    name: 'MenuListComponent',
+    component: MenuListComponent,
+  },
+  {
+    path: '/detailOrderMenu/:ids', // Định nghĩa route với param id
+    name: 'detailOrderMenu',
+    component: detailOrderMenu,
     props: true // Kích hoạt props để truyền param
   },
   // Admin routes

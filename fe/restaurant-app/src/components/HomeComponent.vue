@@ -1,11 +1,7 @@
 <template>
-    <section class="home" id="home">
-        <!-- <div v-if="userName" class="home-text">
-            <span>hh to our</span>
-            <h1>Xin chào <br>{{ userName }}</h1>
-            <p>Nhà Hàng Vinpearl Thanh Hóa sẵn sàng phục vụ</p>
-            <a href="#" class="btn">Xem  Menu</a>
-        </div> -->
+        <loading v-if="isLoading" />
+
+    <!-- <section class="home" id="home">
         <div class="home-text">
             <span>Sầm Sơn Beach</span>
             <h1>An Phú Villa <br>Kính chào quý khách!</h1>
@@ -14,9 +10,9 @@
         </div>
         <div class="home-img">
             <img src="https://png.pngtree.com/png-clipart/20240318/original/pngtree-cutout-isolated-background-young-adult-asian-travel-couple-carry-luggage-for-png-image_14613197.png" alt="food image">
-            <!-- <img src="https://i.postimg.cc/gJBk5PMz/salad.png" alt="food image"> -->
+            <img src="https://i.postimg.cc/gJBk5PMz/salad.png" alt="food image">
         </div>
-    </section>
+    </section> -->
     <sliderComponent />
 
     <section class="about" id="about">
@@ -673,13 +669,15 @@ import sliderComponent from './sliderComponent.vue';
 import LazyImage from './LazyImage.vue'; // Import component
 import { inject } from 'vue';
 import Footer from './Footer.vue';
+import loading from './loading.vue';
 const apiUrl = inject('apiUrl');
 const menuItems = ref([]);
 const topItems = ref([]);
 const currentPage = ref(1);
 const totalPages = ref(1);
-
+const isLoading = ref(false);
 const fetchMenuItems = async (page = 1) => {
+    isLoading.value = true; // Bắt đầu tải dữ liệu
     try {
         const response = await axios.get(`${apiUrl}/api/menu-items`, {
             params: { page }
@@ -690,6 +688,8 @@ const fetchMenuItems = async (page = 1) => {
         currentPage.value = response.data.allMenuItems.current_page;
     } catch (error) {
         console.error('Lỗi khi lấy dữ liệu:', error);
+    }finally {
+        isLoading.value = false; // Kết thúc tải dữ liệu
     }
 };
 const fetchTopPriceItems = async () => {

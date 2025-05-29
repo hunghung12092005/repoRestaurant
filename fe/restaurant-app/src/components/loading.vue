@@ -1,28 +1,40 @@
 <template>
-<div class="spinner">
-  <div></div>   
-  <div></div>    
-  <div></div>    
-  <div></div>    
-  <div></div>    
-  <div></div>    
-  <div></div>    
-  <div></div>    
-  <div></div>    
-  <div></div>    
+<div class="spinner-overlay">
+    <div class="spinner">
+        <div></div>   
+        <div></div>    
+        <div></div>    
+        <div></div>    
+        <div></div>    
+        <div></div>    
+        <div></div>    
+        <div></div>    
+        <div></div>    
+        <div></div>    
+    </div>
 </div>
 </template>
 <style scoped>
 
+.spinner-overlay {
+    position: fixed; /* Đặt lớp overlay ở vị trí cố định */
+    top: 0; /* Căn lên trên cùng */
+    left: 0; /* Căn sang trái */
+    width: 100%; /* Chiều rộng toàn bộ màn hình */
+    height: 100%; /* Chiều cao toàn bộ màn hình */
+    background-color: rgba(4, 5, 5, 0.3); /* Nền mờ */
+    display: flex; /* Sử dụng flex để căn giữa */
+    justify-content: center; /* Căn giữa theo chiều ngang */
+    align-items: center; /* Căn giữa theo chiều dọc */
+    z-index: 9998; /* Đảm bảo nằm dưới spinner */
+}
+
 .spinner {
-  position: fixed; /* Đặt spinner ở vị trí cố định */
-  top: 50%; /* Căn giữa theo chiều dọc */
-  left: 50%; /* Căn giữa theo chiều ngang */
-  width: 9px; /* Kích thước của spinner */
-  height: 9px; /* Kích thước của spinner */
-  margin: -25px 0 0 -25px; /* Để căn giữa hoàn hảo */
-  z-index: 9999; /* Đảm bảo spinner nằm trên tất cả */
-} 
+    position: relative; /* Đặt spinner ở vị trí tương đối */
+    width: 9px; /* Kích thước của spinner */
+    height: 9px; /* Kích thước của spinner */
+    z-index: 9999; /* Đảm bảo spinner nằm trên lớp overlay */
+}
 .spinner div {
   position: absolute;
   width: 50%;
