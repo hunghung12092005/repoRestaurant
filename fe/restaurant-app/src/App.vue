@@ -24,6 +24,7 @@
           <li class="nav-item"><router-link class="nav-link" to="/admin/occupancy"><i class="bi bi-house-door"></i> Occupancy <span class="badge bg-danger">5</span></router-link></li>
           <li class="nav-item"><router-link class="nav-link" to="/admin/bookings"><i class="bi bi-book"></i> Bookings</router-link></li>
           <li class="nav-item"><router-link class="nav-link" to="/admin/rooms"><i class="bi bi-building"></i> Rooms</router-link></li>
+          <li class="nav-item"><router-link class="nav-link" to="/admin/tables"><i class="bi bi-building"></i> Tables</router-link></li>
           <li class="nav-item"><router-link class="nav-link" to="/admin/staffs"><i class="bi bi-people"></i> Staffs</router-link></li>
           <li class="nav-item"><router-link class="nav-link" to="/admin/departments"><i class="bi bi-gear"></i> Departments</router-link></li>
           <li class="nav-item"><router-link class="nav-link" to="/admin/housekeeping"><i class="bi bi-house"></i> Housekeeping</router-link></li>

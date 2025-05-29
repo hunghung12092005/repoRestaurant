@@ -17,7 +17,7 @@ class TableController extends Controller
         $validated = $request->validate([
             'table_name' => 'required|string|max:255',
             'capacity' => 'required|integer|min:1',
-            'status' => 'required|in:active,inactive',
+            'status' => 'required|string|in:Trống,Đã đặt,Bảo trì',
             'location' => 'nullable|string',
             'description' => 'nullable|string',
         ]);
@@ -32,7 +32,7 @@ class TableController extends Controller
         $validated = $request->validate([
             'table_name' => 'required|string|max:255',
             'capacity' => 'required|integer|min:1',
-            'status' => 'required|in:active,inactive',
+            'status' => 'required|string|in:Trống,Đã đặt,Bảo trì',
             'location' => 'nullable|string',
             'description' => 'nullable|string',
         ]);

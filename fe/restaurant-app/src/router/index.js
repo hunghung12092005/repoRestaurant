@@ -12,8 +12,9 @@ import TestJwtComponent from '../components/testTokenJwt.vue';
 import BlogDetailComponent from '../components/BlogDetailComponent.vue';
 import ProductDetailComponent from '../components/ProductDetailComponent.vue';
 
-import AdminDashboardComponent from '../components/AdminDashboardComponent.vue';
-import AdminStaffsComponent from '../components/AdminStaffsComponent.vue';
+// import AdminDashboardComponent from '../components/AdminDashboardComponent.vue';
+// import AdminStaffsComponent from '../components/AdminStaffsComponent.vue';
+import AdminTableComponent from '../components/AdminTableComponent.vue';
 import AdminRoomComponent from '../components/AdminRoomComponent.vue';
 import AdminBookingComponent from '../components/AdminBookingComponent.vue';
 
@@ -118,6 +119,12 @@ const routes = [
     path: '/admin/rooms',
     name: 'AdminRoom',
     component: AdminRoomComponent,
+    meta: { requiresAdmin: true },
+  },
+  {
+    path: '/admin/tables',
+    name: 'AdminTable',
+    component: AdminTableComponent,
     meta: { requiresAdmin: true },
   },
   {

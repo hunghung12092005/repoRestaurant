@@ -8,11 +8,11 @@
         </div> -->
         <div class="home-text">
 
-            <span>hh to our</span>
+            <!-- <span>hh to our</span>
             <h1>Healthy Food <br>Collection!</h1>
             <p>Discover our carefully curated selection of nutritious and delicious meals, made with fresh ingredients
                 to nourish your body and delight your taste buds</p>
-            <a href="/menu-list" class="btn">Xem Menu</a>
+            <a href="/menu-list" class="btn">Xem Menu</a> -->
 
             <span>Sầm Sơn Beach</span>
             <h1>An Phú Villa <br>Kính chào quý khách!</h1>
