@@ -18,9 +18,14 @@
           />
           <i class="bi bi-search search-icon position-absolute"></i>
         </div>
-        <button class="btn btn-primary" @click="openAddModal">
-          <i class="bi bi-plus-circle me-2"></i>Thêm Nhân viên Mới
-        </button>
+        <div class="d-flex align-items-center gap-2">
+          <button v-if="selectedEmployees.length > 0" class="btn btn-danger" @click="deleteSelectedEmployees" title="Xóa nhân viên đã chọn">
+            <i class="bi bi-trash me-2"></i>Xóa
+          </button>
+          <button class="btn btn-primary" @click="openAddModal">
+            <i class="bi bi-plus-circle me-2"></i>Thêm Nhân viên Mới
+          </button>
+        </div>
       </div>
     </div>
 
@@ -30,10 +35,16 @@
           <table class="table table-hover table-bordered mb-0">
             <thead class="table-light">
               <tr>
-                <th scope="col"></th>
+                <th scope="col">
+                  <input
+                    type="checkbox"
+                    class="form-check-input"
+                    v-model="selectAll"
+                    @change="toggleSelectAll"
+                  />
+                </th>
                 <th scope="col">Họ và Tên</th>
                 <th scope="col">Giới tính</th>
-                <th scope="col">Ngày sinh</th>
                 <th scope="col">Email</th>
                 <th scope="col">Số điện thoại</th>
                 <th scope="col">Chức danh</th>
@@ -43,10 +54,17 @@
             </thead>
             <tbody>
               <tr v-for="employee in paginatedEmployees" :key="employee.employee_id">
-                <td><input type="checkbox" class="form-check-input" /></td>
+                <td>
+                  <input
+                    type="checkbox"
+                    class="form-check-input"
+                    v-model="selectedEmployees"
+                    :value="employee.employee_id"
+                    @change="updateSelectAll"
+                  />
+                </td>
                 <td>{{ employee.name }}</td>
                 <td>{{ formatGender(employee.gender) }}</td>
-                <td>{{ formatDate(employee.birth_date) || 'Không có' }}</td>
                 <td>{{ employee.email }}</td>
                 <td>{{ employee.phone || 'Không có' }}</td>
                 <td>{{ employee.position || 'Không có' }}</td>
@@ -64,7 +82,7 @@
                 </td>
               </tr>
               <tr v-if="!paginatedEmployees.length">
-                <td colspan="9" class="text-center text-muted">Không tìm thấy nhân viên</td>
+                <td colspan="8" class="text-center text-muted">Không tìm thấy nhân viên</td>
               </tr>
             </tbody>
           </table>
@@ -103,10 +121,12 @@
                 <div class="col-md-6 mb-3">
                   <label for="name" class="form-label">Họ và Tên</label>
                   <input type="text" class="form-control" v-model="staffForm.name" required />
+                  <div v-if="errors.name" class="text-danger">{{ errors.name.join('; ') }}</div>
                 </div>
                 <div class="col-md-6 mb-3">
                   <label for="email" class="form-label">Email</label>
                   <input type="email" class="form-control" v-model="staffForm.email" required />
+                  <div v-if="errors.email" class="text-danger">{{ errors.email.join('; ') }}</div>
                 </div>
               </div>
               <div class="row">
@@ -118,20 +138,24 @@
                     <option value="Female">Nữ</option>
                     <option value="Other">Khác</option>
                   </select>
+                  <div v-if="errors.gender" class="text-danger">{{ errors.gender.join('; ') }}</div>
                 </div>
                 <div class="col-md-6 mb-3">
                   <label for="birth_date" class="form-label">Ngày sinh</label>
                   <input type="date" class="form-control" v-model="staffForm.birth_date" />
+                  <div v-if="errors.birth_date" class="text-danger">{{ errors.birth_date.join('; ') }}</div>
                 </div>
               </div>
               <div class="row">
                 <div class="col-md-6 mb-3">
                   <label for="phone" class="form-label">Số điện thoại</label>
                   <input type="text" class="form-control" v-model="staffForm.phone" />
+                  <div v-if="errors.phone" class="text-danger">{{ errors.phone.join('; ') }}</div>
                 </div>
                 <div class="col-md-6 mb-3">
                   <label for="position" class="form-label">Chức danh</label>
                   <input type="text" class="form-control" v-model="staffForm.position" />
+                  <div v-if="errors.position" class="text-danger">{{ errors.position.join('; ') }}</div>
                 </div>
               </div>
               <div class="row">
@@ -140,19 +164,22 @@
                   <select class="form-select" v-model.number="staffForm.department_id">
                     <option value="">Chọn phòng ban</option>
                     <option v-for="department in departments" :key="department.department_id" :value="department.department_id">
-                      {{ department.name }}
+                      {{ department.name }} ({{ department.employees_count }} nhân viên)
                     </option>
                   </select>
+                  <div v-if="errors.department_id" class="text-danger">{{ errors.department_id.join('; ') }}</div>
                 </div>
                 <div class="col-md-6 mb-3">
                   <label for="salary" class="form-label">Lương</label>
                   <input type="number" class="form-control" v-model.number="staffForm.salary" step="0.01" />
+                  <div v-if="errors.salary" class="text-danger">{{ errors.salary.join('; ') }}</div>
                 </div>
               </div>
               <div class="row">
                 <div class="col-md-6 mb-3">
                   <label for="hire_date" class="form-label">Ngày tuyển dụng</label>
                   <input type="date" class="form-control" v-model="staffForm.hire_date" />
+                  <div v-if="errors.hire_date" class="text-danger">{{ errors.hire_date.join('; ') }}</div>
                 </div>
                 <div class="col-md-6 mb-3">
                   <label for="status" class="form-label">Trạng thái</label>
@@ -162,12 +189,14 @@
                     <option value="Inactive">Nghỉ việc</option>
                     <option value="On Leave">Nghỉ phép</option>
                   </select>
+                  <div v-if="errors.status" class="text-danger">{{ errors.status.join('; ') }}</div>
                 </div>
               </div>
               <div class="row">
                 <div class="col-md-12 mb-3">
                   <label for="address" class="form-label">Địa chỉ</label>
                   <textarea class="form-control" v-model="staffForm.address" rows="4"></textarea>
+                  <div v-if="errors.address" class="text-danger">{{ errors.address.join('; ') }}</div>
                 </div>
               </div>
               <div class="modal-footer">
@@ -277,6 +306,9 @@ const staffForm = ref({
 });
 const selectedEmployee = ref({});
 const isEditMode = ref(false);
+const selectedEmployees = ref([]);
+const selectAll = ref(false);
+const errors = ref({});
 
 // Biến trạng thái cho thông báo
 const showAlert = ref(false);
@@ -286,12 +318,48 @@ const alertType = ref('alert-success');
 // Hàm định dạng ngày thành ngày/tháng/năm
 const formatDate = (dateStr) => {
   if (!dateStr) return '';
+  
+  // Giả sử dateStr có định dạng dd/mm/yyyy (ví dụ: "31/12/2023")
+  const regex = /^(\d{2})\/(\d{2})\/(\d{4})$/;
+  if (regex.test(dateStr)) {
+    const [, day, month, year] = dateStr.match(regex);
+    const standardizedDate = `${year}-${month}-${day}`;
+    const date = new Date(standardizedDate);
+    if (!isNaN(date.getTime())) {
+      return date.toLocaleDateString('vi-VN', {
+        day: '2-digit',
+        month: '2-digit',
+        year: 'numeric'
+      });
+    }
+  }
+  
+  return dateStr || 'Không có';
+};
+
+// Hàm chuyển đổi định dạng ngày từ YYYY-MM-DD sang dd/mm/yyyy cho API
+const formatDateForApi = (dateStr) => {
+  if (!dateStr) return '';
   const date = new Date(dateStr);
-  return date.toLocaleDateString('vi-VN', {
-    day: '2-digit',
-    month: '2-digit',
-    year: 'numeric'
-  });
+  if (!isNaN(date.getTime())) {
+    return date.toLocaleDateString('vi-VN', {
+      day: '2-digit',
+      month: '2-digit',
+      year: 'numeric'
+    });
+  }
+  return dateStr;
+};
+
+// Hàm chuyển đổi định dạng ngày từ dd/mm/yyyy sang YYYY-MM-DD cho input type="date"
+const formatDateForInput = (dateStr) => {
+  if (!dateStr) return '';
+  const regex = /^(\d{2})\/(\d{2})\/(\d{4})$/;
+  if (regex.test(dateStr)) {
+    const [, day, month, year] = dateStr.match(regex);
+    return `${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')}`;
+  }
+  return dateStr;
 };
 
 // Hàm chuyển đổi giới tính sang tiếng Việt
@@ -312,7 +380,53 @@ const showNotification = (message, type = 'success') => {
   showAlert.value = true;
   setTimeout(() => {
     showAlert.value = false;
-  }, 3000); // Ẩn sau 3 giây
+  }, 3000);
+};
+
+// Hàm chọn/tắt chọn tất cả
+const toggleSelectAll = () => {
+  if (selectAll.value) {
+    selectedEmployees.value = paginatedEmployees.value.map(emp => emp.employee_id);
+  } else {
+    selectedEmployees.value = [];
+  }
+};
+
+// Hàm cập nhật trạng thái checkbox "Chọn tất cả"
+const updateSelectAll = () => {
+  selectAll.value = paginatedEmployees.value.length > 0 &&
+    selectedEmployees.value.length === paginatedEmployees.value.length &&
+    paginatedEmployees.value.every(emp => selectedEmployees.value.includes(emp.employee_id));
+};
+
+// Hàm xóa các nhân viên được chọn
+const deleteSelectedEmployees = async () => {
+  if (selectedEmployees.value.length === 0) return;
+  
+  if (confirm(`Bạn có chắc chắn muốn xóa ${selectedEmployees.value.length} nhân viên đã chọn không?`)) {
+    try {
+      await Promise.all(selectedEmployees.value.map(id =>
+        axios.delete(`${apiUrl}/api/employees/${id}`, {
+          withCredentials: true,
+          headers: {
+            'Authorization': `Bearer ${localStorage.getItem('token')}`
+          }
+        })
+      ));
+      selectedEmployees.value = [];
+      selectAll.value = false;
+      await fetchEmployees();
+      await fetchDepartments();
+      window.dispatchEvent(new CustomEvent('refresh-departments'));
+      if (paginatedEmployees.value.length === 0 && currentPage.value > 1) {
+        currentPage.value--;
+      }
+      showNotification('Xóa nhân viên thành công!');
+    } catch (error) {
+      console.error('Lỗi khi xóa nhân viên:', error.response ? error.response.data : error.message);
+      showNotification(`Xóa nhân viên thất bại: ${error.response?.data?.message || error.message}`, 'error');
+    }
+  }
 };
 
 onMounted(async () => {
@@ -330,6 +444,8 @@ const fetchEmployees = async () => {
       }
     });
     employees.value = response.data;
+    selectedEmployees.value = [];
+    selectAll.value = false;
     console.log('Dữ liệu nhân viên từ API:', JSON.stringify(employees.value, null, 2));
   } catch (error) {
     console.error('Lỗi khi tải danh sách nhân viên:', error.response ? error.response.data : error.message);
@@ -393,6 +509,7 @@ const openAddModal = () => {
     hire_date: '',
     status: ''
   };
+  errors.value = {}; // Reset lỗi
   const modal = new bootstrap.Modal(document.getElementById('staffModal'));
   modal.show();
 };
@@ -400,7 +517,7 @@ const openAddModal = () => {
 const openEditModal = (employee) => {
   isEditMode.value = true;
   staffForm.value = {
-    employee_id: employee.employee_id, // Gán rõ ràng employee_id
+    employee_id: employee.employee_id,
     name: employee.name || '',
     gender: employee.gender || '',
     email: employee.email || '',
@@ -409,10 +526,11 @@ const openEditModal = (employee) => {
     position: employee.position || '',
     department_id: employee.department_id || null,
     salary: employee.salary || null,
-    birth_date: employee.birth_date || '',
-    hire_date: employee.hire_date || '',
+    birth_date: employee.birth_date ? formatDateForInput(employee.birth_date) : '',
+    hire_date: employee.hire_date ? formatDateForInput(employee.hire_date) : '',
     status: employee.status || ''
   };
+  errors.value = {}; // Reset lỗi
   console.log('Dữ liệu gán vào form:', JSON.stringify(staffForm.value, null, 2));
   const modal = new bootstrap.Modal(document.getElementById('staffModal'));
   modal.show();
@@ -426,6 +544,7 @@ const openDetailModal = (employee) => {
 
 const addEmployee = async () => {
   try {
+    errors.value = {}; // Reset lỗi
     // Kiểm tra dữ liệu trước khi gửi
     if (!staffForm.value.name) throw new Error('Họ và tên là bắt buộc');
     if (!staffForm.value.email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(staffForm.value.email)) {
@@ -435,9 +554,19 @@ const addEmployee = async () => {
       throw new Error('Phòng ban không hợp lệ');
     }
 
-    console.log('Dữ liệu gửi lên:', JSON.stringify(staffForm.value, null, 2));
+    // Tạo object với định dạng ngày tháng đúng
+    const formattedForm = { ...staffForm.value };
+    if (formattedForm.birth_date) {
+      formattedForm.birth_date = formatDateForApi(formattedForm.birth_date);
+    }
+    if (formattedForm.hire_date) {
+      formattedForm.hire_date = formatDateForApi(formattedForm.hire_date);
+    }
+
+    console.log('Dữ liệu gửi lên:', JSON.stringify(formattedForm, null, 2));
     
-    const response = await axios.post(`${apiUrl}/api/employees`, staffForm.value, {
+    // Sử dụng formattedForm thay vì staffForm.value
+    const response = await axios.post(`${apiUrl}/api/employees`, formattedForm, {
       withCredentials: true,
       headers: {
         'Authorization': `Bearer ${localStorage.getItem('token')}`
@@ -447,43 +576,66 @@ const addEmployee = async () => {
     console.log('Phản hồi từ server:', JSON.stringify(response.data, null, 2));
     
     await fetchEmployees();
+    await fetchDepartments();
     window.dispatchEvent(new CustomEvent('refresh-departments'));
     showNotification('Thêm nhân viên thành công!');
     const modal = bootstrap.Modal.getInstance(document.getElementById('staffModal'));
     modal.hide();
   } catch (error) {
     console.error('Lỗi khi thêm nhân viên:', error.response ? error.response.data : error.message);
-    const errorMessage = error.response?.data?.errors
-      ? Object.values(error.response.data.errors).flat().join('; ')
-      : error.response?.data?.message || error.message;
-    showNotification(`Thêm nhân viên thất bại: ${errorMessage}.`, 'error');
+    let errorMessage = 'Thêm nhân viên thất bại.';
+    if (error.response?.status === 422 && error.response.data.errors) {
+      errors.value = error.response.data.errors; // Lưu lỗi vào biến errors
+      errorMessage = Object.values(error.response.data.errors).flat().join('; ');
+    } else {
+      errorMessage = error.response?.data?.message || error.message;
+    }
+    showNotification(`Thêm nhân viên thất bại: ${errorMessage}`, 'error');
   }
 };
 
 const updateEmployee = async () => {
   try {
+    errors.value = {}; // Reset lỗi
     if (!staffForm.value.name) throw new Error('Họ và tên là bắt buộc');
     if (!staffForm.value.email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(staffForm.value.email)) {
       throw new Error('Email không hợp lệ');
     }
-    console.log('Dữ liệu cập nhật:', JSON.stringify(staffForm.value, null, 2));
-    const response = await axios.put(`${apiUrl}/api/employees/${staffForm.value.employee_id}`, staffForm.value, {
+
+    const formattedForm = { ...staffForm.value };
+    if (formattedForm.birth_date) {
+      formattedForm.birth_date = formatDateForApi(formattedForm.birth_date);
+    }
+    if (formattedForm.hire_date) {
+      formattedForm.hire_date = formatDateForApi(formattedForm.hire_date);
+    }
+
+    console.log('Dữ liệu cập nhật:', JSON.stringify(formattedForm, null, 2));
+    
+    const response = await axios.put(`${apiUrl}/api/employees/${staffForm.value.employee_id}`, formattedForm, {
       withCredentials: true,
       headers: {
         'Authorization': `Bearer ${localStorage.getItem('token')}`
       }
     });
+
     console.log('Phản hồi từ server:', JSON.stringify(response.data, null, 2));
+    
     await fetchEmployees();
+    await fetchDepartments();
     window.dispatchEvent(new CustomEvent('refresh-departments'));
     showNotification('Cập nhật nhân viên thành công!');
     const modal = bootstrap.Modal.getInstance(document.getElementById('staffModal'));
     modal.hide();
   } catch (error) {
     console.error('Lỗi khi cập nhật nhân viên:', error.response ? error.response.data : error.message);
-    const errorMessage = error.response?.data?.errors
-      ? Object.values(error.response.data.errors).flat().join('; ')
-      : (typeof error.response?.data?.message === 'string' ? error.response?.data?.message : error.message || 'Unknown error');
+    let errorMessage = 'Cập nhật nhân viên thất bại.';
+    if (error.response?.status === 422 && error.response.data.errors) {
+      errors.value = error.response.data.errors; // Lưu lỗi vào biến errors
+      errorMessage = Object.values(error.response.data.errors).flat().join('; ');
+    } else {
+      errorMessage = error.response?.data?.message || error.message;
+    }
     showNotification(`Cập nhật nhân viên thất bại: ${errorMessage}`, 'error');
   }
 };
@@ -497,7 +649,9 @@ const deleteEmployee = async (id) => {
           'Authorization': `Bearer ${localStorage.getItem('token')}`
         }
       });
+      selectedEmployees.value = selectedEmployees.value.filter(empId => empId !== id);
       await fetchEmployees();
+      await fetchDepartments();
       window.dispatchEvent(new CustomEvent('refresh-departments'));
       if (paginatedEmployees.value.length === 0 && currentPage.value > 1) {
         currentPage.value--;
@@ -529,8 +683,11 @@ const deleteEmployee = async (id) => {
   cursor: pointer;
   font-size: 1rem;
 }
+.search-form .search-icon:hover {
+  color: #16B978;
+}
 .search-form input:focus {
-  border-color: #16b978;
+  border-color: #16B978;
   outline: none;
   box-shadow: 0 0 5px rgba(22, 185, 120, 0.3);
 }
@@ -538,24 +695,61 @@ const deleteEmployee = async (id) => {
   background-color: #f8f9fa;
   font-weight: 600;
   color: #333;
+  white-space: nowrap;
+  padding: 10px 15px;
 }
 .table td {
-  text-align: left;
   color: #666;
+  white-space: nowrap;
+  padding: 10px 15px;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
-.table td:first-child,
+.table td:first-child {
+  text-align: center;
+  min-width: 50px;
+}
 .table td:last-child {
   text-align: center;
+  min-width: 80px;
+}
+.table td:nth-child(2) {
+  min-width: 180px;
+}
+.table td:nth-child(3) {
+  min-width: 80px;
+}
+.table td:nth-child(4) {
+  min-width: 150px;
+}
+.table td:nth-child(5) {
+  min-width: 110px;
+}
+.table td:nth-child(6) {
+  min-width: 140px;
+}
+.table td:nth-child(7) {
+  min-width: 140px;
 }
 .table-hover tbody tr:hover {
   background-color: #f1f3f5;
 }
 .btn-primary {
-  background-color: #16b978;
-  border-color: #16b978;
+  background-color: #16B978;
+  border-color: #16B978;
+  transition: background-color 0.3s ease;
 }
 .btn-primary:hover {
   background-color: #13a567;
+  border-color: #13a567;
+}
+.btn-danger {
+  background-color: #dc3545;
+  border-color: #dc3545;
+}
+.btn-danger:hover {
+  background-color: #c82333;
+  border-color: #c82333;
 }
 .btn-outline-primary,
 .btn-outline-warning,
@@ -571,18 +765,48 @@ const deleteEmployee = async (id) => {
 .pagination-controls .btn {
   padding: 8px 20px;
   font-size: 0.85rem;
+  border-width: 1px;
+  transition: all 0.3s ease;
 }
-.custom-scroll {
+.pagination-controls .btn:hover {
+  background-color: #34495e;
+  color: #fff;
+  border-color: #34495e;
+}
+.pagination-controls .btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+.pagination-controls span {
+  font-size: 0.9rem;
+  color: #2c3e50;
+  font-weight: 600;
+}
+.table-responsive.custom-scroll {
   overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+.table-responsive.custom-scroll table {
+  width: 100%;
+  min-width: 780px;
 }
 .custom-scroll::-webkit-scrollbar {
-  height: 8px;
+  height: 10px;
 }
 .custom-scroll::-webkit-scrollbar-track {
   background: #f1f3f5;
+  border-radius: 6px;
 }
 .custom-scroll::-webkit-scrollbar-thumb {
-  background: #16b978;
+  background: #16B978;
+  border-radius: 6px;
+}
+.custom-scroll::-webkit-scrollbar-thumb:hover {
+  background: #13a567;
+}
+.custom-scroll {
+  scrollbar-width: thin;
+  scrollbar-color: #16B978 #f1f3f5;
 }
 
 /* CSS cho thông báo */
@@ -666,13 +890,23 @@ const deleteEmployee = async (id) => {
     width: 100%;
     max-width: 220px;
   }
-  .btn-primary {
+  .btn-primary, .btn-danger {
     width: 100%;
+  }
+  .pagination-controls .btn {
+    padding: 6px 15px;
+    font-size: 0.75rem;
+  }
+  .pagination-controls span {
+    font-size: 0.8rem;
   }
   .custom-alert {
     min-width: 250px;
     right: 10px;
     top: 10px;
+  }
+  .table-responsive.custom-scroll table {
+    min-width: 580px;
   }
 }
 </style>

@@ -4,12 +4,17 @@ use App\Http\Controllers\api\MenuItemController;
 use App\Http\Controllers\api\ShopOnlineController;
 use App\Http\Controllers\api\EmployeeController;
 use App\Http\Controllers\api\DepartmentController;
+use App\Http\Controllers\api\LeaveRequestController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\LoginController;
 use App\Models\ShopOnline;
 
 Route::apiResource('employees', EmployeeController::class);
 Route::apiResource('departments', DepartmentController::class);
+Route::apiResource('leave-requests', LeaveRequestController::class); // Add leave-requests resource
+
+// Custom Employee Route for Leave Requests
+Route::get('/employees/{id}/leave-requests', [EmployeeController::class, 'getLeaveRequestsByEmployee']);
 
 
 Route::get('/protected', [ApiLoginController::class, 'someProtectedRoute']);

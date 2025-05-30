@@ -36,6 +36,7 @@
                 <th scope="col">Người quản lý</th>
                 <th scope="col">Số điện thoại</th>
                 <th scope="col">Email</th>
+                <th scope="col">Số nhân viên</th>
                 <th scope="col">Hành động</th>
               </tr>
             </thead>
@@ -47,6 +48,7 @@
                 <td>{{ department.manager?.name ?? 'Chưa có' }}</td>
                 <td>{{ department.manager?.phone ?? 'Chưa có' }}</td>
                 <td>{{ department.manager?.email ?? 'Chưa có' }}</td>
+                <td>{{ department.employees_count ?? 0 }}</td>
                 <td>
                   <button class="btn btn-sm btn-outline-primary me-2" @click="openDetailModal(department)" title="Xem chi tiết">
                     <i class="bi bi-eye"></i>
@@ -60,7 +62,7 @@
                 </td>
               </tr>
               <tr v-if="!paginatedDepartments.length">
-                <td colspan="7" class="text-center text-muted">Không tìm thấy phòng ban</td>
+                <td colspan="8" class="text-center text-muted">Không tìm thấy phòng ban</td>
               </tr>
             </tbody>
           </table>
@@ -154,7 +156,10 @@
               </div>
             </div>
             <div class="row">
-              <div class="col-md-12 mb-3">
+              <div class="col-md-6 mb-3">
+                <strong>Số nhân viên:</strong> {{ selectedDepartment.employees_count ?? 0 }}
+              </div>
+              <div class="col-md-6 mb-3">
                 <strong>Mô tả:</strong> {{ selectedDepartment.description || 'Không có' }}
               </div>
             </div>
@@ -406,14 +411,36 @@ onUnmounted(() => {
   background-color: #f8f9fa;
   font-weight: 600;
   color: #333;
+  white-space: nowrap; /* Ngăn tiêu đề xuống dòng */
+  padding: 10px 15px;
 }
 .table td {
-  text-align: left;
   color: #666;
+  white-space: nowrap; /* Ngăn văn bản xuống dòng */
+  padding: 10px 15px;
+  overflow: hidden;
+  text-overflow: ellipsis; /* Hiển thị "..." nếu nội dung quá dài */
 }
 .table td:first-child,
-.table td:last-child {
+.table td:last-child,
+.table td:nth-child(7) { /* Cột Số nhân viên */
   text-align: center;
+  min-width: 80px; /* Đảm bảo cột số nhân viên đủ rộng */
+}
+.table td:nth-child(2) { /* Cột Tên phòng ban */
+  min-width: 200px; /* Đảm bảo đủ chỗ cho tên dài */
+}
+.table td:nth-child(3) { /* Cột Mô tả */
+  min-width: 250px; /* Đảm bảo đủ chỗ cho mô tả dài */
+}
+.table td:nth-child(4) { /* Cột Người quản lý */
+  min-width: 150px;
+}
+.table td:nth-child(5) { /* Cột Số điện thoại */
+  min-width: 120px;
+}
+.table td:nth-child(6) { /* Cột Email */
+  min-width: 200px;
 }
 .table-hover tbody tr:hover {
   background-color: #f1f3f5;
@@ -458,19 +485,20 @@ onUnmounted(() => {
   color: #2c3e50;
   font-weight: 600;
 }
-.custom-scroll {
+.table-responsive.custom-scroll {
   overflow-x: auto;
+  -webkit-overflow-scrolling: touch; /* Cuộn mượt trên thiết bị cảm ứng */
 }
 .custom-scroll::-webkit-scrollbar {
-  height: 8px;
+  height: 10px; /* Tăng chiều cao thanh cuộn cho dễ thấy */
 }
 .custom-scroll::-webkit-scrollbar-track {
   background: #f1f3f5;
-  border-radius: 10px;
+  border-radius: 6px;
 }
 .custom-scroll::-webkit-scrollbar-thumb {
   background: #16B978;
-  border-radius: 10px;
+  border-radius: 6px;
 }
 .custom-scroll::-webkit-scrollbar-thumb:hover {
   background: #13a567;
@@ -480,7 +508,7 @@ onUnmounted(() => {
   scrollbar-color: #16B978 #f1f3f5;
 }
 table {
-  min-width: 800px;
+  min-width: 1100px; /* Tăng chiều rộng tối thiểu để chứa nội dung dài */
 }
 
 /* CSS cho thông báo */
@@ -496,7 +524,7 @@ table {
   animation: fadeIn 0.3s ease-in, fadeOut 0.3s ease-out 2.7s forwards;
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  justify-content: between;
 }
 
 .custom-alert.alert-success {
@@ -580,7 +608,7 @@ table {
     top: 10px;
   }
   table {
-    min-width: 600px;
+    min-width: 900px; /* Điều chỉnh cho màn hình nhỏ nhưng vẫn đủ chứa nội dung */
   }
 }
 </style>

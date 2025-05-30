@@ -4,6 +4,7 @@ namespace App\Http\Controllers\api;
 use App\Http\Controllers\Controller;
 use App\Models\Employee;
 use App\Models\Department;
+use App\Models\LeaveRequest;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Validation\ValidationException;
@@ -34,16 +35,24 @@ class EmployeeController extends Controller
             $validated = $request->validate([
                 'name' => 'required|string|max:100',
                 'gender' => 'nullable|in:Male,Female,Other',
-                'birth_date' => 'nullable|date',
+                'birth_date' => 'nullable|date_format:d/m/Y', // Yêu cầu định dạng dd/mm/yyyy
                 'email' => 'required|email|unique:employees,email',
                 'phone' => 'nullable|string|max:20',
                 'address' => 'nullable|string|max:255',
                 'position' => 'nullable|string|max:100',
                 'salary' => 'nullable|numeric',
                 'department_id' => 'nullable|exists:departments,department_id',
-                'hire_date' => 'nullable|date',
+                'hire_date' => 'nullable|date_format:d/m/Y', // Yêu cầu định dạng dd/mm/yyyy
                 'status' => 'nullable|in:Active,Inactive,On Leave',
             ]);
+
+            // Chuyển đổi định dạng ngày tháng sang Y-m-d trước khi lưu
+            if (!empty($validated['birth_date'])) {
+                $validated['birth_date'] = \DateTime::createFromFormat('d/m/Y', $validated['birth_date'])->format('Y-m-d');
+            }
+            if (!empty($validated['hire_date'])) {
+                $validated['hire_date'] = \DateTime::createFromFormat('d/m/Y', $validated['hire_date'])->format('Y-m-d');
+            }
 
             Log::info('Validated employee data', $validated);
 
@@ -90,16 +99,24 @@ class EmployeeController extends Controller
             $validated = $request->validate([
                 'name' => 'required|string|max:100',
                 'gender' => 'nullable|in:Male,Female,Other',
-                'birth_date' => 'nullable|date',
+                'birth_date' => 'nullable|date_format:d/m/Y', // Yêu cầu định dạng dd/mm/yyyy
                 'email' => 'required|email|unique:employees,email,' . $id . ',employee_id',
                 'phone' => 'nullable|string|max:20',
                 'address' => 'nullable|string|max:255',
                 'position' => 'nullable|string|max:100',
                 'salary' => 'nullable|numeric',
                 'department_id' => 'nullable|exists:departments,department_id',
-                'hire_date' => 'nullable|date',
+                'hire_date' => 'nullable|date_format:d/m/Y', // Yêu cầu định dạng dd/mm/yyyy
                 'status' => 'nullable|in:Active,Inactive,On Leave',
             ]);
+
+            // Chuyển đổi định dạng ngày tháng sang Y-m-d trước khi lưu
+            if (!empty($validated['birth_date'])) {
+                $validated['birth_date'] = \DateTime::createFromFormat('d/m/Y', $validated['birth_date'])->format('Y-m-d');
+            }
+            if (!empty($validated['hire_date'])) {
+                $validated['hire_date'] = \DateTime::createFromFormat('d/m/Y', $validated['hire_date'])->format('Y-m-d');
+            }
 
             // Lưu employee_id trước khi update
             $employeeId = $employee->employee_id;
@@ -180,19 +197,38 @@ class EmployeeController extends Controller
     }
 
     public function destroy($id)
+{
+    try {
+        $employee = Employee::findOrFail($id);
+        
+        // Xóa tất cả các leave_requests liên quan đến nhân viên này
+        LeaveRequest::where('employee_id', $id)->delete();
+        
+        // Xóa manager_id trong bảng departments nếu nhân viên này là quản lý
+        $department = Department::where('manager_id', $id)->first();
+        if ($department) {
+            $department->update(['manager_id' => null]);
+            Log::info('Removed manager_id', ['department_id' => $department->department_id]);
+        }
+        
+        // Xóa nhân viên
+        $employee->delete();
+        return response()->json(['message' => 'Employee deleted successfully']);
+    } catch (\Exception $e) {
+        Log::error('Error in delete employee', ['error' => $e->getMessage()]);
+        return response()->json(['message' => 'Failed to delete employee: ' . $e->getMessage()], 500);
+    }
+}
+
+    public function leaveRequests($id)
     {
         try {
-            $employee = Employee::findOrFail($id);
-            $department = Department::where('manager_id', $id)->first();
-            if ($department) {
-                $department->update(['manager_id' => null]);
-                Log::info('Removed manager_id', ['department_id' => $department->department_id]);
-            }
-            $employee->delete();
-            return response()->json(['message' => 'Employee deleted successfully']);
+            $leaveRequests = LeaveRequest::where('employee_id', $id)->with('employee')->get();
+            return response()->json($leaveRequests);
         } catch (\Exception $e) {
-            Log::error('Error in delete employee', ['error' => $e->getMessage()]);
-            return response()->json(['message' => 'Failed to delete employee: ' . $e->getMessage()], 500);
+            Log::error('Error fetching leave requests', ['error' => $e->getMessage()]);
+            return response()->json(['message' => 'Failed to fetch leave requests'], 500);
         }
     }
 }
+?>

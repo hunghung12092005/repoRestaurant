@@ -12,7 +12,7 @@ class DepartmentController extends Controller
 {
     public function index(Request $request)
     {
-        $query = Department::with('manager');
+        $query = Department::with('manager')->withCount('employees');
 
         if ($request->has('q') && $request->q) {
             $search = $request->q;

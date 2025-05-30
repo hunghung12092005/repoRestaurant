@@ -15,6 +15,13 @@ class Employee extends Model
         'position', 'salary', 'department_id', 'hire_date', 'status',
     ];
 
+    protected $dates = ['birth_date', 'hire_date'];
+
+    // Định dạng ngày tháng khi serialize thành JSON
+    protected $casts = [
+        'birth_date' => 'date:d/m/Y',
+        'hire_date' => 'date:d/m/Y',
+    ];
     public function department()
     {
         return $this->belongsTo(Department::class, 'department_id');

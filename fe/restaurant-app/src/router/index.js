@@ -14,6 +14,7 @@ import ProductDetailComponent from '../components/ProductDetailComponent.vue';
 import AdminDashboardComponent from '../components/admin/AdminDashboardComponent.vue';
 import AdminStaffsComponent from '../components/admin/AdminStaffsComponent.vue';
 import AdminDepartmentsComponent from '../components/admin/AdminDepartmentsComponent.vue';
+import AdminLeaveRequestsComponent from '../components/admin/AdminLeaveRequestsComponent.vue';
 import ghn from '../components/ghn/mainghn.vue'
 import menu_online from '../components/ShopOnline/menu_online.vue';
 import detailMenu from '../components/ShopOnline/detailMenu.vue';
@@ -124,6 +125,12 @@ const routes = [
     path: '/admin/departments',
     name: 'AdminDepartments',
     component: AdminDepartmentsComponent,
+    meta: { requiresAdmin: true },
+  },
+  {
+    path: '/admin/leave-management',
+    name: 'AdminLeaveRequests',
+    component: AdminLeaveRequestsComponent,
     meta: { requiresAdmin: true },
   }
 ];
