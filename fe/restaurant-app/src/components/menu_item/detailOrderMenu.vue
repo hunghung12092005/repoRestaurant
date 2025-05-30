@@ -22,7 +22,7 @@
                 <tr v-for="item in iteam" :key="item.id">
                     <td>{{ item.Name }}</td>
                     <td>
-                        <input type="range" v-model.number="quantity" min="1" max="5" @input="updateTotalPrice" />
+                        <input type="range" min="1" max="5" />
                     </td>
                     <td>${{ item.Price }}</td>
                 </tr>
@@ -74,7 +74,7 @@ const getArrayItem = async () => {
         const response = await axios.post(`${apiUrl}/api/menu-itemsarray/ids`, data);
         //console.log(response.data);
         iteam.value = response.data; // Lưu toàn bộ dữ liệu vào mảng iteam
-        console.log(iteam.value);
+        //console.log(iteam.value);
         // Nếu muốn xử lý dữ liệu trả về, bạn có thể làm như sau:
         response.data.forEach(item => {
             //console.log(`ID: ${item.id}`);
@@ -98,67 +98,4 @@ onMounted(() => {
 </script>
 <style scoped>
 /* From Uiverse.io by Cksunandh */
-.receipt {
-    width: 500px;
-    margin: auto auto;
-    background: white;
-    border: 2px dashed #ccc;
-    padding: 15px;
-    border-radius: 8px;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-}
-
-@media(max-width: 600px) {
-    .receipt {
-        width: 88%;
-        padding: 10px;
-    }
-}
-
-.shop-name {
-    font-size: 1.2rem;
-    font-weight: bold;
-    text-align: center;
-    margin-bottom: 10px;
-}
-
-.info {
-    text-align: center;
-    font-size: 0.85rem;
-    margin-bottom: 15px;
-}
-
-.receipt table {
-    width: 100%;
-    border-collapse: collapse;
-    margin-bottom: 15px;
-    font-size: 0.85rem;
-}
-
-.receipt table th,
-.receipt table td {
-    padding: 4px;
-    text-align: left;
-    border-bottom: 1px solid #eee;
-}
-
-.total {
-    display: flex;
-    justify-content: space-between;
-    font-size: 1rem;
-    font-weight: bold;
-    margin-bottom: 15px;
-}
-
-.barcode {
-    display: flex;
-    justify-content: center;
-    margin-top: 15px;
-}
-
-.thanks {
-    font-size: 0.85rem;
-    text-align: center;
-    margin-top: 10px;
-}
 </style>

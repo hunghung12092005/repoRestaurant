@@ -1,4 +1,35 @@
 <template>
+  <!-- From Uiverse.io by ahmed150up -->
+  <div class="chat-card" v-if="isFormChat">
+    <div class="chat-header">
+      <div class="h2">ChatGPT <button type="button" class="btn btn-warning" @click="closePopup">Close Chat</button>
+      </div>
+    </div>
+    <div class="chat-body">
+      <div class="message incoming">
+        <p>Xin chào, tôi là ChatGPT tôi đã sẵn sàng để giải đáp thắc mắc của bạn?</p>
+        <div v-if="isLoadingChat" class=""><!-- From Uiverse.io by G4b413l -->
+          <div class="newtons-cradle">
+            <div class="newtons-cradle__dot"></div>
+            <div class="newtons-cradle__dot"></div>
+            <div class="newtons-cradle__dot"></div>
+            <div class="newtons-cradle__dot"></div>
+          </div>
+        </div>
+        <div class="result" v-if="result">ChatGPT: {{ result }}</div>
+      </div>
+    </div>
+    <div class="chat-footer">
+      <form @submit.prevent="sendRequest">
+        <input v-model="inputText" placeholder="Hey ChatGPT" type="text" required />
+        <button type="submit">Gửi</button>
+      </form>
+    </div>
+  </div>
+  <div class="logo" v-if="isLogoChat"><!-- From Uiverse.io by VassoD -->
+    <div class="btn-main" @click="showPopup">Chat Cùng AI</div>
+  </div>
+
   <!-- Blog Grid Banner -->
   <div class="sisf-banner position-relative">
     <div class="banner-img">
@@ -70,13 +101,8 @@
               <div class="sidebar-widget widget_search">
                 <div class="sisf-search-form">
                   <div class="sisf-search-form-inner">
-                    <input
-                      type="search"
-                      class="sisf-search-form-field"
-                      v-model="searchQuery"
-                      placeholder="Search…"
-                      required
-                    />
+                    <input type="search" class="sisf-search-form-field" v-model="searchQuery" placeholder="Search…"
+                      required />
                     <button type="submit" class="sisf-search-form-button">
                       <i class="fa-solid fa-magnifying-glass"></i>
                     </button>
@@ -136,7 +162,62 @@
     </div>
   </div>
 </template>
+<script setup>
+import { ref } from 'vue';
 
+const inputText = ref('');
+const result = ref('');
+const isFormChat = ref(true);
+const isLoadingChat = ref(false);
+const sendRequest = async () => {
+  isLoadingChat.value = true;
+  try {
+    const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        Authorization: 'Bearer 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',
+        'Content-Type': 'application/json',
+        'HTTP-Referer': 'http://127.0.0.1:5173/', // Optional. Site URL for rankings on openrouter.ai.
+        'X-Title': 'adadda', // Optional. Site title for rankings on openrouter.ai.
+      },
+      body: JSON.stringify({
+        model: 'gpt-3.5-turbo',
+        messages: [{ role: 'user', content: inputText.value }]
+      })
+    });
+
+    if (!response.ok) {
+      throw new Error(`HTTP error! Status: ${response.status}`);
+    }
+
+    const data = await response.json();
+
+    // Hiển thị kết quả
+    inputText.value = '';
+    result.value = data.choices[0].message.content;
+
+  } catch (error) {
+    if (error.message.includes('Failed to fetch')) {
+      result.value = 'Không thể kết nối tới máy chủ. Vui lòng kiểm tra kết nối mạng hoặc URL.';
+    } else if (error.message.includes('ERR_NAME_NOT_RESOLVED')) {
+      result.value = 'Không thể giải quyết tên miền. Vui lòng kiểm tra URL hoặc kết nối mạng.';
+    } else {
+      result.value = 'Đã xảy ra lỗi: ' + error.message;
+    }
+  } finally {
+    isLoadingChat.value = false;
+  }
+};
+const isLogoChat = ref(false);
+const closePopup = () => {
+  isFormChat.value = false;
+  isLogoChat.value = true;
+}
+const showPopup = () => {
+  isFormChat.value = true;
+  isLogoChat.value = false;
+}
+</script>
 <script>
 export default {
   name: 'BlogComponent',
@@ -233,6 +314,214 @@ export default {
 </script>
 
 <style scoped>
+/* From Uiverse.io by G4b413l */
+.newtons-cradle {
+  --uib-size: 50px;
+  --uib-speed: 1.2s;
+  --uib-color: #1ae3e3;
+  position: relative;
+  display: flex;
+  margin: 0 auto;
+  align-items: center;
+  justify-content: center;
+  width: var(--uib-size);
+  height: var(--uib-size);
+}
+
+.newtons-cradle__dot {
+  position: relative;
+  display: flex;
+  align-items: center;
+  height: 100%;
+  width: 25%;
+  transform-origin: center top;
+}
+
+.newtons-cradle__dot::after {
+  content: '';
+  display: block;
+  width: 100%;
+  height: 25%;
+  border-radius: 50%;
+  background-color: var(--uib-color);
+}
+
+.newtons-cradle__dot:first-child {
+  animation: swing var(--uib-speed) linear infinite;
+}
+
+.newtons-cradle__dot:last-child {
+  animation: swing2 var(--uib-speed) linear infinite;
+}
+
+@keyframes swing {
+  0% {
+    transform: rotate(0deg);
+    animation-timing-function: ease-out;
+  }
+
+  25% {
+    transform: rotate(70deg);
+    animation-timing-function: ease-in;
+  }
+
+  50% {
+    transform: rotate(0deg);
+    animation-timing-function: linear;
+  }
+}
+
+@keyframes swing2 {
+  0% {
+    transform: rotate(0deg);
+    animation-timing-function: linear;
+  }
+
+  50% {
+    transform: rotate(0deg);
+    animation-timing-function: ease-out;
+  }
+
+  75% {
+    transform: rotate(-70deg);
+    animation-timing-function: ease-in;
+  }
+}
+
+
+/* From Uiverse.io by ahmed150up */
+.chat-card {
+  width: 300px;
+  /* margin: 0 auto; */
+  background-color: #fff;
+  border-radius: 5px;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+  overflow: hidden;
+  position: fixed;
+  /* Đặt vị trí cố định */
+  bottom: 5%;
+  right: 2%;
+  /* Cách bên phải 10px */
+}
+
+.logo {
+  position: fixed;
+  /* Đặt vị trí cố định */
+  bottom: 5%;
+  right: 2%;
+}
+
+
+.chat-header {
+  padding: 10px;
+  background-color: #f2f2f2;
+  display: flex;
+  align-items: center;
+}
+
+.chat-header .h2 {
+  font-size: 16px;
+  color: #333;
+}
+
+.chat-body {
+  padding: 20px;
+}
+
+.result {
+  margin-top: 10px;
+  font-size: 14px;
+  color: #333;
+  max-height: 250px;
+  /* Đặt chiều cao tối đa */
+  overflow-y: auto;
+  /* Thêm thanh cuộn dọc */
+  padding: 10px;
+  /* Thêm khoảng đệm */
+  border: 1px solid #ccc;
+  /* Thêm viền */
+  border-radius: 5px;
+  /* Bo góc */
+  background-color: #f9f9f9;
+  /* Màu nền */
+}
+
+.message {
+  margin-bottom: 10px;
+  padding: 10px;
+  border-radius: 5px;
+}
+
+.incoming {
+  background-color: #e1e1e1;
+
+}
+
+.outgoing {
+  background-color: #f2f2f2;
+  text-align: right;
+}
+
+.message p {
+  font-size: 12px;
+  color: orange;
+  font-weight: 500px;
+  margin: 0;
+}
+
+.chat-footer {
+  padding: 10px;
+  background-color: #f2f2f2;
+  display: flex;
+}
+
+.chat-footer input[type="text"] {
+  flex-grow: 1;
+  padding: 5px;
+  border: none;
+  border-radius: 3px;
+}
+
+.chat-footer button {
+  padding: 5px 10px;
+  border: none;
+  background-color: #4285f4;
+  color: #fff;
+  font-weight: bold;
+  cursor: pointer;
+  transition: background-color 0.3s;
+}
+
+.chat-footer button:hover {
+  background-color: #0f9d58;
+}
+
+@keyframes chatAnimation {
+  0% {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.chat-card .message {
+  animation: chatAnimation 0.3s ease-in-out;
+  animation-fill-mode: both;
+  animation-delay: 0.1s;
+}
+
+.chat-card .message:nth-child(even) {
+  animation-delay: 0.2s;
+}
+
+.chat-card .message:nth-child(odd) {
+  animation-delay: 0.3s;
+}
+
 /* Bootstrap and custom styles should be included in your project */
 @import url('https://fonts.googleapis.com/css2?family=Cormorant+Infant:ital,wght@0,300;0,400;0,500;0,600;0,700;1,300;1,400;1,500;1,600;1,700&family=Work+Sans:ital,wght@0,100..900;1,100..900&display=swap');
 @import url('https://fonts.googleapis.com/css2?family=Cherish&display=swap');
@@ -296,7 +585,8 @@ export default {
 
 .sisf-e-content {
   padding: 20px;
-  min-height: 300px; /* Ensure equal height for all posts */
+  min-height: 300px;
+  /* Ensure equal height for all posts */
 }
 
 .sisf-e-info {
@@ -368,7 +658,8 @@ export default {
 /* Sidebar Styles */
 .sisf-page-sidebar {
   padding: 20px;
-  border: 1px solid #eee; /* Restored border */
+  border: 1px solid #eee;
+  /* Restored border */
   background: #fff;
 }
 

@@ -1,10 +1,9 @@
 <template>
     <loading v-if="isLoading" />
-    <div class="container">
+    <div class="container mt-5">
         <div class="row">
-
-            <div class="col-md-5">
-                <h2>Address</h2>
+            <div class="col-md-4">
+                <h2 class="mt-2">Address</h2>
                 <!-- <button class="btn btn-success" @click="getAddress"> -->
                 <button class="btn-main" @click="getAddress">
                     <div class="arrow-wrapper">
@@ -21,22 +20,22 @@
                 <div v-if="address">
                     <p>Địa chỉ: {{ address }}</p>
                 </div>
-                <div v-else class="ghn">
+                <div v-else>
                     <div>
                         <label for="province">Tỉnh:</label>
-                        <v-select class="abc" v-model="selectedProvince" :options="provinces" label="ProvinceName"
-                            placeholder="Tìm tỉnh..." @change="fetchDistricts" />
+                        <v-select class="abc m-2" v-model="selectedProvince" :options="provinces" label="ProvinceName"
+                            placeholder="Nhập Tìm Tỉnh..." @change="fetchDistricts" />
                     </div>
 
-                    <div >
-                        <label for="district" >Huyện:</label>
-                        <v-select  v-model="selectedDistrict" :options="districts" label="DistrictName"
-                            placeholder="Tìm huyện..." @change="fetchWards" :disabled="!districts.length" />
+                    <div>
+                        <label for="district">Huyện:</label>
+                        <v-select class="abc m-2" v-model="selectedDistrict" :options="districts" label="DistrictName"
+                            placeholder="Tìm huyện/quận" @change="fetchWards" :disabled="!districts.length" />
                     </div>
 
                     <div>
                         <label for="ward">Xã:</label>
-                        <v-select v-model="selectedWard" :options="wards" label="WardName" placeholder="Tìm xã..."
+                        <v-select class="abc m-2" v-model="selectedWard" :options="wards" label="WardName" placeholder="Tìm xã/phường"
                             :disabled="!wards.length" />
                     </div>
 
@@ -50,7 +49,7 @@
                 <p>Tên Người Nhận: <input v-model="name" type="text"></p> -->
 
                 </div>
-                <div class="inputGroup">
+                <div class="inputGroup mt-4">
                     <input type="text" v-model="diachichitiet" required="" autocomplete="off">
                     <label for="name">Số nhà/tên đường</label>
                 </div>
@@ -65,8 +64,8 @@
                 <p><strong>Phí ship + VAT: {{ formatNumber(fee) }}</strong> </p>
 
             </div>
-            <div class="col-md-7">
-                <div class="receipt">
+            <div class="col-md-8">
+                <div class="receipt mb-5">
                     <p class="shop-name">Chi tiết Bill hàng</p>
                     <p class="infoMarket">
                         Hồ Xuân Hương 23/89 Thành Phố Sầm Sơn<br />
@@ -113,8 +112,8 @@
                             <label
                                 class="inline-flex justify-between w-full items-center rounded-lg p-2 border border-transparent has-[:checked]:border-indigo-500 has-[:checked]:text-indigo-900 has-[:checked]:bg-indigo-50 has-[:checked]:font-bold hover:bg-slate-200 transition-all cursor-pointer has-[:checked]:transition-all has-[:checked]:duration-500 duration-500 relative [&amp;_p]:has-[:checked]:translate-y-0 [&amp;_p]:has-[:checked]:transition-transform [&amp;_p]:has-[:checked]:duration-500 [&amp;_p]:has-[:checked]:opacity-100 overflow-hidden">
                                 <div class="inline-flex items-center justify-center gap-2 relative">
-                                    <img class=" " style="width: 100%;" src="https://i.gyazo.com/566d62fd25cf0867e0033fb1b9b47927.png"
-                                        alt="">
+                                    <img class=" " style="width: 50%; margin: 0 25%;"
+                                        src="https://i.gyazo.com/566d62fd25cf0867e0033fb1b9b47927.png" alt="">
 
                                 </div>
 
@@ -148,12 +147,7 @@
                         <div class="page">
                             <p>Nếu gặp vấn đề khi chuyển khoản vui lòng liên hệ nhân viên: 0123471331 hoặc nhắn tin qua
                                 chatbot của hệ thống để được hỗ trợ kịp thời</p>
-                            <div class="btn-main">
-                                Tiến hành chuyển khoản
-                                <div class="arrow-wrapper">
-                                    <div class="arrow"></div>
-                                </div>
-                            </div>
+                            <div class="btn btn-info">Tiến hàng chuyển khoản</div>
                         </div>
 
                     </div>
@@ -424,7 +418,7 @@ onMounted(() => {
     font-size: 14px;
     border-radius: 10px;
     margin-left: 0 auto;
-    background-image: linear-gradient(rgba(57, 186, 241,0.04) 1.1rem, white 1.3rem);
+    background-image: linear-gradient(rgba(57, 186, 241, 0.04) 1.1rem, white 1.3rem);
     background-size: 100% 1.2rem;
     line-height: 1.2rem;
     padding: 1.4rem 0rem;
@@ -479,7 +473,8 @@ onMounted(() => {
 .inputGroup {
     font-family: 'Segoe UI', sans-serif;
     margin: 1em 0 1em 0;
-    max-width: 100%;
+    max-width: 95%;
+    margin: 10px auto;
     position: relative;
 }
 
@@ -501,7 +496,7 @@ onMounted(() => {
     margin-left: 0.5em;
     pointer-events: none;
     transition: all 0.3s ease;
-    
+
 }
 
 .inputGroup :is(input:focus, input:valid)~label {
@@ -509,7 +504,8 @@ onMounted(() => {
     margin: 0em;
     margin-left: 1.3em;
     padding: 0.4em;
-    background-color: rgba(250, 250, 250,0.9);
+    border-radius: 10px;
+    background-color: rgb(255, 255, 255);
 }
 
 .inputGroup :is(input:focus, input:valid) {
@@ -531,7 +527,7 @@ onMounted(() => {
 
 .radio-input label {
     --border-color: #a1b0d8;
-    border: 2px solid rgba(0, 0, 255,0.2);
+    border: 2px solid rgba(0, 0, 255, 0.2);
     border-radius: 6px;
     min-width: 5rem;
     margin: 1rem;
@@ -552,9 +548,14 @@ onMounted(() => {
     --border-color: #2f64d8;
     border-color: var(--border-color);
 }
-.abc{
+
+.abc {
     background-color: white;
+    width: 95%;
+    margin: 0 auto;
+    /* margin: 2px; */
 }
+
 .radio-input {
     display: flex;
     justify-content: space-between;
@@ -617,14 +618,21 @@ onMounted(() => {
 
 /* From Uiverse.io by Cksunandh */
 .receipt {
-    width: 100%;
-    background: rgba(57, 186, 241,0.1);
+    width: 90%;
+    /* margin-top: 100px; */
+    margin: 20px auto;
+    background: rgba(57, 186, 241, 0.1);
     border: 2px dashed #ccc;
     padding: 15px;
     border-radius: 8px;
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
 }
-
+@media (max-width: 768px) {
+    .receipt {
+        width: 95%;
+        margin: 0 auto;
+    }
+}
 .shop-name {
     font-size: 1.2rem;
     font-weight: bold;

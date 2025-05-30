@@ -1,5 +1,5 @@
 <template>
-    <div class="app-container">
+    <div class="app-container mt-5 mb-3">
         <div class="app-left">
             <div class="app-header">
                 <div class="app-filter-wrapper">
@@ -93,16 +93,16 @@
 </template>
 
 <script setup>
-import { defineProps } from 'vue';
-// Định nghĩa props
-const props = defineProps({
-    id: {
-        type: String,
-        required: true
-    },
-});
-const id = props.id;
-console.log('ID:', id);
+// import { defineProps } from 'vue';
+// // Định nghĩa props
+// const props = defineProps({
+//     id: {
+//         type: String,
+//         required: true
+//     },
+// });
+// const id = props.id;
+// console.log('ID:', id);
 </script>
 
 <style scoped>

@@ -4,12 +4,12 @@ import HomeComponent from '../components/HomeComponent.vue';
 import AboutComponent from '../components/AboutComponent.vue';
 import ContactComponent from '../components/ContactComponent.vue';
 import ReservationComponent from '../components/booking_table/ReservationComponent.vue';
-import BlogComponent from '../components/BlogComponent.vue';
+import BlogComponent from '../components/News/BlogComponent.vue';
 import MenuComponent from '../components/menu_item/MenuComponent.vue';
 import MenuListComponent from '../components/menu_item/MenuListComponent.vue';
 import LoginComponent from '../components/Login.vue';
 import TestJwtComponent from '../components/testTokenJwt.vue';
-import BlogDetailComponent from '../components/BlogDetailComponent.vue';
+import BlogDetailComponent from '../components/News/BlogDetailComponent.vue';
 import ProductDetailComponent from '../components/ProductDetailComponent.vue';
 
 // import AdminDashboardComponent from '../components/AdminDashboardComponent.vue';
@@ -27,12 +27,12 @@ import detailMenu from '../components/ShopOnline/detailMenu.vue';
 
 import detailOrderMenu from '../components/menu_item/detailOrderMenu.vue';
 import CategoryShopOnline from '../components/ShopOnline/CategoryShopOnline.vue';
-
+import buynow from '../components/ShopOnline/BuyNow.vue';
 const routes = [
   {
     path: '/',
     name: 'HomeComponent',
-    component: HomeComponent,
+    component: AboutComponent,
   },
   {
     path: '/about',
@@ -74,6 +74,7 @@ const routes = [
     name: 'BlogDetailComponent',
     component: BlogDetailComponent,
   },
+  //bán hàng online
   {
     path: '/product-detail',
     name: 'ProductDetailComponent',
@@ -90,6 +91,11 @@ const routes = [
     component: CategoryShopOnline,
   },
   {
+    path: '/buynow',
+    name: 'buynow',
+    component: buynow,
+  },
+  {
     path: '/menu_online',
     name: 'menu_online',
     component: menu_online,
@@ -101,6 +107,7 @@ const routes = [
     component: detailMenu,
     props: true // Kích hoạt props để truyền param
   },
+  //menu đặt món
   {
     path: '/menu-list',
     name: 'MenuListComponent',
@@ -153,7 +160,10 @@ const router = createRouter({
   history: createWebHistory(),
   routes,
 });
-
+//cuộn lên đầu trang khi chuyển trang
+router.afterEach(() => {
+  window.scrollTo(0, 0);
+});
 // Route Guard để kiểm tra quyền admin
 router.beforeEach((to, from, next) => {
   const userInfo = JSON.parse(localStorage.getItem('userInfo') || '{}');
