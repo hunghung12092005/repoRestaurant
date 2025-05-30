@@ -6,9 +6,8 @@
         <i class="bi bi-plus-circle me-2"></i>Thêm Booking Mới
       </button>
     </div>
-    <div v-if="successMessage" class="alert alert-success">
-      {{ successMessage }}
-    </div>
+    <div v-if="successMessage" class="alert alert-success">{{ successMessage }}</div>
+    <div v-if="errorMessage" class="alert alert-danger">{{ errorMessage }}</div>
 
     <div class="row mb-4 g-3">
       <div class="col-md-4">
@@ -19,7 +18,7 @@
           placeholder="Tìm theo tên hoặc số điện thoại"
         />
       </div>
-      <div v-if="hasStatus" class="col-md-3">
+      <div class="col-md-3">
         <select v-model="locTheoTrangThai" class="form-select">
           <option value="">Tất cả trạng thái</option>
           <option value="pending">Chờ xác nhận</option>
@@ -37,14 +36,15 @@
             <th>Tên Khách</th>
             <th>Số Điện Thoại</th>
             <th>Loại</th>
-            <th>Ngày Đặt/Check-in</th>
+            <th>Check-in</th>
             <th>Check-out</th>
+            <th>Ngày Đặt</th>
             <th>Giờ Đặt</th>
             <th>Số Lượng</th>
             <th>Phòng</th>
             <th>Bàn</th>
             <th>Món</th>
-            <th v-if="hasStatus">Trạng Thái</th>
+            <th>Trạng Thái</th>
             <th>Hành Động</th>
           </tr>
         </thead>
@@ -53,15 +53,16 @@
             <td>{{ (trangHienTai - 1) * soBookingMoiTrang + index + 1 }}</td>
             <td>{{ booking.customer_name || '-' }}</td>
             <td>{{ booking.customer_phone || '-' }}</td>
-            <td>{{ booking.type === 'room' ? 'Phòng' : 'Bàn' }}</td>
-            <td>{{ formatDate(booking.check_in_date || booking.booking_date) }}</td>
-            <td>{{ booking.type === 'room' ? formatDate(booking.check_out_date) : '-' }}</td>
-            <td>{{ booking.booking_time || '-' }}</td>
+            <td>{{ booking.booking_type === 'room' ? 'Phòng' : 'Bàn' }}</td>
+            <td>{{ formatDate(booking.check_in_date) }}</td>
+            <td>{{ formatDate(booking.check_out_date) }}</td>
+            <td>{{ formatDate(booking.booking_date) }}</td>
+            <td>{{ booking.booking_time ? booking.booking_time.slice(0, 5) : '-' }}</td>
             <td>{{ booking.quantity || '-' }}</td>
             <td>{{ booking.room ? booking.room.room_name : '-' }}</td>
             <td>{{ booking.table ? booking.table.table_name : '-' }}</td>
             <td>{{ booking.menu ? booking.menu.menu_name : '-' }}</td>
-            <td v-if="hasStatus" class="status">
+            <td>
               <span
                 :class="{
                   badge: true,
@@ -81,7 +82,14 @@
               >
                 <i class="bi bi-check-circle me-1"></i>Xác nhận
               </button>
-              <button class="btn btn-success btn-sm me-2" @click="moModalSua(booking)">
+              <button
+                v-if="booking.status === 'confirmed'"
+                class="btn btn-warning btn-sm me-2"
+                @click="cancelBooking(booking.booking_id)"
+              >
+                <i class="bi bi-x-circle me-1"></i>Hủy
+              </button>
+              <button class="btn btn-primary btn-sm me-2" @click="moModalSua(booking)">
                 <i class="bi bi-pencil me-1"></i>Sửa
               </button>
               <button class="btn btn-danger btn-sm" @click="xoaBooking(booking.booking_id)">
@@ -89,19 +97,16 @@
               </button>
             </td>
           </tr>
-          <tr v-if="bookingHienThi?.length === 0">
-            <td :colspan="hasStatus ? 13 : 12" class="text-center text-muted">
-              Không có booking nào phù hợp
-            </td>
+          <tr v-if="bookingHienThi.length === 0">
+            <td colspan="14" class="text-center text-muted">Không có booking nào phù hợp</td>
           </tr>
         </tbody>
       </table>
     </div>
 
-    <!-- Phân trang -->
     <div class="d-flex justify-content-between align-items-center mt-4">
       <div class="text-muted">
-        <span>Hiển thị {{ bookingHienThi?.length || 0 }} / {{ bookingLoc?.length || 0 }} booking</span>
+        Hiển thị {{ bookingHienThi.length }} / {{ bookingLoc.length }} booking
       </div>
       <nav>
         <ul class="pagination mb-0">
@@ -137,245 +142,207 @@
       </nav>
     </div>
 
-    <!-- Modal with Integrated Booking Form -->
     <div v-if="laModalMo" class="modal fade show d-block" tabindex="-1" style="background-color: rgba(0,0,0,0.5)">
       <div class="modal-dialog modal-lg">
         <div class="modal-content">
           <div class="modal-header">
-            <h5 class="modal-title">{{ isEditing ? 'Cập nhật Booking' : 'Thêm Booking Mới' }}</h5>
-            <button type="button" class="btn" @click="dongModal">X</button>
+            <h5 class="modal-title">{{ isEditing ? 'Cập nhật Booking' : 'Thêm Booking' }}</h5>
+            <button type="button" class="btn-close" @click="dongModal"></button>
           </div>
           <div class="modal-body">
-            <div class="container mt-4" style="max-width: 600px;">
-              <div v-if="isLoading" class="text-center mb-3">
-                <div class="spinner-border text-primary" role="status">
-                  <span class="visually-hidden">Đang tải...</span>
-                </div>
+            <div v-if="isLoading" class="text-center mb-3">
+              <div class="spinner-border text-primary">
+                <span class="visually-hidden">Đang tải...</span>
               </div>
-              <div v-if="errorMessage" class="alert alert-danger">
-                {{ errorMessage }}
-              </div>
-              <div v-if="!isLoading && !rooms?.length && !tables?.length" class="alert alert-warning">
-                Không có phòng hoặc bàn nào được tải. Vui lòng kiểm tra kết nối hoặc thử lại.
-              </div>
-
-              <form @submit.prevent="submitBooking" novalidate>
-                <div class="mb-3">
-                  <label for="bookingType" class="form-label">Loại Booking</label>
-                  <select
-                    class="form-control"
-                    v-model="form.type"
-                    required
-                    :class="{ 'is-invalid': errors.type }"
-                    @change="onTypeChange"
-                  >
-                    <option value="">-- Chọn loại --</option>
-                    <option value="room">Phòng</option>
-                    <option value="table">Bàn</option>
-                  </select>
-                  <div v-if="errors.type" class="error-message">
-                    {{ errors.type }}
-                  </div>
-                </div>
-                <div class="mb-3">
-                  <label for="customerName" class="form-label">Tên khách hàng</label>
-                  <input
-                    type="text"
-                    id="customerName"
-                    class="form-control"
-                    v-model="form.customer_name"
-                    required
-                    placeholder="Nhập tên khách hàng"
-                    :class="{ 'is-invalid': errors.customer_name }"
-                  />
-                  <div v-if="errors.customer_name" class="error-message">
-                    {{ errors.customer_name }}
-                  </div>
-                </div>
-                <div class="mb-3">
-                  <label for="customerPhone" class="form-label">Số điện thoại</label>
-                  <input
-                    type="tel"
-                    id="customerPhone"
-                    class="form-control"
-                    v-model="form.customer_phone"
-                    required
-                    placeholder="Nhập số điện thoại"
-                    :class="{ 'is-invalid': errors.customer_phone }"
-                  />
-                  <div v-if="errors.customer_phone" class="error-message">
-                    {{ errors.customer_phone }}
-                  </div>
-                </div>
-                <div class="row mb-3">
-                  <div class="col" v-if="form.type === 'room'">
-                    <label for="checkInDate" class="form-label">Ngày check-in</label>
-                    <input
-                      type="date"
-                      id="checkInDate"
-                      class="form-control"
-                      v-model="form.check_in_date"
-                      required
-                      :min="minDate"
-                      :class="{ 'is-invalid': errors.check_in_date }"
-                    />
-                    <div v-if="errors.check_in_date" class="error-message">
-                      {{ errors.check_in_date }}
-                    </div>
-                  </div>
-                  <div class="col" v-if="form.type === 'room'">
-                    <label for="checkOutDate" class="form-label">Ngày check-out</label>
-                    <input
-                      type="date"
-                      id="checkOutDate"
-                      class="form-control"
-                      v-model="form.check_out_date"
-                      required
-                      :min="minCheckOutDate"
-                      :class="{ 'is-invalid': errors.check_out_date }"
-                    />
-                    <div v-if="errors.check_out_date" class="error-message">
-                      {{ errors.check_out_date }}
-                    </div>
-                  </div>
-                  <div class="col" v-if="form.type === 'room'">
-                    <label for="bookingTime" class="form-label">Giờ đặt</label>
-                    <input
-                      type="time"
-                      id="bookingTime"
-                      class="form-control"
-                      v-model="form.booking_time"
-                      required
-                      :min="minTime"
-                      :class="{ 'is-invalid': errors.booking_time }"                    />
-                    <div v-if="errors.booking_time" class="error-message">
-                      {{ errors.booking_time }}
-                    </div>
-                  </div>
-                  <div class="col" v-if="form.type === 'table'">
-                    <label for="bookingDate" class="form-label">Ngày đặt</label>
-                    <input
-                      type="date"
-                      id="bookingDate"
-                      class="form-control"
-                      v-model="form.booking_date"
-                      required
-                      :min="minDate"
-                      :class="{ 'is-invalid': errors.booking_date }"                    />
-                    <div v-if="errors.booking_date" class="error-message">
-                      {{ errors.booking_date }}
-                    </div>
-                  </div>
-                  <div class="col" v-if="form.type === 'table'">
-                    <label for="bookingTime" class="form-label">Giờ đặt</label>
-                    <input
-                      type="time"
-                      id="bookingTime"
-                      class="form-control"
-                      v-model="form.booking_time"
-                      required
-                      :min="minTime"
-                      :class="{ 'is-invalid': errors.booking_time }"                    />
-                    <div v-if="errors.booking_time" class="error-message">
-                      {{ errors.booking_time }}
-                    </div>
-                  </div>
-                </div>
-                <div class="mb-3">
-                  <label for="quantity" class="form-label">Số lượng khách</label>
-                  <input
-                    type="number"
-                    id="quantity"
-                    class="form-control"
-                    v-model.number="form.quantity"
-                    required
-                    placeholder="Nhập số lượng khách"
-                    min="1"
-                    :class="{ 'is-invalid': errors.quantity }"
-                    @input="onQuantityChange"
-                  />
-                  <div v-if="errors.quantity" class="error-message">
-                    {{ errors.quantity }}
-                  </div>
-                </div>
-                <div class="mb-3" v-if="form.type === 'room'">
-                  <label for="selectRoom" class="form-label">Chọn phòng</label>
-                  <select
-                    id="selectRoom"
-                    class="form-select"
-                    v-model="form.room_id"
-                    :disabled="isLoading || !availableRooms?.length"
-                    :class="{ 'is-invalid': errors.room_table }"
-                  >
-                    <option :value="null">-- {{ availableRooms?.length ? 'Chọn phòng' : 'Không có phòng phù hợp' }} --</option>
-                    <option
-                      v-for="room in availableRooms"
-                      :key="room.room_id"
-                      :value="room.room_id"
-                      :disabled="!isEditing && room.status !== 'Trống'"
-                    >
-                      {{ room.room_name }} (Sức chứa: {{ room.capacity || 'N/A' }})
-                      {{ room.status !== 'Trống' ? `(${room.status})` : '' }}
-                    </option>
-                  </select>
-                  <div v-if="errors.room_table" class="invalid-feedback">
-                    {{ errors.room_table }}
-                  </div>
-                </div>
-                <div class="mb-3" v-if="form.type === 'table'">
-                  <label for="selectTable" class="form-label">Chọn bàn</label>
-                  <select
-                    id="selectTable"
-                    class="form-select"
-                    v-model="form.table_id"
-                    :disabled="isLoading || !availableTables?.length"
-                    :class="{ 'is-invalid': errors.room_table }"
-                  >
-                    <option :value="null">-- {{ availableTables?.length ? 'Chọn bàn' : 'Không có bàn phù hợp' }} --</option>
-                    <option
-                      v-for="table in availableTables"
-                      :key="table.table_id"
-                      :value="table.table_id"
-                      :disabled="!isEditing && table.status !== 'Trống'"
-                    >
-                      {{ table.table_name }} (Sức chứa: {{ table.capacity || 'N/A' }})
-                      {{ table.status !== 'Trống' ? `(${table.status})` : '' }}
-                    </option>
-                  </select>
-                  <div v-if="errors.room_table" class="invalid-feedback">
-                    {{ errors.room_table }}
-                  </div>
-                </div>
-                <div class="mb-3">
-                  <label for="selectMenu" class="form-label">Chọn món ăn</label>
-                  <select
-                    id="selectMenu"
-                    class="form-select"
-                    v-model="form.menu_id"
-                    :disabled="isLoading || !menus?.length"
-                  >
-                    <option :value="null">-- Chọn món --</option>
-                    <option v-for="menu in menus" :key="menu.menu_id" :value="menu.menu_id">
-                      {{ menu.menu_name }} ({{ formatPrice(menu.price) }})
-                    </option>
-                  </select>
-                </div>
-                <div class="mb-3">
-                  <label for="note" class="form-label">Ghi chú</label>
-                  <textarea
-                    id="note"
-                    rows="3"
-                    class="form-control"
-                    v-model="form.note"
-                    placeholder="Nhập ghi chú nếu có"
-                  ></textarea>
-                </div>
-              </form>
             </div>
-          </div>
-          <div class="modal-footer">
-            <button class="btn btn-secondary" @click="dongModal">Hủy</button>
-            <button class="btn btn-success" @click="submitBooking">Lưu</button>
+            <div v-if="errorMessage" class="alert alert-warning">
+              {{ errorMessage }}
+            </div>
+            <form @submit.prevent="submitBooking">
+              <div class="mb-3">
+                <label for="bookingType" class="form-label">Loại Booking</label>
+                <select
+                  id="bookingType"
+                  class="form-control"
+                  v-model="form.booking_type"
+                  required
+                  :class="{ 'is-invalid': errors.booking_type }"
+                  @change="onTypeChange"
+                >
+                  <option value="">-- Chọn loại --</option>
+                  <option value="room">Phòng</option>
+                  <option value="table">Bàn</option>
+                </select>
+                <div v-if="errors.booking_type" class="invalid-feedback">{{ errors.booking_type }}</div>
+              </div>
+              <div class="mb-3">
+                <label for="customerName" class="form-label">Tên khách hàng</label>
+                <input
+                  type="text"
+                  id="customerName"
+                  class="form-control"
+                  v-model="form.customer_name"
+                  required
+                  placeholder="Nhập tên khách hàng"
+                  :class="{ 'is-invalid': errors.customer_name }"
+                />
+                <div v-if="errors.customer_name" class="invalid-feedback">{{ errors.customer_name }}</div>
+              </div>
+              <div class="mb-3">
+                <label for="customerPhone" class="form-label">Số điện thoại</label>
+                <input
+                  type="tel"
+                  id="customerPhone"
+                  class="form-control"
+                  v-model="form.customer_phone"
+                  required
+                  placeholder="Nhập số điện thoại"
+                  :class="{ 'is-invalid': errors.customer_phone }"
+                />
+                <div v-if="errors.customer_phone" class="invalid-feedback">{{ errors.customer_phone }}</div>
+              </div>
+              <div class="row mb-3" v-if="form.booking_type === 'room'">
+                <div class="col">
+                  <label for="checkInDate" class="form-label">Ngày check-in</label>
+                  <input
+                    type="date"
+                    id="checkInDate"
+                    class="form-control"
+                    v-model="form.check_in_date"
+                    required
+                    :min="minDate"
+                    :class="{ 'is-invalid': errors.check_in_date }"
+                  />
+                  <div v-if="errors.check_in_date" class="invalid-feedback">{{ errors.check_in_date }}</div>
+                </div>
+                <div class="col">
+                  <label for="checkOutDate" class="form-label">Ngày check-out</label>
+                  <input
+                    type="date"
+                    id="checkOutDate"
+                    class="form-control"
+                    v-model="form.check_out_date"
+                    required
+                    :min="minCheckOutDate"
+                    :class="{ 'is-invalid': errors.check_out_date }"
+                  />
+                  <div v-if="errors.check_out_date" class="invalid-feedback">{{ errors.check_out_date }}</div>
+                </div>
+              </div>
+              <div class="row mb-3" v-if="form.booking_type === 'room' || form.booking_type === 'table'">
+                <div class="col">
+                  <label for="bookingDate" class="form-label">Ngày đặt</label>
+                  <input
+                    type="date"
+                    id="bookingDate"
+                    class="form-control"
+                    v-model="form.booking_date"
+                    required
+                    :min="minDate"
+                    :class="{ 'is-invalid': errors.booking_date }"
+                  />
+                  <div v-if="errors.booking_date" class="invalid-feedback">{{ errors.booking_date }}</div>
+                </div>
+                <div class="col">
+                  <label for="bookingTime" class="form-label">Giờ đặt</label>
+                  <input
+                    type="time"
+                    id="bookingTime"
+                    class="form-control"
+                    v-model="form.booking_time"
+                    required
+                    :min="minTime"
+                    :class="{ 'is-invalid': errors.booking_time }"
+                  />
+                  <div v-if="errors.booking_time" class="invalid-feedback">{{ errors.booking_time }}</div>
+                </div>
+              </div>
+              <div class="mb-3">
+                <label for="quantity" class="form-label">Số lượng khách</label>
+                <input
+                  type="number"
+                  id="quantity"
+                  class="form-control"
+                  v-model.number="form.quantity"
+                  required
+                  min="1"
+                  placeholder="Nhập số lượng khách"
+                  :class="{ 'is-invalid': errors.quantity }"
+                  @input="onQuantityChange"
+                />
+                <div v-if="errors.quantity" class="invalid-feedback">{{ errors.quantity }}</div>
+              </div>
+              <div class="mb-3" v-if="form.booking_type === 'room'">
+                <label for="selectRoom" class="form-label">Chọn phòng</label>
+                <select
+                  id="selectRoom"
+                  class="form-select"
+                  v-model="form.room_id"
+                  :disabled="isLoading || !availableRooms.length"
+                  :class="{ 'is-invalid': errors.room_id }"
+                >
+                  <option :value="null">-- {{ availableRooms.length ? 'Chọn phòng' : 'Không có phòng' }} --</option>
+                  <option
+                    v-for="room in availableRooms"
+                    :key="room.room_id"
+                    :value="room.room_id"
+                    :disabled="!isEditing && room.status !== 'Trống'"
+                  >
+                    {{ room.room_name }} (Sức chứa: {{ room.capacity }}) {{ room.status !== 'Trống' ? `(${room.status})` : '' }}
+                  </option>
+                </select>
+                <div v-if="errors.room_id" class="invalid-feedback">{{ errors.room_id }}</div>
+              </div>
+              <div class="mb-3" v-if="form.booking_type === 'table'">
+                <label for="selectTable" class="form-label">Chọn bàn</label>
+                <select
+                  id="selectTable"
+                  class="form-select"
+                  v-model="form.table_id"
+                  :disabled="isLoading || !availableTables.length"
+                  :class="{ 'is-invalid': errors.table_id }"
+                >
+                  <option :value="null">-- {{ availableTables.length ? 'Chọn bàn' : 'Không có bàn' }} --</option>
+                  <option
+                    v-for="table in availableTables"
+                    :key="table.table_id"
+                    :value="table.table_id"
+                    :disabled="!isEditing && table.status !== 'Trống'"
+                  >
+                    {{ table.table_name }} (Sức chứa: {{ table.capacity }}) {{ table.status !== 'Trống' ? `(${table.status})` : '' }}
+                  </option>
+                </select>
+                <div v-if="errors.table_id" class="invalid-feedback">{{ errors.table_id }}</div>
+              </div>
+              <div class="mb-3">
+                <label for="selectMenu" class="form-label">Chọn món ăn</label>
+                <select
+                  id="selectMenu"
+                  class="form-select"
+                  v-model="form.menu_id"
+                  :disabled="isLoading || !menus.length"
+                >
+                  <option :value="null">-- Chọn món --</option>
+                  <option v-for="menu in menus" :key="menu.menu_id" :value="menu.menu_id">
+                    {{ menu.menu_name }} ({{ formatPrice(menu.price) }})
+                  </option>
+                </select>
+              </div>
+              <div class="mb-3">
+                <label for="note" class="form-label">Ghi chú</label>
+                <textarea
+                  id="note"
+                  rows="3"
+                  class="form-control"
+                  v-model="form.note"
+                  placeholder="Nhập ghi chú nếu có"
+                ></textarea>
+              </div>
+              <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" @click="dongModal">Hủy</button>
+                <button type="submit" class="btn btn-success" :disabled="isLoading">Lưu</button>
+              </div>
+            </form>
           </div>
         </div>
       </div>
@@ -387,15 +354,13 @@
 import { ref, computed, onMounted } from 'vue';
 import axios from 'axios';
 
-// Retry request helper
 const retryRequest = async (fn, retries = 2, delay = 1000) => {
   for (let i = 0; i < retries; i++) {
     try {
       return await fn();
     } catch (error) {
       if (i === retries - 1 || error.code !== 'ECONNABORTED') throw error;
-      console.warn(`Thử lại lần ${i + 1}/${retries} sau ${delay}ms`);
-      await new Promise((resolve) => setTimeout(resolve, delay));
+      await new Promise(resolve => setTimeout(resolve, delay));
     }
   }
 };
@@ -403,10 +368,7 @@ const retryRequest = async (fn, retries = 2, delay = 1000) => {
 const api = axios.create({
   baseURL: 'http://localhost:8000/api',
   timeout: 10000,
-  headers: {
-    'Content-Type': 'application/json',
-    'Accept': 'application/json',
-  },
+  headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' }
 });
 
 export default {
@@ -416,15 +378,16 @@ export default {
     const tuKhoa = ref('');
     const locTheoTrangThai = ref('');
     const laModalMo = ref(false);
-    const bookingDangSua = ref(null);
-    const hasStatus = ref(false);
+    const isEditing = ref(false);
+    const isLoading = ref(false);
     const successMessage = ref('');
+    const errorMessage = ref('');
     const trangHienTai = ref(1);
-    const soBookingMoiTrang = 5;
+    const soBookingMoiTrang = 10;
 
     const form = ref({
       booking_id: null,
-      type: '',
+      booking_type: '',
       customer_name: '',
       customer_phone: '',
       check_in_date: '',
@@ -436,16 +399,11 @@ export default {
       table_id: null,
       menu_id: null,
       note: '',
-      status: 'pending',
+      status: 'pending'
     });
-    const rooms = ref([]);
-    const tables = ref([]);
-    const menus = ref([]);
-    const isEditing = ref(false);
-    const isLoading = ref(false);
-    const errorMessage = ref('');
+
     const errors = ref({
-      type: '',
+      booking_type: '',
       customer_name: '',
       customer_phone: '',
       check_in_date: '',
@@ -453,10 +411,13 @@ export default {
       booking_date: '',
       booking_time: '',
       quantity: '',
-      room_table: '',
-      menu_id: '',
-      note: '',
+      room_id: '',
+      table_id: ''
     });
+
+    const rooms = ref([]);
+    const tables = ref([]);
+    const menus = ref([]);
 
     const minDate = computed(() => {
       const today = new Date();
@@ -481,23 +442,19 @@ export default {
     const availableRooms = computed(() => {
       if (!form.value.quantity) return rooms.value;
       return rooms.value.filter(
-        (room) =>
-          room.capacity >= form.value.quantity ||
-          (isEditing.value && room.room_id === form.value.room_id)
+        room => room.capacity >= form.value.quantity || (isEditing.value && room.room_id === form.value.room_id)
       );
     });
 
     const availableTables = computed(() => {
       if (!form.value.quantity) return tables.value;
       return tables.value.filter(
-        (table) =>
-          table.capacity >= form.value.quantity ||
-          (isEditing.value && table.table_id === form.value.table_id)
+        table => table.capacity >= form.value.quantity || (isEditing.value && table.table_id === form.value.table_id)
       );
     });
 
     const bookingLoc = computed(() => {
-      return bookings.value.filter((b) => {
+      return bookings.value.filter(b => {
         const khopTim =
           (b.customer_name?.toLowerCase() || '').includes(tuKhoa.value.toLowerCase()) ||
           (b.customer_phone || '').includes(tuKhoa.value);
@@ -506,80 +463,66 @@ export default {
       });
     });
 
-    const tongSoTrang = computed(() => {
-      return Math.ceil((bookingLoc.value?.length || 0) / soBookingMoiTrang);
-    });
+    const tongSoTrang = computed(() => Math.ceil(bookingLoc.value.length / soBookingMoiTrang));
 
     const bookingHienThi = computed(() => {
       const batDau = (trangHienTai.value - 1) * soBookingMoiTrang;
       const ketThuc = batDau + soBookingMoiTrang;
-      return bookingLoc.value?.slice(batDau, ketThuc) || [];
+      return bookingLoc.value.slice(batDau, ketThuc);
     });
 
     const trangHienThi = computed(() => {
       const soTrang = tongSoTrang.value;
-      const trangHienTaiValue = trangHienTai.value;
-      const ketQua = [];
       const maxSoTrangHienThi = 5;
-
-      let batDau = Math.max(1, trangHienTaiValue - Math.floor(maxSoTrangHienThi / 2));
+      let batDau = Math.max(1, trangHienTai.value - Math.floor(maxSoTrangHienThi / 2));
       let ketThuc = Math.min(soTrang, batDau + maxSoTrangHienThi - 1);
-
       if (ketThuc - batDau + 1 < maxSoTrangHienThi) {
         batDau = Math.max(1, ketThuc - maxSoTrangHienThi + 1);
       }
-
-      for (let i = batDau; i <= ketThuc; i++) {
-        ketQua.push(i);
-      }
-      return ketQua;
+      return Array.from({ length: ketThuc - batDau + 1 }, (_, i) => batDau + i);
     });
 
     const fetchBookings = async () => {
       try {
-        const res = await retryRequest(() => api.get('/bookings'));
-        bookings.value = Array.isArray(res.data.data)
-          ? res.data.data
-          : Array.isArray(res.data)
-          ? res.data
-          : [];
-        hasStatus.value = bookings.value.length > 0 && 'status' in bookings.value[0];
+        const res = await retryRequest(() => api.get('/bookings', { params: { _t: new Date().getTime() } }));
+        bookings.value = Array.isArray(res.data.data) ? res.data.data : Array.isArray(res.data) ? res.data : [];
+        console.log('Đã tải bookings:', bookings.value.map(b => ({
+          id: b.booking_id,
+          status: b.status
+        })));
       } catch (error) {
-        console.error('Lỗi lấy booking:', error);
-        errorMessage.value = 'Không thể tải danh sách booking. Vui lòng kiểm tra kết nối.';
+        console.error('Lỗi tải bookings:', error.response?.data || error.message);
+        errorMessage.value = 'Không thể tải danh sách booking.';
       }
     };
 
     const fetchFormData = async () => {
       isLoading.value = true;
-      errorMessage.value = '';
       try {
         const [roomsRes, tablesRes, menusRes] = await Promise.all([
-          retryRequest(() => api.get('/rooms')),
-          retryRequest(() => api.get('/tables')),
-          retryRequest(() => api.get('/menus')),
+          retryRequest(() => api.get('/rooms', { params: { _t: new Date().getTime() } })),
+          retryRequest(() => api.get('/tables', { params: { _t: new Date().getTime() } })),
+          retryRequest(() => api.get('/menus', { params: { _t: new Date().getTime() } }))
         ]);
-        rooms.value = Array.isArray(roomsRes.data.data)
-          ? roomsRes.data.data
-          : Array.isArray(roomsRes.data)
-          ? roomsRes.data
-          : [];
-        tables.value = Array.isArray(tablesRes.data.data)
-          ? tablesRes.data.data
-          : Array.isArray(tablesRes.data)
-          ? tablesRes.data
-          : [];
-        menus.value = Array.isArray(menusRes.data.data)
-          ? menusRes.data.data
-          : Array.isArray(menusRes.data)
-          ? menusRes.data
-          : [];
-        if (!rooms.value.length && !tables.value.length) {
-          errorMessage.value = 'Không có phòng hoặc bàn nào được tải từ API';
-        }
+        rooms.value = Array.isArray(roomsRes.data.data) ? roomsRes.data.data : roomsRes.data;
+        tables.value = Array.isArray(tablesRes.data.data) ? tablesRes.data.data : tablesRes.data;
+        menus.value = Array.isArray(menusRes.data.data) ? menusRes.data.data : menusRes.data;
+        console.log('Đã tải formData:', {
+          rooms: rooms.value.map(r => ({
+            id: r.room_id,
+            name: r.room_name,
+            status: r.status
+          })),
+          tables: tables.value.map(t => ({
+            id: t.table_id,
+            name: t.table_name,
+            status: t.status
+          })),
+          menus: menus.value.length
+        });
       } catch (error) {
-        console.error('Lỗi tải dữ liệu:', error);
-        errorMessage.value = 'Không thể tải dữ liệu phòng, bàn hoặc món ăn. Vui lòng kiểm tra kết nối.';
+        console.error('Lỗi tải formData:', error.response?.data || error.message);
+        errorMessage.value = 'Không thể tải dữ liệu phòng, bàn hoặc món ăn.';
       } finally {
         isLoading.value = false;
       }
@@ -591,82 +534,101 @@ export default {
     });
 
     const moModalThem = () => {
-      bookingDangSua.value = null;
-      isEditing.value = false;
       resetForm();
+      isEditing.value = false;
       laModalMo.value = true;
       successMessage.value = '';
     };
 
     const moModalSua = (booking) => {
-      bookingDangSua.value = { ...booking };
-      loadBookingToForm(booking);
+      const now = new Date();
+      form.value = {
+        booking_id: booking.booking_id,
+        booking_type: booking.booking_type,
+        customer_name: booking.customer_name,
+        customer_phone: booking.customer_phone,
+        check_in_date: booking.check_in_date ? booking.check_in_date.split('T')[0] : now.toISOString().split('T')[0],
+        check_out_date: booking.check_out_date ? booking.check_out_date.split('T')[0] : '',
+        booking_date: booking.booking_date ? booking.booking_date.split('T')[0] : now.toISOString().split('T')[0],
+        booking_time: booking.booking_time ? booking.booking_time.slice(0, 5) : now.toTimeString().slice(0, 5),
+        quantity: booking.quantity,
+        room_id: booking.room_id,
+        table_id: booking.table_id,
+        menu_id: booking.menu_id,
+        note: booking.note,
+        status: booking.status
+      };
+      isEditing.value = true;
       laModalMo.value = true;
       successMessage.value = '';
     };
 
     const dongModal = () => {
       laModalMo.value = false;
-      successMessage.value = '';
       resetForm();
+      successMessage.value = '';
+      errorMessage.value = '';
+    };
+
+    const resetForm = () => {
+      const now = new Date();
+      form.value = {
+        booking_id: null,
+        booking_type: '',
+        customer_name: '',
+        customer_phone: '',
+        check_in_date: now.toISOString().split('T')[0],
+        check_out_date: '',
+        booking_date: now.toISOString().split('T')[0],
+        booking_time: now.toTimeString().slice(0, 5),
+        quantity: 1,
+        room_id: null,
+        table_id: null,
+        menu_id: null,
+        note: '',
+        status: 'pending'
+      };
+      errors.value = {};
     };
 
     const onTypeChange = () => {
       form.value.room_id = null;
       form.value.table_id = null;
-      form.value.check_in_date = '';
+      form.value.check_in_date = form.value.booking_type === 'room' ? minDate.value : '';
       form.value.check_out_date = '';
-      form.value.booking_date = '';
-      form.value.booking_time = '';
-      errors.value.room_table = '';
-      errors.value.check_in_date = '';
-      errors.value.check_out_date = '';
-      errors.value.booking_date = '';
-      errors.value.booking_time = '';
+      errors.value = {};
     };
 
     const onQuantityChange = () => {
       if (form.value.room_id) {
-        const room = rooms.value.find((r) => r.room_id === form.value.room_id);
+        const room = rooms.value.find(r => r.room_id === form.value.room_id);
         if (room && room.capacity < form.value.quantity) {
           form.value.room_id = null;
-          errors.value.room_table = 'Số lượng khách vượt quá sức chứa của phòng';
+          errors.value.room_id = 'Số lượng khách vượt quá sức chứa của phòng';
         }
       }
       if (form.value.table_id) {
-        const table = tables.value.find((t) => t.table_id === form.value.table_id);
+        const table = tables.value.find(t => t.table_id === form.value.table_id);
         if (table && table.capacity < form.value.quantity) {
           form.value.table_id = null;
-          errors.value.room_table = 'Số lượng khách vượt quá sức chứa của bàn';
+          errors.value.table_id = 'Số lượng khách vượt quá sức chứa của bàn';
         }
       }
     };
 
     const validateForm = () => {
-      errors.value = {
-        type: '',
-        customer_name: '',
-        customer_phone: '',
-        check_in_date: '',
-        check_out_date: '',
-        booking_date: '',
-        booking_time: '',
-        quantity: '',
-        room_table: '',
-        menu_id: '',
-        note: '',
-      };
+      errors.value = {};
       let isValid = true;
 
-      if (!form.value.type) {
-        errors.value.type = 'Vui lòng chọn loại booking';
+      if (!form.value.booking_type) {
+        errors.value.booking_type = 'Vui lòng chọn loại booking';
         isValid = false;
       }
-      if (!form.value.customer_name.trim()) {
+      if (!form.value.customer_name?.trim()) {
         errors.value.customer_name = 'Vui lòng nhập tên khách hàng';
         isValid = false;
       }
-      if (!form.value.customer_phone.trim()) {
+      if (!form.value.customer_phone?.trim()) {
         errors.value.customer_phone = 'Vui lòng nhập số điện thoại';
         isValid = false;
       } else if (!/^\d{10,11}$/.test(form.value.customer_phone.trim())) {
@@ -677,8 +639,25 @@ export default {
         errors.value.quantity = 'Số lượng khách phải lớn hơn 0';
         isValid = false;
       }
+      if (!form.value.booking_date) {
+        errors.value.booking_date = 'Vui lòng chọn ngày đặt';
+        isValid = false;
+      }
+      if (!form.value.booking_time) {
+        errors.value.booking_time = 'Vui lòng chọn giờ đặt';
+        isValid = false;
+      }
+      const bookingDateTime = form.value.booking_date && form.value.booking_time
+        ? new Date(`${form.value.booking_date}T${form.value.booking_time}`)
+        : null;
+      const now = new Date();
+      now.setSeconds(0, 0);
+      if (bookingDateTime && bookingDateTime < now) {
+        errors.value.booking_date = 'Thời gian đặt phải từ hiện tại trở đi';
+        isValid = false;
+      }
 
-      if (form.value.type === 'room') {
+      if (form.value.booking_type === 'room') {
         if (!form.value.check_in_date) {
           errors.value.check_in_date = 'Vui lòng chọn ngày check-in';
           isValid = false;
@@ -696,51 +675,35 @@ export default {
           isValid = false;
         }
         if (!form.value.room_id) {
-          errors.value.room_table = 'Vui lòng chọn phòng';
+          errors.value.room_id = 'Vui lòng chọn phòng';
           isValid = false;
         }
         if (form.value.room_id && !isEditing.value) {
-          const room = rooms.value.find((r) => r.room_id === form.value.room_id);
-          if (room && room.status && room.status !== 'Trống') {
-            errors.value.room_table = 'Phòng đã được đặt hoặc đang chờ xét duyệt';
+          const room = rooms.value.find(r => r.room_id === form.value.room_id);
+          if (room && room.status !== 'Trống') {
+            errors.value.room_id = 'Phòng đã được đặt hoặc đang chờ';
             isValid = false;
           }
           if (room && room.capacity < form.value.quantity) {
-            errors.value.room_table = 'Số lượng khách vượt quá sức chứa của phòng';
+            errors.value.room_id = 'Số lượng khách vượt quá sức chứa';
             isValid = false;
           }
         }
-      } else if (form.value.type === 'table') {
-        if (!form.value.booking_date) {
-          errors.value.booking_date = 'Vui lòng chọn ngày đặt';
-          isValid = false;
-        }
-        if (!form.value.booking_time) {
-          errors.value.booking_time = 'Vui lòng chọn giờ đặt';
-          isValid = false;
-        }
+      } else if (form.value.booking_type === 'table') {
         if (!form.value.table_id) {
-          errors.value.room_table = 'Vui lòng chọn bàn';
+          errors.value.table_id = 'Vui lòng chọn bàn';
           isValid = false;
         }
         if (form.value.table_id && !isEditing.value) {
-          const table = tables.value.find((t) => t.table_id === form.value.table_id);
-          if (table && table.status && table.status !== 'Trống') {
-            errors.value.room_table = 'Bàn đã được đặt hoặc đang chờ xét duyệt';
+          const table = tables.value.find(t => t.table_id === form.value.table_id);
+          if (table && table.status !== 'Trống') {
+            errors.value.table_id = 'Bàn đã được đặt hoặc đang chờ';
             isValid = false;
           }
           if (table && table.capacity < form.value.quantity) {
-            errors.value.room_table = 'Số lượng khách vượt quá sức chứa của bàn';
+            errors.value.table_id = 'Số lượng khách vượt quá sức chứa';
             isValid = false;
           }
-        }
-        const bookingDateTime = form.value.booking_date && form.value.booking_time
-          ? new Date(`${form.value.booking_date}T${form.value.booking_time}`)
-          : null;
-        const currentDateTime = new Date();
-        if (bookingDateTime && bookingDateTime < currentDateTime) {
-          errors.value.booking_date = 'Thời gian đặt phải ở tương lai';
-          isValid = false;
         }
       }
 
@@ -752,128 +715,41 @@ export default {
 
       isLoading.value = true;
       errorMessage.value = '';
-      errors.value = {
-        type: '',
-        customer_name: '',
-        customer_phone: '',
-        check_in_date: '',
-        check_out_date: '',
-        booking_date: '',
-        booking_time: '',
-        quantity: '',
-        room_table: '',
-        menu_id: '',
-        note: '',
-      };
 
       try {
-        if (form.value.type === 'room' && form.value.room_id && !isEditing.value) {
-          const room = rooms.value.find((r) => r.room_id === form.value.room_id);
-          if (room && room.status && room.status !== 'Trống') {
-            errorMessage.value = 'Phòng đã được đặt hoặc đang chờ xét duyệt';
-            isLoading.value = false;
-            return;
-          }
-          if (room && room.capacity < form.value.quantity) {
-            errorMessage.value = 'Số lượng khách vượt quá sức chứa của phòng';
-            isLoading.value = false;
-            return;
-          }
-        }
-        if (form.value.type === 'table' && form.value.table_id && !isEditing.value) {
-          const table = tables.value.find((t) => t.table_id === form.value.table_id);
-          if (table && table.status && table.status !== 'Trống') {
-            errorMessage.value = 'Bàn đã được đặt hoặc đang chờ xét duyệt';
-            isLoading.value = false;
-            return;
-          }
-          if (table && table.capacity < form.value.quantity) {
-            errorMessage.value = 'Số lượng khách vượt quá sức chứa của bàn';
-            isLoading.value = false;
-            return;
-          }
-        }
-
         const payload = {
-          type: form.value.type,
+          booking_type: form.value.booking_type,
           customer_name: form.value.customer_name,
           customer_phone: form.value.customer_phone,
-          check_in_date: form.value.type === 'room' ? form.value.check_in_date : null,
-          check_out_date: form.value.type === 'room' ? form.value.check_out_date : null,
-          booking_date: form.value.type === 'table' ? form.value.booking_date : null,
-          booking_time: form.value.type === 'table' ? form.value.booking_time : null,
+          check_in_date: form.value.booking_type === 'room' ? form.value.check_in_date : null,
+          check_out_date: form.value.booking_type === 'room' ? form.value.check_out_date : null,
+          booking_date: form.value.booking_date,
+          booking_time: form.value.booking_time ? `${form.value.booking_time}:00` : null,
           quantity: form.value.quantity,
-          room_id: form.value.type === 'room' ? form.value.room_id : null,
-          table_id: form.value.type === 'table' ? form.value.table_id : null,
+          room_id: form.value.booking_type === 'room' ? form.value.room_id : null,
+          table_id: form.value.booking_type === 'table' ? form.value.table_id : null,
           menu_id: form.value.menu_id,
           note: form.value.note,
-          status: isEditing.value ? undefined : 'pending',
+          status: isEditing.value ? form.value.status : 'pending'
         };
 
-        console.log('Submitting booking payload:', payload);
-
-        let bookingId;
         if (isEditing.value) {
           await retryRequest(() => api.put(`/bookings/${form.value.booking_id}`, payload));
-          bookingId = form.value.booking_id;
           successMessage.value = 'Cập nhật booking thành công';
         } else {
-          const response = await retryRequest(() => api.post('/bookings', payload));
-          bookingId = response.data.booking_id || response.data.data?.id;
+          await retryRequest(() => api.post('/bookings', payload));
           successMessage.value = 'Thêm booking mới thành công';
-
-          if (form.value.type === 'room' && form.value.room_id) {
-            try {
-              await retryRequest(() =>
-                api.patch(`/rooms/${form.value.room_id}`, { status: 'Đang chờ xét duyệt' })
-              );
-            } catch (err) {
-              console.error('Lỗi cập nhật trạng thái phòng:', err);
-              errorMessage.value += ' Lỗi khi cập nhật trạng thái phòng.';
-            }
-          }
-          if (form.value.type === 'table' && form.value.table_id) {
-            try {
-              await retryRequest(() =>
-                api.patch(`/tables/${form.value.table_id}`, { status: 'Đang chờ xét duyệt' })
-              );
-            } catch (err) {
-              console.error('Lỗi cập nhật trạng thái bàn:', err);
-              errorMessage.value += ' Lỗi khi cập nhật trạng thái bàn.';
-            }
-          }
         }
 
         await fetchBookings();
         await fetchFormData();
         dongModal();
       } catch (error) {
-        console.error('Lỗi khi lưu booking:', error);
-        if (error.code === 'ECONNABORTED') {
-          errorMessage.value = 'Không thể kết nối đến server. Vui lòng kiểm tra kết nối mạng hoặc thử lại.';
-        } else if (error.response && error.response.status === 422) {
+        console.error('Lỗi khi lưu booking:', error.response?.data || error.message);
+        errorMessage.value = error.response?.data?.message || 'Lưu booking thất bại';
+        if (error.response?.status === 422) {
           const backendErrors = error.response.data.errors || {};
-          errorMessage.value = 'Lưu booking thất bại. Vui lòng kiểm tra các trường nhập liệu.';
-          for (const [field, messages] of Object.entries(backendErrors)) {
-            if (field in errors.value) {
-              errors.value[field] = messages[0];
-            } else if (field === 'room_id') {
-              errors.value.room_table = 'Phòng không hợp lệ: ' + messages[0];
-            } else if (field === 'table_id') {
-              errors.value.room_table = 'Bàn không hợp lệ: ' + messages[0];
-            }
-          }
-        } else if (error.response && error.response.status === 500) {
-          errorMessage.value = 'Lỗi hệ thống. Vui lòng kiểm tra dữ liệu hoặc thử lại sau.';
-          if (error.response.data.message.includes('SQLSTATE[42S22]')) {
-            if (form.value.type === 'room') {
-              errors.value.room_table = 'Phòng không tồn tại hoặc cấu hình hệ thống có lỗi.';
-            } else {
-              errors.value.room_table = 'Bàn không tồn tại hoặc cấu hình hệ thống có lỗi.';
-            }
-          }
-        } else {
-          errorMessage.value = `Lưu booking thất bại: ${error.response?.data?.message || 'Lỗi server'}`;
+          errorMessage.value += ': ' + Object.values(backendErrors).flat().join(', ');
         }
       } finally {
         isLoading.value = false;
@@ -886,166 +762,181 @@ export default {
       isLoading.value = true;
       errorMessage.value = '';
       try {
-        const booking = bookings.value.find((b) => b.booking_id === bookingId);
+        const booking = bookings.value.find(b => b.booking_id === bookingId);
         if (!booking) throw new Error('Không tìm thấy booking');
+        console.log('Trước khi xác nhận:', {
+          bookingId,
+          bookingType: booking.booking_type,
+          roomId: booking.room_id,
+          tableId: booking.table_id
+        });
 
-        await retryRequest(() => api.patch(`/bookings/${bookingId}/confirm`, { status: 'confirmed' }));
+        const patchResponse = await retryRequest(() => api.patch(`/bookings/${bookingId}/confirm`, { status: 'confirmed' }));
+        console.log('Response từ PATCH /bookings/confirm:', patchResponse.data);
 
-        if (booking.type === 'room' && booking.room_id) {
-          try {
-            await retryRequest(() => api.patch(`/rooms/${booking.room_id}`, { status: 'Đã đặt' }));
-          } catch (err) {
-            console.error('Lỗi cập nhật trạng thái phòng:', err);
-            errorMessage.value += ' Lỗi khi cập nhật trạng thái phòng.';
-          }
-        }
-        if (booking.type === 'table' && booking.table_id) {
-          try {
-            await retryRequest(() => api.patch(`/tables/${booking.table_id}`, { status: 'Đã đặt' }));
-          } catch (err) {
-            console.error('Lỗi cập nhật trạng thái bàn:', err);
-            errorMessage.value += ' Lỗi khi cập nhật trạng thái bàn.';
-          }
+        if (patchResponse.data.data?.status !== 'confirmed') {
+          throw new Error('Server không cập nhật trạng thái booking thành confirmed');
         }
 
+        booking.status = 'confirmed';
+        console.log('Đã cập nhật trạng thái cục bộ booking sang confirmed');
+
+        await new Promise(resolve => setTimeout(resolve, 1000));
         await fetchBookings();
         await fetchFormData();
+
+        if (booking.booking_type === 'room' && booking.room_id) {
+          const room = rooms.value.find(r => r.room_id === booking.room_id);
+          console.log('Trạng thái phòng sau xác nhận:', {
+            roomId: booking.room_id,
+            roomName: room?.room_name,
+            status: room?.status ?? 'Không tìm thấy'
+          });
+          if (room?.status !== 'Đã đặt') {
+            errorMessage.value = 'Cảnh báo: Trạng thái phòng chưa được cập nhật thành Đã đặt';
+          }
+        } else if (booking.booking_type === 'table' && booking.table_id) {
+          const table = tables.value.find(t => t.table_id === booking.table_id);
+          console.log('Trạng thái bàn sau xác nhận:', {
+            tableId: booking.table_id,
+            tableName: table?.table_name,
+            status: table?.status ?? 'Không tìm thấy'
+          });
+          if (table?.status !== 'Đã đặt') {
+            errorMessage.value = 'Cảnh báo: Trạng thái bàn chưa được cập nhật thành Đã đặt';
+          }
+        }
+
         successMessage.value = 'Xác nhận booking thành công';
       } catch (error) {
-        console.error('Lỗi xác nhận booking:', error);
-        if (error.code === 'ECONNABORTED') {
-          errorMessage.value = 'Không thể kết nối đến server. Vui lòng kiểm tra kết nối mạng hoặc thử lại.';
-        } else if (error.response) {
-          errorMessage.value = `Xác nhận booking thất bại: ${error.response.data.message || 'Lỗi server'}`;
-        } else {
-          errorMessage.value = 'Xác nhận booking thất bại. Vui lòng thử lại.';
+        console.error('Lỗi khi xác nhận booking:', error.response?.data || error.message);
+        errorMessage.value = error.response?.data?.message || 'Xác nhận booking thất bại';
+        if (error.response?.status === 422) {
+          const errors = error.response.data.errors || {};
+          errorMessage.value += ': ' + Object.values(errors).flat().join(', ');
         }
       } finally {
         isLoading.value = false;
       }
     };
 
-    const resetForm = () => {
-      form.value = {
-        booking_id: null,
-        type: '',
-        customer_name: '',
-        customer_phone: '',
-        check_in_date: '',
-        check_out_date: '',
-        booking_date: '',
-        booking_time: '',
-        quantity: 1,
-        room_id: null,
-        table_id: null,
-        menu_id: null,
-        note: '',
-        status: 'pending',
-      };
-      isEditing.value = false;
+    const cancelBooking = async (bookingId) => {
+      if (!confirm('Bạn có chắc muốn hủy booking này không?')) return;
+
+      isLoading.value = true;
       errorMessage.value = '';
-      errors.value = {
-        type: '',
-        customer_name: '',
-        customer_phone: '',
-        check_in_date: '',
-        check_out_date: '',
-        booking_date: '',
-        booking_time: '',
-        quantity: '',
-        room_table: '',
-        menu_id: '',
-        note: '',
-      };
-    };
-
-    const loadBookingToForm = (booking) => {
-      form.value = {
-        booking_id: booking.booking_id || null,
-        type: booking.type || '',
-        customer_name: booking.customer_name || '',
-        customer_phone: booking.customer_phone || '',
-        check_in_date: booking.check_in_date ? booking.check_in_date.split('T')[0] : '',
-        check_out_date: booking.check_out_date ? booking.check_out_date.split('T')[0] : '',
-        booking_date: booking.booking_date ? booking.booking_date.split('T')[0] : '',
-        booking_time: booking.booking_time ? booking.booking_time.slice(0, 5) : '',
-        quantity: booking.quantity || 1,
-        room_id: booking.room_id || null,
-        table_id: booking.table_id || null,
-        menu_id: booking.menu_id || null,
-        note: booking.note || '',
-        status: booking.status || 'pending',
-      };
-      isEditing.value = true;
-    };
-
-    const xoaBooking = async (id) => {
-      if (!confirm('Bạn có chắc chắn muốn xóa booking này không?')) return;
-
       try {
-        const booking = bookings.value.find((b) => b.booking_id === id);
+        const booking = bookings.value.find(b => b.booking_id === bookingId);
         if (!booking) throw new Error('Không tìm thấy booking');
+        console.log('Trước khi hủy:', {
+          bookingId,
+          bookingType: booking.booking_type,
+          bookingStatus: booking.status,
+          roomId: booking.room_id,
+          tableId: booking.table_id
+        });
 
-        if (booking.type === 'room' && booking.room_id) {
-          try {
-            await retryRequest(() => api.patch(`/rooms/${booking.room_id}`, { status: 'Trống' }));
-          } catch (err) {
-            console.error('Lỗi cập nhật trạng thái phòng:', err);
-            errorMessage.value += ' Lỗi khi cập nhật trạng thái phòng.';
-          }
-        }
-        if (booking.type === 'table' && booking.table_id) {
-          try {
-            await retryRequest(() => api.patch(`/tables/${booking.table_id}`, { status: 'Trống' }));
-          } catch (err) {
-            console.error('Lỗi cập nhật trạng thái bàn:', err);
-            errorMessage.value += ' Lỗi khi cập nhật trạng thái bàn.';
-          }
+        // Gửi yêu cầu hủy booking
+        const patchResponse = await retryRequest(() => api.patch(`/bookings/${bookingId}/confirm`, { status: 'cancelled' }));
+        console.log('Response từ PATCH /bookings (cancel):', patchResponse.data);
+
+        if (patchResponse.data.data?.status !== 'cancelled') {
+          throw new Error('Server không cập nhật trạng thái thành cancelled');
         }
 
-        await retryRequest(() => api.delete(`/bookings/${id}`));
-        successMessage.value = 'Xóa booking thành công';
+        // Cập nhật trạng thái cục bộ
+        booking.status = 'cancelled';
+        console.log('Đã cập nhật trạng thái cục bộ booking sang cancelled');
+
+        // Trì hoãn để server xử lý cập nhật room/table
+        await new Promise(resolve => setTimeout(resolve, 1000));
         await fetchBookings();
         await fetchFormData();
-      } catch (error) {
-        console.error('Lỗi xóa booking:', error);
-        if (error.code === 'ECONNABORTED') {
-          errorMessage.value = 'Không thể kết nối đến server. Vui lòng kiểm tra kết nối mạng hoặc thử lại.';
-        } else if (error.response) {
-          errorMessage.value = `Xóa booking thất bại: ${error.response.data.message || 'Lỗi server'}`;
-        } else {
-          errorMessage.value = 'Xóa booking thất bại. Vui lòng thử lại.';
+
+        // Kiểm tra trạng thái room/table sau khi hủy
+        if (booking.booking_type === 'room' && booking.room_id) {
+          const room = rooms.value.find(r => r.room_id === booking.room_id);
+          console.log('Trạng thái phòng sau hủy:', {
+            roomId: booking.room_id,
+            roomName: room?.room_name,
+            status: room?.status ?? 'Không tìm thấy'
+          });
+          if (room?.status !== 'Trống') {
+            errorMessage.value = 'Cảnh báo: Trạng thái phòng chưa được cập nhật thành Trống';
+          }
+        } else if (booking.booking_type === 'table' && booking.table_id) {
+          const table = tables.value.find(t => t.table_id === booking.table_id);
+          console.log('Trạng thái bàn sau hủy:', {
+            tableId: booking.table_id,
+            tableName: table?.table_name,
+            status: table?.status ?? 'Không tìm thấy'
+          });
+          if (table?.status !== 'Trống') {
+            errorMessage.value = 'Cảnh báo: Trạng thái bàn chưa được cập nhật thành Trống';
+          }
         }
+
+        successMessage.value = 'Hủy booking thành công';
+      } catch (error) {
+        console.error('Lỗi khi hủy booking:', error.response?.data || error.message);
+        errorMessage.value = error.response?.data?.message || 'Hủy booking thất bại';
+        if (error.response?.status === 422) {
+          const backendErrors = error.response.data.errors || {};
+          errorMessage.value += ': ' + Object.values(backendErrors).flat().join(', ');
+        }
+      } finally {
+        isLoading.value = false;
+      }
+    };
+
+    const xoaBooking = async (bookingId) => {
+      if (!confirm('Bạn có chắc chắn muốn xóa booking này không?')) return;
+
+      isLoading.value = true;
+      errorMessage.value = '';
+      try {
+        const booking = bookings.value.find(b => b.booking_id === bookingId);
+        if (!booking) throw new Error('Không tìm thấy booking');
+
+        if (booking.status === 'confirmed') {
+          if (!confirm('Booking này đã được xác nhận. Bạn có muốn hủy trước khi xóa không?')) return;
+          await cancelBooking(bookingId);
+        }
+
+        await retryRequest(() => api.delete(`/bookings/${bookingId}`));
+        await fetchBookings();
+        await fetchFormData();
+        successMessage.value = 'Xóa booking thành công';
+      } catch (error) {
+        console.error('Lỗi khi xóa booking:', error.response?.data || error.message);
+        errorMessage.value = error.response?.data?.message || 'Xóa booking thất bại';
+      } finally {
+        isLoading.value = false;
       }
     };
 
     const formatDate = (date) => {
       if (!date) return '-';
       try {
-        return new Date(date).toLocaleDateString('vi-VN');
+        const normalizedDate = date.includes('T') ? date.split('T')[0] : date;
+        const d = new Date(normalizedDate);
+        if (isNaN(d.getTime())) return date;
+        return d.toLocaleDateString('vi-VN', {
+          day: '2-digit',
+          month: '2-digit',
+          year: 'numeric'
+        });
       } catch (error) {
-        console.error('Lỗi định dạng ngày:', error);
         return '-';
       }
     };
 
     const formatStatus = (status) => {
-      return (
-        {
-          pending: 'Chờ xác nhận',
-          confirmed: 'Đã xác nhận',
-          cancelled: 'Đã hủy',
-        }[status] ||
-        status ||
-        '-'
-      );
+      return { pending: 'Chờ xác nhận', confirmed: 'Đã xác nhận', cancelled: 'Đã hủy' }[status] || '-';
     };
 
     const formatPrice = (value) => {
-      return new Intl.NumberFormat('vi-VN', {
-        style: 'currency',
-        currency: 'VND',
-      }).format(value || 0);
+      return new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(value || 0);
     };
 
     return {
@@ -1053,43 +944,42 @@ export default {
       tuKhoa,
       locTheoTrangThai,
       laModalMo,
-      bookingDangSua,
-      hasStatus,
+      isEditing,
+      isLoading,
       successMessage,
-      bookingLoc,
-      bookingHienThi,
+      errorMessage,
       trangHienTai,
       soBookingMoiTrang,
-      tongSoTrang,
-      trangHienThi,
       form,
+      errors,
       rooms,
       tables,
       menus,
-      isEditing,
-      isLoading,
-      errorMessage,
-      errors,
       minDate,
       minCheckOutDate,
       minTime,
       availableRooms,
       availableTables,
+      bookingLoc,
+      bookingHienThi,
+      tongSoTrang,
+      trangHienThi,
       moModalThem,
       moModalSua,
       dongModal,
+      resetForm,
       onTypeChange,
       onQuantityChange,
+      validateForm,
       submitBooking,
       confirmBooking,
+      cancelBooking,
       xoaBooking,
-      resetForm,
-      loadBookingToForm,
       formatDate,
       formatStatus,
-      formatPrice,
+      formatPrice
     };
-  },
+  }
 };
 </script>
 
@@ -1098,149 +988,58 @@ export default {
   background: linear-gradient(135deg, #3f8dd6, #2acabd);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
-  background-clip: text;
-  text-fill-color: transparent;
 }
-
-.table th,
-.status {
-  text-align: center;
-}
-
-.table th,
-.table td {
-  vertical-align: middle;
-  padding: 12px 15px;
-  font-size: 15px;
-  color: #444;
-  border: 1px solid #dee2e6;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
 .table thead {
   background: linear-gradient(135deg, #3f8dd6, #2acabd);
   color: white;
-  font-weight: 600;
 }
-
 .table tbody tr:hover {
   background-color: #e6f4ea;
-  cursor: pointer;
-  transition: background-color 0.3s ease;
 }
-
-.badge {
-  font-size: 0.9rem;
-  padding: 5px 10px;
-  border-radius: 12px;
-  font-weight: 500;
-}
-
-.modal-content {
-  border-radius: 12px;
-  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
-}
-
 .modal-header {
   background: linear-gradient(135deg, #3f8dd6, #2acabd);
   color: white;
-  border-bottom: none;
-  font-weight: 700;
 }
-
-.modal-footer {
-  border-top: none;
-}
-
-.btn-close {
-  filter: invert(1);
-  opacity: 0.8;
-}
-
-.btn-close:hover {
-  opacity: 1;
-}
-
 .btn-success {
   background: linear-gradient(135deg, #1199f3, #2acabd);
   border: none;
-  font-weight: 600;
-  transition: transform 0.2s, box-shadow 0.2s;
 }
-
 .btn-success:hover {
   transform: translateY(-2px);
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
 }
-
 .btn-danger {
   background: linear-gradient(135deg, #dc3545, #bb2d3b);
   border: none;
-  font-weight: 600;
-  transition: transform 0.2s, box-shadow 0.2s;
 }
-
 .btn-danger:hover {
   transform: translateY(-2px);
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
 }
-
-.btn-secondary {
-  background: linear-gradient(135deg, #6c757d, #5c636a);
+.btn-primary {
+  background: linear-gradient(135deg, #0d6efd, #0b5ed7);
   border: none;
-  font-weight: 600;
-  transition: transform 0.2s, box-shadow 0.2s;
 }
-
-.btn-secondary:hover {
+.btn-primary:hover {
   transform: translateY(-2px);
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
 }
-
-.pagination {
-  gap: 8px;
+.btn-warning {
+  background: linear-gradient(135deg, #ffc107, #e0a800);
+  border: none;
 }
-
+.btn-warning:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
 .pagination .page-item .page-link {
   background: linear-gradient(135deg, #1199f3, #2acabd);
   color: transparent;
   -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  border: none;
   border-radius: 8px;
-  padding: 8px 12px;
-  font-weight: 500;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
-
 .pagination .page-item.active .page-link {
   background: linear-gradient(135deg, #1199f3, #2acabd);
   color: white;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-}
-
-.pagination .page-item.disabled .page-link {
-  background: #f8f9fa;
-  color: #6c757d;
-  cursor: not-allowed;
-  box-shadow: none;
-}
-
-.pagination .page-item .page-link:hover:not(.disabled) {
-  background: linear-gradient(135deg, #2acabd, #1199f3);
-  color: white;
-  transform: translateY(-2px);
-}
-
-.form-control.is-invalid,
-.form-select.is-invalid {
-  border-color: #dc3545;
-}
-
-option:disabled {
-  color: #6c757d;
-  background-color: #f8f9fa;
 }
 </style>

@@ -22,6 +22,7 @@
           <option value="">Tất cả trạng thái</option>
           <option value="Trống">Trống</option>
           <option value="Đã đặt">Đã đặt</option>
+          <option value="Chờ xác nhận">Chờ xác nhận</option>
           <option value="Bảo trì">Bảo trì</option>
         </select>
       </div>
@@ -50,6 +51,7 @@
                   badge: true,
                   'bg-success': phong.status === 'Trống',
                   'bg-danger': phong.status === 'Đã đặt',
+                  'bg-warning text-dark ': phong.status === 'Chờ xác nhận',
                   'bg-warning text-dark': phong.status === 'Bảo trì'
                 }"
               >
@@ -156,6 +158,7 @@
               <select v-model="phongMoi.status" class="form-select">
                 <option value="Trống">Trống</option>
                 <option value="Đã đặt">Đã đặt</option>
+                <option value="Chờ xác nhận">Chờ xác nhận</option>
                 <option value="Bảo trì">Bảo trì</option>
               </select>
             </div>
@@ -204,15 +207,20 @@ export default {
       description: "",
     });
     const trangHienTai = ref(1);
-    const soPhongMoiTrang = 5;
+    const soPhongMoiTrang = 10;
 
     const fetchRooms = async () => {
       try {
         const res = await axios.get("http://localhost:8000/api/rooms");
-        phong.value = res.data;
+        phong.value = res.data.data || res.data;
+        console.log('Đã tải danh sách phòng:', phong.value.map(p => ({
+          id: p.room_id,
+          name: p.room_name,
+          status: p.status
+        })));
       } catch (error) {
         alert("Lấy dữ liệu phòng thất bại");
-        console.error(error);
+        console.error('Lỗi tải phòng:', error.response?.data || error.message);
       }
     };
 
@@ -297,13 +305,13 @@ export default {
             phong.value[index] = { ...phongMoi.value, room_id: phongDangSua.value.room_id };
         } else {
           const res = await axios.post("http://localhost:8000/api/rooms", phongMoi.value);
-          phong.value.push(res.data);
+          phong.value.push(res.data.data || res.data);
         }
         trangHienTai.value = 1;
         dongModal();
       } catch (error) {
         alert("Lưu phòng thất bại");
-        console.error(error);
+        console.error('Lỗi lưu phòng:', error.response?.data || error.message);
       }
     };
 
@@ -317,13 +325,13 @@ export default {
           }
         } catch (error) {
           alert("Xóa phòng thất bại");
-          console.error(error);
+          console.error('Lỗi xóa phòng:', error.response?.data || error.message);
         }
       }
     };
 
     const formatPrice = (price) => {
-      return price.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".") + " VNĐ";
+      return new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(price || 0);
     };
 
     return {

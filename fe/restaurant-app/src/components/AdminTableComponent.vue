@@ -21,6 +21,7 @@
         <select v-model="locTrangThai" class="form-select">
           <option value="">Tất cả trạng thái</option>
           <option value="Trống">Trống</option>
+          <option value="Chờ xác nhận">Chờ xác nhận</option>
           <option value="Đã đặt">Đã đặt</option>
           <option value="Bảo trì">Bảo trì</option>
         </select>
@@ -48,6 +49,7 @@
                 :class="{
                   badge: true,
                   'bg-success': ban.status === 'Trống',
+                  'bg-warning text-dark ': ban.status === 'Chờ xác nhận',
                   'bg-danger': ban.status === 'Đã đặt',
                   'bg-warning text-dark': ban.status === 'Bảo trì'
                 }"
@@ -149,6 +151,7 @@
               <label class="form-label">Trạng Thái</label>
               <select v-model="banMoi.status" class="form-select">
                 <option value="Trống">Trống</option>
+                <option value="Chờ xác nhận">Chờ xác nhận</option>
                 <option value="Đã đặt">Đã đặt</option>
                 <option value="Bảo trì">Bảo trì</option>
               </select>
@@ -191,7 +194,7 @@ export default {
       description: "",
     });
     const trangHienTai = ref(1);
-    const soBanMoiTrang = 5;
+    const soBanMoiTrang = 10;
 
     // Lấy danh sách bàn từ API
     const fetchTables = async () => {

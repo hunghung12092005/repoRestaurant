@@ -34,10 +34,12 @@ Route::put('/tables/{id}', [TableController::class, 'update']);
 Route::delete('/tables/{id}', [TableController::class, 'destroy']);
 
 Route::get('/bookings', [BookingController::class, 'index']);
-Route::post('/bookings', [BookingController::class, 'store']);
 Route::get('/bookings/{id}', [BookingController::class, 'show']);
+Route::post('/bookings', [BookingController::class, 'store']);
 Route::put('/bookings/{id}', [BookingController::class, 'update']);
 Route::delete('/bookings/{id}', [BookingController::class, 'destroy']);
+Route::patch('/bookings/{bookingId}/confirm', [BookingController::class, 'confirm'])->name('bookings.confirm');
+
 Route::get('/menu-items', [MenuItemController::class, 'index']);
 //bán hàng online
 Route::get('/items-online', [ShopOnlineController::class, 'index']);

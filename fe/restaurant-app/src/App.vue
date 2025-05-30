@@ -1,8 +1,6 @@
 <template>
   <div>
-    <!-- Kiểm tra nếu route là /admin thì hiển thị layout admin -->
     <div v-if="$route.path.startsWith('/admin')" class="d-flex">
-      <!-- Sidebar -->
       <div class="sidebar">
         <div class="header text-center p-3 border-bottom">
           <img src="https://i.postimg.cc/s2Ywg6YR/logo.png" alt="Luxuria Logo" class="rounded-circle" />
@@ -20,11 +18,10 @@
           </div>
         </div>
         <ul class="nav flex-column">
-          <li class="nav-item "><router-link class="nav-link" to="/admin/dashboard"><i class="bi bi-grid"></i> Dashboard</router-link></li>
+          <li class="nav-item"><router-link class="nav-link" to="/admin/dashboard"><i class="bi bi-grid"></i> Dashboard</router-link></li>
           <li class="nav-item"><router-link class="nav-link" to="/admin/occupancy"><i class="bi bi-house-door"></i> Occupancy <span class="badge bg-danger">5</span></router-link></li>
           <li class="nav-item"><router-link class="nav-link" to="/admin/bookings"><i class="bi bi-book"></i> Bookings</router-link></li>
           <li class="nav-item"><router-link class="nav-link" to="/admin/rooms"><i class="bi bi-building"></i> Rooms</router-link></li>
-          <li class="nav-item"><router-link class="nav-link" to="/admin/tables"><i class="bi bi-building"></i> Tables</router-link></li>
           <li class="nav-item"><router-link class="nav-link" to="/admin/staffs"><i class="bi bi-people"></i> Staffs</router-link></li>
           <li class="nav-item"><router-link class="nav-link" to="/admin/departments"><i class="bi bi-gear"></i> Departments</router-link></li>
           <li class="nav-item"><router-link class="nav-link" to="/admin/housekeeping"><i class="bi bi-house"></i> Housekeeping</router-link></li>
@@ -36,7 +33,7 @@
       <!-- Main Content -->
       <div class="main-content">
         <!-- Top Navbar -->
-        <div class="navbar-top" :class="{ 'scrolled': navbarActive }">
+        <div class="navbar-top" :class="{ 'scrolled': navbarSticky }">
           <div class="d-flex align-items-center">
             <i class="bi bi-globe"></i>
             <i class="bi bi-bell mx-3"></i>
@@ -55,7 +52,7 @@
     <!-- Layout cho các route không phải admin -->
     <div v-else>
       <header ref="headerRef">
-        <nav class="navbar navbar-expand-lg navbar-light fixed-top" :class="{ 'active': navbarActive }">
+        <nav class="navbar navbar-expand-lg navbar-light fixed-top" :class="{ 'active': navbarSticky }">
           <div class="container-fluid">
             <!-- Logo -->
             <a class="navbar-brand" href="/">
@@ -93,7 +90,7 @@
                   </a>
                   <ul class="dropdown-menu dropdown-menu-end">
                     <li><router-link class="dropdown-item" to="/testJwt">testJwt</router-link></li>
-                    <li v-if="isAdmin"><a class="dropdown-item" @click.prevent="adminPanel">Vào admin</a></li>
+                    <li v-if="isAdmin"><router-link class="dropdown-item" to="/admin">Vào admin</router-link></li>
                     <li><a class="dropdown-item logout-link" @click.prevent="logout">Đăng Xuất</a></li>
                   </ul>
                 </li>
@@ -115,80 +112,143 @@
 
 <script setup>
 import { ref, onMounted, onUnmounted } from 'vue';
-import { useRoute } from 'vue-router';
+import { useRoute, useRouter } from 'vue-router';
 import axiosConfig from './axiosConfig.js';
 import { provide } from 'vue';
 
 const route = useRoute();
+const router = useRouter();
 const headerRef = ref(null);
 const navbarRef = ref(null);
 const navbarActive = ref(false);
+const navbarSticky = ref(false);
 const userInfo = ref(null);
 const isLogin = ref(false);
 const isAdmin = ref(false);
 const apiUrl = 'http://localhost:8000';
 provide('apiUrl', apiUrl);
+
+const lastScrollPosition = ref(0);
+
 const toggleMenu = () => {
   navbarActive.value = !navbarActive.value;
 };
 
-// const handleScroll = () => {
-//   if (headerRef.value || route.path.startsWith('/admin')) {
-//     navbarActive.value = window.scrollY > 50;
-//   }
-// };
+const handleScroll = () => {
+  if (headerRef.value || route.path.startsWith('/admin')) {
+    const currentScrollPosition = window.scrollY;
+    navbarSticky.value = currentScrollPosition > 50;
+    lastScrollPosition.value = currentScrollPosition;
+  }
+};
+
+const handleOutsideClick = (event) => {
+  if (window.innerWidth <= 991 && navbarActive.value && navbarRef.value) {
+    const isClickInside = navbarRef.value.contains(event.target);
+    const isToggleButton = event.target.closest('.navbar-toggler');
+    if (!isClickInside && !isToggleButton) {
+      navbarActive.value = false;
+    }
+  }
+};
+
+const restoreUserSession = () => {
+  const storedToken = localStorage.getItem('tokenJwt');
+  const storedUser = localStorage.getItem('userInfo');
+  if (storedToken && storedUser) {
+    try {
+      userInfo.value = JSON.parse(storedUser);
+      isLogin.value = true;
+      isAdmin.value = userInfo.value.role === 'admin';
+    } catch (e) {
+      console.error('Error parsing stored user info:', e);
+      logout();
+    }
+  }
+};
 
 const fetchUserInfo = async () => {
+  const token = localStorage.getItem('tokenJwt');
+  if (!token) {
+    isLogin.value = false;
+    isAdmin.value = false;
+    return;
+  }
+
   try {
     const response = await axiosConfig.get('http://127.0.0.1:8000/api/protected');
     userInfo.value = response.data.user;
     isLogin.value = true;
-    if (userInfo.value.role === 'admin') {
-      isAdmin.value = true;
-    } else {
-      isAdmin.value = false;
-    }
+    isAdmin.value = userInfo.value.role === 'admin';
   } catch (error) {
     console.error('Error fetching user info:', error.response ? error.response.data : error.message);
+    if (error.response?.status === 401) {
+      logout(); // Xóa token và đăng xuất nếu token không hợp lệ
+    }
   }
 };
 
-const urlParams = new URLSearchParams(window.location.search);
-const token = urlParams.get('token');
-const user = urlParams.get('user');
+const handleUrlParams = () => {
+  const urlParams = new URLSearchParams(window.location.search);
+  const token = urlParams.get('token');
+  const user = urlParams.get('user');
 
-if (token && user) {
-  localStorage.setItem('tokenJwt', token);
-  localStorage.setItem('userInfo', user);
-  userInfo.value = JSON.parse(user);
-}
-
-const goToProfile = () => {
-  window.location.href = '/admin/profile';
-};
-
-const editProfile = () => {
-  window.location.href = '/admin/edit-profile';
+  if (token && user) {
+    localStorage.setItem('tokenJwt', token);
+    try {
+      const parsedUser = JSON.parse(user);
+      localStorage.setItem('userInfo', user);
+      userInfo.value = parsedUser;
+      isLogin.value = true;
+      isAdmin.value = parsedUser.role === 'admin';
+      // Xóa query params khỏi URL
+      router.replace({ query: {} });
+    } catch (e) {
+      console.error('Error parsing user from URL:', e);
+    }
+  }
 };
 
 const logout = () => {
   localStorage.removeItem('tokenJwt');
   localStorage.removeItem('userInfo');
-  window.location.href = '/';
+  userInfo.value = null;
+  isLogin.value = false;
+  isAdmin.value = false;
+  router.push('/');
 };
 
-const adminPanel = () => {
-  window.location.href = '/admin';
+const goToProfile = () => {
+  router.push('/admin/profile');
 };
 
-onMounted(() => {
-  fetchUserInfo();
-  //window.addEventListener('scroll', handleScroll);
+const editProfile = () => {
+  router.push('/admin/edit-profile');
+};
+
+// Navigation guard để bảo vệ route admin
+router.beforeEach((to, from, next) => {
+  const isAuthenticated = !!localStorage.getItem('tokenJwt');
+  const isAdminUser = userInfo.value?.role === 'admin';
+
+  if (to.path.startsWith('/admin') && (!isAuthenticated || !isAdminUser)) {
+    next('/'); // Chuyển về trang chủ nếu không đăng nhập hoặc không phải admin
+  } else {
+    next();
+  }
 });
 
+onMounted(() => {
+  restoreUserSession(); // Khôi phục phiên từ localStorage
+  handleUrlParams(); // Xử lý token/user từ URL nếu có
+  fetchUserInfo(); // Lấy thông tin người dùng từ API
+  window.addEventListener('scroll', handleScroll);
+  document.addEventListener('click', handleOutsideClick);
+});
 
 onUnmounted(() => {
   window.removeEventListener('scroll', handleScroll);
+  document.removeEventListener('click', handleOutsideClick);
 });
 </script>
 
@@ -237,6 +297,10 @@ onUnmounted(() => {
 .navbar.active .nav-link,
 .navbar.active .dropdown-toggle {
   color: #fff !important;
+}
+
+.navbar.active .navbar-toggler-icon {
+  filter: brightness(0) invert(1);
 }
 
 .logo-img {
@@ -310,13 +374,12 @@ body {
   position: fixed;
   width: 250px;
   z-index: 1000;
-  overflow-y: auto; /* Enable vertical scrolling */
-  scrollbar-width: none; /* Hide scrollbar for Firefox */
+  overflow-y: auto;
+  scrollbar-width: none;
 }
 
-/* Hide scrollbar for WebKit browsers (Chrome, Safari, etc.) */
 .sidebar::-webkit-scrollbar {
-  display: none; /* Hide the scrollbar */
+  display: none;
 }
 
 .sidebar .header {
@@ -495,6 +558,10 @@ body {
     color: #000 !important;
   }
 
+  .navbar.active .navbar-toggler-icon {
+    filter: brightness(0) invert(1);
+  }
+
   .nav-link:hover,
   .dropdown-item:hover {
     background-color: var(--main-color);
@@ -506,17 +573,16 @@ body {
     margin-left: 10px;
   }
 
-  /* Admin mobile styles */
   .sidebar {
     width: 200px;
     transform: translateX(-100%);
     transition: transform 0.3s ease-in-out;
-    overflow-y: auto; /* Ensure scrolling on mobile */
-    scrollbar-width: none; /* Hide scrollbar for Firefox */
+    overflow-y: auto;
+    scrollbar-width: none;
   }
 
   .sidebar::-webkit-scrollbar {
-    display: none; /* Hide scrollbar for WebKit browsers */
+    display: none;
   }
 
   .sidebar.show {
@@ -535,6 +601,14 @@ body {
 
   .admin-main {
     padding-top: 70px;
+  }
+}
+
+@media (min-width: 992px) {
+  .navbar.active .navbar-brand,
+  .navbar.active .nav-link,
+  .navbar.active .dropdown-toggle {
+    color: #fff !important;
   }
 }
 </style>

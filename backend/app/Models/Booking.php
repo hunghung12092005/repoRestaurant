@@ -11,6 +11,7 @@ class Booking extends Model
         'customer_phone',
         'booking_type',
         'booking_date',
+        'check_in_date',
         'check_out_date',
         'booking_time',
         'quantity',

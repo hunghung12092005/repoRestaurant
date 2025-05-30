@@ -1,7 +1,6 @@
 <template>
-        <loading v-if="isLoading" />
-
-    <!-- <section class="home" id="home">
+    <!-- <loading v-if="isLoading" /> -->
+    <section class="home" id="home">
         <div class="home-text">
 
             <!-- <span>hh to our</span>
@@ -20,7 +19,7 @@
             <img src="https://png.pngtree.com/png-clipart/20240318/original/pngtree-cutout-isolated-background-young-adult-asian-travel-couple-carry-luggage-for-png-image_14613197.png" alt="food image">
             <img src="https://i.postimg.cc/gJBk5PMz/salad.png" alt="food image">
         </div>
-    </section> -->
+    </section> 
     <sliderComponent />
 
     <section class="about" id="about">
