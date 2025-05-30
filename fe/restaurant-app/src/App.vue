@@ -27,6 +27,8 @@
               Bookings</router-link></li>
           <li class="nav-item"><router-link class="nav-link" to="/admin/rooms"><i class="bi bi-building"></i>
               Rooms</router-link></li>
+          <li class="nav-item"><router-link class="nav-link" to="/admin/tables"><i class="bi bi-building"></i>
+              Tables</router-link></li>
           <li class="nav-item"><router-link class="nav-link" to="/admin/staffs"><i class="bi bi-people"></i>
               Staffs</router-link></li>
           <li class="nav-item"><router-link class="nav-link" to="/admin/departments"><i class="bi bi-gear"></i>
