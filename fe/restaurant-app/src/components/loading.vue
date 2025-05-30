@@ -1,17 +1,7 @@
 <template>
 <div class="spinner-overlay">
-    <div class="spinner">
-        <div></div>   
-        <div></div>    
-        <div></div>    
-        <div></div>    
-        <div></div>    
-        <div></div>    
-        <div></div>    
-        <div></div>    
-        <div></div>    
-        <div></div>    
-    </div>
+    <!-- From Uiverse.io by cohencoo --> 
+<div class="custom-loader"></div>
 </div>
 </template>
 <style scoped>
@@ -22,95 +12,56 @@
     left: 0; /* Căn sang trái */
     width: 100%; /* Chiều rộng toàn bộ màn hình */
     height: 100%; /* Chiều cao toàn bộ màn hình */
-    background-color: rgba(4, 5, 5, 0.3); /* Nền mờ */
+    background-color: rgba(35, 36, 32, 0.6); /* Nền mờ */
     display: flex; /* Sử dụng flex để căn giữa */
     justify-content: center; /* Căn giữa theo chiều ngang */
     align-items: center; /* Căn giữa theo chiều dọc */
     z-index: 9998; /* Đảm bảo nằm dưới spinner */
 }
 
-.spinner {
-    position: relative; /* Đặt spinner ở vị trí tương đối */
-    width: 9px; /* Kích thước của spinner */
-    height: 9px; /* Kích thước của spinner */
-    z-index: 9999; /* Đảm bảo spinner nằm trên lớp overlay */
-}
-.spinner div {
-  position: absolute;
-  width: 50%;
-  height: 150%;
-  background: #000000;
-  transform: rotate(calc(var(--rotation) * 1deg)) translate(0, calc(var(--translation) * 1%));
-  animation: spinner-fzua35 1s calc(var(--delay) * 1s) infinite ease;
-}
-
-.spinner div:nth-child(1) {
-  --delay: 0.1;
-  --rotation: 36;
-  --translation: 150;
+/* From Uiverse.io by cohencoo */ 
+.custom-loader {
+  width: 70px;
+  height: 70px;
+  background: #f3720a;
+  border-radius: 50px;
+  -webkit-mask: radial-gradient(circle 31px at 50% calc(100% + 13px),#000 95%,#0000) top 4px left 50%,
+    radial-gradient(circle 31px,#000 95%,#0000) center,
+    radial-gradient(circle 31px at 50% -13px,#000 95%,#0000) bottom 4px left 50%,
+    linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  -webkit-mask-repeat: no-repeat;
+  animation: cu10 1.5s infinite;
 }
 
-.spinner div:nth-child(2) {
-  --delay: 0.2;
-  --rotation: 72;
-  --translation: 150;
-}
+@keyframes cu10 {
+  0% {
+    -webkit-mask-size: 0    18px,0    18px,0    18px,auto
+  }
 
-.spinner div:nth-child(3) {
-  --delay: 0.3;
-  --rotation: 108;
-  --translation: 150;
-}
+  16.67% {
+    -webkit-mask-size: 100% 18px,0    18px,0    18px,auto
+  }
 
-.spinner div:nth-child(4) {
-  --delay: 0.4;
-  --rotation: 144;
-  --translation: 150;
-}
-
-.spinner div:nth-child(5) {
-  --delay: 0.5;
-  --rotation: 180;
-  --translation: 150;
-}
-
-.spinner div:nth-child(6) {
-  --delay: 0.6;
-  --rotation: 216;
-  --translation: 150;
-}
-
-.spinner div:nth-child(7) {
-  --delay: 0.7;
-  --rotation: 252;
-  --translation: 150;
-}
-
-.spinner div:nth-child(8) {
-  --delay: 0.8;
-  --rotation: 288;
-  --translation: 150;
-}
-
-.spinner div:nth-child(9) {
-  --delay: 0.9;
-  --rotation: 324;
-  --translation: 150;
-}
-
-.spinner div:nth-child(10) {
-  --delay: 1;
-  --rotation: 360;
-  --translation: 150;
-}
-
-@keyframes spinner-fzua35 {
-  0%, 10%, 20%, 30%, 50%, 60%, 70%, 80%, 90%, 100% {
-    transform: rotate(calc(var(--rotation) * 1deg)) translate(0, calc(var(--translation) * 1%));
+  33.33% {
+    -webkit-mask-size: 100% 18px,100% 18px,0    18px,auto
   }
 
   50% {
-    transform: rotate(calc(var(--rotation) * 1deg)) translate(0, calc(var(--translation) * 1.5%));
+    -webkit-mask-size: 100% 18px,100% 18px,100% 18px,auto
+  }
+
+  66.67% {
+    -webkit-mask-size: 0    18px,100% 18px,100% 18px,auto
+  }
+
+  83.33% {
+    -webkit-mask-size: 0    18px,0    18px,100% 18px,auto
+  }
+
+  100% {
+    -webkit-mask-size: 0    18px,0    18px,0    18px,auto
   }
 }
 </style>

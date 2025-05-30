@@ -163,6 +163,10 @@ body .footer .content>div .image {
   }
 }
 @media (max-width: 600px) {
+  .footer {
+    width: 100%;
+    min-height: 20rem;
+  }
   body .footer .content {
     grid-template-columns: 1fr;
     text-align: center;

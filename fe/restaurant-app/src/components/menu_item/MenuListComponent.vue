@@ -16,6 +16,18 @@
       </div>
     </div>
   </div>
+  <section class="about mt-5" id="about">
+        <h1 class="mt-4">The menu today </h1>
+        <div class="about-container mb-2">
+            <div class="about-box" >
+                <div class="box-img">
+                    <img src="https://i.postimg.cc/TwS5bmvJ/about1.png" alt="about image">
+                </div>
+                <!-- <h3>{{ itemTop.Name }}</h3>
+                <h2> {{ itemTop.Price }}$</h2> -->
+            </div>
+        </div>
+    </section>
   <div class="menu-board">
     <!-- <AlertSuccess v-if="showAlert" message="Thêm món thành công!" message2="Đây là thông báo phụ!" /> -->
     <h1 class="main-title">Welcome to Our Delicious Menu</h1>
@@ -259,11 +271,82 @@ const getMenu = async () => {
     isLoading.value = false; // Kết thúc tải dữ liệu
   }
 };
+const topItems = ref([]);
+const fetchTopPriceItems = async () => {
+    try {
+        const response = await axios.get(`${apiUrl}/api/menu-items`);
+        topItems.value = response.data.topPriceItems;
+    } catch (error) {
+        console.error('Lỗi khi lấy dữ liệu:', error);
+    }
+};
 onMounted(() => {
   getMenu();
+  fetchTopPriceItems();
 });
 </script>
 <style scoped>
+/* About Section */
+
+.about {
+    display: flex;
+    align-items: center;
+    flex-direction: column;
+    background: url('https://duonggiahotel.vn/wp-content/uploads/2023/09/nha-hang-da-nang-01.jpg') no-repeat center;
+    background-size: cover;
+}
+
+.about h1 {
+    font-size: 2rem;
+    color: #FFF;
+    margin-bottom: 2rem;
+    text-transform: uppercase;
+}
+
+.about-container {
+    /* background: #FFF; */
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    border-radius: 10px;
+    border-top: 6px solid var(--main-color);
+    padding: 20px;
+    gap: 2rem;
+}
+
+.box-img {
+    width: 200px;
+    height: 200px;
+}
+
+.box-img img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    object-position: center;
+}
+
+.about-box {
+    flex: 1 1 8rem;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+}
+
+.about-box h2 {
+    font-size: 1.2rem;
+    color: white;
+    letter-spacing: 1px;
+}
+
+.about-box h3 {
+    font-size: 1rem;
+    color: white;
+    font-weight: 500;
+    margin: 0 0 0.5rem;
+}
+/* end deal today */
 .fix-left {
   position: fixed;
   /* Đặt vị trí cố định */

@@ -2,12 +2,12 @@
   <div class="reservations-component">
     <!-- Hero Section -->
     <div class="hero_single inner_pages">
-      <div class="opacity-mask" :style="{ backgroundColor: 'rgba(0, 0, 0, 0.6)' }">
+      <div class="opacity-mask" :style="{ backgroundColor: 'rgba(0, 0, 0, 0.4)' }">
         <div class="container">
           <div class="row justify-content-center">
             <div class="col-xl-9 col-lg-10 col-md-8 text-center">
-              <h1>Reserve a Table</h1>
-              <p>Per consequat adolescens ex cu nibh commune</p>
+              <h1>An Phú Ecosystem</h1>
+              <p>Đặt Bàn Online </p>
             </div>
           </div>
         </div>
@@ -26,8 +26,8 @@
           <div class="col-lg-6 col-md-8">
             <div class="main_title">
               <span><em></em></span>
-              <h2>Reserve a table</h2>
-              <p>or Call us at 0344 32423453</p>
+              <h2>Phục Vụ Tận Tâm Bởi Đầu Bếp Hạng A</h2>
+              <p>Sự Thoải Mái Của Bạn Làm Chúng Tôi Hài Lòng</p>
             </div>
             <div id="wizard_container">
               <form @submit.prevent="handleSubmit" id="wrapped">
@@ -165,8 +165,11 @@
       </div>
     </div>
   </div>
+<Footer></Footer>
 </template>
-
+<script setup>
+  import Footer from '../Footer.vue';
+</script>
 <script>
 export default {
   name: 'ReservationsComponent',
@@ -304,7 +307,7 @@ export default {
 }
 
 .hero_single {
-  background: url('/img/hero_reservation.jpg') no-repeat center center;
+  background: url('https://img.tripi.vn/cdn-cgi/image/width=700,height=700/https://gcs.tripi.vn/public-tripi/tripi-feed/img/478954HUx/anh-mo-ta.png') no-repeat center center;
   background-size: cover;
   position: relative;
   height: 300px;
