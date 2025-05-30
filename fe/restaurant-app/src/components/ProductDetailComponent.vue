@@ -1,12 +1,20 @@
 <template>
-  <div class="shop-details-area">
+  <div class="shop-details-area mt-5">
     <div class="container">
       <!-- Food Details Section -->
       <div class="row">
         <!-- Image -->
         <div class="col-lg-6 col-md-12">
-          <div class="shop-details-thumb wow custom-anim-left" data-wow-delay="0.2s">
-            <img :src="foodItem.image" :alt="foodItem.title">
+          <div class="shop-details-thumb wow custom-anim-left" data-wow-delay="0.2s" style="position: relative;">
+            <img :src="foodItem.image" :alt="foodItem.title" style="width: 100%;">
+            <img
+              src="https://media.istockphoto.com/id/1500686343/vector/rounded-label-with-flame-icon-and-text-hot-offer.jpg?s=612x612&w=0&k=20&c=UkZwRYbtum2RV3KYOiuKbi1xHyT-NdtmjhqwiuuRSHY="
+              alt="Second Image" class="overlay-image"
+              style=" width: 40%; height: auto; position: absolute; bottom: 10px; left: 10px;">
+            <img
+              src="https://marketplace.canva.com/EAGKDhXEhoY/1/0/1600w/canva-brown-and-white-simple-modern-professional-catering-logo-Dvz9NG3gqk0.jpg"
+              alt="Second Image" class="overlay-image"
+              style=" width: 25%; height: auto; position: absolute; top: 1px; right: 10px;">
           </div>
         </div>
         <!-- Details -->
@@ -25,9 +33,9 @@
           </div>
           <div class="shop-catagori-tag">
             <ul>
-              <li>SKU: <span>{{ foodItem.sku }}</span></li>
-              <li>Category: <span>{{ foodItem.category }}</span></li>
-              <li>Tag: <span>{{ foodItem.tag }}</span></li>
+              <li>Số lượt mua: <span>{{ foodItem.sku }}</span></li>
+              <li>Danh mục: <span>{{ foodItem.category }}</span></li>
+              <li>Thẻ: <span>{{ foodItem.tag }}</span></li>
             </ul>
           </div>
           <div class="shop-details-disc">
@@ -48,7 +56,7 @@
               </div>
             </div>
             <!-- Crust Selection -->
-            <div class="col-lg-6 col-md-6">
+            <!-- <div class="col-lg-6 col-md-6">
               <div class="widget-check-box">
                 <div class="widget-categories-title">
                   <h4>Select Crust</h4>
@@ -59,16 +67,19 @@
                   <span class="checkmark"></span>
                 </label>
               </div>
-            </div>
+            </div> -->
           </div>
           <!-- Quantity Input -->
-          <div class="shop-details-quantity">
-            <input type="number" v-model.number="quantity" min="1" max="100" step="1">
-          </div>
+          <input type="range" value="2" min="1" max="10">
           <!-- Add to Cart Button -->
-          <div class="shop-details-btn">
-            <button @click="addToCart">Add To Cart</button>
-          </div>
+          
+          <router-link class="m-2" to="/buynow"><button class="btn btn-success m-2">Đặt Nhận Tại Quán<div class="arrow-wrapper">
+              
+            </div></button></router-link>
+          <router-link to="/ghn"><button class="btn-main">Đặt Ship<div class="arrow-wrapper">
+              <div class="arrow"></div>
+            </div></button></router-link>
+
         </div>
       </div>
       <!-- Tabs Section -->
@@ -77,15 +88,13 @@
           <div class="appoinment-tab wow custom-anim-left" data-wow-delay="0.4s">
             <div class="tab">
               <ul class="tabs active">
-                <li :class="{ current: activeTab === 'description' }">
-                  <a href="#" @click.prevent="activeTab = 'description'">Description</a>
-                </li>
                 <li :class="{ current: activeTab === 'additional' }">
                   <a href="#" @click.prevent="activeTab = 'additional'">Additional Information</a>
                 </li>
-                <li :class="{ current: activeTab === 'reviews' }">
-                  <a href="#" @click.prevent="activeTab = 'reviews'">Review ({{ foodItem.reviews }})</a>
+                <li :class="{ current: activeTab === 'description' }">
+                  <a href="#" @click.prevent="activeTab = 'description'">Description</a>
                 </li>
+
               </ul>
               <div class="tab_content">
                 <!-- Description Tab -->
@@ -98,7 +107,8 @@
                 <div class="tabs_item" v-show="activeTab === 'additional'">
                   <table class="tab-items-table">
                     <tbody>
-                      <tr v-for="(info, key, index) in foodItem.additionalInfo" :key="key" :class="{ 'tabs-bg': index % 2 !== 0 }">
+                      <tr v-for="(info, key, index) in foodItem.additionalInfo" :key="key"
+                        :class="{ 'tabs-bg': index % 2 !== 0 }">
                         <td class="table-title">{{ key }}</td>
                         <td class="table-text">{{ info }}</td>
                       </tr>
@@ -106,70 +116,7 @@
                   </table>
                 </div>
                 <!-- Reviews Tab -->
-                <div class="tabs_item" v-show="activeTab === 'reviews'">
-                  <!-- Review -->
-                  <div class="post-comment" v-for="review in foodItem.reviewsData" :key="review.id">
-                    <div class="post-comment-thumb">
-                      <a :href="review.link"><img :src="review.image" :alt="review.author"></a>
-                    </div>
-                    <div class="post-content">
-                      <ul class="comment-icon-list">
-                        <li v-for="n in 5" :key="n" :class="n <= review.rating ? 'bi bi-star-fill' : 'bi bi-star'"></li>
-                      </ul>
-                      <h4 class="post-title">{{ review.author }} <span class="left-date">{{ review.date }}</span></h4>
-                      <p class="posts-reply">{{ review.comment }}</p>
-                      <span class="rights-reply"><i class="bi bi-reply-fill"></i>Reply</span>
-                    </div>
-                  </div>
-                  <!-- Add Review Form -->
-                  <div class="product-details-respond">
-                    <div class="contact-form-box2">
-                      <div class="sidebar-title">
-                        <h2>Add a Review</h2>
-                      </div>
-                      <div class="sidebar-description">
-                        <p>Your email address will not be published. Required fields are marked *</p>
-                      </div>
-                      <div class="sidebar-rating-list">
-                        <p class="sidebar-text">Your Ratings</p>
-                        <ul>
-                          <li v-for="n in 5" :key="n" @click="newReview.rating = n">
-                            <i :class="n <= newReview.rating ? 'bi bi-star-fill' : 'bi bi-star'"></i>
-                          </li>
-                        </ul>
-                      </div>
-                      <div class="contact-form-box2">
-                        <form @submit.prevent="submitReview">
-                          <div class="row">
-                            <div class="col-lg-6 col-md-6">
-                              <h6 class="form-title">Name*</h6>
-                              <div class="form-box">
-                                <input type="text" v-model="newReview.name" placeholder="Your Name" required>
-                              </div>
-                            </div>
-                            <div class="col-lg-6 col-md-6">
-                              <h6 class="form-title">Your E-Mail*</h6>
-                              <div class="form-box">
-                                <input type="email" v-model="newReview.email" placeholder="Enter E-Mail" required>
-                              </div>
-                            </div>
-                            <div class="col-lg-12">
-                              <div class="form-box">
-                                <h6 class="form-title">Comment*</h6>
-                                <textarea v-model="newReview.comment" cols="30" rows="10" placeholder="Write Comment" required></textarea>
-                              </div>
-                            </div>
-                            <div class="col-lg-12">
-                              <div class="contact-form">
-                                <button type="submit">Submit</button>
-                              </div>
-                            </div>
-                          </div>
-                        </form>
-                      </div>
-                    </div>
-                  </div>
-                </div>
+
               </div>
             </div>
           </div>
@@ -180,6 +127,8 @@
 </template>
 
 <script>
+import { ref } from 'vue';
+const foodItem = ref([]);
 export default {
   name: 'ProductDetailComponent',
   props: {
@@ -187,7 +136,7 @@ export default {
       type: Object,
       required: true,
       default: () => ({
-        image: 'https://images.unsplash.com/photo-1514326640560-7d063ef2aed5',
+        image: 'https://bizweb.dktcdn.net/100/350/142/products/0025-349-1-1-1-1728274747587.jpg?v=1728369802727',
         title: 'Signature BBQ Beef',
         rating: 5,
         reviews: 1,
@@ -225,7 +174,7 @@ export default {
   },
   data() {
     return {
-      activeTab: 'description',
+      activeTab: 'additional',
       selectedSizes: ['Large'],
       selectedCrusts: ['Double Crust'],
       quantity: 1,
@@ -241,20 +190,6 @@ export default {
     if (typeof WOW !== 'undefined') {
       new WOW().init();
     }
-  },
-  methods: {
-    addToCart() {
-      this.$emit('add-to-cart', {
-        foodItem: this.foodItem,
-        sizes: this.selectedSizes,
-        crusts: this.selectedCrusts,
-        quantity: this.quantity
-      });
-    },
-    submitReview() {
-      this.$emit('submit-review', { ...this.newReview });
-      this.newReview = { name: '', email: '', comment: '', rating: 0 };
-    }
   }
 };
 </script>
@@ -266,8 +201,15 @@ export default {
 }
 
 .shop-details-thumb img {
-  width: 100%;
+  width: 80%;
+  margin: 0 auto;
   border-radius: 10px;
+}
+
+@media (max-width: 767px) {
+  .shop-details-thumb img {
+    width: 100%;
+  }
 }
 
 .shop-details-title h2 {
@@ -369,12 +311,12 @@ export default {
   border-radius: 3px;
 }
 
-.widget-check input:checked ~ .checkmark {
+.widget-check input:checked~.checkmark {
   background-color: #ff6f61;
   border-color: #ff6f61;
 }
 
-.widget-check input:checked ~ .checkmark:after {
+.widget-check input:checked~.checkmark:after {
   content: '';
   position: absolute;
   display: block;
@@ -387,33 +329,8 @@ export default {
   left: 5px;
 }
 
-.shop-details-quantity input {
-  width: 80px;
-  height: 40px;
-  border: 1px solid #ccc;
-  border-radius: 5px;
-  text-align: center;
-  font-size: 14px;
-  margin-bottom: 20px;
-}
 
-.shop-details-btn button {
-  display: inline-block;
-  background-color: #ff6f61;
-  color: #fff;
-  font-size: 16px;
-  font-weight: 500;
-  padding: 12px 30px;
-  border: none;
-  border-radius: 5px;
-  text-transform: uppercase;
-  cursor: pointer;
-  transition: background-color 0.3s;
-}
 
-.shop-details-btn button:hover {
-  background-color: #e65a50;
-}
 
 .appoinment-tab .tabs {
   list-style: none;
@@ -631,13 +548,27 @@ export default {
 }
 
 @keyframes bounce2 {
-  0%, 100% { transform: translateY(0); }
-  50% { transform: translateY(-20px); }
+
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+
+  50% {
+    transform: translateY(-20px);
+  }
 }
 
 @keyframes bounce3 {
-  0%, 100% { transform: translateY(0); }
-  50% { transform: translateY(-30px); }
+
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+
+  50% {
+    transform: translateY(-30px);
+  }
 }
 
 /* Responsive Styles */
@@ -677,7 +608,7 @@ export default {
     margin-bottom: 10px;
   }
 
-  .contact-form-box2 .row > div {
+  .contact-form-box2 .row>div {
     margin-bottom: 15px;
   }
 }

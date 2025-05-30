@@ -1,5 +1,5 @@
 <template>
-    <div class="main-login">
+    <div class="main-login mt-5">
         <form @submit.prevent="submitForm" class="form">
             <div v-if="errorMessage" class="alert alert-warning alert-dismissible fade show" role="alert">
                 {{ errorMessage }}
@@ -227,7 +227,12 @@ function showAlert(message) {
     border-radius: 20px;
     font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
 }
-
+@media (max-width: 600px) {
+    .form {
+        width: 95%;
+        padding: 20px;
+    }
+}
 ::placeholder {
     font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
 }

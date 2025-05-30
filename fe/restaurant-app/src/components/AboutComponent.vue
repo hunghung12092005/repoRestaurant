@@ -8,21 +8,30 @@
             <p>Nhà Hàng Vinpearl Thanh Hóa sẵn sàng phục vụ</p>
             <a href="#" class="btn">Xem  Menu</a>
         </div> -->
-      <div class="home-text">
-        <span>Sầm Sơn Beach</span>
-        <h1>An Phú Villa <br>Kính chào quý khách!</h1>
+      <div class="home-text mt-4">
+        <span class="">Sầm Sơn Beach</span>
+        <h1>An Phú Eco<br> Kính chào quý khách!</h1>
 
         <a href="/menu" class="btn">Xem Menu</a>
       </div>
       <div class="home-img">
-        <img
+        <!-- <img
           src="https://png.pngtree.com/png-clipart/20240318/original/pngtree-cutout-isolated-background-young-adult-asian-travel-couple-carry-luggage-for-png-image_14613197.png"
-          alt="food image">
+          alt="food image"> -->
         <!-- <img src="https://i.postimg.cc/gJBk5PMz/salad.png" alt="food image"> -->
       </div>
     </section>
     <sliderComponent />
     <!-- About Us Banner End -->
+    <!-- From Uiverse.io by vinodjangid07 -->
+    <button class="Btn" id="scroll" @click="scrollToTop">
+      <svg height="1.2em" class="arrow" viewBox="0 0 512 512">
+        <path
+          d="M233.4 105.4c12.5-12.5 32.8-12.5 45.3 0l192 192c12.5 12.5 12.5 32.8 0 45.3s-32.8 12.5-45.3 0L256 173.3 86.6 342.6c-12.5 12.5-32.8 12.5-45.3 0s-12.5-32.8 0-45.3l192-192z">
+        </path>
+      </svg>
+      <p class="textScroll">Back to Top</p>
+    </button>
 
     <!-- Culinary Journey Section Start -->
     <div class="colinary-journey section">
@@ -48,13 +57,12 @@
                   Dịch Vụ Chăm Sóc Khách Hàng: Đội ngũ nhân viên chuyên nghiệp và thân thiện luôn sẵn sàng phục vụ, đảm
                   bảo mang đến trải nghiệm nghỉ dưỡng tuyệt vời cho bạn.
                 </p>
-                <button class="btn-main mt-4">
-                 Click Đặt Phòng Ngay Tại Đây
-                  <div class="arrow-wrapper">
-                    <div class="arrow"></div>
-
-                  </div>
-                </button>
+                <RouterLink to="/reservation"><button class="btn-main mt-4">
+                    Click Đặt Phòng Ngay Tại Đây
+                    <div class="arrow-wrapper">
+                      <div class="arrow"></div>
+                    </div>
+                  </button></RouterLink>
               </div>
             </div>
             <!-- Section Title End -->
@@ -187,12 +195,12 @@
     <!-- Gallery Section Start -->
     <div class="section gallery-section position-relative pb-0">
       <button class="btn-main mb-4">
-                  Đặt Bàn Ngay Tại Đây
-                  <div class="arrow-wrapper">
-                    <div class="arrow"></div>
+        Đặt Bàn Ngay Tại Đây
+        <div class="arrow-wrapper">
+          <div class="arrow"></div>
 
-                  </div>
-                </button>
+        </div>
+      </button>
       <div class="container-fluid p-0">
         <div class="row gallery-items page-gallery-box">
           <!-- Row 1 -->
@@ -333,6 +341,8 @@
 import sliderComponent from './sliderComponent.vue';
 </script>
 <script>
+import { scrollToTop } from '../assets/script'; // Đường dẫn đến tệp JavaScript
+import { RouterLink } from 'vue-router';
 export default {
   name: 'AboutComponent',
   data() {
@@ -508,9 +518,9 @@ header.active .navbar a {
   left: 0;
   right: 0;
   bottom: 0;
-  background: url('https://cf.bstatic.com/xdata/images/hotel/max1280x900/295358148.jpg?k=d4a1fb8f7b887222adc3cb467756a1777ed12ad9730190665871adaa7822dd31&o=&hp=1') no-repeat center;
+  background: url('https://a25hotel.com/files/images/screenshot_1664443543.png') no-repeat center;
   background-size: cover;
-  opacity: 0.4;
+  opacity: 0.8;
   /* Độ mờ của hình nền */
   z-index: -1;
   /* Đưa lớp overlay ra phía sau */
@@ -534,7 +544,7 @@ header.active .navbar a {
 
 .home-text h1 {
   font-size: 4rem;
-  color: rgb(21, 20, 20);
+  color: rgb(30, 55, 88);
   animation: bounce 3s infinite;
   /* Hiệu ứng nhảy */
 }

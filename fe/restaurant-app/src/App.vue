@@ -6,10 +6,11 @@
       <div class="sidebar">
         <div class="header text-center p-3 border-bottom">
           <img src="https://i.postimg.cc/s2Ywg6YR/logo.png" alt="Luxuria Logo" class="rounded-circle" />
-          <span class="fw-bold">Sea Foodie</span>
+          <span class="fw-bold">An Phú Ecosystem</span>
         </div>
         <div class="profile text-center p-3 border-bottom">
-          <img src="https://www.einfosoft.com/templates/admin/luxuria/source/light/assets/images/admin.jpg" alt="Profile Picture" class="rounded-circle" />
+          <img src="https://www.einfosoft.com/templates/admin/luxuria/source/light/assets/images/admin.jpg"
+            alt="Profile Picture" class="rounded-circle" />
           <p class="mb-0 text-muted">{{ userInfo.name || 'Admin' }}</p>
           <p class="text-muted">{{ userInfo.email || 'admin@seafoodie.com' }}</p>
           <div class="icons d-flex justify-content-center mt-2">
@@ -59,35 +60,40 @@
             <!-- Logo -->
             <a class="navbar-brand" href="/">
               <img src="https://i.postimg.cc/s2Ywg6YR/logo.png" alt="Foodie Logo" class="logo-img" />
-              Sea Foodie
+              An Phú Ecosystem
             </a>
 
             <!-- Toggle Button for Mobile -->
-            <button class="navbar-toggler" type="button" @click="toggleMenu" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+            <button class="navbar-toggler" type="button" @click="toggleMenu" aria-controls="navbarNav"
+              aria-expanded="false" aria-label="Toggle navigation">
               <span class="navbar-toggler-icon"></span>
             </button>
 
             <!-- Navbar Links -->
             <div class="collapse navbar-collapse" id="navbarNav" ref="navbarRef" :class="{ 'show': navbarActive }">
               <ul class="navbar-nav ms-auto">
-                <li class="nav-item"><router-link class="nav-link" to="/">Home</router-link></li>
-                <li class="nav-item"><router-link class="nav-link" to="/about">About</router-link></li>
-                <li class="nav-item"><router-link class="nav-link" to="/contact">Contact</router-link></li>
-                <li class="nav-item"><router-link class="nav-link" to="/blog">Blog</router-link></li>
+                <li class="nav-item"><router-link class="nav-link sisf-m-subtitle" to="/">Home</router-link></li>
+                <li class="nav-item"><router-link class="nav-link sisf-m-subtitle" to="/about">About</router-link></li>
+                <li class="nav-item"><router-link class="nav-link sisf-m-subtitle" to="/contact">Contact</router-link>
+                </li>
+                <li class="nav-item"><router-link class="nav-link sisf-m-subtitle" to="/blog">Blog</router-link></li>
                 <li class="nav-item dropdown">
-                  <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                  <a class="nav-link dropdown-toggle sisf-m-subtitle" href="#" role="button" data-bs-toggle="dropdown"
+                    aria-expanded="false">
                     Menu
                   </a>
                   <ul class="dropdown-menu">
-                    <li><router-link class="dropdown-item" to="/menu-list">Menu Đặt Món</router-link></li>
-                    <li><router-link class="dropdown-item" to="/menu">menu</router-link></li>
-                    <li><router-link class="dropdown-item" to="/product-detail">Chi Tiết Online</router-link></li>
-                    <li><router-link class="dropdown-item" to="/CategoryShopOnline">Menu ShopOnline</router-link></li>
+                    <li><router-link class="dropdown-item " to="/menu-list">Menu Đặt Món</router-link></li>
+                    <li><router-link class="dropdown-item " to="/menu">menu</router-link></li>
+                    <li><router-link class="dropdown-item " to="/product-detail">Chi Tiết Online</router-link></li>
+                    <li><router-link class="dropdown-item " to="/CategoryShopOnline">Menu ShopOnline</router-link></li>
                   </ul>
                 </li>
-                <li class="nav-item"><router-link class="nav-link" to="/reservation">Reservation</router-link></li>
-                <li class="nav-item dropdown" v-if="isLogin">
-                  <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                <li class="nav-item "><router-link class="nav-link sisf-m-subtitle"
+                    to="/reservation">Reservation</router-link></li>
+                <li class="nav-item dropdown " v-if="isLogin">
+                  <a class="nav-link dropdown-toggle sisf-m-subtitle" href="#" role="button" data-bs-toggle="dropdown"
+                    aria-expanded="false">
                     Xin chào, {{ userInfo.name }}!
                   </a>
                   <ul class="dropdown-menu dropdown-menu-end">
@@ -97,7 +103,7 @@
                   </ul>
                 </li>
                 <li class="nav-item" v-else>
-                  <router-link class="nav-link" to="/login">Đăng Nhập</router-link>
+                  <router-link class="nav-link sisf-m-subtitle" to="/login">Đăng Nhập</router-link>
                 </li>
               </ul>
             </div>
@@ -105,9 +111,10 @@
         </nav>
       </header>
 
-      <main>
-        <RouterView></RouterView>
+      <main>       
+          <router-view />
       </main>
+      
     </div>
   </div>
 </template>
@@ -122,14 +129,15 @@ const route = useRoute();
 const router = useRouter();
 const headerRef = ref(null);
 const navbarRef = ref(null);
-const navbarActive = ref(false);
-const navbarSticky = ref(false);
+const navbarActive = ref(false); // Dùng cho trạng thái mở/đóng menu
+const navbarSticky = ref(false); // Dùng cho hiệu ứng sticky của navbar
 const userInfo = ref(null);
 const isLogin = ref(false);
 const isAdmin = ref(false);
 const apiUrl = 'http://localhost:8000';
 provide('apiUrl', apiUrl);
 
+// Biến để theo dõi vị trí cuộn trước đó
 const lastScrollPosition = ref(0);
 
 const toggleMenu = () => {
@@ -139,15 +147,21 @@ const toggleMenu = () => {
 const handleScroll = () => {
   if (headerRef.value || route.path.startsWith('/admin')) {
     const currentScrollPosition = window.scrollY;
+
+    // Áp dụng hiệu ứng sticky cho navbar trên mọi kích thước màn hình
     navbarSticky.value = currentScrollPosition > 50;
+
     lastScrollPosition.value = currentScrollPosition;
   }
 };
 
+// Đóng menu khi nhấn bên ngoài
 const handleOutsideClick = (event) => {
   if (window.innerWidth <= 991 && navbarActive.value && navbarRef.value) {
     const isClickInside = navbarRef.value.contains(event.target);
     const isToggleButton = event.target.closest('.navbar-toggler');
+
+    // Nếu nhấn bên ngoài menu và không phải nút toggle, đóng menu
     if (!isClickInside && !isToggleButton) {
       navbarActive.value = false;
     }
@@ -178,7 +192,7 @@ const fetchUserInfo = async () => {
   }
 
   try {
-    const response = await axiosConfig.get('http://127.0.0.1:8000/api/protected');
+    const response = await axiosConfig.get(`${apiUrl}/api/protected`);
     userInfo.value = response.data.user;
     isLogin.value = true;
     isAdmin.value = userInfo.value.role === 'admin';
@@ -273,32 +287,43 @@ onUnmounted(() => {
   box-sizing: border-box;
   font-family: 'Arial', sans-serif;
 }
-
 /* Styles cho layout thông thường */
 .navbar {
   transition: background-color 0.3s ease, color 0.3s ease;
   padding: 10px 15px;
-  background-color: transparent;
-}
-
-.navbar.active {
-  background-color: #081B54 !important;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  /* background: url('https://i.pinimg.com/1200x/61/e5/99/61e599a4b5a497cf75d3e61f030574cc.jpg'); */
+  background-size: cover;
+  background-color: rgb(56, 80, 124);
 }
 
 .navbar-brand {
   display: flex;
   align-items: center;
-  font-size: 1.2rem;
+  font-size: 1rem;
   font-weight: 600;
-  color: #000 !important;
+  color: white;
   transition: color 0.3s ease;
+}
+
+.sisf-m-subtitle {
+  font-family: 'Roboto', sans-serif;
+  font-size: 1rem;
+  line-height: 1.2;
+  font-weight: 600;
+  padding: 0 20px !important;
+  /* color:rgba(43, 212, 231, 0.7); */
+  color: white;
 }
 
 .navbar.active .navbar-brand,
 .navbar.active .nav-link,
 .navbar.active .dropdown-toggle {
-  color: #fff !important;
+  color: black;
+}
+
+.navbar.active .navbar-toggler-icon {
+  filter: brightness(0) invert(1);
+  /* Đổi màu biểu tượng toggle thành trắng khi active */
 }
 
 .navbar.active .navbar-toggler-icon {
@@ -315,16 +340,17 @@ onUnmounted(() => {
   filter: brightness(100);
 }
 
-.nav-link {
+/* .nav-link {
   font-size: 1rem;
   font-weight: 500;
-  color: #000;
+  color: rgb(14, 192, 224);
   padding: 8px 15px !important;
   transition: all 0.3s ease;
-}
+} */
+
 
 .nav-link:hover {
-  color: #0e45e9 !important;
+  color: black;
   border-radius: 4px;
 }
 
@@ -351,7 +377,8 @@ onUnmounted(() => {
 }
 
 main {
-  padding-top: 70px;
+  /* padding-top: 70px; */
+  /* margin-bottom: 20px; */
   min-height: calc(100vh - 70px);
   width: 100%;
 }
@@ -377,11 +404,15 @@ body {
   width: 250px;
   z-index: 1000;
   overflow-y: auto;
+  
+  /* Enable vertical scrolling */
   scrollbar-width: none;
+  /* Hide scrollbar for Firefox */
 }
 
 .sidebar::-webkit-scrollbar {
   display: none;
+  /* Hide the scrollbar */
 }
 
 .sidebar .header {
@@ -510,7 +541,7 @@ body {
   background-color: #f5f7fb;
 }
 
-.admin-main > * {
+.admin-main>* {
   width: 100%;
 }
 
@@ -558,6 +589,12 @@ body {
   .navbar.active .nav-link,
   .navbar.active .dropdown-toggle {
     color: #000 !important;
+    /* Màu đen cho mobile khi active */
+  }
+
+  .navbar.active .navbar-toggler-icon {
+    filter: brightness(0) invert(1);
+    /* Đổi màu biểu tượng toggle thành trắng khi active trên mobile */
   }
 
   .navbar.active .navbar-toggler-icon {
@@ -580,11 +617,14 @@ body {
     transform: translateX(-100%);
     transition: transform 0.3s ease-in-out;
     overflow-y: auto;
+    /* Ensure scrolling on mobile */
     scrollbar-width: none;
+    /* Hide scrollbar for Firefox */
   }
 
   .sidebar::-webkit-scrollbar {
     display: none;
+    /* Hide scrollbar for WebKit browsers */
   }
 
   .sidebar.show {
@@ -611,6 +651,7 @@ body {
   .navbar.active .nav-link,
   .navbar.active .dropdown-toggle {
     color: #fff !important;
+    /* Màu trắng cho desktop khi active */
   }
 }
 </style>
