@@ -177,6 +177,8 @@ const sendRequest = async () => {
       headers: {
         Authorization: 'Bearer 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',
         'Content-Type': 'application/json',
+        'HTTP-Referer': 'http://127.0.0.1:5173/', // Optional. Site URL for rankings on openrouter.ai.
+        'X-Title': 'adadda', // Optional. Site title for rankings on openrouter.ai.
       },
       body: JSON.stringify({
         model: 'gpt-3.5-turbo',
@@ -211,7 +213,7 @@ const closePopup = () => {
   isFormChat.value = false;
   isLogoChat.value = true;
 }
-const showPopup = ()=>{
+const showPopup = () => {
   isFormChat.value = true;
   isLogoChat.value = false;
 }
@@ -401,7 +403,8 @@ export default {
   right: 2%;
   /* Cách bên phải 10px */
 }
-.logo{
+
+.logo {
   position: fixed;
   /* Đặt vị trí cố định */
   bottom: 5%;
