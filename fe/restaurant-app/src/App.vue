@@ -333,7 +333,7 @@ onUnmounted(() => {
 .logo-img {
   width: 35px;
   margin-right: 10px;
-  filter: brightness(0);
+  filter: brightness(100);
 }
 
 .navbar.active .logo-img {
