@@ -25,10 +25,57 @@
               Occupancy <span class="badge bg-danger">5</span></router-link></li>
           <li class="nav-item"><router-link class="nav-link" to="/admin/bookings"><i class="bi bi-book"></i>
               Bookings</router-link></li>
-          <li class="nav-item"><router-link class="nav-link" to="/admin/rooms"><i class="bi bi-building"></i>
-              Rooms</router-link></li>
-          <li class="nav-item"><router-link class="nav-link" to="/admin/tables"><i class="bi bi-building"></i>
-              Tables</router-link></li>
+          <li class="nav-item dropdown">
+            <a class="nav-link dropdown-toggle" href="#" id="roomsDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+              <i class='bx  bx-bed'></i> Quản lý phòng
+            </a>
+            <ul class="dropdown-menu" aria-labelledby="roomsDropdown">
+              <li>
+                <router-link class="dropdown-item" to="/admin/room-types">
+                  <i class="bi bi-list-ul me-2"></i> Danh mục phòng
+                </router-link>
+              </li>
+              <li>
+                <router-link class="dropdown-item" to="/admin/rooms">
+                  <i class='bx  bx-bed'></i> Quản lý phòng
+                </router-link>
+              </li>
+            </ul>
+          </li>
+          <li class="nav-item dropdown">
+            <a class="nav-link dropdown-toggle" href="#" id="tablesDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+              <i class="bi bi-table"></i> Quản lý bàn
+            </a>
+            <ul class="dropdown-menu" aria-labelledby="tablesDropdown">
+              <li>
+                <router-link class="dropdown-item" to="/admin/table-types">
+                  <i class="bi bi-list-ul me-2"></i> Danh mục bàn
+                </router-link>
+              </li>
+              <li>
+                <router-link class="dropdown-item" to="/admin/tables">
+                  <i class="bi bi-table me-2"></i> Quản lý bàn
+                </router-link>
+              </li>
+            </ul>
+          </li>
+          <li class="nav-item dropdown">
+            <a class="nav-link dropdown-toggle" href="#" id="menuDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+              <i class="bi bi-menu"></i> Quản lý thực đơn
+            </a>
+            <ul class="dropdown-menu" aria-labelledby="menuDropdown">
+              <li>
+                <router-link class="dropdown-item" to="/admin/menu-categories">
+                  <i class="bi bi-list-ul me-2"></i> Danh mục thực đơn
+                </router-link>
+              </li>
+              <li>
+                <router-link class="dropdown-item" to="/admin/menus">
+                  <i class="bi bi-menu me-2"></i> Quản lý thực đơn
+                </router-link>
+              </li>
+            </ul>
+          </li>
           <li class="nav-item"><router-link class="nav-link" to="/admin/staffs"><i class="bi bi-people"></i>
               Staffs</router-link></li>
           <li class="nav-item"><router-link class="nav-link" to="/admin/departments"><i class="bi bi-gear"></i>
@@ -279,6 +326,7 @@ onUnmounted(() => {
 @import url('https://fonts.googleapis.com/css2?family=Arial&display=swap');
 @import url('https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css');
 @import url('https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css');
+@import url('https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css');
 
 :root {
   --main-color: #16B978;

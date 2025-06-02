@@ -5,27 +5,25 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
-class Menu extends Model
+class TableType extends Model
 {
     use HasFactory;
 
-    protected $table = 'menus';
+    protected $table = 'table_types';
 
-    protected $primaryKey = 'menu_id';
+    protected $primaryKey = 'type_id';
 
     public $incrementing = true;
 
     protected $fillable = [
-        'menu_name',
-        'category_id',
-        'price',
+        'type_name',
         'description',
         'created_at',
         'updated_at',
     ];
 
-    public function category()
+    public function tables()
     {
-        return $this->belongsTo(MenuCategory::class, 'category_id', 'category_id');
+        return $this->hasMany(Table::class, 'type_id', 'type_id');
     }
 }

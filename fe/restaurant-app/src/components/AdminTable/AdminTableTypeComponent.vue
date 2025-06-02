@@ -1,85 +1,56 @@
 <template>
   <div class="container py-5">
     <div class="d-flex justify-content-between align-items-center mb-4">
-      <h1 class="fw-bold text-sea-green">Quản Lý Phòng</h1>
+      <h1 class="fw-bold text-sea-green">Quản Lý Loại Bàn</h1>
       <button class="btn btn-success shadow" @click="moModalThem">
-        <i class="bi bi-plus-circle me-2"></i>Thêm Phòng Mới
+        <i class="bi bi-plus-circle me-2"></i>Thêm Loại Bàn Mới
       </button>
     </div>
 
-    <!-- Tìm kiếm và lọc -->
+    <!-- Tìm kiếm -->
     <div class="row mb-4 g-3">
       <div class="col-md-4">
         <input
           v-model="tuKhoaTim"
           type="text"
           class="form-control"
-          placeholder="Tìm tên phòng hoặc trạng thái..."
+          placeholder="Tìm tên loại bàn..."
         />
-      </div>
-      <div class="col-md-3">
-        <select v-model="locTrangThai" class="form-select">
-          <option value="">Tất cả trạng thái</option>
-          <option value="Trống">Trống</option>
-          <option value="Đã đặt">Đã đặt</option>
-          <option value="Chờ xác nhận">Chờ xác nhận</option>
-          <option value="Bảo trì">Bảo trì</option>
-        </select>
       </div>
     </div>
 
-    <!-- Danh sách phòng -->
+    <!-- Danh sách loại bàn -->
     <div class="table-responsive">
       <table class="table table-bordered table-hover align-middle">
         <thead>
           <tr>
-            <th>Tên Phòng</th>
-            <th>Trạng Thái</th>
-            <th>Giá (mỗi đêm)</th>
-            <th>Loại Phòng</th>
-            <th>Sức Chứa</th>
+            <th>Tên Loại Bàn</th>
             <th>Mô Tả</th>
             <th>Hành Động</th>
           </tr>
         </thead>
         <tbody>
-          <tr v-for="phong in phongHienThi" :key="phong.room_id">
-            <td>{{ phong.room_name }}</td>
-            <td class="status">
-              <span
-                :class="{
-                  badge: true,
-                  'bg-success': phong.status === 'Trống',
-                  'bg-danger': phong.status === 'Đã đặt',
-                  'bg-warning text-dark ': phong.status === 'Chờ xác nhận',
-                  'bg-warning text-dark': phong.status === 'Bảo trì'
-                }"
-              >
-                {{ phong.status }}
-              </span>
-            </td>
-            <td>{{ formatPrice(phong.price) }}</td>
-            <td>{{ phong.room_type }}</td>
-            <td>{{ phong.capacity }}</td>
-            <td>{{ phong.description }}</td>
+          <tr v-for="type in typeHienThi" :key="type.type_id">
+            <td>{{ type.type_name }}</td>
+            <td>{{ type.description }}</td>
             <td>
               <button
                 class="btn btn-primary btn-sm me-2"
-                @click="moModalSua(phong)"
+                @click="moModalSua(type)"
               >
                 <i class="bi bi-pencil"></i> Sửa
               </button>
               <button
                 class="btn btn-danger btn-sm"
-                @click="xoaPhong(phong.room_id)"
+                @click="xoaLoaiBan(type.type_id)"
               >
                 <i class="bi bi-trash"></i> Xóa
               </button>
             </td>
           </tr>
-          <tr v-if="phongHienThi.length === 0">
-            <td colspan="7" class="text-center text-muted">
-              Không có phòng nào phù hợp
+          <tr v-if="typeHienThi.length === 0">
+            <td colspan="3" class="text-center text-muted">
+              Không có loại bàn nào phù hợp
             </td>
           </tr>
         </tbody>
@@ -89,7 +60,7 @@
     <!-- Phân trang -->
     <div class="d-flex justify-content-between align-items-center mt-4">
       <div class="text-muted">
-        <span>Hiển thị {{ phongHienThi.length }} / {{ phongLoc.length }} phòng</span>
+        <span>Hiển thị {{ typeHienThi.length }} / {{ typeLoc.length }} loại bàn</span>
       </div>
       <nav>
         <ul class="pagination mb-0">
@@ -136,50 +107,25 @@
         <div class="modal-content">
           <div class="modal-header">
             <h5 class="modal-title">
-              {{ phongDangSua ? "Sửa Thông Tin Phòng" : "Thêm Phòng Mới" }}
+              {{ typeDangSua ? "Sửa Loại Bàn" : "Thêm Loại Bàn Mới" }}
             </h5>
             <button type="button" class="btn-close" @click="dongModal"></button>
           </div>
           <div class="modal-body">
             <div class="mb-3">
-              <label class="form-label">Tên Phòng</label>
-              <input type="text" v-model="phongMoi.room_name" class="form-control" />
-            </div>
-            <div class="mb-3">
-              <label class="form-label">Loại Phòng</label>
-              <input type="text" v-model="phongMoi.room_type" class="form-control" />
-            </div>
-            <div class="mb-3">
-              <label class="form-label">Sức Chứa</label>
-              <input type="number" v-model.number="phongMoi.capacity" class="form-control" />
-            </div>
-            <div class="mb-3">
-              <label class="form-label">Trạng Thái</label>
-              <select v-model="phongMoi.status" class="form-select">
-                <option value="Trống">Trống</option>
-                <option value="Đã đặt">Đã đặt</option>
-                <option value="Chờ xác nhận">Chờ xác nhận</option>
-                <option value="Bảo trì">Bảo trì</option>
-              </select>
-            </div>
-            <div class="mb-3">
-              <label class="form-label">Giá (mỗi đêm)</label>
-              <input
-                type="number"
-                min="0"
-                step="1000"
-                v-model.number="phongMoi.price"
-                class="form-control"
-              />
+              <label class="form-label">Tên Loại Bàn</label>
+              <input type="text" v-model="typeMoi.type_name" class="form-control" />
             </div>
             <div class="mb-3">
               <label class="form-label">Mô Tả</label>
-              <textarea v-model="phongMoi.description" class="form-control"></textarea>
+              <textarea v-model="typeMoi.description" class="form-control"></textarea>
             </div>
           </div>
           <div class="modal-footer">
             <button class="btn btn-secondary" @click="dongModal">Hủy</button>
-            <button class="btn btn-success" @click="luuPhong">Lưu</button>
+            <button class="btn btn-success" @click="luuLoaiBan" :disabled="isLoading">
+              {{ isLoading ? 'Đang lưu...' : 'Lưu' }}
+            </button>
           </div>
         </div>
       </div>
@@ -193,60 +139,52 @@ import axios from "axios";
 
 export default {
   setup() {
-    const phong = ref([]);
+    const tableTypes = ref([]);
     const tuKhoaTim = ref("");
-    const locTrangThai = ref("");
     const laModalMo = ref(false);
-    const phongDangSua = ref(null);
-    const phongMoi = ref({
-      room_name: "",
-      room_type: "",
-      capacity: 0,
-      status: "Trống",
-      price: 0,
+    const typeDangSua = ref(null);
+    const typeMoi = ref({
+      type_name: "",
       description: "",
     });
     const trangHienTai = ref(1);
-    const soPhongMoiTrang = 10;
+    const soTypeMoiTrang = 10;
+    const isLoading = ref(false);
 
-    const fetchRooms = async () => {
+    const fetchTableTypes = async () => {
       try {
-        const res = await axios.get("http://localhost:8000/api/rooms");
-        phong.value = res.data.data || res.data;
-        console.log('Đã tải danh sách phòng:', phong.value.map(p => ({
-          id: p.room_id,
-          name: p.room_name,
-          status: p.status
-        })));
+        const res = await axios.get("http://localhost:8000/api/table-types");
+        tableTypes.value = res.data.data || res.data;
+        console.log('Danh sách loại bàn:', tableTypes.value);
       } catch (error) {
-        alert("Lấy dữ liệu phòng thất bại");
-        console.error('Lỗi tải phòng:', error.response?.data || error.message);
+        alert("Lấy dữ liệu loại bàn thất bại: " + (error.response?.data?.message || error.message));
+        console.error('Lỗi tải loại bàn:', error.response?.data || error.message);
       }
     };
 
     onMounted(() => {
-      fetchRooms();
+      fetchTableTypes();
     });
 
-    const phongLoc = computed(() => {
-      return phong.value.filter((p) => {
-        const khopTim = p.room_name
+    const typeLoc = computed(() => {
+      return tableTypes.value.filter((t) => {
+        return t.type_name
           .toLowerCase()
           .includes(tuKhoaTim.value.toLowerCase()) ||
-          p.status.toLowerCase().includes(tuKhoaTim.value.toLowerCase());
-        const khopTrangThai = !locTrangThai.value || p.status === locTrangThai.value;
-        return khopTim && khopTrangThai;
+          (t.description || '')
+            .toLowerCase()
+            .includes(tuKhoaTim.value.toLowerCase());
       });
     });
 
     const tongSoTrang = computed(() => {
-      return Math.ceil(phongLoc.value.length / soPhongMoiTrang);
+      return Math.ceil(typeLoc.value.length / soTypeMoiTrang);
     });
 
-    const phongHienThi = computed(() => {
-      const batDau = (trangHienTai.value - 1) * soPhongMoiTrang;
-      const ketThuc = batDau + soPhongMoiTrang;
-      return phongLoc.value.slice(batDau, ketThuc);
+    const typeHienThi = computed(() => {
+      const batDau = (trangHienTai.value - 1) * soTypeMoiTrang;
+      const ketThuc = batDau + soTypeMoiTrang;
+      return typeLoc.value.slice(batDau, ketThuc);
     });
 
     const trangHienThi = computed(() => {
@@ -269,21 +207,17 @@ export default {
     });
 
     const moModalThem = () => {
-      phongMoi.value = {
-        room_name: "",
-        room_type: "",
-        capacity: 0,
-        status: "Trống",
-        price: 0,
+      typeMoi.value = {
+        type_name: "",
         description: "",
       };
-      phongDangSua.value = null;
+      typeDangSua.value = null;
       laModalMo.value = true;
     };
 
-    const moModalSua = (p) => {
-      phongMoi.value = { ...p };
-      phongDangSua.value = p;
+    const moModalSua = (t) => {
+      typeMoi.value = { ...t };
+      typeDangSua.value = t;
       laModalMo.value = true;
     };
 
@@ -291,67 +225,69 @@ export default {
       laModalMo.value = false;
     };
 
-    const luuPhong = async () => {
+    const luuLoaiBan = async () => {
+      if (!typeMoi.value.type_name.trim()) {
+        alert("Vui lòng nhập tên loại bàn");
+        return;
+      }
+      isLoading.value = true;
       try {
-        if (phongDangSua.value) {
+        if (typeDangSua.value) {
           await axios.put(
-            `http://localhost:8000/api/rooms/${phongDangSua.value.room_id}`,
-            phongMoi.value
+            `http://localhost:8000/api/table-types/${typeDangSua.value.type_id}`,
+            typeMoi.value
           );
-          const index = phong.value.findIndex(
-            (p) => p.room_id === phongDangSua.value.room_id
+          const index = tableTypes.value.findIndex(
+            (t) => t.type_id === typeDangSua.value.type_id
           );
           if (index !== -1)
-            phong.value[index] = { ...phongMoi.value, room_id: phongDangSua.value.room_id };
+            tableTypes.value[index] = { ...typeMoi.value, type_id: typeDangSua.value.type_id };
         } else {
-          const res = await axios.post("http://localhost:8000/api/rooms", phongMoi.value);
-          phong.value.push(res.data.data || res.data);
+          const res = await axios.post("http://localhost:8000/api/table-types", typeMoi.value);
+          tableTypes.value.push(res.data.data || res.data);
         }
         trangHienTai.value = 1;
         dongModal();
       } catch (error) {
-        alert("Lưu phòng thất bại");
-        console.error('Lỗi lưu phòng:', error.response?.data || error.message);
+        alert("Lưu loại bàn thất bại: " + (error.response?.data?.message || error.message));
+        console.error('Lỗi lưu loại bàn:', error.response?.data || error.message);
+      } finally {
+        isLoading.value = false;
       }
     };
 
-    const xoaPhong = async (id) => {
-      if (confirm("Bạn có chắc chắn muốn xóa phòng này không?")) {
+    const xoaLoaiBan = async (id) => {
+      if (confirm("Bạn có chắc chắn muốn xóa loại bàn này không?")) {
         try {
-          await axios.delete(`http://localhost:8000/api/rooms/${id}`);
-          phong.value = phong.value.filter((p) => p.room_id !== id);
-          if (phongHienThi.value.length === 0 && trangHienTai.value > 1) {
+          await axios.delete(`http://localhost:8000/api/table-types/${id}`);
+          tableTypes.value = tableTypes.value.filter((t) => t.type_id !== id);
+          if (typeHienThi.value.length === 0 && trangHienTai.value > 1) {
             trangHienTai.value--;
           }
         } catch (error) {
-          alert("Xóa phòng thất bại");
-          console.error('Lỗi xóa phòng:', error.response?.data || error.message);
+          alert("Xóa loại bàn thất bại: " + (error.response?.data?.message || error.message));
+          console.error('Lỗi xóa loại bàn:', error.response?.data || error.message);
         }
       }
     };
 
-    const formatPrice = (price) => {
-      return new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(price || 0);
-    };
-
     return {
-      phong,
+      tableTypes,
       tuKhoaTim,
-      locTrangThai,
       laModalMo,
-      phongDangSua,
-      phongMoi,
-      phongLoc,
-      phongHienThi,
+      typeDangSua,
+      typeMoi,
+      typeLoc,
+      typeHienThi,
       trangHienTai,
       tongSoTrang,
       trangHienThi,
       moModalThem,
       moModalSua,
       dongModal,
-      luuPhong,
-      xoaPhong,
-      formatPrice,
+      luuLoaiBan,
+      xoaLoaiBan,
+      isLoading,
     };
   },
 };
@@ -366,7 +302,7 @@ export default {
   text-fill-color: transparent;
 }
 
-.table th, .status {
+.table th {
   text-align: center;
 }
 
@@ -393,13 +329,6 @@ export default {
   background-color: #e6f4ea;
   cursor: pointer;
   transition: background-color 0.3s ease;
-}
-
-.badge {
-  font-size: 0.9rem;
-  padding: 5px 10px;
-  border-radius: 12px;
-  font-weight: 500;
 }
 
 .modal-content {

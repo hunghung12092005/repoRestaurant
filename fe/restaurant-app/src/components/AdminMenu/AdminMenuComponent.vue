@@ -1,83 +1,60 @@
 <template>
   <div class="container py-5">
     <div class="d-flex justify-content-between align-items-center mb-4">
-      <h1 class="fw-bold text-sea-green">Quản Lý Bàn</h1>
+      <h1 class="fw-bold text-sea-green">Quản Lý Món Ăn</h1>
       <button class="btn btn-success shadow" @click="moModalThem">
-        <i class="bi bi-plus-circle me-2"></i>Thêm Bàn Mới
+        <i class="bi bi-plus-circle me-2"></i>Thêm Món Ăn Mới
       </button>
     </div>
 
-    <!-- Tìm kiếm và lọc -->
+    <!-- Tìm kiếm -->
     <div class="row mb-4 g-3">
       <div class="col-md-4">
         <input
           v-model="tuKhoaTim"
           type="text"
           class="form-control"
-          placeholder="Tìm tên bàn hoặc trạng thái..."
+          placeholder="Tìm tên món ăn, danh mục..."
         />
-      </div>
-      <div class="col-md-3">
-        <select v-model="locTrangThai" class="form-select">
-          <option value="">Tất cả trạng thái</option>
-          <option value="Trống">Trống</option>
-          <option value="Chờ xác nhận">Chờ xác nhận</option>
-          <option value="Đã đặt">Đã đặt</option>
-          <option value="Bảo trì">Bảo trì</option>
-        </select>
       </div>
     </div>
 
-    <!-- Danh sách bàn -->
+    <!-- Danh sách món ăn -->
     <div class="table-responsive">
       <table class="table table-bordered table-hover align-middle">
         <thead>
           <tr>
-            <th>Tên Bàn</th>
-            <th>Trạng Thái</th>
-            <th>Sức Chứa</th>
-            <th>Vị Trí</th>
+            <th>Tên Món Ăn</th>
+            <th>Danh Mục</th>
+            <th>Giá</th>
             <th>Mô Tả</th>
             <th>Hành Động</th>
           </tr>
         </thead>
         <tbody>
-          <tr v-for="ban in banHienThi" :key="ban.table_id">
-            <td>{{ ban.table_name }}</td>
-            <td class="status">
-              <span
-                :class="{
-                  badge: true,
-                  'bg-success': ban.status === 'Trống',
-                  'bg-warning text-dark ': ban.status === 'Chờ xác nhận',
-                  'bg-danger': ban.status === 'Đã đặt',
-                  'bg-warning text-dark': ban.status === 'Bảo trì'
-                }"
-              >
-                {{ ban.status }}
-              </span>
-            </td>
-            <td>{{ ban.capacity }}</td>
-            <td>{{ ban.location }}</td>
-            <td>{{ ban.description }}</td>
+          <tr v-for="menu in menuHienThi" :key="menu.menu_id">
+            <td>{{ menu.menu_name }}</td>
+            <td>{{ menu.category_name || 'Không xác định' }}</td>
+            <td>{{ formatPrice(menu.price) }}</td>
+            <td>{{ menu.description || 'Không có' }}</td>
             <td>
               <button
                 class="btn btn-primary btn-sm me-2"
-                @click="moModalSua(ban)"
+                @click="moModalSua(menu)"
               >
                 <i class="bi bi-pencil"></i> Sửa
               </button>
               <button
                 class="btn btn-danger btn-sm"
-                @click="xoaBan(ban.table_id)"
+                @click="xoaMonAn(menu.menu_id)"
               >
                 <i class="bi bi-trash"></i> Xóa
               </button>
             </td>
           </tr>
-          <tr v-if="banHienThi.length === 0">
-            <td colspan="6" class="text-center text-muted">
-              Không có bàn nào phù hợp
+          <tr v-if="menuHienThi.length === 0">
+            <td colspan="5" class="text-center text-muted">
+              Không có món ăn nào phù hợp
             </td>
           </tr>
         </tbody>
@@ -87,7 +64,7 @@
     <!-- Phân trang -->
     <div class="d-flex justify-content-between align-items-center mt-4">
       <div class="text-muted">
-        <span>Hiển thị {{ banHienThi.length }} / {{ banLoc.length }} bàn</span>
+        <span>Hiển thị {{ menuHienThi.length }} / {{ menuLoc.length }} món ăn</span>
       </div>
       <nav>
         <ul class="pagination mb-0">
@@ -117,7 +94,7 @@
           <li class="page-item" :class="{ disabled: trangHienTai === tongSoTrang }">
             <button class="page-link" @click="trangHienTai = tongSoTrang">
               <i class="bi bi-chevron-double-right"></i>
-            </button>
+              </button>
           </li>
         </ul>
       </nav>
@@ -134,40 +111,48 @@
         <div class="modal-content">
           <div class="modal-header">
             <h5 class="modal-title">
-              {{ banDangSua ? "Sửa Thông Tin Bàn" : "Thêm Bàn Mới" }}
+              {{ menuDangSua ? "Sửa Món Ăn" : "Thêm Món Ăn Mới" }}
             </h5>
             <button type="button" class="btn-close" @click="dongModal"></button>
           </div>
           <div class="modal-body">
             <div class="mb-3">
-              <label class="form-label">Tên Bàn</label>
-              <input type="text" v-model="banMoi.table_name" class="form-control" />
+              <label class="form-label">Tên Món Ăn</label>
+              <input type="text" v-model="menuMoi.menu_name" class="form-control" />
             </div>
             <div class="mb-3">
-              <label class="form-label">Sức Chứa</label>
-              <input type="number" v-model.number="banMoi.capacity" class="form-control" min="1" />
-            </div>
-            <div class="mb-3">
-              <label class="form-label">Trạng Thái</label>
-              <select v-model="banMoi.status" class="form-select">
-                <option value="Trống">Trống</option>
-                <option value="Chờ xác nhận">Chờ xác nhận</option>
-                <option value="Đã đặt">Đã đặt</option>
-                <option value="Bảo trì">Bảo trì</option>
+              <label class="form-label">Danh Mục</label>
+              <select v-model="menuMoi.category_id" class="form-select">
+                <option value="0">Chọn danh mục</option>
+                <option
+                  v-for="category in categories"
+                  :key="category.category_id"
+                  :value="category.category_id"
+                >
+                  {{ category.category_name }}
+                </option>
               </select>
             </div>
             <div class="mb-3">
-              <label class="form-label">Vị Trí</label>
-              <input type="text" v-model="banMoi.location" class="form-control" />
+              <label class="form-label">Giá</label>
+              <input
+                type="number"
+                v-model.number="menuMoi.price"
+                class="form-control"
+                min="0"
+                step="0.01"
+              />
             </div>
             <div class="mb-3">
               <label class="form-label">Mô Tả</label>
-              <textarea v-model="banMoi.description" class="form-control"></textarea>
+              <textarea v-model="menuMoi.description" class="form-control"></textarea>
             </div>
           </div>
           <div class="modal-footer">
             <button class="btn btn-secondary" @click="dongModal">Hủy</button>
-            <button class="btn btn-success" @click="luuBan">Lưu</button>
+            <button class="btn btn-success" @click="luuMonAn" :disabled="isLoading">
+              {{ isLoading ? 'Đang lưu...' : 'Lưu' }}
+            </button>
           </div>
         </div>
       </div>
@@ -180,38 +165,36 @@ import { ref, computed, onMounted } from "vue";
 import axios from "axios";
 
 export default {
+  name: "AdminMenuComponent",
   setup() {
-    const ban = ref([]);
+    const menus = ref([]);
+    const categories = ref([]);
     const tuKhoaTim = ref("");
-    const locTrangThai = ref("");
     const laModalMo = ref(false);
-    const banDangSua = ref(null);
-    const banMoi = ref({
-      table_name: "",
-      capacity: 1, // Mặc định là 1
-      status: "Trống",
-      location: "",
+    const menuDangSua = ref(null);
+    const menuMoi = ref({
+      menu_name: "",
+      category_id: 0,
+      price: 0,
       description: "",
     });
     const trangHienTai = ref(1);
-    const soBanMoiTrang = 10;
+    const soMenuMoiTrang = 10;
+    const isLoading = ref(false);
 
-    // Lấy danh sách bàn từ API
-    const fetchTables = async () => {
+    // Lấy danh sách món ăn từ API
+    const fetchMenus = async () => {
       try {
-        const res = await axios.get("http://localhost:8000/api/tables", {
-          timeout: 5000, // Timeout 5 giây
+        const res = await axios.get("http://localhost:8000/api/menus", {
+          timeout: 5000,
         });
-        console.log("Phản hồi GET /api/tables:", res.data); // Debug phản hồi
-        if (res.data && res.data.data) {
-          ban.value = res.data.data; // Lấy mảng bàn
-        } else {
-          ban.value = [];
-          console.warn("Không tìm thấy dữ liệu bàn trong phản hồi");
+        console.log("Phản hồi GET /api/menus:", res.data);
+        menus.value = res.data.data || [];
+        if (!res.data.data) {
+          console.warn("Không tìm thấy dữ liệu món ăn trong phản hồi");
         }
-        console.log("Danh sách bàn:", ban.value); // Debug dữ liệu gán
       } catch (error) {
-        let errorMessage = "Lấy dữ liệu bàn thất bại";
+        let errorMessage = "Lấy dữ liệu món ăn thất bại";
         if (error.code === "ECONNABORTED") {
           errorMessage += ": Yêu cầu hết thời gian (timeout)";
         } else if (error.response) {
@@ -226,32 +209,68 @@ export default {
       }
     };
 
+    // Lấy danh sách danh mục món ăn từ API
+    const fetchCategories = async () => {
+      try {
+        const res = await axios.get("http://localhost:8000/api/menu-categories", {
+          timeout: 5000,
+        });
+        console.log("Phản hồi GET /api/menu-categories:", res.data);
+        categories.value = res.data.data || [];
+        if (!res.data.data) {
+          console.warn("Không tìm thấy dữ liệu danh mục trong phản hồi");
+        }
+      } catch (error) {
+        let errorMessage = "Lấy dữ liệu danh mục món ăn thất bại";
+        if (error.code === "ECONNABORTED") {
+          errorMessage += ": Yêu cầu hết thời gian (timeout)";
+        } else if (error.response) {
+          errorMessage += `: ${error.response.status} - ${error.response.data.message || error.message}`;
+        } else if (error.request) {
+          errorMessage += ": Không thể kết nối đến server.";
+        } else {
+          errorMessage += `: ${error.message}`;
+        }
+        alert(errorMessage);
+        console.error("Lỗi lấy dữ liệu danh mục:", error);
+      }
+    };
+
     onMounted(() => {
-      fetchTables();
+      fetchMenus();
+      fetchCategories();
     });
 
-    // Lọc bàn theo từ khóa tìm kiếm và trạng thái
-    const banLoc = computed(() => {
-      return ban.value.filter((b) => {
-        const khopTim = b.table_name
-          .toLowerCase()
-          .includes(tuKhoaTim.value.toLowerCase()) ||
-          b.status.toLowerCase().includes(tuKhoaTim.value.toLowerCase());
-        const khopTrangThai = !locTrangThai.value || b.status === locTrangThai.value;
-        return khopTim && khopTrangThai;
+    // Định dạng giá tiền
+    const formatPrice = (price) => {
+      return new Intl.NumberFormat("vi-VN", {
+        style: "currency",
+        currency: "VND",
+      }).format(price);
+    };
+
+    // Lọc món ăn theo từ khóa tìm kiếm
+    const menuLoc = computed(() => {
+      return menus.value.filter((m) => {
+        const khopTim =
+          m.menu_name.toLowerCase().includes(tuKhoaTim.value.toLowerCase()) ||
+          (m.category_name || "")
+            .toLowerCase()
+            .includes(tuKhoaTim.value.toLowerCase());
+        return khopTim;
       });
     });
 
     // Tính tổng số trang
     const tongSoTrang = computed(() => {
-      return Math.ceil(banLoc.value.length / soBanMoiTrang);
+      return Math.ceil(menuLoc.value.length / soMenuMoiTrang);
     });
 
-    // Lấy danh sách bàn hiển thị trên trang hiện tại
-    const banHienThi = computed(() => {
-      const batDau = (trangHienTai.value - 1) * soBanMoiTrang;
-      const ketThuc = batDau + soBanMoiTrang;
-      return banLoc.value.slice(batDau, ketThuc);
+    // Lấy danh sách món ăn hiển thị trên trang hiện tại
+    const menuHienThi = computed(() => {
+      const batDau = (trangHienTai.value - 1) * soMenuMoiTrang;
+      const ketThuc = batDau + soMenuMoiTrang;
+      return menuLoc.value.slice(batDau, ketThuc);
     });
 
     // Tính các trang hiển thị trong phân trang
@@ -274,23 +293,27 @@ export default {
       return ketQua;
     });
 
-    // Mở modal để thêm bàn mới
+    // Mở modal để thêm món ăn mới
     const moModalThem = () => {
-      banMoi.value = {
-        table_name: "",
-        capacity: 1,
-        status: "Trống",
-        location: "",
+      menuMoi.value = {
+        menu_name: "",
+        category_id: 0,
+        price: 0,
         description: "",
       };
-      banDangSua.value = null;
+      menuDangSua.value = null;
       laModalMo.value = true;
     };
 
-    // Mở modal để sửa bàn
-    const moModalSua = (b) => {
-      banMoi.value = { ...b };
-      banDangSua.value = b;
+    // Mở modal để sửa món ăn
+    const moModalSua = (m) => {
+      menuMoi.value = {
+        menu_name: m.menu_name,
+        category_id: m.category_id,
+        price: m.price,
+        description: m.description || "",
+      };
+      menuDangSua.value = m;
       laModalMo.value = true;
     };
 
@@ -299,47 +322,50 @@ export default {
       laModalMo.value = false;
     };
 
-    // Lưu bàn (thêm hoặc sửa)
-    const luuBan = async () => {
+    // Lưu món ăn (thêm hoặc sửa)
+    const luuMonAn = async () => {
+      // Kiểm tra dữ liệu đầu vào
+      if (!menuMoi.value.menu_name.trim()) {
+        alert("Tên món ăn không được để trống");
+        return;
+      }
+      if (menuMoi.value.category_id === 0) {
+        alert("Vui lòng chọn danh mục");
+        return;
+      }
+      if (!Number.isFinite(menuMoi.value.price) || menuMoi.value.price <= 0) {
+        alert("Giá phải là số lớn hơn 0");
+        return;
+      }
+
+      isLoading.value = true;
       try {
-        // Kiểm tra dữ liệu đầu vào
-        if (!banMoi.value.table_name.trim()) {
-          throw new Error("Tên bàn không được để trống");
-        }
-        if (!Number.isInteger(banMoi.value.capacity) || banMoi.value.capacity <= 0) {
-          throw new Error("Sức chứa phải là số nguyên dương lớn hơn 0");
-        }
-        if (!["Trống", "Đã đặt", "Bảo trì"].includes(banMoi.value.status)) {
-          throw new Error("Trạng thái không hợp lệ");
-        }
-
-        console.log("Dữ liệu gửi đi:", banMoi.value); // Debug dữ liệu gửi
-
-        if (banDangSua.value) {
-          // Cập nhật bàn
+        console.log("Dữ liệu gửi đi:", menuMoi.value);
+        if (menuDangSua.value) {
+          // Cập nhật món ăn
           const res = await axios.put(
-            `http://localhost:8000/api/tables/${banDangSua.value.table_id}`,
-            banMoi.value
+            `http://localhost:8000/api/menus/${menuDangSua.value.menu_id}`,
+            menuMoi.value
           );
-          console.log("Phản hồi PUT /api/tables:", res.data); // Debug phản hồi
-          const index = ban.value.findIndex(
-            (b) => b.table_id === banDangSua.value.table_id
+          console.log("Phản hồi PUT /api/menus:", res.data);
+          const index = menus.value.findIndex(
+            (m) => m.menu_id === menuDangSua.value.menu_id
           );
           if (index !== -1) {
-            ban.value[index] = res.data.data;
+            menus.value[index] = res.data.data;
           }
-          alert("Cập nhật bàn thành công!");
+          alert("Cập nhật món ăn thành công!");
         } else {
-          // Thêm bàn mới
-          const res = await axios.post("http://localhost:8000/api/tables", banMoi.value);
-          console.log("Phản hồi POST /api/tables:", res.data); // Debug phản hồi
-          ban.value.push(res.data.data);
-          alert("Thêm bàn thành công!");
+          // Thêm món ăn mới
+          const res = await axios.post("http://localhost:8000/api/menus", menuMoi.value);
+          console.log("Phản hồi POST /api/menus:", res.data);
+          menus.value.push(res.data.data);
+          alert("Thêm món ăn thành công!");
         }
         trangHienTai.value = 1;
         dongModal();
       } catch (error) {
-        let errorMessage = "Lưu bàn thất bại";
+        let errorMessage = "Lưu món ăn thất bại";
         if (error.code === "ECONNABORTED") {
           errorMessage += ": Yêu cầu hết thời gian (timeout)";
         } else if (error.response) {
@@ -354,50 +380,54 @@ export default {
           errorMessage += `: ${error.message}`;
         }
         alert(errorMessage);
-        console.error("Lỗi lưu bàn:", error);
+        console.error("Lỗi lưu món ăn:", error);
+      } finally {
+        isLoading.value = false;
       }
     };
 
-    // Xóa bàn
-    const xoaBan = async (id) => {
-      if (confirm("Bạn có chắc chắn muốn xóa bàn này không?")) {
+    // Xóa món ăn
+    const xoaMonAn = async (id) => {
+      if (confirm("Bạn có chắc chắn muốn xóa món ăn này không?")) {
         try {
-          await axios.delete(`http://localhost:8000/api/tables/${id}`);
-          ban.value = ban.value.filter((b) => b.table_id !== id);
-          if (banHienThi.value.length === 0 && trangHienTai.value > 1) {
+          await axios.delete(`http://localhost:8000/api/menus/${id}`);
+          menus.value = menus.value.filter((m) => m.menu_id !== id);
+          if (menuHienThi.value.length === 0 && trangHienTai.value > 1) {
             trangHienTai.value--;
           }
-          alert("Xóa bàn thành công!");
+          alert("Xóa món ăn thành công!");
         } catch (error) {
-          let errorMessage = "Xóa bàn thất bại";
+          let errorMessage = "Xóa món ăn thất bại";
           if (error.response) {
             errorMessage += `: ${error.response.status} - ${error.response.data.message || error.message}`;
           } else {
             errorMessage += `: ${error.message}`;
           }
           alert(errorMessage);
-          console.error("Lỗi xóa bàn:", error);
+          console.error("Lỗi xóa món ăn:", error);
         }
       }
     };
 
     return {
-      ban,
+      menus,
+      categories,
       tuKhoaTim,
-      locTrangThai,
       laModalMo,
-      banDangSua,
-      banMoi,
-      banLoc,
-      banHienThi,
+      menuDangSua,
+      menuMoi,
+      menuLoc,
+      menuHienThi,
       trangHienTai,
       tongSoTrang,
       trangHienThi,
       moModalThem,
       moModalSua,
       dongModal,
-      luuBan,
-      xoaBan,
+      luuMonAn,
+      xoaMonAn,
+      formatPrice,
+      isLoading,
     };
   },
 };
@@ -412,8 +442,7 @@ export default {
   text-fill-color: transparent;
 }
 
-.table th,
-.status {
+.table th {
   text-align: center;
 }
 
@@ -440,13 +469,6 @@ export default {
   background-color: #e6f4ea;
   cursor: pointer;
   transition: background-color 0.3s ease;
-}
-
-.badge {
-  font-size: 0.9rem;
-  padding: 5px 10px;
-  border-radius: 12px;
-  font-weight: 500;
 }
 
 .modal-content {

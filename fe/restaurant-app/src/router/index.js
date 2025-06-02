@@ -14,8 +14,12 @@ import ProductDetailComponent from '../components/ProductDetailComponent.vue';
 
 // import AdminDashboardComponent from '../components/AdminDashboardComponent.vue';
 // import AdminStaffsComponent from '../components/AdminStaffsComponent.vue';
-import AdminTableComponent from '../components/AdminTableComponent.vue';
-import AdminRoomComponent from '../components/AdminRoomComponent.vue';
+import AdminTableComponent from '../components/AdminTable/AdminTableComponent.vue';
+import AdminTableTypeComponent from '../components/AdminTable/AdminTableTypeComponent.vue';
+import AdminRoomTypeComponent from '../components/AdminRoom/AdminRoomTypeComponent.vue';
+import AdminRoomComponent from '../components/AdminRoom/AdminRoomComponent.vue';
+import AdminMenuCategoryComponent from '../components/AdminMenu/AdminMenuCategoryComponent.vue';
+import AdminMenuComponent from '../components/AdminMenu/AdminMenuComponent.vue';
 import AdminBookingComponent from '../components/AdminBookingComponent.vue';
 
 
@@ -137,15 +141,39 @@ const routes = [
     meta: { requiresAdmin: true },
   },
   {
+    path: '/admin/room-types',
+    name: 'AdminRoomType',
+    component: AdminRoomTypeComponent,
+    meta: { requiresAdmin: true },
+  },
+  {
     path: '/admin/rooms',
     name: 'AdminRoom',
     component: AdminRoomComponent,
     meta: { requiresAdmin: true },
   },
   {
+    path: '/admin/table-types',
+    name: 'AdminTableType',
+    component: AdminTableTypeComponent,
+    meta: { requiresAdmin: true },
+  },
+  {
     path: '/admin/tables',
     name: 'AdminTable',
     component: AdminTableComponent,
+    meta: { requiresAdmin: true },
+  },
+  {
+    path: '/admin/menu-categories',
+    name: 'AdminMenuCategory',
+    component: AdminMenuCategoryComponent,
+    meta: { requiresAdmin: true },
+  },
+  {
+    path: '/admin/menus',
+    name: 'AdminMenu',
+    component: AdminMenuComponent,
     meta: { requiresAdmin: true },
   },
   {
