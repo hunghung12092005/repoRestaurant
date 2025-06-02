@@ -16,6 +16,7 @@ Route::get('/departments', [DepartmentController::class, 'index']);
 Route::get('/protected', [ApiLoginController::class, 'someProtectedRoute']);
 Route::post('/login', [ApiLoginController::class, 'login']);
 Route::post('/register', [ApiLoginController::class, 'register']);
+Route::post('/qr-login', [ApiLoginController::class, 'qrLogin']); // Thêm dòng này
 Route::get('/menu-items', [MenuItemController::class, 'index']);
 //bán hàng online
 Route::get('/items-online', [ShopOnlineController::class, 'index']);

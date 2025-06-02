@@ -1,4 +1,11 @@
 <template>
+    <loading v-if="isLoading"></loading>
+    <!-- <div class="mt-5">
+        <button @click="startQRCodeScanner">Quét Mã QR</button>
+        <button @click="stopQRCodeScanner">dừng</button>
+        <div id="reader" style="width: 300px; height: 300px; display: none;"></div>
+        <p v-if="errorMessageQr">{{ errorMessageQr }}</p>
+    </div> -->
     <div class="main-login mt-5">
         <form @submit.prevent="submitForm" class="form">
             <div v-if="errorMessage" class="alert alert-warning alert-dismissible fade show" role="alert">
@@ -19,6 +26,11 @@
             </div>
             <div class="flex-column" v-if="!isLogin">
                 <label>Name </label>
+            </div>
+            <div v-if="qrCode">
+                <h5 v-if="!isLogin">Mã QR của bạn (lưu vào nơi an toàn khi đăng nhập gửi mã qr lên đăng nhập)</h5>
+                <img v-if="!isLogin" :src="qrCode" alt="QR Code" />
+                <button v-if="!isLogin" class="btn btn-info m-2" @click="downloadQRCode">Tải về mã QR</button>
             </div>
             <div class="inputForm" v-if="!isLogin">
                 <svg height="20" viewBox="-64 0 512 512" width="20" xmlns="http://www.w3.org/2000/svg">
@@ -76,9 +88,18 @@
             </p>
 
             <p class="p line">Or With</p>
+            <div v-if="isLogin">
+                <h4>Đăng Nhập Nhanh Qua Mã QR</h4>
+                <input type="file" @change="onFileChange" accept="image/*" />
+                <button class="btn btn-info" @click="startQRCodeScanner">Quét Mã QR</button>
+                <div id="reader" style="width: 300px; height: 300px; display: none;"></div>
+                <button class="btn btn-info m-2" @click="stopQRCodeScanner">dừng</button>
+                <p v-if="errorMessageQr">{{ errorMessage }}</p>
+            </div>
+            <p class="p line">Or With</p>
 
             <div class="flex-row">
-                <button type="button" class="btn google" @click="loginWithGoogle">
+                <button type="button" class="btnLogin google" @click="loginWithGoogle">
                     <svg version="1.1" width="20" id="Layer_1" xmlns="http://www.w3.org/2000/svg"
                         xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px" viewBox="0 0 512 512"
                         style="enable-background:new 0 0 512 512;" xml:space="preserve">
@@ -101,6 +122,7 @@
 
                 </button>
             </div>
+
         </form>
     </div>
 
@@ -109,9 +131,11 @@
 
 <script setup>
 import axios from 'axios';
-import { inject, ref } from 'vue';
+import { inject, ref, onMounted, onBeforeUnmount } from 'vue';
 const apiUrl = inject('apiUrl');
 import Footer from './Footer.vue';
+import loading from './loading.vue';
+const isLoading = ref(false);
 const isLogin = ref(true);
 const email = ref('');
 const password = ref('');
@@ -119,11 +143,13 @@ const name = ref('');
 const errorMessage = ref('');
 const alertMessage = ref('');
 const userInfo = ref(null);
+const qrCode = ref(null); // Biến để lưu mã QR
 const toggleForm = () => {
     isLogin.value = !isLogin.value;
     errorMessage.value = '';
 };
 const submitForm = async () => {
+    isLoading.value = true;
     try {
         if (isLogin.value) {
             const response = await axios.post(`${apiUrl}/api/login`, {
@@ -135,7 +161,7 @@ const submitForm = async () => {
             userInfo.value = user; // Sửa this.userInfo thành userInfo.value
             localStorage.setItem('tokenJwt', token);
             localStorage.setItem('userInfo', JSON.stringify(user));
-            window.location.href = '/';
+            window.location.href = 'http://127.0.0.1:5173/';
         } else {
             const response = await axios.post(`${apiUrl}/api/register`, {
                 name: name.value, // Sửa this.name thành name.value
@@ -143,6 +169,7 @@ const submitForm = async () => {
                 password: password.value,
             });
             const token = response.data.token;
+            qrCode.value = response.data.qr_code; // Lưu mã QR vào biến
             localStorage.setItem('tokenJwt', token);
             console.log(response.data.message);
             showAlert(response.data.message);
@@ -159,15 +186,122 @@ const submitForm = async () => {
         } else {
             //errorMessage.value = 'Đã xảy ra lỗi không xác định!';
         }
+    } finally {
+        isLoading.value = false;
     }
 };
+//tải về mã QR
+const downloadQRCode = () => {
+    const link = document.createElement('a');
+    link.href = qrCode.value; // Đặt địa chỉ URL của mã QR
+    link.download = 'qr_code.png'; // Tên file khi tải về
+    document.body.appendChild(link);
+    link.click(); // Kích hoạt tải về
+    document.body.removeChild(link); // Xóa liên kết
+};
+//qr login
+import jsQR from 'jsqr'; // Thư viện để đọc mã QR
+//gửi mã qr từ máy tính lên server
+const errorMessageQr = ref('');
+const onFileChange = (event) => {
+    const file = event.target.files[0]; // Lấy tệp hình ảnh đầu tiên từ input
+    if (file) {
+        const reader = new FileReader(); // Tạo một FileReader để đọc tệp
+        reader.onload = (e) => {
+            const img = new Image(); // Tạo một đối tượng hình ảnh mới
+            img.src = e.target.result; // Đặt nguồn hình ảnh là dữ liệu đã đọc từ tệp
+            img.onload = () => {
+                // Khi hình ảnh đã được tải xong
+                const canvas = document.createElement('canvas'); // Tạo một canvas để vẽ hình ảnh
+                const context = canvas.getContext('2d'); // Lấy ngữ cảnh 2D của canvas
+                canvas.width = img.width; // Đặt chiều rộng của canvas bằng chiều rộng của hình ảnh
+                canvas.height = img.height; // Đặt chiều cao của canvas bằng chiều cao của hình ảnh
+                context.drawImage(img, 0, 0); // Vẽ hình ảnh lên canvas
+
+                // Lấy dữ liệu pixel từ canvas
+                const imageData = context.getImageData(0, 0, img.width, img.height);
+                // Sử dụng thư viện jsQR để tìm mã QR trong dữ liệu pixel
+                const code = jsQR(imageData.data, img.width, img.height);
+                if (code) {
+                    loginWithQR(code.data); // Gọi hàm đăng nhập và truyền token
+                } else {
+                    errorMessageQr.value = 'Không tìm thấy mã QR trong hình ảnh.'; // Thông báo lỗi nếu không có mã QR
+                }
+            };
+        };
+        reader.readAsDataURL(file); // Đọc tệp hình ảnh dưới dạng URL dữ liệu
+    }
+};
+//quét mã qr bằng camera
+import { Html5Qrcode } from "html5-qrcode";
+const html5QrCode = ref(null);
+const startQRCodeScanner = () => {
+    errorMessageQr.value = ''; // Reset thông báo lỗi
+    const readerElement = document.getElementById("reader");
+    readerElement.style.display = "block"; // Hiển thị video từ camera
+
+    html5QrCode.value = new Html5Qrcode("reader");
+
+    const config = {
+        fps: 10,
+        qrbox: 250,
+    };
+
+    html5QrCode.value.start(
+        { facingMode: "environment" }, // Sử dụng camera phía sau
+        config,
+        (decodedText) => {
+            loginWithQR(decodedText); // Gọi hàm đăng nhập
+            stopQRCodeScanner(); // Dừng quét sau khi quét thành công
+        },
+        (errorMessage) => {
+            // Xử lý lỗi nếu cần
+        }
+    ).catch(err => {
+        console.error("Error starting QR code scanner:", err);
+    });
+};
+const loginWithQR = async (fullUrl) => {
+    isLoading.value = true;
+    const url = new URL(fullUrl);
+    const token = url.searchParams.get('token');
+    if (token) {
+        try {
+            console.log('Token:', token);
+            const response = await axios.post(`${apiUrl}/api/qr-login`, { token });
+            console.log('Đăng nhập thành công:', response.data);
+            console.log('User Info:', response.data.user);
+            console.log('token:', response.data.token);
+            localStorage.setItem('tokenJwt', response.data.token);
+            localStorage.setItem('userInfo', JSON.stringify(response.data.user));
+            window.location.href = 'http://127.0.0.1:5173/';
+            // Thực hiện các hành động sau khi đăng nhập thành công
+        } catch (error) {
+            console.error('Đăng nhập không thành công:', error.response.data);
+            errorMessageQr.value = error.response?.data?.error || 'Đăng nhập không thành công.';
+        } finally {
+            isLoading.value = false;
+        }
+    } else {
+        errorMessageQr.value = 'Vui lòng tải lên hình ảnh có mã QR trước.';
+    }
+};
+const stopQRCodeScanner = () => {
+    if (html5QrCode.value) {
+        html5QrCode.value.stop();
+        document.getElementById("reader").style.display = "none"; // Ẩn video
+    }
+};
+onBeforeUnmount(() => {
+    stopQRCodeScanner(); // Dừng quét khi component bị hủy
+});
+// Hàm đăng nhập với Google
 const loginWithGoogle = () => {
-    window.location.href = 'http://127.0.0.1:8000/auth/google';
+    window.location.href = `http://127.0.0.1:8000/auth/google`;
 };
 
 function showError(message) {
     errorMessage.value = message;
-
     // Ẩn thông báo sau 2 giây
     setTimeout(() => {
         errorMessage.value = ''; // Đặt lại thông báo
@@ -177,7 +311,6 @@ function showError(message) {
 // Hàm hiển thị alert
 function showAlert(message) {
     alertMessage.value = message;
-
     // Ẩn thông báo sau 2 giây
     setTimeout(() => {
         alertMessage.value = ''; // Đặt lại thông báo
@@ -227,12 +360,14 @@ function showAlert(message) {
     border-radius: 20px;
     font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
 }
+
 @media (max-width: 600px) {
     .form {
         width: 95%;
         padding: 20px;
     }
 }
+
 ::placeholder {
     font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
 }
@@ -322,7 +457,7 @@ function showAlert(message) {
     margin: 5px 0;
 }
 
-.btn {
+.btnLogin {
     margin-top: 10px;
     width: 100%;
     height: 50px;
