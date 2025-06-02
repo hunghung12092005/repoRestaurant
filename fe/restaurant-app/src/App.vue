@@ -1,6 +1,6 @@
 <template>
   <div>
-    <!-- Kiểm tra nếu route là /admin thì hiển thị layout admin -->
+    <!-- Layout cho admin -->
     <div v-if="$route.path.startsWith('/admin')" class="d-flex">
       <!-- Sidebar -->
       <div class="sidebar">
@@ -24,7 +24,7 @@
           <li class="nav-item"><router-link class="nav-link" to="/admin/dashboard"><i class="bi bi-grid"></i> Dashboard</router-link></li>
           <li class="nav-item"><router-link class="nav-link" to="/admin/occupancy"><i class="bi bi-house-door"></i> Occupancy <span class="badge bg-danger">5</span></router-link></li>
           <li class="nav-item"><router-link class="nav-link" to="/admin/bookings"><i class="bi bi-book"></i> Bookings</router-link></li>
-          <li class="nav-item"><router-link class="nav-link" to="/admin/rooms"><i class="bi bi-building"></i> Rooms</router-link></li>
+          <li class="nav-item"><router-link class="nav-link" to="/admin/rooms"><i class='bx bx-bed'></i>  Rooms</router-link></li>
           <li class="nav-item"><router-link class="nav-link" to="/admin/staffs"><i class="bi bi-people"></i> Staffs</router-link></li>
           <li class="nav-item"><router-link class="nav-link" to="/admin/departments"><i class="bi bi-gear"></i> Departments</router-link></li>
           <li class="nav-item"><router-link class="nav-link" to="/admin/housekeeping"><i class="bi bi-house"></i> Housekeeping</router-link></li>
@@ -52,7 +52,55 @@
       </div>
     </div>
 
-    <!-- Layout cho các route không phải admin -->
+    <!-- Layout cho staff -->
+    <div v-else-if="$route.path.startsWith('/staff')" class="d-flex">
+      <!-- Sidebar -->
+      <div class="sidebar">
+        <div class="header text-center p-3 border-bottom">
+          <img src="https://i.postimg.cc/s2Ywg6YR/logo.png" alt="Luxuria Logo" class="rounded-circle" />
+          <span class="fw-bold">An Phú Ecosystem</span>
+        </div>
+        <div class="profile text-center p-3 border-bottom">
+          <img src="https://www.einfosoft.com/templates/admin/luxuria/source/light/assets/images/admin.jpg"
+            alt="Profile Picture" class="rounded-circle" />
+          <p class="mb-0 text-muted">{{ userInfo.name || 'Staff' }}</p>
+          <p class="text-muted">{{ userInfo.email || 'staff@seafoodie.com' }}</p>
+          <div class="icons d-flex justify-content-center mt-2">
+            <i class="bi bi-person mx-2" @click="goToProfile"></i>
+            <i class="bi bi-pencil mx-2" @click="editProfile"></i>
+            <i class="bi bi-bookmark-check mx-2"></i>
+            <i class="bi bi-box-arrow-right mx-2" @click.prevent="logout"></i>
+          </div>
+        </div>
+        <ul class="nav flex-column">
+          <li class="nav-item"><router-link class="nav-link" to="/staff/bookings"><i class="bi bi-book"></i> Quản lý đặt phòng</router-link></li>
+          <li class="nav-item"><router-link class="nav-link" to="/staff/reservations"><i class="bi bi-table"></i> Quản lý đặt bàn</router-link></li>
+          <li class="nav-item"><router-link class="nav-link" to="/staff/menu"><i class="bi bi-menu-button-wide"></i> Quản lý món ăn</router-link></li>
+          <li class="nav-item"><router-link class="nav-link" to="/staff/orders"><i class="bi bi-cart"></i> Quản lý đơn hàng</router-link></li>
+          <li class="nav-item"><router-link class="nav-link" to="/"><i class="bi bi-box-arrow-left"></i> Thoát</router-link></li>
+        </ul>
+      </div>
+
+      <!-- Main Content -->
+      <div class="main-content">
+        <!-- Top Navbar -->
+        <div class="navbar-top" :class="{ 'scrolled': navbarSticky }">
+          <div class="d-flex align-items-center">
+            <i class="bi bi-globe"></i>
+            <i class="bi bi-bell mx-3"></i>
+            <span>{{ userInfo.name || 'Staff' }}</span>
+          </div>
+        </div>
+
+        <!-- Dynamic Content -->
+        <main class="admin-main">
+          <RouterView></RouterView>
+        </main>
+        <footer class="admin-footer text-center py-3">Staff Footer - Sea Foodie</footer>
+      </div>
+    </div>
+
+    <!-- Layout cho các route không phải admin hoặc staff -->
     <div v-else>
       <header ref="headerRef">
         <nav class="navbar navbar-expand-lg navbar-light fixed-top" :class="{ 'active': navbarSticky }">
@@ -74,8 +122,7 @@
               <ul class="navbar-nav ms-auto">
                 <li class="nav-item"><router-link class="nav-link sisf-m-subtitle" to="/">Home</router-link></li>
                 <li class="nav-item"><router-link class="nav-link sisf-m-subtitle" to="/about">About</router-link></li>
-                <li class="nav-item"><router-link class="nav-link sisf-m-subtitle" to="/contact">Contact</router-link>
-                </li>
+                <li class="nav-item"><router-link class="nav-link sisf-m-subtitle" to="/contact">Contact</router-link></li>
                 <li class="nav-item"><router-link class="nav-link sisf-m-subtitle" to="/blog">Blog</router-link></li>
                 <li class="nav-item dropdown">
                   <a class="nav-link dropdown-toggle sisf-m-subtitle" href="#" role="button" data-bs-toggle="dropdown"
@@ -83,21 +130,21 @@
                     Menu
                   </a>
                   <ul class="dropdown-menu">
-                    <li><router-link class="dropdown-item " to="/menu-list">Menu Đặt Món</router-link></li>
-                    <li><router-link class="dropdown-item " to="/menu">menu</router-link></li>
-                    <li><router-link class="dropdown-item " to="/product-detail">Chi Tiết Online</router-link></li>
-                    <li><router-link class="dropdown-item " to="/CategoryShopOnline">Menu ShopOnline</router-link></li>
+                    <li><router-link class="dropdown-item" to="/menu-list">Menu Đặt Món</router-link></li>
+                    <li><router-link class="dropdown-item" to="/menu">menu</router-link></li>
+                    <li><router-link class="dropdown-item" to="/product-detail">Chi Tiết Online</router-link></li>
+                    <li><router-link class="dropdown-item" to="/CategoryShopOnline">Menu ShopOnline</router-link></li>
                   </ul>
                 </li>
-                <li class="nav-item "><router-link class="nav-link sisf-m-subtitle"
-                    to="/reservation">Reservation</router-link></li>
-                <li class="nav-item dropdown " v-if="isLogin">
+                <li class="nav-item"><router-link class="nav-link sisf-m-subtitle" to="/reservation">Reservation</router-link></li>
+                <li class="nav-item dropdown" v-if="isLogin">
                   <a class="nav-link dropdown-toggle sisf-m-subtitle" href="#" role="button" data-bs-toggle="dropdown"
                     aria-expanded="false">
                     Xin chào, {{ userInfo.name }}!
                   </a>
                   <ul class="dropdown-menu dropdown-menu-end">
                     <li><router-link class="dropdown-item" to="/testJwt">testJwt</router-link></li>
+                    <li v-if="userInfo.role === 'staff'"><router-link class="dropdown-item" to="/staff/bookings">Staff Dashboard</router-link></li>
                     <li v-if="isAdmin"><router-link class="dropdown-item" to="/admin">Vào admin</router-link></li>
                     <li><a class="dropdown-item logout-link" @click.prevent="logout">Đăng Xuất</a></li>
                   </ul>
@@ -111,10 +158,9 @@
         </nav>
       </header>
 
-      <main>       
-          <router-view />
+      <main>
+        <router-view />
       </main>
-      
     </div>
   </div>
 </template>
@@ -129,15 +175,14 @@ const route = useRoute();
 const router = useRouter();
 const headerRef = ref(null);
 const navbarRef = ref(null);
-const navbarActive = ref(false); // Dùng cho trạng thái mở/đóng menu
-const navbarSticky = ref(false); // Dùng cho hiệu ứng sticky của navbar
+const navbarActive = ref(false);
+const navbarSticky = ref(false);
 const userInfo = ref(null);
 const isLogin = ref(false);
 const isAdmin = ref(false);
 const apiUrl = 'http://localhost:8000';
 provide('apiUrl', apiUrl);
 
-// Biến để theo dõi vị trí cuộn trước đó
 const lastScrollPosition = ref(0);
 
 const toggleMenu = () => {
@@ -145,23 +190,17 @@ const toggleMenu = () => {
 };
 
 const handleScroll = () => {
-  if (headerRef.value || route.path.startsWith('/admin')) {
+  if (headerRef.value || route.path.startsWith('/admin') || route.path.startsWith('/staff')) {
     const currentScrollPosition = window.scrollY;
-
-    // Áp dụng hiệu ứng sticky cho navbar trên mọi kích thước màn hình
     navbarSticky.value = currentScrollPosition > 50;
-
     lastScrollPosition.value = currentScrollPosition;
   }
 };
 
-// Đóng menu khi nhấn bên ngoài
 const handleOutsideClick = (event) => {
   if (window.innerWidth <= 991 && navbarActive.value && navbarRef.value) {
     const isClickInside = navbarRef.value.contains(event.target);
     const isToggleButton = event.target.closest('.navbar-toggler');
-
-    // Nếu nhấn bên ngoài menu và không phải nút toggle, đóng menu
     if (!isClickInside && !isToggleButton) {
       navbarActive.value = false;
     }
@@ -199,7 +238,7 @@ const fetchUserInfo = async () => {
   } catch (error) {
     console.error('Error fetching user info:', error.response ? error.response.data : error.message);
     if (error.response?.status === 401) {
-      logout(); // Xóa token và đăng xuất nếu token không hợp lệ
+      logout();
     }
   }
 };
@@ -217,7 +256,6 @@ const handleUrlParams = () => {
       userInfo.value = parsedUser;
       isLogin.value = true;
       isAdmin.value = parsedUser.role === 'admin';
-      // Xóa query params khỏi URL
       router.replace({ query: {} });
     } catch (e) {
       console.error('Error parsing user from URL:', e);
@@ -235,29 +273,17 @@ const logout = () => {
 };
 
 const goToProfile = () => {
-  router.push('/admin/profile');
+  router.push(userInfo.value.role === 'admin' ? '/admin/profile' : '/staff/profile');
 };
 
 const editProfile = () => {
-  router.push('/admin/edit-profile');
+  router.push(userInfo.value.role === 'admin' ? '/admin/edit-profile' : '/staff/edit-profile');
 };
 
-// Navigation guard để bảo vệ route admin
-router.beforeEach((to, from, next) => {
-  const isAuthenticated = !!localStorage.getItem('tokenJwt');
-  const isAdminUser = userInfo.value?.role === 'admin';
-
-  if (to.path.startsWith('/admin') && (!isAuthenticated || !isAdminUser)) {
-    next('/'); // Chuyển về trang chủ nếu không đăng nhập hoặc không phải admin
-  } else {
-    next();
-  }
-});
-
 onMounted(() => {
-  restoreUserSession(); // Khôi phục phiên từ localStorage
-  handleUrlParams(); // Xử lý token/user từ URL nếu có
-  fetchUserInfo(); // Lấy thông tin người dùng từ API
+  restoreUserSession();
+  handleUrlParams();
+  fetchUserInfo();
   window.addEventListener('scroll', handleScroll);
   document.addEventListener('click', handleOutsideClick);
 });
@@ -272,6 +298,7 @@ onUnmounted(() => {
 @import url('https://fonts.googleapis.com/css2?family=Arial&display=swap');
 @import url('https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css');
 @import url('https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css');
+@import url('https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css');
 
 :root {
   --main-color: #16B978;
@@ -287,11 +314,11 @@ onUnmounted(() => {
   box-sizing: border-box;
   font-family: 'Arial', sans-serif;
 }
+
 /* Styles cho layout thông thường */
 .navbar {
   transition: background-color 0.3s ease, color 0.3s ease;
   padding: 10px 15px;
-  /* background: url('https://i.pinimg.com/1200x/61/e5/99/61e599a4b5a497cf75d3e61f030574cc.jpg'); */
   background-size: cover;
   background-color: rgb(56, 80, 124);
 }
@@ -311,7 +338,6 @@ onUnmounted(() => {
   line-height: 1.2;
   font-weight: 600;
   padding: 0 20px !important;
-  /* color:rgba(43, 212, 231, 0.7); */
   color: white;
 }
 
@@ -319,11 +345,6 @@ onUnmounted(() => {
 .navbar.active .nav-link,
 .navbar.active .dropdown-toggle {
   color: black;
-}
-
-.navbar.active .navbar-toggler-icon {
-  filter: brightness(0) invert(1);
-  /* Đổi màu biểu tượng toggle thành trắng khi active */
 }
 
 .navbar.active .navbar-toggler-icon {
@@ -339,15 +360,6 @@ onUnmounted(() => {
 .navbar.active .logo-img {
   filter: brightness(100);
 }
-
-/* .nav-link {
-  font-size: 1rem;
-  font-weight: 500;
-  color: rgb(14, 192, 224);
-  padding: 8px 15px !important;
-  transition: all 0.3s ease;
-} */
-
 
 .nav-link:hover {
   color: black;
@@ -377,8 +389,6 @@ onUnmounted(() => {
 }
 
 main {
-  /* padding-top: 70px; */
-  /* margin-bottom: 20px; */
   min-height: calc(100vh - 70px);
   width: 100%;
 }
@@ -388,7 +398,7 @@ footer {
   color: #fff;
 }
 
-/* Admin Layout Styles */
+/* Admin và Staff Layout Styles */
 body {
   background-color: #f5f7fb;
   height: 100%;
@@ -404,15 +414,11 @@ body {
   width: 250px;
   z-index: 1000;
   overflow-y: auto;
-  
-  /* Enable vertical scrolling */
   scrollbar-width: none;
-  /* Hide scrollbar for Firefox */
 }
 
 .sidebar::-webkit-scrollbar {
   display: none;
-  /* Hide the scrollbar */
 }
 
 .sidebar .header {
@@ -589,12 +595,10 @@ body {
   .navbar.active .nav-link,
   .navbar.active .dropdown-toggle {
     color: #000 !important;
-    /* Màu đen cho mobile khi active */
   }
 
   .navbar.active .navbar-toggler-icon {
     filter: brightness(0) invert(1);
-    /* Đổi màu biểu tượng toggle thành trắng khi active trên mobile */
   }
 
   .navbar.active .navbar-toggler-icon {
@@ -617,14 +621,11 @@ body {
     transform: translateX(-100%);
     transition: transform 0.3s ease-in-out;
     overflow-y: auto;
-    /* Ensure scrolling on mobile */
     scrollbar-width: none;
-    /* Hide scrollbar for Firefox */
   }
 
   .sidebar::-webkit-scrollbar {
     display: none;
-    /* Hide scrollbar for WebKit browsers */
   }
 
   .sidebar.show {
@@ -651,7 +652,6 @@ body {
   .navbar.active .nav-link,
   .navbar.active .dropdown-toggle {
     color: #fff !important;
-    /* Màu trắng cho desktop khi active */
   }
 }
 </style>

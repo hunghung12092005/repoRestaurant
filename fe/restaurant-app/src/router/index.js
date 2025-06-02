@@ -15,12 +15,14 @@ import AdminDashboardComponent from '../components/admin/AdminDashboardComponent
 import AdminStaffsComponent from '../components/admin/AdminStaffsComponent.vue';
 import AdminDepartmentsComponent from '../components/admin/AdminDepartmentsComponent.vue';
 import AdminLeaveRequestsComponent from '../components/admin/AdminLeaveRequestsComponent.vue';
-import ghn from '../components/ghn/mainghn.vue'
+import ghn from '../components/ghn/mainghn.vue';
 import menu_online from '../components/ShopOnline/menu_online.vue';
 import detailMenu from '../components/ShopOnline/detailMenu.vue';
 import detailOrderMenu from '../components/menu_item/detailOrderMenu.vue';
 import CategoryShopOnline from '../components/ShopOnline/CategoryShopOnline.vue';
 import buynow from '../components/ShopOnline/BuyNow.vue';
+import StaffDashboardComponent from '../components/staff/StaffDashboardComponent.vue'; // Thêm component mới
+
 const routes = [
   {
     path: '/',
@@ -67,7 +69,6 @@ const routes = [
     name: 'BlogDetailComponent',
     component: BlogDetailComponent,
   },
-  //bán hàng online
   {
     path: '/product-detail',
     name: 'ProductDetailComponent',
@@ -92,30 +93,28 @@ const routes = [
     path: '/menu_online',
     name: 'menu_online',
     component: menu_online,
-   ///props: { msg: 'Hello from Route!' } truyền ngay props vào component
   },
   {
-    path: '/detailMenu/:id', // Định nghĩa route với param id
+    path: '/detailMenu/:id',
     name: 'detailMenu',
     component: detailMenu,
-    props: true // Kích hoạt props để truyền param
+    props: true,
   },
-  //menu đặt món
   {
     path: '/menu-list',
     name: 'MenuListComponent',
     component: MenuListComponent,
   },
   {
-    path: '/detailOrderMenu/:ids', // Định nghĩa route với param id
+    path: '/detailOrderMenu/:ids',
     name: 'detailOrderMenu',
     component: detailOrderMenu,
-    props: true // Kích hoạt props để truyền param
+    props: true,
   },
   // Admin routes
   {
     path: '/admin',
-    redirect: '/admin/dashboard', // Chuyển hướng /admin đến /admin/dashboard
+    redirect: '/admin/dashboard',
   },
   {
     path: '/admin/dashboard',
@@ -129,7 +128,7 @@ const routes = [
     component: AdminStaffsComponent,
     meta: { requiresAdmin: true },
   },
-   {
+  {
     path: '/admin/departments',
     name: 'AdminDepartments',
     component: AdminDepartmentsComponent,
@@ -140,24 +139,37 @@ const routes = [
     name: 'AdminLeaveRequests',
     component: AdminLeaveRequestsComponent,
     meta: { requiresAdmin: true },
-  }
+  },
+  // Staff routes
+  {
+    path: '/staff/dashboard',
+    name: 'StaffDashboard',
+    component: StaffDashboardComponent,
+    meta: { requiresStaff: true },
+  },
 ];
 
 const router = createRouter({
   history: createWebHistory(),
   routes,
 });
-//cuộn lên đầu trang khi chuyển trang
+
+// Cuộn lên đầu trang khi chuyển trang
 router.afterEach(() => {
   window.scrollTo(0, 0);
 });
-// Route Guard để kiểm tra quyền admin
+
+// Route Guard để kiểm tra quyền admin và staff
 router.beforeEach((to, from, next) => {
   const userInfo = JSON.parse(localStorage.getItem('userInfo') || '{}');
   const isAdmin = userInfo.role === 'admin';
+  const isStaff = userInfo.role === 'staff';
+  const isAuthenticated = !!localStorage.getItem('tokenJwt');
 
-  if (to.meta.requiresAdmin && !isAdmin) {
+  if (to.meta.requiresAdmin && (!isAuthenticated || !isAdmin)) {
     next('/login'); // Chuyển hướng về login nếu không phải admin
+  } else if (to.meta.requiresStaff && (!isAuthenticated || !isStaff)) {
+    next('/login'); // Chuyển hướng về login nếu không phải staff
   } else {
     next(); // Cho phép truy cập
   }
