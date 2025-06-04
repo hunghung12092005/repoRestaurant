@@ -385,6 +385,10 @@ export default {
 </script>
 
 <style scoped>
+th{
+  background: rgb(91, 200, 250);
+}
+
 .text-sea-green {
   background: linear-gradient(135deg, #3f8dd6, #2acabd);
   -webkit-background-clip: text;
