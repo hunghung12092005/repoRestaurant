@@ -19,6 +19,8 @@ import detailMenu from '../components/ShopOnline/detailMenu.vue';
 import detailOrderMenu from '../components/menu_item/detailOrderMenu.vue';
 import CategoryShopOnline from '../components/ShopOnline/CategoryShopOnline.vue';
 import buynow from '../components/ShopOnline/BuyNow.vue';
+import ChatAdmin from '../components/ChatAdmin.vue';
+import Chat from '../components/Chat.vue';
 const routes = [
   {
     path: '/',
@@ -104,11 +106,21 @@ const routes = [
     name: 'MenuListComponent',
     component: MenuListComponent,
   },
+ 
   {
     path: '/detailOrderMenu/:ids', // Định nghĩa route với param id
     name: 'detailOrderMenu',
     component: detailOrderMenu,
     props: true // Kích hoạt props để truyền param
+  },
+  {
+    path: '/ChatAdmin',
+    name: 'ChatAdmin',
+    component: ChatAdmin,
+  }, {
+    path: '/Chat',
+    name: 'Chat',
+    component: Chat,
   },
   // Admin routes
   {
