@@ -104,28 +104,12 @@ const routes = [
     name: 'MenuListComponent',
     component: MenuListComponent,
   },
-<<<<<<< HEAD
-=======
- 
->>>>>>> master
   {
     path: '/detailOrderMenu/:ids', // Định nghĩa route với param id
     name: 'detailOrderMenu',
     component: detailOrderMenu,
     props: true // Kích hoạt props để truyền param
   },
-<<<<<<< HEAD
-=======
-  {
-    path: '/ChatAdmin',
-    name: 'ChatAdmin',
-    component: ChatAdmin,
-  }, {
-    path: '/Chat',
-    name: 'Chat',
-    component: Chat,
-  },
->>>>>>> master
   // Admin routes
   {
     path: '/admin',
