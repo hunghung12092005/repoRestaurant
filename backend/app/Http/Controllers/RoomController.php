@@ -4,46 +4,33 @@ namespace App\Http\Controllers;
 
 use App\Models\Room;
 use Illuminate\Http\Request;
-use Illuminate\Http\JsonResponse;
-use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Facades\Log;
 
 class RoomController extends Controller
 {
-    public function index(): JsonResponse
+    public function index()
     {
         try {
-            $rooms = Room::with('roomType')->get()->map(function ($room) {
-                return [
-                    'room_id' => $room->room_id,
-                    'room_name' => $room->room_name,
-                    'type_id' => $room->type_id,
-                    'type_name' => $room->roomType ? $room->roomType->type_name : '',
-                    'capacity' => $room->capacity,
-                    'price' => $room->price,
-                    'status' => $room->status,
-                    'description' => $room->description,
-                    'created_at' => $room->created_at,
-                    'updated_at' => $room->updated_at,
-                ];
-            });
-            Log::info('Danh sách phòng:', $rooms->toArray()); // Ghi log
+            $rooms = Room::with(['roomType', 'season'])->get();
+            Log::info('Fetched rooms: ' . $rooms->count());
             return response()->json(['data' => $rooms], 200);
         } catch (\Exception $e) {
-            Log::error('Lỗi khi lấy danh sách phòng: ' . $e->getMessage()); // Ghi log
+            Log::error('Error fetching rooms: ' . $e->getMessage());
             return response()->json(['message' => 'Lỗi khi lấy danh sách phòng', 'error' => $e->getMessage()], 500);
         }
     }
 
-    public function store(Request $request): JsonResponse
+    public function store(Request $request)
     {
         $validator = Validator::make($request->all(), [
-            'room_name' => 'required|string|max:255',
-            'type_id' => 'required|integer|exists:room_types,type_id',
+            'room_name' => 'required|string|max:100|unique:rooms',
+            'type_id' => 'required|exists:room_types,type_id',
             'capacity' => 'required|integer|min:1',
-            'price' => 'required|numeric|min:0',
-            'status' => 'required|string|in:Trống,Đã đặt,Bảo trì',
-            'description' => 'nullable|string|max:5000',
+            'status' => 'required|in:Trống,Đã đặt,Chờ xác nhận,Bảo trì,Đang dọn dẹp',
+            'season_id' => 'required|exists:seasons,season_id',
+            'amenities' => 'required|array',
+            'description' => 'nullable|string'
         ]);
 
         if ($validator->fails()) {
@@ -51,89 +38,56 @@ class RoomController extends Controller
         }
 
         try {
-            Log::info('Dữ liệu gửi lên:', $request->all()); // Ghi log
-            $room = Room::create($request->only([
-                'room_name',
-                'type_id',
-                'capacity',
-                'price',
-                'status',
-                'description',
-            ]));
-            $room->load('roomType');
-            $response = [
-                'room_id' => $room->room_id,
-                'room_name' => $room->room_name,
-                'type_id' => $room->type_id,
-                'type_name' => $room->roomType ? $room->roomType->type_name : '',
-                'capacity' => $room->capacity,
-                'price' => $room->price,
-                'status' => $room->status,
-                'description' => $room->description,
-                'created_at' => $room->created_at,
-                'updated_at' => $room->updated_at,
-            ];
-            return response()->json(['data' => $response, 'message' => 'Thêm phòng thành công'], 201);
+            $room = Room::create($request->all());
+            return response()->json(['data' => $room, 'message' => 'Thêm phòng thành công'], 201);
         } catch (\Exception $e) {
-            Log::error('Lỗi khi thêm phòng: ' . $e->getMessage()); // Ghi log
+            Log::error('Error storing room: ' . $e->getMessage());
             return response()->json(['message' => 'Lỗi khi thêm phòng', 'error' => $e->getMessage()], 500);
         }
     }
 
-    public function update(Request $request, $id): JsonResponse
+    public function update(Request $request, $id)
     {
+        $room = Room::find($id);
+        if (!$room) {
+            return response()->json(['message' => 'Không tìm thấy phòng'], 404);
+        }
+
+        $validator = Validator::make($request->all(), [
+            'room_name' => 'required|string|max:100|unique:rooms,room_name,' . $id . ',room_id',
+            'type_id' => 'required|exists:room_types,type_id',
+            'capacity' => 'required|integer|min:1',
+            'status' => 'required|in:Trống,Đã đặt,Chờ xác nhận,Bảo trì,Đang dọn dẹp',
+            'season_id' => 'required|exists:seasons,season_id',
+            'amenities' => 'required|array',
+            'description' => 'nullable|string'
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json(['message' => 'Dữ liệu không hợp lệ', 'errors' => $validator->errors()], 422);
+        }
+
         try {
-            $room = Room::findOrFail($id);
-
-            $validator = Validator::make($request->all(), [
-                'room_name' => 'required|string|max:255',
-                'type_id' => 'required|integer|exists:room_types,type_id',
-                'capacity' => 'required|integer|min:1',
-                'price' => 'required|numeric|min:0',
-                'status' => 'required|string|in:Trống,Đã đặt,Bảo trì',
-                'description' => 'nullable|string|max:5000',
-            ]);
-
-            if ($validator->fails()) {
-                return response()->json(['message' => 'Dữ liệu không hợp lệ', 'errors' => $validator->errors()], 422);
-            }
-
-            $room->update($request->only([
-                'room_name',
-                'type_id',
-                'capacity',
-                'price',
-                'status',
-                'description',
-            ]));
-            $room->load('roomType');
-            $response = [
-                'room_id' => $room->room_id,
-                'room_name' => $room->room_name,
-                'type_id' => $room->type_id,
-                'type_name' => $room->roomType ? $room->roomType->type_name : '',
-                'capacity' => $room->capacity,
-                'price' => $room->price,
-                'status' => $room->status,
-                'description' => $room->description,
-                'created_at' => $room->created_at,
-                'updated_at' => $room->updated_at,
-            ];
-            return response()->json(['data' => $response, 'message' => 'Cập nhật phòng thành công'], 200);
+            $room->update($request->all());
+            return response()->json(['data' => $room, 'message' => 'Cập nhật phòng thành công'], 200);
         } catch (\Exception $e) {
-            Log::error('Lỗi khi cập nhật phòng: ' . $e->getMessage()); // Ghi log
+            Log::error('Error updating room: ' . $e->getMessage());
             return response()->json(['message' => 'Lỗi khi cập nhật phòng', 'error' => $e->getMessage()], 500);
         }
     }
 
-    public function destroy($id): JsonResponse
+    public function destroy($id)
     {
+        $room = Room::find($id);
+        if (!$room) {
+            return response()->json(['message' => 'Không tìm thấy phòng'], 404);
+        }
+
         try {
-            $room = Room::findOrFail($id);
             $room->delete();
             return response()->json(['message' => 'Xóa phòng thành công'], 200);
         } catch (\Exception $e) {
-            Log::error('Lỗi khi xóa phòng: ' . $e->getMessage()); // Ghi log
+            Log::error('Error deleting room: ' . $e->getMessage());
             return response()->json(['message' => 'Lỗi khi xóa phòng', 'error' => $e->getMessage()], 500);
         }
     }

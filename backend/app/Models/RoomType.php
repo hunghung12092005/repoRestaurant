@@ -10,17 +10,8 @@ class RoomType extends Model
     use HasFactory;
 
     protected $table = 'room_types';
-
     protected $primaryKey = 'type_id';
-
-    public $incrementing = true;
-
-    protected $fillable = [
-        'type_name',
-        'description',
-        'created_at',
-        'updated_at',
-    ];
+    protected $fillable = ['type_name', 'description'];
 
     public function rooms()
     {

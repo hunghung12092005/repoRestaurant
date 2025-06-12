@@ -17,6 +17,7 @@ import ProductDetailComponent from '../components/ProductDetailComponent.vue';
 import AdminTableComponent from '../components/AdminTable/AdminTableComponent.vue';
 import AdminTableTypeComponent from '../components/AdminTable/AdminTableTypeComponent.vue';
 import AdminRoomTypeComponent from '../components/AdminRoom/AdminRoomTypeComponent.vue';
+import AdminSeasonComponent from '../components/AdminRoom/AdminSeasonComponent.vue';
 import AdminRoomComponent from '../components/AdminRoom/AdminRoomComponent.vue';
 import AdminMenuCategoryComponent from '../components/AdminMenu/AdminMenuCategoryComponent.vue';
 import AdminMenuComponent from '../components/AdminMenu/AdminMenuComponent.vue';
@@ -144,6 +145,12 @@ const routes = [
     path: '/admin/room-types',
     name: 'AdminRoomType',
     component: AdminRoomTypeComponent,
+    meta: { requiresAdmin: true },
+  },
+  {
+    path: '/admin/seasons',
+    name: 'AdminSeason',
+    component: AdminSeasonComponent,
     meta: { requiresAdmin: true },
   },
   {

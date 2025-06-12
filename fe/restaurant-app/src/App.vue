@@ -36,6 +36,11 @@
                 </router-link>
               </li>
               <li>
+                <router-link class="dropdown-item" to="/admin/seasons">
+                  <i class='bx  bx-bed'></i> Quản lý giá phòng
+                </router-link>
+              </li>
+              <li>
                 <router-link class="dropdown-item" to="/admin/rooms">
                   <i class='bx  bx-bed'></i> Quản lý phòng
                 </router-link>

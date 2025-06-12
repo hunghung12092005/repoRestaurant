@@ -7,19 +7,19 @@ use App\Http\Controllers\api\ShopOnlineController;
 use App\Http\Controllers\api\EmployeeController;
 use App\Http\Controllers\api\DepartmentController;
 use Illuminate\Support\Facades\Route;
+use Illuminate\Support\Facades\Log;
 use App\Http\Controllers\LoginController;
 use App\Http\Controllers\MenuCategoryController;
 use App\Http\Controllers\MenuController;
 use App\Http\Controllers\RoomController;
 use App\Http\Controllers\RoomTypeController;
+use App\Http\Controllers\SeasonController;
 use App\Http\Controllers\TableController;
 use App\Http\Controllers\TableTypeController;
-use App\Models\ShopOnline;
 
-
-Route::apiResource('employees', EmployeeController::class); // Thêm dấu ;
+Route::apiResource('employees', EmployeeController::class);
 Route::get('/departments', [DepartmentController::class, 'index']);
-//
+
 Route::get('/protected', [ApiLoginController::class, 'someProtectedRoute']);
 Route::post('/login', [ApiLoginController::class, 'login']);
 Route::post('/register', [ApiLoginController::class, 'register']);
@@ -39,6 +39,11 @@ Route::post('/room-types', [RoomTypeController::class, 'store']);
 Route::put('/room-types/{id}', [RoomTypeController::class, 'update']);
 Route::delete('/room-types/{id}', [RoomTypeController::class, 'destroy']);
 
+Route::get('/seasons', [SeasonController::class, 'index']);
+Route::post('/seasons', [SeasonController::class, 'store']);
+Route::put('/seasons/{id}', [SeasonController::class, 'update']);
+Route::delete('/seasons/{id}', [SeasonController::class, 'destroy']);
+
 Route::get('/rooms', [RoomController::class, 'index']);
 Route::post('/rooms', [RoomController::class, 'store']);
 Route::put('/rooms/{id}', [RoomController::class, 'update']);
@@ -54,20 +59,19 @@ Route::post('/tables', [TableController::class, 'store']);
 Route::put('/tables/{id}', [TableController::class, 'update']);
 Route::delete('/tables/{id}', [TableController::class, 'destroy']);
 
+Route::get('/bookings/form-data', [BookingController::class, 'getFormData']);
 Route::get('/bookings', [BookingController::class, 'index']);
-Route::get('/bookings/{id}', [BookingController::class, 'show']);
+Route::get('/bookings/{booking_id}', [BookingController::class, 'show']);
 Route::post('/bookings', [BookingController::class, 'store']);
-Route::put('/bookings/{id}', [BookingController::class, 'update']);
-Route::delete('/bookings/{id}', [BookingController::class, 'destroy']);
-Route::patch('/bookings/{bookingId}/confirm', [BookingController::class, 'confirm'])->name('bookings.confirm');
+Route::put('/bookings/{booking_id}', [BookingController::class, 'update']);
+Route::patch('/bookings/{booking_id}/confirm', [BookingController::class, 'confirm'])->name('bookings.confirm');
+Route::delete('/bookings/{booking_id}', [BookingController::class, 'destroy']);
+Route::post('/bookings/check-availability', [BookingController::class, 'checkAvailability']);
 
 Route::get('/menu-items', [MenuItemController::class, 'index']);
-//bán hàng online
+Route::post('/menu-items/array/{ids}', [MenuItemController::class, 'getItemArray']);
+
 Route::get('/items-online', [ShopOnlineController::class, 'index']);
 Route::get('/items-online/{id}', [ShopOnlineController::class, 'show']);
-Route::get('/menu-items', [MenuItemController::class, 'index']);
-Route::get('api/items-online/50k', [ShopOnlineController::class, 'getIteam50k']);
-
-//menu items
-Route::post('/menu-itemsarray/{ids}', [MenuItemController::class, 'getItemArray']);
+Route::get('/items-online/50k', [ShopOnlineController::class, 'getItem50k']);
 

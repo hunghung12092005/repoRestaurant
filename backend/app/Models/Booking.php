@@ -1,24 +1,16 @@
 <?php
-namespace App\Models;
+    namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 
 class Booking extends Model
 {
+    protected $table = 'bookings';
     protected $primaryKey = 'booking_id';
+    public $timestamps = true;
     protected $fillable = [
-        'customer_name',
-        'customer_phone',
-        'booking_type',
-        'booking_date',
-        'check_in_date',
-        'check_out_date',
-        'booking_time',
-        'quantity',
-        'room_id',
-        'table_id',
-        'menu_id',
-        'note',
+        'booking_type', 'customer_name', 'customer_phone', 'check_in_date', 'check_out_date',
+        'booking_date', 'booking_time', 'quantity', 'room_id', 'table_id', 'menu_id', 'status', 'note'
     ];
 
     public function room()
@@ -36,3 +28,4 @@ class Booking extends Model
         return $this->belongsTo(Menu::class, 'menu_id', 'menu_id');
     }
 }
+?>

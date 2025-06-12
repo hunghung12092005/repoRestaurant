@@ -3,93 +3,89 @@
     <div class="d-flex justify-content-between align-items-center mb-4">
       <h1 class="fw-bold text-sea-green">Quản Lý Phòng</h1>
       <button class="btn btn-success shadow" @click="moModalThem">
-        <i class="bi bi-plus-circle me-2"></i>Thêm Phòng Mới
+        <i class="bi bi-plus-circle me-2"></i>Thêm Phòng
       </button>
     </div>
+    <div v-if="successMessage" class="alert alert-success">{{ successMessage }}</div>
+    <div v-if="errorMessage" class="alert alert-danger">{{ errorMessage }}</div>
 
-    <!-- Tìm kiếm và lọc -->
     <div class="row mb-4 g-3">
       <div class="col-md-4">
         <input
-          v-model="tuKhoaTim"
+          v-model="tuKhoa"
           type="text"
           class="form-control"
-          placeholder="Tìm tên phòng hoặc trạng thái..."
+          placeholder="Tìm theo tên phòng"
         />
       </div>
       <div class="col-md-3">
-        <select v-model="locTrangThai" class="form-select">
-          <option value="">Tất cả trạng thái</option>
-          <option value="Trống">Trống</option>
-          <option value="Đã đặt">Đã đặt</option>
-          <option value="Chờ xác nhận">Chờ xác nhận</option>
-          <option value="Bảo trì">Bảo trì</option>
+        <select v-model="locTheoMua" class="form-select">
+          <option value="">Tất cả mùa</option>
+          <option v-for="season in seasons" :key="season.season_id" :value="season.season_id">
+            {{ season.season_name }}
+          </option>
         </select>
       </div>
     </div>
 
-    <!-- Danh sách phòng -->
     <div class="table-responsive">
       <table class="table table-bordered table-hover align-middle">
         <thead>
           <tr>
-            <th>Tên Phòng</th>
-            <th>Trạng Thái</th>
-            <th>Giá (mỗi đêm)</th>
+            <th>#</th>
+            <th>Phòng</th>
             <th>Loại Phòng</th>
-            <th>Sức Chứa</th>
-            <th>Mô Tả</th>
+            <th>Mùa</th>
+            <th>Giá/Giờ</th>
+            <th>Giá/Đêm</th>
+            <th>Giá/Ngày</th>
+            <th>Giảm Giá (%)</th>
+            <th>Trạng Thái</th>
             <th>Hành Động</th>
           </tr>
         </thead>
         <tbody>
-          <tr v-for="phong in phongHienThi" :key="phong.room_id">
-            <td>{{ phong.room_name }}</td>
-            <td class="status">
+          <tr v-for="(room, index) in roomHienThi" :key="room.room_id">
+            <td>{{ (trangHienTai - 1) * soRoomMoiTrang + index + 1 }}</td>
+            <td>{{ room.room_name || '-' }}</td>
+            <td>{{ room.room_type ? room.room_type.type_name : '-' }}</td>
+            <td>{{ room.season ? room.season.season_name : '-' }}</td>
+            <td>{{ formatPrice(room.season ? room.season.hourly_rate : 0) }}</td>
+            <td>{{ formatPrice(room.season ? room.season.nightly_rate : 0) }}</td>
+            <td>{{ formatPrice(room.season ? room.season.daily_rate : 0) }}</td>
+            <td>{{ room.season && room.season.discount ? room.season.discount + '%' : '-' }}</td>
+            <td>
               <span
                 :class="{
-                  badge: true,
-                  'bg-success': phong.status === 'Trống',
-                  'bg-danger': phong.status === 'Đã đặt',
-                  'bg-warning text-dark1': phong.status === 'Chờ xác nhận',
-                  'bg-warning text-dark': phong.status === 'Bảo trì'
+                  'badge bg-success': room.status === 'Trống',
+                  'badge bg-danger': room.status === 'Đã đặt',
+                  'badge bg-warning': room.status === 'Chờ xác nhận',
+                  'badge bg-info': room.status === 'Bảo trì',
+                  'badge bg-secondary': room.status === 'Đang dọn dẹp'
                 }"
               >
-                {{ phong.status }}
+                {{ room.status || '-' }}
               </span>
             </td>
-            <td>{{ formatPrice(phong.price) }}</td>
-            <td>{{ phong.type_name }}</td>
-            <td>{{ phong.capacity }}</td>
-            <td>{{ phong.description }}</td>
             <td>
-              <button
-                class="btn btn-primary btn-sm me-2"
-                @click="moModalSua(phong)"
-              >
-                <i class="bi bi-pencil"></i> Sửa
+              <button class="btn btn-primary btn-sm me-2" @click="moModalSua(room)">
+                <i class="bi bi-pencil me-1"></i>Sửa
               </button>
-              <button
-                class="btn btn-danger btn-sm"
-                @click="xoaPhong(phong.room_id)"
-              >
-                <i class="bi bi-trash"></i> Xóa
+              <button class="btn btn-danger btn-sm" @click="xoaRoom(room.room_id)">
+                <i class="bi bi-trash me-1"></i>Xóa
               </button>
             </td>
           </tr>
-          <tr v-if="phongHienThi.length === 0">
-            <td colspan="7" class="text-center text-muted">
-              Không có phòng nào phù hợp
-            </td>
+          <tr v-if="roomHienThi.length === 0">
+            <td colspan="10" class="text-center text-muted">Không có phòng nào phù hợp</td>
           </tr>
         </tbody>
       </table>
     </div>
 
-    <!-- Phân trang -->
     <div class="d-flex justify-content-between align-items-center mt-4">
       <div class="text-muted">
-        <span>Hiển thị {{ phongHienThi.length }} / {{ phongLoc.length }} phòng</span>
+        Hiển thị {{ roomHienThi.length }} / {{ roomLoc.length }} phòng
       </div>
       <nav>
         <ul class="pagination mb-0">
@@ -104,12 +100,12 @@
             </button>
           </li>
           <li
-            v-for="trang in trangHienThi"
-            :key="trang"
+            v-for="tr in trangHienThi"
+            :key="tr"
             class="page-item"
-            :class="{ active: trangHienTai === trang }"
+            :class="{ active: trangHienTai === tr }"
           >
-            <button class="page-link" @click="trangHienTai = trang">{{ trang }}</button>
+            <button class="page-link" @click="trangHienTai = tr">{{ tr }}</button>
           </li>
           <li class="page-item" :class="{ disabled: trangHienTai === tongSoTrang }">
             <button class="page-link" @click="trangHienTai++">
@@ -125,66 +121,169 @@
       </nav>
     </div>
 
-    <!-- Modal thêm/sửa -->
-    <div
-      v-if="laModalMo"
-      class="modal fade show d-block"
-      tabindex="-1"
-      style="background-color: rgba(0, 0, 0, 0.5)"
-    >
-      <div class="modal-dialog">
+    <div v-if="laModalMo" class="modal fade show d-block" tabindex="-1" style="background-color: rgba(0,0,0,0.5)">
+      <div class="modal-dialog modal-lg">
         <div class="modal-content">
           <div class="modal-header">
-            <h5 class="modal-title">
-              {{ phongDangSua ? "Sửa Thông Tin Phòng" : "Thêm Phòng Mới" }}
-            </h5>
+            <h5 class="modal-title">{{ isEditing ? 'Cập nhật Phòng' : 'Thêm Phòng' }}</h5>
             <button type="button" class="btn-close" @click="dongModal"></button>
           </div>
           <div class="modal-body">
-            <div class="mb-3">
-              <label class="form-label">Tên Phòng</label>
-              <input type="text" v-model="phongMoi.room_name" class="form-control" />
+            <div v-if="isLoading" class="text-center mb-3">
+              <div class="spinner-border text-primary">
+                <span class="visually-hidden">Đang tải...</span>
+              </div>
             </div>
-            <div class="mb-3">
-              <label class="form-label">Loại Phòng</label>
-              <select v-model="phongMoi.type_id" class="form-select">
-                <option value="" disabled>Chọn loại phòng</option>
-                <option v-for="type in roomTypes" :key="type.type_id" :value="type.type_id">
-                  {{ type.type_name }}
-                </option>
-              </select>
+            <div v-if="errorMessage" class="alert alert-warning">
+              {{ errorMessage }}
             </div>
-            <div class="mb-3">
-              <label class="form-label">Sức Chứa</label>
-              <input type="number" v-model.number="phongMoi.capacity" class="form-control" />
-            </div>
-            <div class="mb-3">
-              <label class="form-label">Trạng Thái</label>
-              <select v-model="phongMoi.status" class="form-select">
-                <option value="Trống">Trống</option>
-                <option value="Đã đặt">Đã đặt</option>
-                <option value="Chờ xác nhận">Chờ xác nhận</option>
-                <option value="Bảo trì">Bảo trì</option>
-              </select>
-            </div>
-            <div class="mb-3">
-              <label class="form-label">Giá (mỗi đêm)</label>
-              <input
-                type="number"
-                min="0"
-                step="1000"
-                v-model.number="phongMoi.price"
-                class="form-control"
-              />
-            </div>
-            <div class="mb-3">
-              <label class="form-label">Mô Tả</label>
-              <textarea v-model="phongMoi.description" class="form-control"></textarea>
-            </div>
-          </div>
-          <div class="modal-footer">
-            <button class="btn btn-secondary" @click="dongModal">Hủy</button>
-            <button class="btn btn-success" @click="luuPhong">Lưu</button>
+            <form @submit.prevent="submitRoom">
+              <div class="mb-3">
+                <label for="roomName" class="form-label">Tên Phòng</label>
+                <input
+                  type="text"
+                  id="roomName"
+                  class="form-control"
+                  v-model="form.room_name"
+                  required
+                  placeholder="Nhập tên phòng"
+                  :class="{ 'is-invalid': errors.room_name }"
+                />
+                <div v-if="errors.room_name" class="invalid-feedback">{{ errors.room_name }}</div>
+              </div>
+              <div class="mb-3">
+                <label for="typeId" class="form-label">Loại Phòng</label>
+                <select
+                  id="typeId"
+                  class="form-select"
+                  v-model="form.type_id"
+                  required
+                  :class="{ 'is-invalid': errors.type_id }"
+                >
+                  <option :value="null">-- Chọn loại phòng --</option>
+                  <option v-for="type in roomTypes" :key="type.type_id" :value="type.type_id">
+                    {{ type.type_name }}
+                  </option>
+                </select>
+                <div v-if="errors.type_id" class="invalid-feedback">{{ errors.type_id }}</div>
+              </div>
+              <div class="mb-3">
+                <label for="seasonId" class="form-label">Mùa</label>
+                <select
+                  id="seasonId"
+                  class="form-select"
+                  v-model="form.season_id"
+                  required
+                  @change="updatePricing"
+                  :class="{ 'is-invalid': errors.season_id }"
+                >
+                  <option :value="null">-- Chọn mùa --</option>
+                  <option v-for="season in seasons" :key="season.season_id" :value="season.season_id">
+                    {{ season.season_name }} ({{ formatDate(season.start_date) }} - {{ formatDate(season.end_date) }})
+                  </option>
+                </select>
+                <div v-if="errors.season_id" class="invalid-feedback">{{ errors.season_id }}</div>
+              </div>
+              <div class="mb-3">
+                <label for="capacity" class="form-label">Sức Chứa</label>
+                <input
+                  type="number"
+                  id="capacity"
+                  class="form-control"
+                  v-model.number="form.capacity"
+                  required
+                  min="1"
+                  placeholder="Nhập sức chứa"
+                  :class="{ 'is-invalid': errors.capacity }"
+                />
+                <div v-if="errors.capacity" class="invalid-feedback">{{ errors.capacity }}</div>
+              </div>
+              <div class="mb-3">
+                <label for="status" class="form-label">Trạng Thái</label>
+                <select
+                  id="status"
+                  class="form-select"
+                  v-model="form.status"
+                  required
+                  :class="{ 'is-invalid': errors.status }"
+                >
+                  <option value="Trống">Trống</option>
+                  <option value="Đã đặt">Đã đặt</option>
+                  <option value="Chờ xác nhận">Chờ xác nhận</option>
+                  <option value="Bảo trì">Bảo trì</option>
+                  <option value="Đang dọn dẹp">Đang dọn dẹp</option>
+                </select>
+                <div v-if="errors.status" class="invalid-feedback">{{ errors.status }}</div>
+              </div>
+              <div class="mb-3">
+                <label class="form-label">Giá Theo Mùa</label>
+                <div class="row">
+                  <div class="col">
+                    <label>Giá/Giờ</label>
+                    <input
+                      type="text"
+                      class="form-control"
+                      :value="formatPrice(selectedSeason ? selectedSeason.hourly_rate : 0)"
+                      readonly
+                    />
+                  </div>
+                  <div class="col">
+                    <label>Giá/Đêm</label>
+                    <input
+                      type="text"
+                      class="form-control"
+                      :value="formatPrice(selectedSeason ? selectedSeason.nightly_rate : 0)"
+                      readonly
+                    />
+                  </div>
+                  <div class="col">
+                    <label>Giá/Ngày</label>
+                    <input
+                      type="text"
+                      class="form-control"
+                      :value="formatPrice(selectedSeason ? selectedSeason.daily_rate : 0)"
+                      readonly
+                    />
+                  </div>
+                  <div class="col">
+                    <label>Giảm Giá (%)</label>
+                    <input
+                      type="text"
+                      class="form-control"
+                      :value="selectedSeason && selectedSeason.discount ? selectedSeason.discount + '%' : '-'"
+                      readonly
+                    />
+                  </div>
+                </div>
+              </div>
+              <div class="mb-3">
+                <label for="amenities" class="form-label">Tiện Ích</label>
+                <textarea
+                  id="amenities"
+                  rows="3"
+                  class="form-control"
+                  v-model="form.amenities"
+                  required
+                  placeholder='Nhập tiện ích (JSON, ví dụ: ["Wi-Fi", "Máy lạnh"])'
+                  :class="{ 'is-invalid': errors.amenities }"
+                ></textarea>
+                <div v-if="errors.amenities" class="invalid-feedback">{{ errors.amenities }}</div>
+              </div>
+              <div class="mb-3">
+                <label for="description" class="form-label">Mô Tả</label>
+                <textarea
+                  id="description"
+                  rows="3"
+                  class="form-control"
+                  v-model="form.description"
+                  placeholder="Nhập mô tả phòng"
+                ></textarea>
+              </div>
+              <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" @click="dongModal">Hủy</button>
+                <button type="submit" class="btn btn-success" :disabled="isLoading">Lưu</button>
+              </div>
+            </form>
           </div>
         </div>
       </div>
@@ -193,362 +292,359 @@
 </template>
 
 <script>
-import { ref, computed, onMounted } from "vue";
-import axios from "axios";
+import { ref, computed, onMounted } from 'vue';
+import axios from 'axios';
+
+const retryRequest = async (fn, retries = 2, delay = 1000) => {
+  for (let i = 0; i < retries; i++) {
+    try {
+      return await fn();
+    } catch (error) {
+      if (i === retries - 1 || error.code !== 'ECONNABORTED') throw error;
+      await new Promise(resolve => setTimeout(resolve, delay));
+    }
+  }
+};
+
+const api = axios.create({
+  baseURL: 'http://localhost:8000/api',
+  timeout: 10000,
+  headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' }
+});
 
 export default {
+  name: 'RoomPricingComponent',
   setup() {
-    const phong = ref([]);
+    const rooms = ref([]);
     const roomTypes = ref([]);
-    const tuKhoaTim = ref("");
-    const locTrangThai = ref("");
+    const seasons = ref([]);
+    const tuKhoa = ref('');
+    const locTheoMua = ref('');
     const laModalMo = ref(false);
-    const phongDangSua = ref(null);
-    const phongMoi = ref({
-      room_name: "",
-      type_id: "",
-      capacity: 0,
-      status: "Trống",
-      price: 0,
-      description: "",
-    });
+    const isEditing = ref(false);
+    const isLoading = ref(false);
+    const successMessage = ref('');
+    const errorMessage = ref('');
     const trangHienTai = ref(1);
-    const soPhongMoiTrang = 10;
+    const soRoomMoiTrang = 10;
 
-    const fetchRooms = async () => {
-      try {
-        const res = await axios.get("http://localhost:8000/api/rooms");
-        phong.value = res.data.data || res.data;
-        console.log('Đã tải danh sách phòng:', phong.value.map(p => ({
-          id: p.room_id,
-          name: p.room_name,
-          status: p.status,
-          type_name: p.type_name
-        })));
-      } catch (error) {
-        alert("Lấy dữ liệu phòng thất bại");
-        console.error('Lỗi tải phòng:', error.response?.data || error.message);
-      }
-    };
-
-    const fetchRoomTypes = async () => {
-      try {
-        const res = await axios.get("http://localhost:8000/api/room-types");
-        roomTypes.value = res.data.data || res.data;
-      } catch (error) {
-        alert("Lấy dữ liệu loại phòng thất bại");
-        console.error('Lỗi tải loại phòng:', error.response?.data || error.message);
-      }
-    };
-
-    onMounted(() => {
-      fetchRooms();
-      fetchRoomTypes();
+    const form = ref({
+      room_id: null,
+      room_name: '',
+      type_id: null,
+      season_id: null,
+      capacity: 1,
+      status: 'Trống',
+      amenities: '[]',
+      description: ''
     });
 
-    const phongLoc = computed(() => {
-      return phong.value.filter((p) => {
-        const khopTim = p.room_name
-          .toLowerCase()
-          .includes(tuKhoaTim.value.toLowerCase()) ||
-          p.status.toLowerCase().includes(tuKhoaTim.value.toLowerCase()) ||
-          p.type_name.toLowerCase().includes(tuKhoaTim.value.toLowerCase());
-        const khopTrangThai = !locTrangThai.value || p.status === locTrangThai.value;
-        return khopTim && khopTrangThai;
+    const selectedSeason = ref(null);
+
+    const errors = ref({
+      room_name: '',
+      type_id: '',
+      season_id: '',
+      capacity: '',
+      status: '',
+      amenities: ''
+    });
+
+    const roomLoc = computed(() => {
+      return rooms.value.filter(r => {
+        const khopTim = (r.room_name?.toLowerCase() || '').includes(tuKhoa.value.toLowerCase());
+        const khopMua = !locTheoMua.value || r.season_id === parseInt(locTheoMua.value);
+        return khopTim && khopMua;
       });
     });
 
-    const tongSoTrang = computed(() => {
-      return Math.ceil(phongLoc.value.length / soPhongMoiTrang);
-    });
+    const tongSoTrang = computed(() => Math.ceil(roomLoc.value.length / soRoomMoiTrang));
 
-    const phongHienThi = computed(() => {
-      const batDau = (trangHienTai.value - 1) * soPhongMoiTrang;
-      const ketThuc = batDau + soPhongMoiTrang;
-      return phongLoc.value.slice(batDau, ketThuc);
+    const roomHienThi = computed(() => {
+      const batDau = (trangHienTai.value - 1) * soRoomMoiTrang;
+      const ketThuc = batDau + soRoomMoiTrang;
+      return roomLoc.value.slice(batDau, ketThuc);
     });
 
     const trangHienThi = computed(() => {
       const soTrang = tongSoTrang.value;
-      const trangHienTaiValue = trangHienTai.value;
-      const ketQua = [];
       const maxSoTrangHienThi = 5;
-
-      let batDau = Math.max(1, trangHienTaiValue - Math.floor(maxSoTrangHienThi / 2));
+      let batDau = Math.max(1, trangHienTai.value - Math.floor(maxSoTrangHienThi / 2));
       let ketThuc = Math.min(soTrang, batDau + maxSoTrangHienThi - 1);
-
       if (ketThuc - batDau + 1 < maxSoTrangHienThi) {
         batDau = Math.max(1, ketThuc - maxSoTrangHienThi + 1);
       }
-
-      for (let i = batDau; i <= ketThuc; i++) {
-        ketQua.push(i);
-      }
-      return ketQua;
+      return Array.from({ length: ketThuc - batDau + 1 }, (_, i) => batDau + i);
     });
 
-    const moModalThem = () => {
-      phongMoi.value = {
-        room_name: "",
-        type_id: "",
-        capacity: 0,
-        status: "Trống",
-        price: 0,
-        description: "",
-      };
-      phongDangSua.value = null;
-      laModalMo.value = true;
+    const fetchData = async () => {
+      isLoading.value = true;
+      errorMessage.value = '';
+      try {
+        const [roomsRes, typesRes, seasonsRes] = await Promise.all([
+          retryRequest(() => api.get('/rooms', { params: { _t: new Date().getTime() } })),
+          retryRequest(() => api.get('/room-types', { params: { _t: new Date().getTime() } })),
+          retryRequest(() => api.get('/seasons', { params: { _t: new Date().getTime() } }))
+        ]);
+
+        rooms.value = Array.isArray(roomsRes.data.data) ? roomsRes.data.data : [];
+        roomTypes.value = Array.isArray(typesRes.data.data) ? typesRes.data.data : [];
+        seasons.value = Array.isArray(seasonsRes.data.data) ? seasonsRes.data.data : [];
+
+        console.log('Dữ liệu API:', {
+          rooms: rooms.value,
+          roomTypes: roomTypes.value,
+          seasons: seasons.value
+        });
+
+        if (!rooms.value.length && !roomTypes.value.length && !seasons.value.length) {
+          errorMessage.value = 'Không có dữ liệu phòng, loại phòng hoặc mùa. Vui lòng kiểm tra cơ sở dữ liệu.';
+        }
+      } catch (error) {
+        console.error('Lỗi tải dữ liệu:', error.response?.data || error.message);
+        errorMessage.value = error.response?.data?.message || 'Không thể tải dữ liệu phòng, loại phòng hoặc mùa.';
+      } finally {
+        isLoading.value = false;
+      }
     };
 
-    const moModalSua = (p) => {
-      phongMoi.value = { ...p, type_id: p.type_id };
-      phongDangSua.value = p;
+    onMounted(() => {
+      fetchData();
+    });
+
+    const updatePricing = () => {
+      selectedSeason.value = seasons.value.find(s => s.season_id === form.value.season_id) || null;
+    };
+
+    const moModalThem = () => {
+      resetForm();
+      isEditing.value = false;
       laModalMo.value = true;
+      successMessage.value = '';
+    };
+
+    const moModalSua = (room) => {
+      form.value = {
+        room_id: room.room_id,
+        room_name: room.room_name,
+        type_id: room.type_id,
+        season_id: room.season_id,
+        capacity: room.capacity,
+        status: room.status || 'Trống',
+        amenities: JSON.stringify(room.amenities || []),
+        description: room.description || ''
+      };
+      updatePricing();
+      isEditing.value = true;
+      laModalMo.value = true;
+      successMessage.value = '';
     };
 
     const dongModal = () => {
       laModalMo.value = false;
+      resetForm();
+      selectedSeason.value = null;
+      successMessage.value = '';
+      errorMessage.value = '';
     };
 
-    const luuPhong = async () => {
+    const resetForm = () => {
+      form.value = {
+        room_id: null,
+        room_name: '',
+        type_id: null,
+        season_id: null,
+        capacity: 1,
+        status: 'Trống',
+        amenities: '[]',
+        description: ''
+      };
+      errors.value = {};
+    };
+
+    const validateForm = () => {
+      errors.value = {};
+      let isValid = true;
+
+      if (!form.value.room_name?.trim()) {
+        errors.value.room_name = 'Vui lòng nhập tên phòng';
+        isValid = false;
+      }
+      if (!form.value.type_id) {
+        errors.value.type_id = 'Vui lòng chọn loại phòng';
+        isValid = false;
+      }
+      if (!form.value.season_id) {
+        errors.value.season_id = 'Vui lòng chọn mùa';
+        isValid = false;
+      }
+      if (!form.value.capacity || form.value.capacity < 1) {
+        errors.value.capacity = 'Sức chứa phải lớn hơn 0';
+        isValid = false;
+      }
+      if (!form.value.status || !['Trống', 'Đã đặt', 'Chờ xác nhận', 'Bảo trì', 'Đang dọn dẹp'].includes(form.value.status)) {
+        errors.value.status = 'Vui lòng chọn trạng thái hợp lệ';
+        isValid = false;
+      }
       try {
-        if (phongDangSua.value) {
-          await axios.put(
-            `http://localhost:8000/api/rooms/${phongDangSua.value.room_id}`,
-            phongMoi.value
-          );
-          const index = phong.value.findIndex(
-            (p) => p.room_id === phongDangSua.value.room_id
-          );
-          if (index !== -1) {
-            const updatedRoom = { ...phongMoi.value, room_id: phongDangSua.value.room_id };
-            const type = roomTypes.value.find(t => t.type_id === updatedRoom.type_id);
-            updatedRoom.type_name = type ? type.type_name : '';
-            phong.value[index] = updatedRoom;
-          }
+        JSON.parse(form.value.amenities);
+      } catch {
+        errors.value.amenities = 'Tiện ích phải là JSON hợp lệ';
+        isValid = false;
+      }
+
+      return isValid;
+    };
+
+    const submitRoom = async () => {
+      if (!validateForm()) return;
+
+      isLoading.value = true;
+      errorMessage.value = '';
+
+      try {
+        const payload = { ...form.value, amenities: JSON.parse(form.value.amenities) };
+        if (isEditing.value) {
+          await retryRequest(() => api.put(`/rooms/${form.value.room_id}`, payload));
+          successMessage.value = 'Cập nhật phòng thành công';
         } else {
-          const res = await axios.post("http://localhost:8000/api/rooms", phongMoi.value);
-          const newRoom = res.data.data || res.data;
-          const type = roomTypes.value.find(t => t.type_id === newRoom.type_id);
-          newRoom.type_name = type ? type.type_name : '';
-          phong.value.push(newRoom);
+          await retryRequest(() => api.post('/rooms', payload));
+          successMessage.value = 'Thêm phòng mới thành công';
         }
-        trangHienTai.value = 1;
+
+        await fetchData();
         dongModal();
       } catch (error) {
-        alert("Lưu phòng thất bại");
-        console.error('Lỗi lưu phòng:', error.response?.data || error.message);
-      }
-    };
-
-    const xoaPhong = async (id) => {
-      if (confirm("Bạn có chắc chắn muốn xóa phòng này không?")) {
-        try {
-          await axios.delete(`http://localhost:8000/api/rooms/${id}`);
-          phong.value = phong.value.filter((p) => p.room_id !== id);
-          if (phongHienThi.value.length === 0 && trangHienTai.value > 1) {
-            trangHienTai.value--;
-          }
-        } catch (error) {
-          alert("Xóa phòng thất bại");
-          console.error('Lỗi xóa phòng:', error.response?.data || error.message);
+        console.error('Lỗi khi lưu phòng:', error.response?.data || error.message);
+        errorMessage.value = error.response?.data?.message || 'Lưu phòng thất bại';
+        if (error.response?.status === 422) {
+          const backendErrors = error.response.data.errors || {};
+          errorMessage.value += ': ' + Object.values(backendErrors).flat().join(', ');
         }
+      } finally {
+        isLoading.value = false;
       }
     };
 
-    const formatPrice = (price) => {
-      return new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(price || 0);
+    const xoaRoom = async (roomId) => {
+      if (!confirm('Bạn có chắc chắn muốn xóa phòng này không?')) return;
+
+      isLoading.value = true;
+      errorMessage.value = '';
+      try {
+        await retryRequest(() => api.delete(`/rooms/${roomId}`));
+        await fetchData();
+        successMessage.value = 'Xóa phòng thành công';
+      } catch (error) {
+        console.error('Lỗi khi xóa phòng:', error.response?.data || error.message);
+        errorMessage.value = error.response?.data?.message || 'Xóa phòng thất bại';
+      } finally {
+        isLoading.value = false;
+      }
+    };
+
+    const formatPrice = (value) => {
+      return new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(value || 0);
+    };
+
+    const formatDate = (date) => {
+      if (!date) return '-';
+      try {
+        const d = new Date(date);
+        return d.toLocaleDateString('vi-VN', {
+          day: '2-digit',
+          month: '2-digit',
+          year: 'numeric'
+        });
+      } catch {
+        return '-';
+      }
     };
 
     return {
-      phong,
+      rooms,
       roomTypes,
-      tuKhoaTim,
-      locTrangThai,
+      seasons,
+      tuKhoa,
+      locTheoMua,
       laModalMo,
-      phongDangSua,
-      phongMoi,
-      phongLoc,
-      phongHienThi,
+      isEditing,
+      isLoading,
+      successMessage,
+      errorMessage,
       trangHienTai,
+      soRoomMoiTrang,
+      form,
+      selectedSeason,
+      errors,
+      roomLoc,
+      roomHienThi,
       tongSoTrang,
       trangHienThi,
       moModalThem,
       moModalSua,
       dongModal,
-      luuPhong,
-      xoaPhong,
+      resetForm,
+      validateForm,
+      submitRoom,
+      xoaRoom,
+      updatePricing,
       formatPrice,
+      formatDate
     };
-  },
+  }
 };
 </script>
 
 <style scoped>
-th{
-  background: rgb(91, 200, 250);
-}
-
 .text-sea-green {
   background: linear-gradient(135deg, #3f8dd6, #2acabd);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
-  background-clip: text;
-  text-fill-color: transparent;
 }
-
-.table th, .status {
-  text-align: center;
-}
-
-.table th,
-.table td {
-  vertical-align: middle;
-  padding: 12px 15px;
-  font-size: 15px;
-  color: #444;
-  border: 1px solid #dee2e6;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
 .table thead {
-  background: linear-gradient(135deg, #198754, #146c43);
+  background: linear-gradient(135deg, #3f8dd6, #2acabd);
   color: white;
-  font-weight: 600;
-  font-size: 16px;
 }
-
 .table tbody tr:hover {
   background-color: #e6f4ea;
-  cursor: pointer;
-  transition: background-color 0.3s ease;
 }
-
-.badge {
-  font-size: 0.9rem;
-  padding: 5px 10px;
-  border-radius: 12px;
-  font-weight: 500;
-}
-
-.modal-content {
-  border-radius: 12px;
-  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
-}
-
 .modal-header {
-  background: linear-gradient(135deg, #198754, #146c43);
+  background: linear-gradient(135deg, #3f8dd6, #2acabd);
   color: white;
-  border-bottom: none;
-  font-weight: 700;
-  font-size: 1.25rem;
 }
-
-.modal-footer {
-  border-top: none;
-}
-
-.btn-close {
-  filter: invert(1);
-  opacity: 0.8;
-  transition: opacity 0.2s;
-}
-
-.btn-close:hover {
-  opacity: 1;
-}
-
 .btn-success {
   background: linear-gradient(135deg, #1199f3, #2acabd);
   border: none;
-  font-weight: 600;
-  transition: transform 0.2s, box-shadow 0.2s;
 }
-
 .btn-success:hover {
   transform: translateY(-2px);
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
 }
-
-.btn-primary {
-  background: linear-gradient(135deg, #0d6efd, #2b78ec);
-  border: none;
-  font-weight: 600;
-  transition: transform 0.2s, box-shadow 0.2s;
-}
-
-.btn-primary:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-}
-
 .btn-danger {
   background: linear-gradient(135deg, #dc3545, #bb2d3b);
   border: none;
-  font-weight: 600;
-  transition: transform 0.2s, box-shadow 0.2s;
 }
-
 .btn-danger:hover {
   transform: translateY(-2px);
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
 }
-
-.pagination {
-  gap: 8px;
+.btn-primary {
+  background: linear-gradient(135deg, #0d6efd, #0b5ed7);
+  border: none;
 }
-
+.btn-primary:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
 .pagination .page-item .page-link {
   background: linear-gradient(135deg, #1199f3, #2acabd);
   color: transparent;
   -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-  text-fill-color: transparent;
-  border: none;
   border-radius: 8px;
-  padding: 8px 12px;
-  font-weight: 500;
-  transition: all 0.3s ease;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
-
 .pagination .page-item.active .page-link {
   background: linear-gradient(135deg, #1199f3, #2acabd);
   color: white;
-  -webkit-text-fill-color: white;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-}
-
-.pagination .page-item.disabled .page-link {
-  background: #f8f9fa;
-  color: #6c757d;
-  -webkit-text-fill-color: #6c757d;
-  cursor: not-allowed;
-  box-shadow: none;
-}
-
-.pagination .page-item .page-link:hover:not(.disabled) {
-  background: linear-gradient(135deg, #2acabd, #1199f3);
-  color: white;
-  -webkit-text-fill-color: white;
-  transform: translateY(-2px);
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
-}
-
-.pagination .page-item .page-link i {
-  font-size: 1rem;
-  background: linear-gradient(135deg, #1199f3, #2acabd);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-  text-fill-color: transparent;
-}
-
-.pagination .page-item.active .page-link i {
-  color: white;
-  -webkit-text-fill-color: white;
 }
 </style>
