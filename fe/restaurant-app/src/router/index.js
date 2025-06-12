@@ -26,6 +26,9 @@ import CategoryShopOnline from '../components/ShopOnline/CategoryShopOnline.vue'
 import buynow from '../components/ShopOnline/BuyNow.vue';
 import StaffDashboardComponent from '../components/staff/StaffDashboardComponent.vue';
 
+import ChatAdmin from '../components/ChatAdmin.vue';
+import Chat from '../components/Chat.vue';
+import qrCodeCCCD from '../components/qrCodeCCCD.vue';
 const routes = [
   {
     path: '/',
@@ -113,11 +116,27 @@ const routes = [
     name: 'MenuListComponent',
     component: MenuListComponent,
   },
+ 
   {
     path: '/detailOrderMenu/:ids',
     name: 'detailOrderMenu',
     component: detailOrderMenu,
     props: true,
+  },
+  {
+    path: '/ChatAdmin',
+    name: 'ChatAdmin',
+    component: ChatAdmin,
+  }, {
+    path: '/Chat',
+    name: 'Chat',
+    component: Chat,
+  },
+  //qr code cccd
+  {
+    path: '/cccd',
+    name: 'qrCodeCCCD',
+    component: qrCodeCCCD,
   },
   // Admin routes
   {
