@@ -3,7 +3,7 @@ import App from '../App.vue';
 import HomeComponent from '../components/HomeComponent.vue';
 import AboutComponent from '../components/AboutComponent.vue';
 import ContactComponent from '../components/ContactComponent.vue';
-import ReservationComponent from '../components/booking_table/ReservationComponent.vue';
+import ReservationComponent from '../components/booking/ReservationComponent.vue';
 import BlogComponent from '../components/News/BlogComponent.vue';
 import MenuComponent from '../components/menu_item/MenuComponent.vue';
 import MenuListComponent from '../components/menu_item/MenuListComponent.vue';
@@ -14,14 +14,17 @@ import ProductDetailComponent from '../components/ProductDetailComponent.vue';
 import AdminDashboardComponent from '../components/admin/AdminDashboardComponent.vue';
 import AdminStaffsComponent from '../components/admin/AdminStaffsComponent.vue';
 import AdminDepartmentsComponent from '../components/admin/AdminDepartmentsComponent.vue';
-import AdminLeaveRequestsComponent from '../components/admin/AdminLeaveRequestsComponent.vue';
+import AdminNewsComponent from '../components/admin/news/AdminNewsComponent.vue';
+import AdminNewsCategoryComponent from '../components/admin/news/AdminNewsCategoryComponent.vue';
+import AdminNewsCommentComponent from '../components/admin/news/AdminNewsCommentComponent.vue';
+import Shop from '../components/Shop.vue';
 import ghn from '../components/ghn/mainghn.vue';
 import menu_online from '../components/ShopOnline/menu_online.vue';
 import detailMenu from '../components/ShopOnline/detailMenu.vue';
 import detailOrderMenu from '../components/menu_item/detailOrderMenu.vue';
 import CategoryShopOnline from '../components/ShopOnline/CategoryShopOnline.vue';
 import buynow from '../components/ShopOnline/BuyNow.vue';
-import StaffDashboardComponent from '../components/staff/StaffDashboardComponent.vue'; // Thêm component mới
+import StaffDashboardComponent from '../components/staff/StaffDashboardComponent.vue';
 
 const routes = [
   {
@@ -43,6 +46,11 @@ const routes = [
     path: '/reservation',
     name: 'ReservationComponent',
     component: ReservationComponent,
+  },
+  {
+    path: '/shop',
+    name: 'Shop',
+    component: Shop,
   },
   {
     path: '/blog',
@@ -135,9 +143,21 @@ const routes = [
     meta: { requiresAdmin: true },
   },
   {
-    path: '/admin/leave-management',
-    name: 'AdminLeaveRequests',
-    component: AdminLeaveRequestsComponent,
+    path: '/admin/news',
+    name: 'AdminNews',
+    component: AdminNewsComponent,
+    meta: { requiresAdmin: true },
+  },
+  {
+    path: '/admin/news-categories',
+    name: 'AdminNewsCategories',
+    component: AdminNewsCategoryComponent,
+    meta: { requiresAdmin: true },
+  },
+  {
+    path: '/admin/news-comments',
+    name: 'AdminNewsComments',
+    component: AdminNewsCommentComponent,
     meta: { requiresAdmin: true },
   },
   // Staff routes

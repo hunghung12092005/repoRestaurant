@@ -305,7 +305,7 @@ function showError(message) {
     // Ẩn thông báo sau 2 giây
     setTimeout(() => {
         errorMessage.value = ''; // Đặt lại thông báo
-    }, 2000);
+    }, 10000);
 }
 
 // Hàm hiển thị alert

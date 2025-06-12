@@ -6,6 +6,7 @@ import 'bootstrap'; // Import Bootstrap JS
 import axios from 'axios';
 //import './assets/tailwind.css' // Thêm dòng này
 import './assets/style.css'
+import '@vueup/vue-quill/dist/vue-quill.snow.css';
 createApp(App)
   .use(router) // Sử dụng router
   .mount('#app');

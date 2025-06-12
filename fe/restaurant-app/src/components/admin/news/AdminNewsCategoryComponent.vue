@@ -6,19 +6,19 @@
     </div>
 
     <div class="header-section mb-4">
-      <h3 class="fw-bold">Quản lý Phòng ban</h3>
+      <h3 class="fw-bold">Quản lý Danh mục Tin tức</h3>
       <div class="d-flex justify-content-between align-items-center mt-3">
         <div class="search-form position-relative">
           <input
             type="text"
             class="form-control"
             v-model="searchQuery"
-            placeholder="Tìm kiếm theo tên phòng ban..."
+            placeholder="Tìm kiếm theo tên danh mục..."
           />
           <i class="bi bi-search search-icon position-absolute"></i>
         </div>
-        <button class="btn btn-primary" @click="openAddModal">
-          <i class="bi bi-plus-circle me-2"></i>Thêm Phòng ban
+        <button class="btn btn-primary" @click="openCreateModal">
+          <i class="bi bi-plus-circle me-2"></i>Thêm Danh mục
         </button>
       </div>
     </div>
@@ -29,33 +29,31 @@
           <table class="table table-hover table-bordered mb-0">
             <thead class="table-light">
               <tr>
-                <th scope="col"></th>
-                <th scope="col">Tên phòng ban</th>
+                <th scope="col"><input type="checkbox" class="form-check-input" v-model="selectAll" @change="toggleSelectAll" /></th>
+                <th scope="col">Tên danh mục</th>
                 <th scope="col">Mô tả</th>
-                <th scope="col">Số nhân viên</th>
                 <th scope="col">Hành động</th>
               </tr>
             </thead>
             <tbody>
-              <tr v-for="department in paginatedDepartments" :key="department.department_id">
-                <td><input type="checkbox" class="form-check-input" v-model="selectedDepartments" :value="department.department_id" @change="updateSelectAll" /></td>
-                <td>{{ department.name }}</td>
-                <td>{{ department.description || 'Không có' }}</td>
-                <td>{{ department.employees_count ?? 0 }}</td>
+              <tr v-for="category in paginatedCategories" :key="category.category_id">
+                <td><input type="checkbox" class="form-check-input" v-model="selectedCategories" :value="category.category_id" @change="updateSelectAll" /></td>
+                <td>{{ category.name }}</td>
+                <td>{{ category.description || 'Không có' }}</td>
                 <td>
-                  <button class="btn btn-sm btn-outline-primary me-2" @click="openDetailModal(department)">
+                  <button class="btn btn-sm btn-outline-primary me-2" @click="openDetailModal(category)">
                     <i class="bi bi-eye"></i>
                   </button>
-                  <button class="btn btn-sm btn-outline-warning me-2" @click="openEditModal(department)">
+                  <button class="btn btn-sm btn-outline-warning me-2" @click="openEditModal(category)">
                     <i class="bi bi-pencil"></i>
                   </button>
-                  <button class="btn btn-sm btn-outline-danger" @click="deleteDepartment(department.department_id)">
+                  <button class="btn btn-sm btn-outline-danger" @click="deleteCategory(category.category_id)">
                     <i class="bi bi-trash"></i>
                   </button>
                 </td>
               </tr>
-              <tr v-if="!paginatedDepartments.length">
-                <td colspan="5" class="text-center text-muted">Không tìm thấy phòng ban</td>
+              <tr v-if="!paginatedCategories.length">
+                <td colspan="4" class="text-center text-muted">Không tìm thấy danh mục</td>
               </tr>
             </tbody>
           </table>
@@ -81,27 +79,25 @@
       </button>
     </div>
 
-    <div class="modal fade" id="departmentModal" tabindex="-1" aria-labelledby="departmentModalLabel" aria-hidden="true">
+    <div class="modal fade" id="categoryModal" tabindex="-1" aria-labelledby="categoryModalLabel" aria-hidden="true">
       <div class="modal-dialog modal-lg">
         <div class="modal-content">
           <div class="modal-header">
-            <h5 class="modal-title" id="departmentModalLabel">{{ isEditMode ? 'Chỉnh sửa Phòng ban' : 'Thêm Phòng ban' }}</h5>
+            <h5 class="modal-title" id="categoryModalLabel">{{ isEditMode ? 'Chỉnh sửa Danh mục' : 'Thêm Danh mục' }}</h5>
             <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Đóng"></button>
           </div>
           <div class="modal-body">
-            <form @submit.prevent="isEditMode ? updateDepartment() : addDepartment()">
+            <form @submit.prevent="saveCategory">
               <div class="row">
                 <div class="col-md-12 mb-3">
-                  <label for="name" class="form-label">Tên phòng ban</label>
-                  <input type="text" class="form-control" v-model="departmentForm.name" required />
-                  <div v-if="errors.name" class="text-danger">{{ errors.name.join('; ') }}</div>
+                  <label for="name" class="form-label">Tên danh mục</label>
+                  <input type="text" class="form-control" v-model="form.name" required />
                 </div>
               </div>
               <div class="row">
                 <div class="col-md-12 mb-3">
                   <label for="description" class="form-label">Mô tả</label>
-                  <textarea class="form-control" v-model="departmentForm.description" rows="4"></textarea>
-                  <div v-if="errors.description" class="text-danger">{{ errors.description.join('; ') }}</div>
+                  <textarea class="form-control" v-model="form.description" rows="4"></textarea>
                 </div>
               </div>
               <div class="modal-footer">
@@ -118,21 +114,18 @@
       <div class="modal-dialog modal-lg">
         <div class="modal-content">
           <div class="modal-header">
-            <h5 class="modal-title" id="detailModalLabel">Chi tiết Phòng ban</h5>
+            <h5 class="modal-title" id="detailModalLabel">Chi tiết Danh mục</h5>
             <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Đóng"></button>
           </div>
           <div class="modal-body">
             <div class="row">
               <div class="col-md-6 mb-3">
-                <strong>Tên phòng ban:</strong> {{ selectedDepartment.name }}
-              </div>
-              <div class="col-md-6 mb-3">
-                <strong>Số nhân viên:</strong> {{ selectedDepartment.employees_count ?? 0 }}
+                <strong>Tên danh mục:</strong> {{ selectedCategory?.name || 'N/A' }}
               </div>
             </div>
             <div class="row">
               <div class="col-md-12 mb-3">
-                <strong>Mô tả:</strong> {{ selectedDepartment.description || 'Không có' }}
+                <strong>Mô tả:</strong> {{ selectedCategory?.description || 'Không có' }}
               </div>
             </div>
           </div>
@@ -149,26 +142,28 @@
 import { ref, computed, onMounted, onUnmounted, watch } from 'vue';
 import axios from 'axios';
 import { inject } from 'vue';
-import * as bootstrap from 'bootstrap';
+ import { Modal } from 'bootstrap';
 
-const departments = ref([]);
-const searchQuery = ref('');
-const currentPage = ref(1);
-const itemsPerPage = 10;
+
 const apiUrl = inject('apiUrl');
-const departmentForm = ref({
-  department_id: null,
+const categories = ref([]);
+const form = ref({
+  category_id: null,
   name: '',
   description: '',
 });
-const selectedDepartment = ref({});
 const isEditMode = ref(false);
-const selectedDepartments = ref([]);
+const selectedCategories = ref([]);
 const selectAll = ref(false);
-const errors = ref({});
+const searchQuery = ref('');
+const currentPage = ref(1);
+const itemsPerPage = 10;
 const showAlert = ref(false);
 const alertMessage = ref('');
 const alertType = ref('alert-success');
+const selectedCategory = ref(null); // Thêm khai báo selectedCategory
+let categoryModal = null;
+let detailModal = null;
 
 const showNotification = (message, type = 'success') => {
   alertType.value = type === 'success' ? 'alert-success' : 'alert-danger';
@@ -178,164 +173,111 @@ const showNotification = (message, type = 'success') => {
 };
 
 const toggleSelectAll = () => {
-  selectedDepartments.value = selectAll.value
-    ? paginatedDepartments.value.map((dept) => dept.department_id)
+  selectedCategories.value = selectAll.value
+    ? paginatedCategories.value.map((cat) => cat.category_id)
     : [];
 };
 
 const updateSelectAll = () => {
   selectAll.value =
-    paginatedDepartments.value.length > 0 &&
-    selectedDepartments.value.length === paginatedDepartments.value.length &&
-    paginatedDepartments.value.every((dept) => selectedDepartments.value.includes(dept.department_id));
+    paginatedCategories.value.length > 0 &&
+    selectedCategories.value.length === paginatedCategories.value.length &&
+    paginatedCategories.value.every((cat) => selectedCategories.value.includes(cat.category_id));
 };
 
-const fetchDepartments = async () => {
+const fetchCategories = async () => {
   try {
-    const response = await axios.get(`${apiUrl}/api/departments`, {
+    const response = await axios.get(`${apiUrl}/api/news-categories`, {
       params: { q: searchQuery.value },
-      withCredentials: true,
-      headers: { Authorization: `Bearer ${localStorage.getItem('token')}` },
     });
-    departments.value = response.data;
-    selectedDepartments.value = [];
+    categories.value = response.data;
+    selectedCategories.value = [];
     selectAll.value = false;
   } catch (error) {
-    showNotification('Không thể tải danh sách phòng ban.', 'error');
+    showNotification('Không thể tải danh sách danh mục.', 'error');
   }
 };
 
-const filteredDepartments = computed(() => {
-  if (!searchQuery.value) return departments.value;
+const filteredCategories = computed(() => {
+  if (!searchQuery.value) return categories.value;
   const query = searchQuery.value.toLowerCase();
-  return departments.value.filter(
-    (department) =>
-      department.name.toLowerCase().includes(query) ||
-      (department.description && department.description.toLowerCase().includes(query))
+  return categories.value.filter(
+    (category) =>
+      category.name.toLowerCase().includes(query) ||
+      (category.description && category.description.toLowerCase().includes(query))
   );
 });
 
-const totalPages = computed(() => Math.ceil(filteredDepartments.value.length / itemsPerPage));
+const totalPages = computed(() => Math.ceil(filteredCategories.value.length / itemsPerPage));
 
-const paginatedDepartments = computed(() => {
+const paginatedCategories = computed(() => {
   const start = (currentPage.value - 1) * itemsPerPage;
-  return filteredDepartments.value.slice(start, start + itemsPerPage);
+  return filteredCategories.value.slice(start, start + itemsPerPage);
 });
 
-const openAddModal = () => {
+const openCreateModal = () => {
   isEditMode.value = false;
-  departmentForm.value = { department_id: null, name: '', description: '' };
-  errors.value = {};
-  const modal = new bootstrap.Modal(document.getElementById('departmentModal'));
-  modal.show();
+  form.value = { category_id: null, name: '', description: '' };
+  categoryModal = new Modal(document.getElementById('categoryModal'));
+  categoryModal.show();
 };
 
-const openEditModal = (department) => {
+const openEditModal = (category) => {
   isEditMode.value = true;
-  departmentForm.value = { ...department };
-  errors.value = {};
-  const modal = new bootstrap.Modal(document.getElementById('departmentModal'));
-  modal.show();
+  form.value = { ...category };
+  categoryModal = new Modal(document.getElementById('categoryModal'));
+  categoryModal.show();
 };
 
-const openDetailModal = (department) => {
-  selectedDepartment.value = department;
-  const modal = new bootstrap.Modal(document.getElementById('detailModal'));
-  modal.show();
+const openDetailModal = (category) => {
+  selectedCategory.value = category;
+  detailModal = new Modal(document.getElementById('detailModal'));
+  detailModal.show();
 };
 
-const addDepartment = async () => {
+const closeModal = () => {
+  if (categoryModal) categoryModal.hide();
+  if (detailModal) detailModal.hide();
+};
+
+const saveCategory = async () => {
   try {
-    errors.value = {};
-    const response = await axios.post(`${apiUrl}/api/departments`, departmentForm.value, {
-      withCredentials: true,
-      headers: { Authorization: `Bearer ${localStorage.getItem('token')}` },
-    });
-    await fetchDepartments();
-    showNotification('Thêm phòng ban thành công!');
-    bootstrap.Modal.getInstance(document.getElementById('departmentModal')).hide();
-  } catch (error) {
-    if (error.response?.status === 422) {
-      errors.value = error.response.data.errors;
-      showNotification('Thêm phòng ban thất bại: Vui lòng kiểm tra dữ liệu.', 'error');
+    if (isEditMode.value) {
+      await axios.put(`${apiUrl}/api/news-categories/${form.value.category_id}`, form.value);
+      showNotification('Cập nhật danh mục thành công!');
     } else {
-      showNotification('Thêm phòng ban thất bại.', 'error');
+      await axios.post(`${apiUrl}/api/news-categories`, form.value);
+      showNotification('Thêm danh mục thành công!');
     }
+    fetchCategories();
+    closeModal();
+  } catch (error) {
+    showNotification('Lưu danh mục thất bại.', 'error');
   }
 };
 
-const updateDepartment = async () => {
+const deleteCategory = async (id) => {
+  if (!confirm('Bạn có chắc muốn xóa danh mục này?')) return;
   try {
-    errors.value = {};
-    const response = await axios.put(`${apiUrl}/api/departments/${departmentForm.value.department_id}`, departmentForm.value, {
-      withCredentials: true,
-      headers: { Authorization: `Bearer ${localStorage.getItem('token')}` },
-    });
-    await fetchDepartments();
-    showNotification('Cập nhật phòng ban thành công!');
-    bootstrap.Modal.getInstance(document.getElementById('departmentModal')).hide();
-  } catch (error) {
-    if (error.response?.status === 422) {
-      errors.value = error.response.data.errors;
-      showNotification('Cập nhật phòng ban thất bại: Vui lòng kiểm tra dữ liệu.', 'error');
-    } else {
-      showNotification('Cập nhật phòng ban thất bại.', 'error');
-    }
-  }
-};
-
-const deleteDepartment = async (id) => {
-  if (!confirm('Bạn có chắc chắn muốn xóa phòng ban này không?')) return;
-  try {
-    await axios.delete(`${apiUrl}/api/departments/${id}`, {
-      withCredentials: true,
-      headers: { Authorization: `Bearer ${localStorage.getItem('token')}` },
-    });
-    selectedDepartments.value = selectedDepartments.value.filter((deptId) => deptId !== id);
-    await fetchDepartments();
-    if (paginatedDepartments.value.length === 0 && currentPage.value > 1) {
+    await axios.delete(`${apiUrl}/api/news-categories/${id}`);
+    selectedCategories.value = selectedCategories.value.filter((catId) => catId !== id);
+    await fetchCategories();
+    if (paginatedCategories.value.length === 0 && currentPage.value > 1) {
       currentPage.value--;
     }
-    showNotification('Xóa phòng ban thành công!');
+    showNotification('Xóa danh mục thành công!');
   } catch (error) {
-    showNotification(
-      error.response?.data?.message || 'Xóa phòng ban thất bại.',
-      'error'
-    );
+    showNotification('Xóa danh mục thất bại.', 'error');
   }
 };
 
-const deleteSelectedDepartments = async () => {
-  if (!selectedDepartments.value.length || !confirm(`Bạn có chắc chắn muốn xóa ${selectedDepartments.value.length} phòng ban?`)) return;
-  try {
-    await Promise.all(
-      selectedDepartments.value.map((id) =>
-        axios.delete(`${apiUrl}/api/departments/${id}`, {
-          withCredentials: true,
-          headers: { Authorization: `Bearer ${localStorage.getItem('token')}` },
-        })
-      )
-    );
-    selectedDepartments.value = [];
-    selectAll.value = false;
-    await fetchDepartments();
-    if (paginatedDepartments.value.length === 0 && currentPage.value > 1) {
-      currentPage.value--;
-    }
-    showNotification('Xóa phòng ban thành công!');
-  } catch (error) {
-    showNotification(
-      error.response?.data?.message || 'Xóa phòng ban thất bại.',
-      'error'
-    );
-  }
-};
-
-onMounted(fetchDepartments);
+onMounted(() => {
+  fetchCategories();
+});
 
 watch(searchQuery, () => {
   currentPage.value = 1;
-  fetchDepartments();
+  fetchCategories();
 });
 </script>
 
@@ -380,8 +322,7 @@ watch(searchQuery, () => {
   text-overflow: ellipsis;
 }
 .table td:first-child,
-.table td:last-child,
-.table td:nth-child(4) {
+.table td:last-child {
   text-align: center;
   min-width: 80px;
 }

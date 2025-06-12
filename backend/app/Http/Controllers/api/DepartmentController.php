@@ -3,7 +3,6 @@ namespace App\Http\Controllers\api;
 
 use App\Http\Controllers\Controller;
 use App\Models\Department;
-use App\Models\Employee;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Validation\ValidationException;
@@ -12,27 +11,32 @@ class DepartmentController extends Controller
 {
     public function index(Request $request)
     {
-        $query = Department::with('manager')->withCount('employees');
-
-        if ($request->has('q') && $request->q) {
-            $search = $request->q;
-            $query->where(function ($q) use ($search) {
-                $q->where('name', 'like', '%' . $search . '%')
-                  ->orWhere('description', 'like', '%' . $search . '%')
-                  ->orWhereHas('manager', function ($q) use ($search) {
-                      $q->where('name', 'like', '%' . $search . '%');
-                  });
-            });
+        try {
+            $query = Department::withCount('employees');
+            if ($request->has('q') && $request->q) {
+                $search = $request->q;
+                $query->where(function ($q) use ($search) {
+                    $q->where('name', 'like', '%' . $search . '%')
+                      ->orWhere('description', 'like', '%' . $search . '%');
+                });
+            }
+            $departments = $query->get();
+            return response()->json($departments);
+        } catch (\Exception $e) {
+            Log::error('Failed to fetch departments', ['error' => $e->getMessage()]);
+            return response()->json(['message' => 'Failed to fetch departments'], 500);
         }
-
-        $departments = $query->get();
-        return response()->json($departments);
     }
 
     public function show($id)
     {
-        $department = Department::with('manager')->findOrFail($id);
-        return response()->json($department);
+        try {
+            $department = Department::withCount('employees')->findOrFail($id);
+            return response()->json($department);
+        } catch (\Exception $e) {
+            Log::error('Error fetching department', ['department_id' => $id, 'error' => $e->getMessage()]);
+            return response()->json(['message' => 'Department not found'], 404);
+        }
     }
 
     public function store(Request $request)
@@ -41,15 +45,14 @@ class DepartmentController extends Controller
             Log::info('Store department request', ['data' => $request->all()]);
 
             $validated = $request->validate([
-                'name' => 'required|string|max:100',
+                'name' => 'required|string|max:100|unique:departments,name',
                 'description' => 'nullable|string',
-                'manager_id' => 'nullable|exists:employees,employee_id',
             ]);
 
             $department = Department::create($validated);
             Log::info('Department created successfully', ['department_id' => $department->department_id]);
 
-            return response()->json($department->load('manager'), 201);
+            return response()->json($department, 201);
         } catch (ValidationException $e) {
             Log::error('Validation error in store department', ['errors' => $e->errors()]);
             return response()->json(['message' => 'Validation failed', 'errors' => $e->errors()], 422);
@@ -66,15 +69,14 @@ class DepartmentController extends Controller
             Log::info('Update department request', ['department_id' => $id, 'data' => $request->all()]);
 
             $validated = $request->validate([
-                'name' => 'required|string|max:100',
+                'name' => 'required|string|max:100|unique:departments,name,' . $id . ',department_id',
                 'description' => 'nullable|string',
-                'manager_id' => 'nullable|exists:employees,employee_id',
             ]);
 
             $department->update($validated);
             Log::info('Department updated successfully', ['department_id' => $department->department_id]);
 
-            return response()->json($department->load('manager'));
+            return response()->json($department);
         } catch (ValidationException $e) {
             Log::error('Validation error in update department', ['errors' => $e->errors()]);
             return response()->json(['message' => 'Validation failed', 'errors' => $e->errors()], 422);
@@ -88,6 +90,9 @@ class DepartmentController extends Controller
     {
         try {
             $department = Department::findOrFail($id);
+            if ($department->employees()->count() > 0) {
+                return response()->json(['message' => 'Cannot delete department with associated employees'], 400);
+            }
             $department->delete();
             Log::info('Department deleted successfully', ['department_id' => $id]);
             return response()->json(null, 204);

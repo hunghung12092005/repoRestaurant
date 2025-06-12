@@ -16,35 +16,21 @@ class LoginController extends Controller
 {
     public function login(Request $request)
     {
-        //dd(1);
-        // Xác thực dữ liệu nhập vào
-        $request->validate([
-            'email' => 'required|email',
-            'password' => 'required|min:6',
-        ]);
-
-        // Kiểm tra thông tin xác thực và lấy token
         $credentials = $request->only('email', 'password');
 
-        try {
-            if (!$token = JWTAuth::attempt($credentials)) {
-                return response()->json(['error' => 'Sai pass rồi bạn ơi'], 401);
-            }
-        } catch (JWTException $e) {
-            return response()->json(['error' => 'could_not_create_token'], 500);
+        if (!$token = JWTAuth::attempt($credentials)) {
+            return response()->json(['message' => 'Invalid credentials'], 401);
         }
 
-        // Lấy thông tin người dùng
-        $user = User::where('email', $request->email)->first();
-
+        $user = Auth::user();
         return response()->json([
-            'message' => 'Login successful',  // Thông báo thành công
             'token' => $token,
             'user' => [
                 'id' => $user->id,
                 'name' => $user->name,
+                'email' => $user->email,
                 'role' => $user->role,
-            ],
+            ]
         ]);
     }
     public function register(Request $request)
@@ -139,6 +125,8 @@ class LoginController extends Controller
             return response()->json(['error' => 'Unauthorized'], 401);
         }
     }
+
+    
     /**
      * Display a listing of the resource.
      */
