@@ -162,7 +162,7 @@ const sendVerificationCode = async () => {
     const fullPhoneNumber = `+84${phoneNumber.value}`;
     const confirmationResult = await signInWithPhoneNumber(auth, fullPhoneNumber, appVerifier);
     verificationId.value = confirmationResult.verificationId;
-    alert('Mã xác nhận đã được gửi thành công! Vui lòng kiểm tra tin nhắn.');
+    //alert('Mã xác nhận đã được gửi thành công! Vui lòng kiểm tra tin nhắn.');
   } catch (error) {
     console.error('Lỗi gửi mã xác nhận:', error.message || error);
     alert(`Lỗi gửi mã xác nhận: ${error.message || error}`);

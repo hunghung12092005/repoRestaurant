@@ -15,6 +15,7 @@
            'email',
            'password',
            'role',
+           'qr_code',
        ];
    
        protected $hidden = [
