@@ -31,8 +31,8 @@
                 </div>
                 <div class="chat__conversation-board__message__context">
                     <div class="chat__conversation-board__message__bubble"> <span>{{ msgSend.message }}
-                        <img v-if="msgSend.file" :src="msgSend.file" alt="Image" style="max-width: 200px;"/>
-                    </span>
+                            <img v-if="msgSend.file" :src="msgSend.file" alt="Image" style="max-width: 200px;" />
+                        </span>
                     </div>
                 </div>
             </div>
@@ -49,7 +49,7 @@
                         {{ suggestion }}
                     </div>
                 </div>
-                
+
                 <input class="chat__conversation-panel__input panel-item" v-model="message" @keyup.enter="sendMessage()"
                     placeholder="Type your message..." />
 
@@ -69,7 +69,7 @@
 
 <script setup>
 import { ref, onMounted, onUnmounted } from 'vue';
-import socket from '../socket'; // Import socket từ file chung
+//import socket from '../socket'; // Import socket từ file chung
 
 const message = ref('');
 const messageSend = ref([]);
