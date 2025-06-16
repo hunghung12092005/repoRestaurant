@@ -305,7 +305,7 @@ function showError(message) {
     // Ẩn thông báo sau 2 giây
     setTimeout(() => {
         errorMessage.value = ''; // Đặt lại thông báo
-    }, 2000);
+    }, 5000);
 }
 
 // Hàm hiển thị alert
@@ -325,7 +325,7 @@ function showAlert(message) {
         setTimeout(() => {
             alert.style.display = 'none';
         }, 500);
-    }, 2000);
+    }, 5000);
 }
 </script>
 <style scoped>
