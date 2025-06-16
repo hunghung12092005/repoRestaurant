@@ -725,5 +725,5 @@ onMounted(() => {
     fetchMenuItems();
     fetchTopPriceItems();
 });
-</script>
+</script>   
 
