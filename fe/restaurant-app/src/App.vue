@@ -4,10 +4,10 @@
       <div class="sidebar">
         <div class="header text-center p-3 border-bottom">
           <img src="https://i.postimg.cc/s2Ywg6YR/logo.png" alt="Luxuria Logo" class="rounded-circle" />
-          <span class="fw-bold">An Phú Ecosystem</span>
+          <span class="fw-bold"><strong>Ho Xuan Huong</strong> Ecosystem</span>
         </div>
         <div class="profile text-center p-3 border-bottom">
-          <img src="https://www.einfosoft.com/templates/admin/luxuria/source/light/assets/images/admin.jpg"
+          <img src="https://www.pngkey.com/png/full/263-2635979_admin-abuse.png"
             alt="Profile Picture" class="rounded-circle" />
           <p class="mb-0 text-muted">{{ userInfo.name || 'Admin' }}</p>
           <p class="text-muted">{{ userInfo.email || 'admin@seafoodie.com' }}</p>
