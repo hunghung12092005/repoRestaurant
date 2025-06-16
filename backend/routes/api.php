@@ -2,16 +2,14 @@
 use App\Http\Controllers\api\LoginController as ApiLoginController;
 use App\Http\Controllers\api\MenuItemController;
 use App\Http\Controllers\api\ShopOnlineController;
-use App\Http\Controllers\api\EmployeeController;
-use App\Http\Controllers\api\DepartmentController;
+use App\Http\Controllers\api\UsersController;
 use App\Http\Controllers\api\NewsController;
 use App\Http\Controllers\api\NewsCategoryController;
 use App\Http\Controllers\api\NewsCommentController;
 use Illuminate\Support\Facades\Route;
 
 // Resource routes
-Route::apiResource('employees', EmployeeController::class);
-Route::apiResource('departments', DepartmentController::class);
+Route::apiResource('users', UsersController::class);
 Route::apiResource('news', NewsController::class);
 Route::apiResource('news-categories', NewsCategoryController::class);
 

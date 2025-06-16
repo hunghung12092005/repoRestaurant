@@ -4,6 +4,7 @@ import HomeComponent from '../components/HomeComponent.vue';
 import AboutComponent from '../components/AboutComponent.vue';
 import ContactComponent from '../components/ContactComponent.vue';
 import ReservationComponent from '../components/booking/ReservationComponent.vue';
+import BookRoomComponent from '../components/booking/BookRoomComponent.vue';
 import BlogComponent from '../components/News/BlogComponent.vue';
 import MenuComponent from '../components/menu_item/MenuComponent.vue';
 import MenuListComponent from '../components/menu_item/MenuListComponent.vue';
@@ -12,8 +13,7 @@ import TestJwtComponent from '../components/testTokenJwt.vue';
 import BlogDetailComponent from '../components/News/BlogDetailComponent.vue';
 import ProductDetailComponent from '../components/ProductDetailComponent.vue';
 import AdminDashboardComponent from '../components/admin/AdminDashboardComponent.vue';
-import AdminStaffsComponent from '../components/admin/AdminStaffsComponent.vue';
-import AdminDepartmentsComponent from '../components/admin/AdminDepartmentsComponent.vue';
+import AdminUsersComponent from '../components/admin/AdminUsersComponent.vue';
 import AdminNewsComponent from '../components/admin/news/AdminNewsComponent.vue';
 import AdminNewsCategoryComponent from '../components/admin/news/AdminNewsCategoryComponent.vue';
 import AdminNewsCommentComponent from '../components/admin/news/AdminNewsCommentComponent.vue';
@@ -49,6 +49,11 @@ const routes = [
     path: '/reservation',
     name: 'ReservationComponent',
     component: ReservationComponent,
+  },
+  {
+    path: '/booking',
+    name: 'BookRoomComponent',
+    component: BookRoomComponent,
   },
   {
     path: '/shop',
@@ -150,17 +155,12 @@ const routes = [
     meta: { requiresAdmin: true },
   },
   {
-    path: '/admin/staffs',
-    name: 'AdminStaffs',
-    component: AdminStaffsComponent,
+    path: '/admin/users',
+    name: 'AdminUsers',
+    component: AdminUsersComponent,
     meta: { requiresAdmin: true },
   },
-  {
-    path: '/admin/departments',
-    name: 'AdminDepartments',
-    component: AdminDepartmentsComponent,
-    meta: { requiresAdmin: true },
-  },
+  
   {
     path: '/admin/news',
     name: 'AdminNews',

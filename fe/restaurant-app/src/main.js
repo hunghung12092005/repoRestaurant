@@ -7,6 +7,7 @@ import axios from 'axios';
 //import './assets/tailwind.css' // Thêm dòng này
 import './assets/style.css'
 import '@vueup/vue-quill/dist/vue-quill.snow.css';
+import 'flatpickr/dist/flatpickr.css';
 createApp(App)
   .use(router) // Sử dụng router
   .mount('#app');

@@ -25,8 +25,7 @@
           <li class="nav-item"><router-link class="nav-link" to="/admin/occupancy"><i class="bi bi-house-door"></i> Occupancy <span class="badge bg-danger">5</span></router-link></li>
           <li class="nav-item"><router-link class="nav-link" to="/admin/bookings"><i class="bi bi-book"></i> Bookings</router-link></li>
           <li class="nav-item"><router-link class="nav-link" to="/admin/rooms"><i class='bx bx-bed'></i>  Rooms</router-link></li>
-          <li class="nav-item"><router-link class="nav-link" to="/admin/staffs"><i class="bi bi-people"></i> Staffs</router-link></li>
-          <li class="nav-item"><router-link class="nav-link" to="/admin/departments"><i class="bi bi-gear"></i> Departments</router-link></li>
+          <li class="nav-item"><router-link class="nav-link" to="/admin/users"><i class="bi bi-people"></i> Quản lý tài khoản</router-link></li>
           <li class="nav-item"><router-link class="nav-link" to="/admin/news"><i class="bi bi-newspaper"></i> Tin tức</router-link></li>
           <li class="nav-item"><router-link class="nav-link" to="/admin/news-categories"><i class="bi bi-tags"></i> Danh mục Tin tức</router-link></li>
           <li class="nav-item"><router-link class="nav-link" to="/admin/news-comments"><i class="bi bi-chat"></i> Bình luận</router-link></li>
