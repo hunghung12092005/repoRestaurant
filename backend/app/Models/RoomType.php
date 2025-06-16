@@ -1,20 +1,16 @@
 <?php
+    namespace App\Models;
 
-namespace App\Models;
+    use Illuminate\Database\Eloquent\Model;
 
-use Illuminate\Database\Eloquent\Factories\HasFactory;
-use Illuminate\Database\Eloquent\Model;
-
-class RoomType extends Model
-{
-    use HasFactory;
-
-    protected $table = 'room_types';
-    protected $primaryKey = 'type_id';
-    protected $fillable = ['type_name', 'description'];
-
-    public function rooms()
+    class RoomType extends Model
     {
-        return $this->hasMany(Room::class, 'type_id', 'type_id');
+        protected $table = 'room_types';
+        protected $primaryKey = 'id';
+        protected $fillable = ['type_name', 'description', 'bed_count', 'max_occupancy'];
+
+        public function seasonalPricing()
+        {
+            return $this->hasMany(SeasonalPricing::class, 'type_id', 'id');
+        }
     }
-}

@@ -27,6 +27,23 @@
               Bookings</router-link></li>
           <li class="nav-item dropdown">
             <a class="nav-link dropdown-toggle" href="#" id="roomsDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+              <i class='bx  bx-bed'></i> Dịch vụ và tiện nghi
+            </a>
+            <ul class="dropdown-menu" aria-labelledby="roomsDropdown">
+              <li>
+                <router-link class="dropdown-item" to="/admin/services">
+                  <i class="bi bi-list-ul me-2"></i> Quản lý dịch vụ
+                </router-link>
+              </li>
+              <li>
+                <router-link class="dropdown-item" to="/admin/amenities">
+                  <i class='bx  bx-bed'></i> Quản lý tiện nghi
+                </router-link>
+              </li>
+            </ul>
+          </li>
+          <li class="nav-item dropdown">
+            <a class="nav-link dropdown-toggle" href="#" id="roomsDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
               <i class='bx  bx-bed'></i> Quản lý phòng
             </a>
             <ul class="dropdown-menu" aria-labelledby="roomsDropdown">
@@ -36,7 +53,7 @@
                 </router-link>
               </li>
               <li>
-                <router-link class="dropdown-item" to="/admin/seasons">
+                <router-link class="dropdown-item" to="/admin/pricese">
                   <i class='bx  bx-bed'></i> Quản lý giá phòng
                 </router-link>
               </li>
