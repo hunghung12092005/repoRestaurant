@@ -36,6 +36,9 @@ import buynow from '../components/ShopOnline/BuyNow.vue';
 import ChatAdmin from '../components/ChatAdmin.vue';
 import Chat from '../components/Chat.vue';
 import qrCodeCCCD from '../components/qrCodeCCCD.vue';
+//đặt phòng
+import rooms from '../components/booking_room/BookRoomComponent.vue'
+import rooms2 from '../components/booking_room/Booking2.vue'
 const routes = [
   {
     path: '/',
@@ -142,6 +145,17 @@ const routes = [
     path: '/cccd',
     name: 'qrCodeCCCD',
     component: qrCodeCCCD,
+  },
+  // đặt phòng
+  {
+    path: '/rooms',
+    name: 'rooms',
+    component: rooms,
+  },
+  {
+    path: '/rooms2',
+    name: 'rooms2',
+    component: rooms2,
   },
   // Admin routes
   {
