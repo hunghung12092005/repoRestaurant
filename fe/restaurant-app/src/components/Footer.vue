@@ -1,188 +1,145 @@
 <template>
-    <div class="footer">
-      <div class="bubbles">
-        <div class="bubble"
-          style="--size:3.086322244632843rem; --distance:9.937603895783488rem; --position:77.1378973571501%; --time:2.608074679027402s; --delay:-3.6348798607901815s;">
+  
+    
+    <footer class="footer">
+     
+      <div class="footer-content">
+        <div class="footer-text1">
+          <p>Capitalist Hotel</p>
+          <p>Royal Boulevard, Suite 1001</p>
+          <p>Elegance District</p>
+          <p>Opulent City, Luxuria 12345</p>
+          <p>Exquisite Realm</p>
         </div>
-        <div class="bubble"
-          style="--size:3.808227507742571rem; --distance:7.425727355796341rem; --position:77.41847097949491%; --time:2.0060000160759905s; --delay:-3.433535277851036s;">
+        <div class="footer-logo-container">
+          <img class="footer-logo" src="https://i.postimg.cc/d3pNGXPN/7c6764b8-de90-474c-9b98-05019aef3193.png"
+            alt="footer-logo">
         </div>
-        <div class="bubble"
-          style="--size:2.161144819253492rem; --distance:6.762213494442287rem; --position:36.6649399826768%; --time:3.0796634797495144s; --delay:-2.231066934148482s;">
-        </div>
-        <div class="bubble"
-          style="--size:4.866971077148713rem; --distance:6.120099867228864rem; --position:15.141085137253263%; --time:2.0367265173823417s; --delay:-2.469937106864428s;">
-        </div>
-        <div class="bubble"
-          style="--size:3.527698206367873rem; --distance:6.186009567264217rem; --position:11.946303036666507%; --time:3.841611332427959s; --delay:-3.4456149244221255s;">
-        </div>
-        <div class="bubble"
-          style="--size:4.148353509246295rem; --distance:9.34203762855482rem; --position:20.52877720221919%; --time:2.5364753400250932s; --delay:-2.6213474723436154s;">
-        </div>
-      </div>
-      <div class="content">
-        <div>
-          <div><b>Eldew</b><a href="#">Secuce</a><a href="#">Drupand</a><a href="#">Oceash</a><a href="#">Ugefe</a><a
-              href="#">Babed</a></div>
-          <div><b>Spotha</b><a href="#">Miskasa</a><a href="#">Agithe</a><a href="#">Scesha</a><a href="#">Lulle</a>
-          </div>
-          <div><b>Chashakib</b><a href="#">Chogauw</a><a href="#">Phachuled</a><a href="#">Tiebeft</a><a
-              href="#">Ocid</a><a href="#">Izom</a><a href="#">Ort</a></div>
-          <div><b>Athod</b><a href="#">Pamuz</a><a href="#">Vapert</a><a href="#">Neesk</a><a href="#">Omemanen</a>
-          </div>
-        </div>
-        <div><a class="image" href="https://codepen.io/z-" target="_blank"
-            style="background-image: url(&quot;https://s3-us-west-2.amazonaws.com/s.cdpn.io/199011/happy.svg&quot;)"></a>
-          <p>©2019 Not Really</p>
+        <div class="footer-text2">
+          <p>Nhân viên lễ tân:</p>
+          <p>+84 (VN) 123-4567</p>
+          <p>Nhân viên lễ tân 2: </p>
+          <p>+84 (VN) 123-4567</p>
+          <p>Nhân viên lễ tân 3: </p>
+          <p>+84 (VN) 123-4567</p>
+          
         </div>
       </div>
-    </div>
+      <div id="footer-navbar">
+        <nav id="footer-navbar">
+          <a class="footer-nav-link" href="#welcome-section">Đặt Phòng</a>
+          <p>│</p>
+         
+          <a class="footer-nav-link" href="#profile-link">About us</a>
+          <p>│</p>
+          <a class="footer-nav-link" href="#profile-link">Home</a>
+          
+        </nav>
+      </div>
+      <iframe src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3753.7506646911206!2d105.77672157425476!3d19.808166228581847!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x3136f9a98875450b%3A0x9da52c446fa634a0!2zS2jDoWNoIFPhuqFuIFBoxrDhu6NuZyBIb8OgbmcgMw!5e0!3m2!1svi!2s!4v1750238720851!5m2!1svi!2s" width="50%" height="100" style="border:0;" allowfullscreen="" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>
+      <p class="copyright">© HXH Hotel 2025</p>
+    </footer>
+
+
 </template>
 <style scoped>
-body .footer {
-  z-index: 1;
-  --footer-background: rgb(15, 141, 172);
-  display: grid;
-  position: relative;
-  grid-area: footer;
-  min-height: 12rem;
-}
+@import url('https://fonts.googleapis.com/css?family=Poppins:400,500,600,700&display=swap');
 
-body .footer .bubbles {
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  height: 1rem;
-  background: var(--footer-background);
-  filter: url("#blob");
-}
-
-body .footer .bubbles .bubble {
-  position: absolute;
-  left: var(--position, 50%);
-  background: var(--footer-background);
-  border-radius: 100%;
-  -webkit-animation: bubble-size var(--time, 4s) ease-in infinite var(--delay, 0s), bubble-move var(--time, 4s) ease-in infinite var(--delay, 0s);
-  animation: bubble-size var(--time, 4s) ease-in infinite var(--delay, 0s), bubble-move var(--time, 4s) ease-in infinite var(--delay, 0s);
-  transform: translate(-50%, 100%);
-}
-
-body .footer .content {
-  z-index: 2;
-  display: grid;
-  grid-template-columns: 1fr auto;
-  grid-gap: 4rem;
-  padding: 2rem;
-  background: var(--footer-background);
-}
-
-body .footer .content a,
-body .footer .content p {
-  color: #F5F7FA;
-  text-decoration: none;
-}
-
-body .footer .content b {
-  color: white;
-}
-
-body .footer .content p {
+* {
   margin: 0;
-  font-size: 0.75rem;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: 'Poppins', sans-serif;
 }
 
-body .footer .content>div {
+
+
+.footer {
+  background-color: #3baae6;
+  color: white;
+  padding: 20px;
+  text-align: center;
+  margin-top: 0px;
+
+}
+
+footer p {
+  margin: 1;
+  /* Remove default margin for paragraphs inside the footer */
+}
+
+footer a {
+  color: white;
+  /* Adjust link color in the footer */
+  text-decoration: none;
+  /* Remove underline from links */
+  font-weight: bold;
+  /* Optionally, make the links bold */
+}
+
+.footer-logo {
+  width: 150px;
+  /* Adjust the width as needed */
+  height: auto;
+  /* Allow the logo to adjust its height while maintaining the aspect ratio */
+}
+
+.footer-content {
   display: flex;
-  flex-direction: column;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.footer-text1 {
+  flex: 1;
+  text-align: right;
+  font-size: 12px;
+}
+
+.footer-text2 {
+  flex: 1;
+  text-align: left;
+  font-size: 12px;
+}
+
+.footer-text1 {
+  margin-right: 10px;
+  /* Adjusted margin to reduce space between text and logo */
+}
+
+.footer-text2 {
+  margin-left: 10px;
+  /* Adjusted margin to reduce space between text and logo */
+}
+
+.footer-logo-container {
+  flex-basis: 150px;
+  /* Set a basis for flex item to ensure it doesn't grow too much */
+  flex-shrink: 0;
+  /* Disable shrinking to prevent the logo from getting smaller */
+}
+
+#footer-navbar {
+  display: flex;
   justify-content: center;
+  /* Center the links horizontally */
+  align-items: center;
+  /* Center the links vertically */
+  margin-top: 10px;
+  background-color: #3baae6;
+  /* Set the background color for the footer navbar */
 }
 
-body .footer .content>div>div {
-  margin: 0.25rem 0;
+.footer-nav-link {
+  text-decoration: none;
+  color: white;
+  margin: 0 15px;
+  /* Adjusted margin for spacing between links */
+  font-weight: 400;
 }
 
-body .footer .content>div>div>* {
-  margin-right: 0.5rem;
-}
-
-body .footer .content>div .image {
-  align-self: center;
-  width: 4rem;
-  height: 4rem;
-  margin: 0.25rem 0;
-  background-size: cover;
-  background-position: center;
-}
-
-@-webkit-keyframes bubble-size {
-
-  0%,
-  75% {
-    width: var(--size, 4rem);
-    height: var(--size, 4rem);
-  }
-
-  100% {
-    width: 0rem;
-    height: 0rem;
-  }
-}
-
-@keyframes bubble-size {
-
-  0%,
-  75% {
-    width: var(--size, 4rem);
-    height: var(--size, 4rem);
-  }
-
-  100% {
-    width: 0rem;
-    height: 0rem;
-  }
-}
-
-@-webkit-keyframes bubble-move {
-  0% {
-    bottom: -4rem;
-  }
-
-  100% {
-    bottom: var(--distance, 10rem);
-  }
-}
-
-@keyframes bubble-move {
-  0% {
-    bottom: -4rem;
-  }
-
-  100% {
-    bottom: var(--distance, 10rem);
-  }
-}
-@media (max-width: 600px) {
-  .footer {
-    width: 100%;
-    min-height: 20rem;
-  }
-  body .footer .content {
-    grid-template-columns: 1fr;
-    text-align: center;
-  }
-
-  body .footer .content>div {
-    align-items: center;
-  }
-
-  body .footer .content>div>div {
-    flex-direction: row;
-    justify-content: center;
-  }
-
-  body .footer .content>div>div>* {
-    margin-right: 0.25rem;
-  }
+.copyright {
+  margin-top: 20px;
+  /* Adjusted margin for spacing */
 }
 </style>

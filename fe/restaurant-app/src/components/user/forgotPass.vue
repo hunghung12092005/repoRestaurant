@@ -134,6 +134,8 @@ const resetPassword = async () => {
             new_password_confirmation: confirmPassword.value,
         });
         message.value = response.data.message;
+        window.location.href = 'http://127.0.0.1:5173/login';
+
     } catch (error) {
         message.value = error.response.data.message;
     } finally {

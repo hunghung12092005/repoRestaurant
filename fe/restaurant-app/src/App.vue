@@ -3,7 +3,7 @@
     <div v-if="$route.path.startsWith('/admin')" class="d-flex">
       <div class="sidebar">
         <div class="header text-center p-3 border-bottom">
-          <img src="https://i.postimg.cc/s2Ywg6YR/logo.png" alt="Luxuria Logo" class="rounded-circle" />
+          <img src="https://i.postimg.cc/d3pNGXPN/7c6764b8-de90-474c-9b98-05019aef3193.png" alt="Luxuria Logo" class="rounded-circle" />
           <span class="fw-bold"><strong>Ho Xuan Huong</strong> Ecosystem</span>
         </div>
         <div class="profile text-center p-3 border-bottom">
@@ -123,7 +123,7 @@
           <div class="container-fluid">
             <!-- Logo -->
             <a class="navbar-brand" href="/">
-              <img src="https://i.postimg.cc/s2Ywg6YR/logo.png" alt="Foodie Logo" class="logo-img" />
+              <img src="https://i.postimg.cc/d3pNGXPN/7c6764b8-de90-474c-9b98-05019aef3193.png" alt="Foodie Logo" class="logo-img" />
               Ho Xuan Huong Eco
             </a>
 

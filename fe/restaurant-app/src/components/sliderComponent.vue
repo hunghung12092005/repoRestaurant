@@ -8,7 +8,7 @@
                 <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQrrIGU54LtGQBiuNArjH-DpkfIKL5O4DVjHXDLtJIY0hyulkvBOurunDwj34t4irlk-G0&usqp=CAU" height="100" width="50%" alt="" />
             </div>
             <div class="slide">
-                <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQszls_kcc51Iz58AGMl5dnCro1HHMS9k7s4rVDEzqKCD3hHSQVYRRSQrdeMvS-AYxVp5Y&usqp=CAU" height="100" width="10%" alt="" />
+                <img src="https://mixueviet.com/wp-content/uploads/2024/05/Img-Mixue-VN.png" height="100" width="10%" alt="" />
             </div>
             <div class="slide">
                 <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQm1NtydsflfrTJHNkcYDkZ6D6j3Z5y_S5ADg&s" height="100" width="250" alt="" />
@@ -16,9 +16,30 @@
             <div class="slide">
                 <img src="https://ib.vib.com.vn/banners/Promotion/20241209134441503_logo_Panasonic_.png" height="100" width="250" alt="" />
             </div>
-            <div class="slide">
+            <!-- <div class="slide">
                 <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSIK9SylxDSKjUsuNaWB6Kts5JD8dFWt6UA6A&s" height="100" width="250" alt="" />
+            </div> -->
+            <div class="slide">
+                <img src="https://cdn.prod.website-files.com/5fb85f26f126ce08d792d2d9/6453fb70c3d3d020845387fe_New_XANH_SM.jpg" height="100" width="250" alt="" />
             </div>
+            <div class="slide">
+                <img src="https://rubee.com.vn/admin/webroot/upload/image/images/bai-viet/logo-tr%C3%A0-s%E1%BB%AFa-tocotoco.jpg" height="100" width="250" alt="" />
+            </div>
+            <div class="slide">
+                <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQrrIGU54LtGQBiuNArjH-DpkfIKL5O4DVjHXDLtJIY0hyulkvBOurunDwj34t4irlk-G0&usqp=CAU" height="100" width="50%" alt="" />
+            </div>
+            <div class="slide">
+                <img src="https://mixueviet.com/wp-content/uploads/2024/05/Img-Mixue-VN.png" height="100" width="10%" alt="" />
+            </div>
+            <div class="slide">
+                <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQm1NtydsflfrTJHNkcYDkZ6D6j3Z5y_S5ADg&s" height="100" width="250" alt="" />
+            </div>
+            <div class="slide">
+                <img src="https://ib.vib.com.vn/banners/Promotion/20241209134441503_logo_Panasonic_.png" height="100" width="250" alt="" />
+            </div>
+            <!-- <div class="slide">
+                <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSIK9SylxDSKjUsuNaWB6Kts5JD8dFWt6UA6A&s" height="100" width="250" alt="" />
+            </div> -->
             <div class="slide">
                 <img src="https://cdn.prod.website-files.com/5fb85f26f126ce08d792d2d9/6453fb70c3d3d020845387fe_New_XANH_SM.jpg" height="100" width="250" alt="" />
             </div>
@@ -88,18 +109,19 @@ body {
 }
 
 .slider .slide-track {
-    -webkit-animation: scroll 40s linear infinite;
-    animation: scroll 20s linear infinite;
+    -webkit-animation: scroll 80s linear infinite;
+    animation: scroll 90s linear infinite;
     display: flex;
-    width: calc(250px * 14);
+    width: calc(350px * 14);
 }
 
 .slider .slide {
-    height: 100px;
-    width: 250px;
+    height: 150px;
+    width: 180px;
 }
 .slide img{
-    width: 100%;
+    width: 90%;
+    /* height: 80%; */
 }
 /* end quảng cáo */ 
 </style>

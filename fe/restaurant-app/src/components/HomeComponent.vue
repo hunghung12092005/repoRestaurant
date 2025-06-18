@@ -10,7 +10,7 @@
             <a href="/menu-list" class="btn">Xem Menu</a> -->
 
             <span>Sầm Sơn Beach</span>
-            <h1>An Phú Villa <br>Kính chào quý khách!</h1>
+            <h1>Hồ Xuân Hương  <br>Kính chào quý khách!</h1>
             
             <a href="/menu" class="btn">Xem Menu</a>
 
@@ -120,7 +120,7 @@
             </div>
         </div>
     </section>
-    
+    <Footer></Footer>
 </template>
 <style scoped>
 @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&family=Turret+Road:wght@400;500;700;800&display=swap');
