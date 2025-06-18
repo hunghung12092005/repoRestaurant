@@ -44,7 +44,7 @@
       <table class="table table-bordered table-hover align-middle">
         <thead>
           <tr>
-            <th>#</th>
+            <th>STT</th>
             <th>Số Phòng</th>
             <th>Loại Phòng</th>
             <th>Giá/Đêm (VNĐ)</th>
@@ -53,9 +53,6 @@
             <th>Sức Chứa</th>
             <th>Tầng</th>
             <th>Trạng Thái</th>
-            <th>Bảo Trì</th>
-            <th>Tiện Ích</th>
-            <th>Dịch Vụ</th>
             <th>Hành Động</th>
           </tr>
         </thead>
@@ -82,18 +79,6 @@
                 {{ room.status }}
               </span>
             </td>
-            <td>
-              <span
-                :class="{
-                  'badge bg-success': room.maintenance_status === 'Hoạt động',
-                  'badge bg-warning': room.maintenance_status === 'Đang bảo trì'
-                }"
-              >
-                {{ room.maintenance_status }}
-              </span>
-            </td>
-            <td>{{ room.amenity_names ? room.amenity_names.join(', ') : 'Không có' }}</td>
-            <td>{{ room.service_names ? room.service_names.join(', ') : 'Không có' }}</td>
             <td>
               <button class="btn btn-primary btn-sm me-2" @click="openEditModal(room)">
                 <i class="bi bi-pencil me-1"></i>Sửa
@@ -230,47 +215,6 @@
                   <option value="Đang dọn dẹp">Đang dọn dẹp</option>
                 </select>
                 <div v-if="errors.status" class="invalid-feedback">{{ errors.status }}</div>
-              </div>
-              <div class="mb-3">
-                <label class="form-label">Tình Trạng Bảo Trì</label>
-                <select
-                  v-model="form.maintenance_status"
-                  class="form-control"
-                  required
-                  :class="{ 'is-invalid': errors.maintenance_status }"
-                >
-                  <option value="Hoạt động">Hoạt động</option>
-                  <option value="Đang bảo trì">Đang bảo trì</option>
-                </select>
-                <div v-if="errors.maintenance_status" class="invalid-feedback">{{ errors.maintenance_status }}</div>
-              </div>
-              <div class="mb-3">
-                <label class="form-label">Tiện Ích</label>
-                <select
-                  v-model="form.amenities"
-                  multiple
-                  class="form-control"
-                  :class="{ 'is-invalid': errors.amenities }"
-                >
-                  <option v-for="amenity in amenities" :key="amenity.amenity_id" :value="amenity.amenity_id">
-                    {{ amenity.amenity_name }}
-                  </option>
-                </select>
-                <div v-if="errors.amenities" class="invalid-feedback">{{ errors.amenities }}</div>
-              </div>
-              <div class="mb-3">
-                <label class="form-label">Dịch Vụ</label>
-                <select
-                  v-model="form.services"
-                  multiple
-                  class="form-control"
-                  :class="{ 'is-invalid': errors.services }"
-                >
-                  <option v-for="service in services" :key="service.service_id" :value="service.service_id">
-                    {{ service.service_name }}
-                  </option>
-                </select>
-                <div v-if="errors.services" class="invalid-feedback">{{ errors.services }}</div>
               </div>
               <div class="mb-3">
                 <label class="form-label">Giá Theo Loại Phòng</label>

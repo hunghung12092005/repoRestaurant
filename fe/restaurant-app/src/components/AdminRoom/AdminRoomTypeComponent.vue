@@ -28,15 +28,19 @@
             <th>Mô Tả</th>
             <th>Số Giường</th>
             <th>Sức Chứa</th>
+            <th>Tiện Ích</th>
+            <th>Dịch Vụ</th>
             <th>Hành Động</th>
           </tr>
         </thead>
         <tbody>
-          <tr v-for="type in typeHienThi" :key="type.id">
+          <tr v-for="type in typeHienThi" :key="type.type_id">
             <td>{{ type.type_name }}</td>
             <td>{{ type.description || 'Không có mô tả' }}</td>
             <td>{{ type.bed_count }}</td>
             <td>{{ type.max_occupancy }}</td>
+            <td>{{ type.amenities.map(a => a.amenity_name).join(', ') || 'Không có' }}</td>
+            <td>{{ type.services.map(s => s.service_name).join(', ') || 'Không có' }}</td>
             <td>
               <button
                 class="btn btn-primary btn-sm me-2"
@@ -46,14 +50,14 @@
               </button>
               <button
                 class="btn btn-danger btn-sm"
-                @click="xoaLoaiPhong(type.id)"
+                @click="xoaLoaiPhong(type.type_id)"
               >
                 <i class="bi bi-trash"></i> Xóa
               </button>
             </td>
           </tr>
           <tr v-if="typeHienThi.length === 0">
-            <td colspan="5" class="text-center text-muted">
+            <td colspan="7" class="text-center text-muted">
               Không có loại phòng nào phù hợp
             </td>
           </tr>
@@ -107,30 +111,68 @@
       tabindex="-1"
       style="background-color: rgba(0, 0, 0, 0.5)"
     >
-      <div class="modal-dialog">
+      <div class="modal-dialog modal-lg">
         <div class="modal-content">
           <div class="modal-header">
             <h5 class="modal-title">
-              {{ typeDangSua ? "Sửa Loại Phòng" : "Thêm Loại Phòng Mới" }}
+              {{ typeDangSua ? 'Sửa Loại Phòng' : 'Thêm Loại Phòng Mới' }}
             </h5>
             <button type="button" class="btn-close" @click="dongModal"></button>
           </div>
           <div class="modal-body">
-            <div class="mb-3">
-              <label class="form-label">Tên Loại Phòng</label>
-              <input type="text" v-model="typeMoi.type_name" class="form-control" required />
-            </div>
-            <div class="mb-3">
-              <label class="form-label">Mô Tả</label>
-              <textarea v-model="typeMoi.description" class="form-control"></textarea>
-            </div>
-            <div class="mb-3">
-              <label class="form-label">Số Giường</label>
-              <input type="number" v-model="typeMoi.bed_count" class="form-control" min="1" required />
-            </div>
-            <div class="mb-3">
-              <label class="form-label">Sức Chứa Tối Đa</label>
-              <input type="number" v-model="typeMoi.max_occupancy" class="form-control" min="1" required />
+            <div class="row">
+              <div class="col-md-6 mb-3">
+                <label class="form-label">Tên Loại Phòng</label>
+                <input type="text" v-model="typeMoi.type_name" class="form-control" required />
+              </div>
+              <div class="col-md-6 mb-3">
+                <label class="form-label">Mô Tả</label>
+                <textarea v-model="typeMoi.description" class="form-control"></textarea>
+              </div>
+              <div class="col-md-6 mb-3">
+                <label class="form-label">Số Giường</label>
+                <input type="number" v-model.number="typeMoi.bed_count" class="form-control" min="1" required />
+              </div>
+              <div class="col-md-6 mb-3">
+                <label class="form-label">Sức Chứa Tối Đa</label>
+                <input type="number" v-model.number="typeMoi.max_occupancy" class="form-control" min="1" required />
+              </div>
+              <div class="col-md-6 mb-3">
+                <label class="form-label">Tiện Ích</label>
+                <div class="form-check" v-for="amenity in amenities" :key="amenity.amenity_id">
+                  <input
+                    type="checkbox"
+                    class="form-check-input"
+                    :value="amenity.amenity_id"
+                    v-model="typeMoi.amenity_ids"
+                    :id="'amenity-' + amenity.amenity_id"
+                  />
+                  <label class="form-check-label" :for="'amenity-' + amenity.amenity_id">
+                    {{ amenity.amenity_name }}
+                  </label>
+                </div>
+                <div v-if="amenities.length === 0" class="text-muted">
+                  Không có tiện ích nào
+                </div>
+              </div>
+              <div class="col-md-6 mb-3">
+                <label class="form-label">Dịch Vụ</label>
+                <div class="form-check" v-for="service in services" :key="service.service_id">
+                  <input
+                    type="checkbox"
+                    class="form-check-input"
+                    :value="service.service_id"
+                    v-model="typeMoi.service_ids"
+                    :id="'service-' + service.service_id"
+                  />
+                  <label class="form-check-label" :for="'service-' + service.service_id">
+                    {{ service.service_name }} ({{ service.price }} VNĐ)
+                  </label>
+                </div>
+                <div v-if="services.length === 0" class="text-muted">
+                  Không có dịch vụ nào
+                </div>
+              </div>
             </div>
           </div>
           <div class="modal-footer">
@@ -143,168 +185,168 @@
   </div>
 </template>
 
-<script>
-import { ref, computed, onMounted } from "vue";
-import axios from "axios";
+<script setup>
+import { ref, computed, onMounted } from 'vue';
+import axios from 'axios';
 
-export default {
-  setup() {
-    const roomTypes = ref([]);
-    const tuKhoaTim = ref("");
-    const laModalMo = ref(false);
-    const typeDangSua = ref(null);
-    const typeMoi = ref({
-      type_name: "",
-      description: "",
-      bed_count: 1,
-      max_occupancy: 1,
-    });
-    const trangHienTai = ref(1);
-    const soTypeMoiTrang = 10;
+// Dữ liệu
+const roomTypes = ref([]);
+const amenities = ref([]);
+const services = ref([]);
+const tuKhoaTim = ref('');
+const laModalMo = ref(false);
+const typeDangSua = ref(null);
+const typeMoi = ref({
+  type_name: '',
+  description: '',
+  bed_count: 1,
+  max_occupancy: 1,
+  amenity_ids: [],
+  service_ids: [],
+});
+const trangHienTai = ref(1);
+const soTypeMoiTrang = 10;
 
-    const fetchRoomTypes = async () => {
-      try {
-        const res = await axios.get("http://localhost:8000/api/room-types");
-        roomTypes.value = res.data.data || [];
-      } catch (error) {
-        alert("Lấy dữ liệu loại phòng thất bại: " + (error.response?.data?.message || error.message));
-        console.error('Lỗi:', error.response?.data || error);
+// Lấy dữ liệu từ API
+const fetchData = async () => {
+  try {
+    const [roomTypesRes, amenitiesRes, servicesRes] = await Promise.all([
+      axios.get('http://127.0.0.1:8000/api/room-types'),
+      axios.get('http://127.0.0.1:8000/api/amenities', { params: { per_page: 'all' } }),
+      axios.get('http://127.0.0.1:8000/api/services', { params: { per_page: 'all' } }),
+    ]);
+
+    roomTypes.value = roomTypesRes.data.data || [];
+    amenities.value = amenitiesRes.data.data || [];
+    services.value = servicesRes.data.data || [];
+
+    // Log để kiểm tra số lượng dữ liệu nhận được
+    console.log('Số tiện ích:', amenities.value.length);
+    console.log('Số dịch vụ:', services.value.length);
+  } catch (error) {
+    const errorMessage = error.response?.data?.message || error.message;
+    alert('Lấy dữ liệu thất bại: ' + errorMessage);
+    console.error('Lỗi:', error.response?.data || error);
+  }
+};
+
+onMounted(fetchData);
+
+// Lọc và phân trang
+const typeLoc = computed(() => {
+  return roomTypes.value.filter((t) =>
+    t.type_name.toLowerCase().includes(tuKhoaTim.value.toLowerCase()) ||
+    (t.description || '').toLowerCase().includes(tuKhoaTim.value.toLowerCase())
+  );
+});
+
+const tongSoTrang = computed(() => Math.ceil(typeLoc.value.length / soTypeMoiTrang));
+
+const typeHienThi = computed(() => {
+  const batDau = (trangHienTai.value - 1) * soTypeMoiTrang;
+  const ketThuc = batDau + soTypeMoiTrang;
+  return typeLoc.value.slice(batDau, ketThuc);
+});
+
+const trangHienThi = computed(() => {
+  const soTrang = tongSoTrang.value;
+  const trangHienTaiValue = trangHienTai.value;
+  const ketQua = [];
+  const maxSoTrangHienThi = 5;
+  let batDau = Math.max(1, trangHienTaiValue - Math.floor(maxSoTrangHienThi / 2));
+  let ketThuc = Math.min(soTrang, batDau + maxSoTrangHienThi - 1);
+  if (ketThuc - batDau + 1 < maxSoTrangHienThi) {
+    batDau = Math.max(1, ketThuc - maxSoTrangHienThi + 1);
+  }
+  for (let i = batDau; i <= ketThuc; i++) {
+    ketQua.push(i);
+  }
+  return ketQua;
+});
+
+// Hàm xử lý modal
+const moModalThem = () => {
+  typeMoi.value = {
+    type_name: '',
+    description: '',
+    bed_count: 1,
+    max_occupancy: 1,
+    amenity_ids: [],
+    service_ids: [],
+  };
+  typeDangSua.value = null;
+  laModalMo.value = true;
+};
+
+const moModalSua = (type) => {
+  typeMoi.value = {
+    ...type,
+    amenity_ids: type.amenities.map(a => a.amenity_id),
+    service_ids: type.services.map(s => s.service_id),
+  };
+  typeDangSua.value = type;
+  laModalMo.value = true;
+};
+
+const dongModal = () => {
+  laModalMo.value = false;
+};
+
+// Lưu loại phòng
+const luuLoaiPhong = async () => {
+  if (
+    !typeMoi.value.type_name.trim() ||
+    isNaN(typeMoi.value.bed_count) || typeMoi.value.bed_count < 1 ||
+    isNaN(typeMoi.value.max_occupancy) || typeMoi.value.max_occupancy < 1
+  ) {
+    alert('Vui lòng nhập đầy đủ và đúng định dạng dữ liệu!');
+    return;
+  }
+
+  try {
+    let response;
+    if (typeDangSua.value) {
+      response = await axios.put(
+        `http://127.0.0.1:8000/api/room-types/${typeDangSua.value.type_id}`,
+        typeMoi.value
+      );
+      const index = roomTypes.value.findIndex(t => t.type_id === typeDangSua.value.type_id);
+      if (index !== -1) {
+        roomTypes.value[index] = response.data.data;
       }
-    };
+    } else {
+      response = await axios.post('http://127.0.0.1:8000/api/room-types', typeMoi.value);
+      roomTypes.value.push(response.data.data);
+    }
+    trangHienTai.value = 1;
+    dongModal();
+    alert('Lưu loại phòng thành công!');
+  } catch (error) {
+    const errorMessage = error.response?.data?.message || error.message;
+    const errorDetails = error.response?.data?.errors
+      ? Object.values(error.response.data.errors).join(', ')
+      : '';
+    alert(`Lưu loại phòng thất bại: ${errorMessage}${errorDetails ? ' - ' + errorDetails : ''}`);
+    console.error('Lỗi:', error.response?.data || error);
+  }
+};
 
-    onMounted(() => {
-      fetchRoomTypes();
-    });
-
-    const typeLoc = computed(() => {
-      return roomTypes.value.filter((t) => {
-        return (
-          t.type_name.toLowerCase().includes(tuKhoaTim.value.toLowerCase()) ||
-          (t.description || '').toLowerCase().includes(tuKhoaTim.value.toLowerCase())
-        );
-      });
-    });
-
-    const tongSoTrang = computed(() => Math.ceil(typeLoc.value.length / soTypeMoiTrang));
-
-    const typeHienThi = computed(() => {
-      const batDau = (trangHienTai.value - 1) * soTypeMoiTrang;
-      const ketThuc = batDau + soTypeMoiTrang;
-      return typeLoc.value.slice(batDau, ketThuc);
-    });
-
-    const trangHienThi = computed(() => {
-      const soTrang = tongSoTrang.value;
-      const trangHienTaiValue = trangHienTai.value;
-      const ketQua = [];
-      const maxSoTrangHienThi = 5;
-      let batDau = Math.max(1, trangHienTaiValue - Math.floor(maxSoTrangHienThi / 2));
-      let ketThuc = Math.min(soTrang, batDau + maxSoTrangHienThi - 1);
-      if (ketThuc - batDau + 1 < maxSoTrangHienThi) {
-        batDau = Math.max(1, ketThuc - maxSoTrangHienThi + 1);
+// Xóa loại phòng
+const xoaLoaiPhong = async (id) => {
+  if (confirm('Bạn có chắc chắn muốn xóa loại phòng này?')) {
+    try {
+      await axios.delete(`http://127.0.0.1:8000/api/room-types/${id}`);
+      roomTypes.value = roomTypes.value.filter(t => t.type_id !== id);
+      if (typeHienThi.value.length === 0 && trangHienTai.value > 1) {
+        trangHienTai.value--;
       }
-      for (let i = batDau; i <= ketThuc; i++) {
-        ketQua.push(i);
-      }
-      return ketQua;
-    });
-
-    const moModalThem = () => {
-      typeMoi.value = {
-        type_name: "",
-        description: "",
-        bed_count: 1,
-        max_occupancy: 1,
-      };
-      typeDangSua.value = null;
-      laModalMo.value = true;
-    };
-
-    const moModalSua = (type) => {
-      typeMoi.value = { ...type };
-      typeDangSua.value = type;
-      laModalMo.value = true;
-    };
-
-    const dongModal = () => {
-      laModalMo.value = false;
-    };
-
-    const luuLoaiPhong = async () => {
-      if (
-        !typeMoi.value.type_name.trim() ||
-        isNaN(typeMoi.value.bed_count) || typeMoi.value.bed_count < 1 ||
-        isNaN(typeMoi.value.max_occupancy) || typeMoi.value.max_occupancy < 1
-      ) {
-        alert("Vui lòng nhập đầy đủ và đúng định dạng dữ liệu!");
-        return;
-      }
-
-      try {
-        let response;
-        if (typeDangSua.value) {
-          response = await axios.put(
-            `http://localhost:8000/api/room-types/${typeDangSua.value.id}`,
-            typeMoi.value
-          );
-          const index = roomTypes.value.findIndex(
-            (t) => t.id === typeDangSua.value.id
-          );
-          if (index !== -1) {
-            roomTypes.value[index] = { ...typeMoi.value, id: typeDangSua.value.id };
-          }
-        } else {
-          response = await axios.post("http://localhost:8000/api/room-types", typeMoi.value);
-          roomTypes.value.push(response.data.data || response.data);
-        }
-        trangHienTai.value = 1;
-        dongModal();
-        alert("Lưu loại phòng thành công!");
-      } catch (error) {
-        const errorMessage = error.response?.data?.message || error.message;
-        const errorDetails = error.response?.data?.errors
-          ? Object.values(error.response.data.errors).join(", ")
-          : "";
-        alert(`Lưu loại phòng thất bại: ${errorMessage}${errorDetails ? " - " + errorDetails : ""}`);
-        console.error("Lỗi:", error.response?.data || error);
-      }
-    };
-
-    const xoaLoaiPhong = async (id) => {
-      if (confirm("Bạn có chắc chắn muốn xóa loại phòng này?")) {
-        try {
-          await axios.delete(`http://localhost:8000/api/room-types/${id}`);
-          roomTypes.value = roomTypes.value.filter((t) => t.id !== id);
-          if (typeHienThi.value.length === 0 && trangHienTai.value > 1) {
-            trangHienTai.value--;
-          }
-          alert("Xóa loại phòng thành công!");
-        } catch (error) {
-          const errorMessage = error.response?.data?.message || error.message;
-          alert(`Xóa loại phòng thất bại: ${errorMessage}`);
-          console.error('Lỗi:', error.response?.data || error);
-        }
-      }
-    };
-
-    return {
-      roomTypes,
-      tuKhoaTim,
-      laModalMo,
-      typeDangSua,
-      typeMoi,
-      typeLoc,
-      typeHienThi,
-      trangHienTai,
-      tongSoTrang,
-      trangHienThi,
-      moModalThem,
-      moModalSua,
-      dongModal,
-      luuLoaiPhong,
-      xoaLoaiPhong,
-    };
-  },
+      alert('Xóa loại phòng thành công!');
+    } catch (error) {
+      const errorMessage = error.response?.data?.message || error.message;
+      alert(`Xóa loại phòng thất bại: ${errorMessage}`);
+      console.error('Lỗi:', error.response?.data || error);
+    }
+  }
 };
 </script>
 
@@ -464,5 +506,18 @@ export default {
 .pagination .page-item.active .page-link i {
   color: white;
   -webkit-text-fill-color: white;
+}
+
+.form-check {
+  margin-bottom: 0.5rem;
+}
+
+.form-check-input:checked {
+  background-color: #1199f3;
+  border-color: #1199f3;
+}
+
+.form-check-label {
+  cursor: pointer;
 }
 </style>

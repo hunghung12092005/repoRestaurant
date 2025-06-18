@@ -25,6 +25,7 @@
       <table class="table table-bordered table-hover align-middle">
         <thead>
           <tr>
+            <th>STT</th>
             <th>Loại Phòng</th>
             <th>Ngày Bắt Đầu</th>
             <th>Ngày Kết Thúc</th>
@@ -43,6 +44,7 @@
             </td>
           </tr>
           <tr v-else v-for="pricing in state.displayedPricings" :key="pricing.price_id">
+            <td class="stt">{{ (currentPage - 1) * itemsPerPage + index + 1 }}</td>
             <td>{{ pricing.room_type?.type_name || 'Không xác định' }}</td>
             <td>{{ formatDate(pricing.start_date) }}</td>
             <td>{{ formatDate(pricing.end_date) }}</td>

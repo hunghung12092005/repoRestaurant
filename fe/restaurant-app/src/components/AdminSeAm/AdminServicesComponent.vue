@@ -7,7 +7,7 @@
       </button>
     </div>
     <div v-if="successMessage" class="alert alert-success">{{ successMessage }}</div>
-    <div v-if="errorMessage && !isLoading" class="alert alert-danger">{{ errorMessage }}</div>
+    <div v-if="errorMessage" class="alert alert-danger">{{ errorMessage }}</div>
 
     <!-- Tìm kiếm -->
     <div class="row mb-4">
@@ -48,7 +48,7 @@
               </button>
             </td>
           </tr>
-          <tr v-if="displayedServices.length === 0 && !isLoading">
+          <tr v-if="displayedServices.length === 0">
             <td colspan="5" class="text-center text-muted">
               Không có dịch vụ nào phù hợp
             </td>
@@ -95,9 +95,6 @@
         </ul>
       </nav>
     </div>
-    <div v-else-if="!isLoading" class="text-center text-muted">
-      Không có dịch vụ nào để hiển thị.
-    </div>
 
     <!-- Modal thêm/sửa -->
     <div
@@ -113,11 +110,6 @@
             <button type="button" class="btn-close" @click="closeModal"></button>
           </div>
           <div class="modal-body">
-            <div v-if="isLoading" class="text-center mb-3">
-              <div class="spinner-border text-primary">
-                <span class="visually-hidden">Đang tải...</span>
-              </div>
-            </div>
             <div v-if="modalErrorMessage" class="alert alert-warning">{{ modalErrorMessage }}</div>
             <form @submit.prevent="saveService">
               <div class="mb-3">
@@ -158,8 +150,8 @@
                 ></textarea>
               </div>
               <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" @click="closeModal" :disabled="isLoading">Hủy</button>
-                <button type="submit" class="btn btn-success" :disabled="isLoading">Lưu</button>
+                <button type="button" class="btn btn-secondary" @click="closeModal">Hủy</button>
+                <button type="submit" class="btn btn-success">Lưu</button>
               </div>
             </form>
           </div>
@@ -169,294 +161,252 @@
   </div>
 </template>
 
-<script>
-import { reactive, computed, watch } from "vue";
-import axios from "axios";
+<script setup>
+import { ref, computed, watch } from 'vue';
+import axios from 'axios';
 
 const apiClient = axios.create({
-  baseURL: "http://localhost:8000/api",
-  timeout: 10000,
-  headers: { "Content-Type": "application/json", "Accept": "application/json" }
+  baseURL: 'http://localhost:8000/api',
+  timeout: 30000, // Tăng timeout lên 30 giây
+  headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' }
 });
 
-export default {
-  setup() {
-    const state = reactive({
-      services: [],
-      searchQuery: "",
-      isModalOpen: false,
-      isLoading: false,
-      currentService: null,
-      successMessage: "",
-      errorMessage: "",
-      modalErrorMessage: "",
-      currentPage: 1,
-      itemsPerPage: 10,
-      totalItems: 0,
-      form: {
-        service_name: "",
-        price: 0,
-        description: ""
-      },
-      errors: {
-        service_name: "",
-        price: ""
-      }
+// State
+const services = ref([]);
+const searchQuery = ref('');
+const isModalOpen = ref(false);
+const currentService = ref(null);
+const successMessage = ref('');
+const errorMessage = ref('');
+const modalErrorMessage = ref('');
+const currentPage = ref(1);
+const itemsPerPage = 10; // 10 dịch vụ mỗi trang
+const totalItems = ref(0);
+const form = ref({
+  service_name: '',
+  price: 0,
+  description: ''
+});
+const errors = ref({
+  service_name: '',
+  price: ''
+});
+
+// Format price
+const formatPrice = (price) => {
+  return price ? new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(price) : '0 ₫';
+};
+
+// Fetch services with pagination
+const fetchServices = async (page = 1) => {
+  errorMessage.value = '';
+  try {
+    const response = await apiClient.get(`/services?page=${page}&per_page=${itemsPerPage}`);
+    console.log('Services API response:', JSON.stringify(response.data, null, 2));
+    // Xử lý dữ liệu từ LengthAwarePaginator
+    services.value = Array.isArray(response.data.data) ? response.data.data : (response.data.data?.data || []);
+    totalItems.value = response.data.total || 0;
+    currentPage.value = response.data.current_page || 1;
+  } catch (error) {
+    console.error('Fetch services error:', {
+      message: error.message,
+      response: error.response?.data,
+      status: error.response?.status
     });
+    errorMessage.value = error.response?.data?.message || 'Không thể tải danh sách dịch vụ. Vui lòng kiểm tra kết nối server.';
+    services.value = [];
+    totalItems.value = 0;
+  }
+};
 
-    // Format price
-    const formatPrice = (price) => {
-      return price ? new Intl.NumberFormat("vi-VN", { style: "currency", currency: "VND" }).format(price) : "0 ₫";
-    };
+fetchServices();
 
-    // Fetch services with pagination
-    const fetchServices = async (page = 1) => {
-      state.isLoading = true;
-      state.errorMessage = "";
-      try {
-        const response = await apiClient.get(`/services?page=${page}&per_page=${state.itemsPerPage}`);
-        console.log("Services API response:", JSON.stringify(response.data, null, 2));
-        state.services = Array.isArray(response.data.data) ? response.data.data : [];
-        state.totalItems = response.data.total || 0;
-        state.currentPage = response.data.current_page || 1;
-      } catch (error) {
-        console.error("Fetch services error:", {
-          message: error.message,
-          response: error.response?.data,
-          status: error.response?.status
-        });
-        state.errorMessage = error.response?.data?.message || "Không thể tải danh sách dịch vụ.";
-        state.services = [];
-        state.totalItems = 0;
-      } finally {
-        state.isLoading = false;
+// Watch for page changes
+watch(currentPage, (newPage) => {
+  fetchServices(newPage);
+});
+
+// Filter services
+const filteredServices = computed(() => {
+  if (!Array.isArray(services.value)) return [];
+  return services.value.filter(service => {
+    const serviceName = service.service_name?.toLowerCase() || '';
+    const description = service.description?.toLowerCase() || '';
+    return (
+      serviceName.includes(searchQuery.value.toLowerCase()) ||
+      description.includes(searchQuery.value.toLowerCase())
+    );
+  });
+});
+
+// Pagination
+const totalPages = computed(() => Math.ceil(totalItems.value / itemsPerPage));
+
+const displayedServices = computed(() => {
+  return filteredServices.value;
+});
+
+const pageRange = computed(() => {
+  const maxPages = 5;
+  let start = Math.max(1, currentPage.value - Math.floor(maxPages / 2));
+  let end = Math.min(totalPages.value, start + maxPages - 1);
+  if (end - start + 1 < maxPages) {
+    start = Math.max(1, end - maxPages + 1);
+  }
+  return Array.from({ length: end - start + 1 }, (_, i) => start + i);
+});
+
+// Modal actions
+const openAddModal = () => {
+  form.value = { service_name: '', price: 0, description: '' };
+  errors.value = {};
+  currentService.value = null;
+  isModalOpen.value = true;
+  successMessage.value = '';
+  modalErrorMessage.value = '';
+  console.log('Opened add modal, form reset:', { ...form.value });
+};
+
+const openEditModal = (service) => {
+  console.log('Opening edit modal for service:', JSON.stringify(service, null, 2));
+  if (!service || typeof service !== 'object') {
+    console.error('Invalid service data:', service);
+    errorMessage.value = 'Dữ liệu dịch vụ không hợp lệ.';
+    return;
+  }
+  form.value = {
+    service_name: String(service.service_name || ''),
+    price: Number(service.price) || 0,
+    description: String(service.description || '')
+  };
+  currentService.value = { ...service };
+  isModalOpen.value = true;
+  errors.value = {};
+  successMessage.value = '';
+  modalErrorMessage.value = '';
+  console.log('Edit modal opened, form set:', { ...form.value });
+};
+
+const closeModal = () => {
+  isModalOpen.value = false;
+  errors.value = {};
+  modalErrorMessage.value = '';
+  currentService.value = null;
+  form.value = { service_name: '', price: 0, description: '' };
+  console.log('Closed modal, form reset:', { ...form.value });
+};
+
+// Handle inputs
+const onInputServiceName = (event) => {
+  form.value.service_name = event.target.value;
+  errors.value.service_name = '';
+  modalErrorMessage.value = '';
+  console.log('Service name input:', form.value.service_name);
+};
+
+const onInputPrice = (event) => {
+  form.value.price = Number(event.target.value) || 0;
+  errors.value.price = '';
+  modalErrorMessage.value = '';
+  console.log('Price input:', form.value.price);
+};
+
+const onInputDescription = (event) => {
+  form.value.description = event.target.value;
+  console.log('Description input:', form.value.description);
+};
+
+// Form validation
+const validateForm = () => {
+  errors.value = {};
+  let isValid = true;
+
+  if (!form.value.service_name || form.value.service_name.trim().length === 0) {
+    errors.value.service_name = 'Vui lòng nhập tên dịch vụ';
+    isValid = false;
+  }
+  if (form.value.price === null || form.value.price < 0 || isNaN(form.value.price)) {
+    errors.value.price = 'Giá phải là số không âm';
+    isValid = false;
+  }
+
+  console.log('Validation result:', { isValid, form: { ...form.value }, errors: errors.value });
+  return isValid;
+};
+
+// Save service
+const saveService = async () => {
+  console.log('Form data before validation:', { ...form.value });
+  if (!validateForm()) {
+    console.log('Validation failed, stopping save.');
+    modalErrorMessage.value = 'Vui lòng kiểm tra thông tin nhập.';
+    return;
+  }
+
+  modalErrorMessage.value = '';
+  const payload = {
+    service_name: form.value.service_name.trim(),
+    price: form.value.price,
+    description: form.value.description.trim() || null
+  };
+  console.log('Sending POST/PUT data:', payload);
+
+  try {
+    let response;
+    if (currentService.value) {
+      response = await apiClient.put(`/services/${currentService.value.service_id}`, payload);
+      console.log('PUT response:', JSON.stringify(response.data, null, 2));
+      const index = services.value.findIndex(s => s.service_id === currentService.value.service_id);
+      if (index !== -1) {
+        services.value[index] = response.data.data;
       }
-    };
-
-    fetchServices();
-
-    // Watch for page changes
-    watch(() => state.currentPage, (newPage) => {
-      fetchServices(newPage);
+      successMessage.value = 'Cập nhật dịch vụ thành công!';
+    } else {
+      response = await apiClient.post('/services', payload);
+      console.log('POST response:', JSON.stringify(response.data, null, 2));
+      services.value.push(response.data.data);
+      successMessage.value = 'Thêm dịch vụ thành công!';
+      await fetchServices(currentPage.value);
+    }
+    closeModal();
+  } catch (error) {
+    console.error('Save service error:', {
+      message: error.message,
+      response: error.response?.data,
+      status: error.response?.status
     });
+    const errorMsg = error.response?.data?.message || 'Lưu dịch vụ thất bại. Vui lòng thử lại.';
+    modalErrorMessage.value = errorMsg;
+    if (error.response?.status === 422) {
+      const backendErrors = error.response.data?.errors || {};
+      errors.value = { ...backendErrors };
+      modalErrorMessage.value += ': ' + Object.values(backendErrors).flat().join(', ');
+    } else if (error.code === 'ECONNABORTED') {
+      modalErrorMessage.value = 'Yêu cầu timeout. Vui lòng kiểm tra kết nối server.';
+    }
+  }
+};
 
-    // Filter services
-    const filteredServices = computed(() => {
-      if (!Array.isArray(state.services)) return [];
-      return state.services.filter(service => {
-        const serviceName = service.service_name?.toLowerCase() || "";
-        const description = service.description?.toLowerCase() || "";
-        return (
-          serviceName.includes(state.searchQuery.toLowerCase()) ||
-          description.includes(state.searchQuery.toLowerCase())
-        );
-      });
+// Delete service
+const deleteService = async (service_id) => {
+  if (!confirm('Bạn có chắc chắn muốn xóa dịch vụ này?')) return;
+
+  errorMessage.value = '';
+  try {
+    await apiClient.delete(`/services/${service_id}`);
+    services.value = services.value.filter(s => s.service_id !== service_id);
+    if (displayedServices.value.length === 0 && currentPage.value > 1) {
+      currentPage.value--;
+    }
+    successMessage.value = 'Xóa dịch vụ thành công!';
+    await fetchServices(currentPage.value);
+  } catch (error) {
+    console.error('Delete service error:', {
+      message: error.message,
+      response: error.response?.data,
+      status: error.response?.status
     });
-
-    // Pagination
-    const totalPages = computed(() => Math.ceil(state.totalItems / state.itemsPerPage));
-
-    const displayedServices = computed(() => {
-      return filteredServices.value;
-    });
-
-    const pageRange = computed(() => {
-      const maxPages = 5;
-      let start = Math.max(1, state.currentPage - Math.floor(maxPages / 2));
-      let end = Math.min(totalPages.value, start + maxPages - 1);
-      if (end - start + 1 < maxPages) {
-        start = Math.max(1, end - maxPages + 1);
-      }
-      return Array.from({ length: end - start + 1 }, (_, i) => start + i);
-    });
-
-    // Modal actions
-    const openAddModal = () => {
-      state.form.service_name = "";
-      state.form.price = 0;
-      state.form.description = "";
-      state.errors = {};
-      state.currentService = null;
-      state.isModalOpen = true;
-      state.successMessage = "";
-      state.modalErrorMessage = "";
-      console.log("Opened add modal, form reset:", { ...state.form });
-    };
-
-    const openEditModal = (service) => {
-      console.log("Opening edit modal for service:", JSON.stringify(service, null, 2));
-      if (!service || typeof service !== 'object') {
-        console.error("Invalid service data:", service);
-        return;
-      }
-      state.form.service_name = String(service.service_name || "");
-      state.form.price = Number(service.price) || 0;
-      state.form.description = String(service.description || "");
-      state.currentService = { ...service };
-      state.isModalOpen = true;
-      state.errors = {};
-      state.successMessage = "";
-      state.modalErrorMessage = "";
-      console.log("Edit modal opened, form set:", { ...state.form });
-    };
-
-    const closeModal = () => {
-      state.isModalOpen = false;
-      state.errors = {};
-      state.modalErrorMessage = "";
-      state.currentService = null;
-      state.form.service_name = "";
-      state.form.price = 0;
-      state.form.description = "";
-      console.log("Closed modal, form reset:", { ...state.form });
-    };
-
-    // Handle inputs
-    const onInputServiceName = (event) => {
-      state.form.service_name = event.target.value;
-      state.errors.service_name = "";
-      state.modalErrorMessage = "";
-      console.log("Service name input:", state.form.service_name);
-    };
-
-    const onInputPrice = (event) => {
-      state.form.price = Number(event.target.value) || 0;
-      state.errors.price = "";
-      state.modalErrorMessage = "";
-      console.log("Price input:", state.form.price);
-    };
-
-    const onInputDescription = (event) => {
-      state.form.description = event.target.value;
-      console.log("Description input:", state.form.description);
-    };
-
-    // Form validation
-    const validateForm = () => {
-      state.errors = {};
-      let isValid = true;
-
-      if (!state.form.service_name || state.form.service_name.trim().length === 0) {
-        state.errors.service_name = "Vui lòng nhập tên dịch vụ";
-        isValid = false;
-      }
-      if (state.form.price === null || state.form.price < 0 || isNaN(state.form.price)) {
-        state.errors.price = "Giá phải là số không âm";
-        isValid = false;
-      }
-
-      console.log("Validation result:", { isValid, form: { ...state.form }, errors: state.errors });
-      return isValid;
-    };
-
-    // Save service
-    const saveService = async () => {
-      console.log("Form data before validation:", { ...state.form });
-      if (!validateForm()) {
-        console.log("Validation failed, stopping save.");
-        state.modalErrorMessage = "Vui lòng kiểm tra thông tin nhập.";
-        return;
-      }
-
-      state.isLoading = true;
-      state.modalErrorMessage = "";
-      const payload = {
-        service_name: state.form.service_name.trim(),
-        price: state.form.price,
-        description: state.form.description.trim() || null
-      };
-      console.log("Sending POST/PUT data:", payload);
-      try {
-        let response;
-        if (state.currentService) {
-          response = await apiClient.put(`/services/${state.currentService.service_id}`, payload);
-          console.log("PUT response:", JSON.stringify(response.data, null, 2));
-          const index = state.services.findIndex(s => s.service_id === state.currentService.service_id);
-          if (index !== -1) {
-            state.services[index] = response.data.data;
-          }
-          state.successMessage = "Cập nhật dịch vụ thành công!";
-        } else {
-          response = await apiClient.post("/services", payload);
-          console.log("POST response:", JSON.stringify(response.data, null, 2));
-          state.services.push(response.data.data);
-          state.successMessage = "Thêm dịch vụ thành công!";
-          fetchServices(state.currentPage);
-        }
-        closeModal();
-      } catch (error) {
-        console.error("Save service error:", {
-          message: error.message,
-          response: error.response?.data,
-          status: error.response?.status
-        });
-        state.modalErrorMessage = error.response?.data?.message || "Lưu dịch vụ thất bại.";
-        if (error.response?.status === 422) {
-          const backendErrors = error.response.data?.errors || {};
-          state.errors = { ...backendErrors };
-          state.modalErrorMessage += ": " + Object.values(backendErrors).flat().join(", ");
-        }
-      } finally {
-        state.isLoading = false;
-      }
-    };
-
-    // Delete service
-    const deleteService = async (service_id) => {
-      if (!confirm("Bạn có chắc chắn muốn xóa dịch vụ này?")) return;
-
-      state.isLoading = true;
-      state.errorMessage = "";
-      try {
-        await apiClient.delete(`/services/${service_id}`);
-        state.services = state.services.filter(s => s.service_id !== service_id);
-        if (displayedServices.value.length === 0 && state.currentPage > 1) {
-          state.currentPage--;
-        }
-        state.successMessage = "Xóa dịch vụ thành công!";
-        fetchServices(state.currentPage);
-      } catch (error) {
-        console.error("Delete service error:", error);
-        state.errorMessage = error.response?.data?.message || "Xóa dịch vụ thất bại.";
-      } finally {
-        state.isLoading = false;
-      }
-    };
-
-    return {
-      services: computed(() => state.services),
-      searchQuery: computed({
-        get: () => state.searchQuery,
-        set: (value) => { state.searchQuery = value; }
-      }),
-      isModalOpen: computed(() => state.isModalOpen),
-      isLoading: computed(() => state.isLoading),
-      currentService: computed(() => state.currentService),
-      successMessage: computed(() => state.successMessage),
-      errorMessage: computed(() => state.errorMessage),
-      modalErrorMessage: computed(() => state.modalErrorMessage),
-      currentPage: computed({
-        get: () => state.currentPage,
-        set: (value) => { state.currentPage = value; }
-      }),
-      itemsPerPage: state.itemsPerPage,
-      totalItems: computed(() => state.totalItems),
-      form: computed(() => state.form),
-      errors: computed(() => state.errors),
-      filteredServices,
-      displayedServices,
-      totalPages,
-      pageRange,
-      formatPrice,
-      openAddModal,
-      openEditModal,
-      closeModal,
-      onInputServiceName,
-      onInputPrice,
-      onInputDescription,
-      saveService,
-      deleteService
-    };
+    errorMessage.value = error.response?.data?.message || 'Xóa dịch vụ thất bại.';
   }
 };
 </script>

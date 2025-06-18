@@ -21,7 +21,7 @@ use App\Http\Controllers\TableTypeController;
 
 Route::apiResource('employees', EmployeeController::class);
 Route::get('/departments', [DepartmentController::class, 'index']);
-Route::get('/pricese/current/{typeId}', [RoomController::class, 'getCurrentPricing']);
+Route::get('/seasonal-pricing/current/{typeId}', [RoomController::class, 'getCurrentPricing']);
 
 Route::get('/protected', [ApiLoginController::class, 'someProtectedRoute']);
 Route::post('/login', [ApiLoginController::class, 'login']);

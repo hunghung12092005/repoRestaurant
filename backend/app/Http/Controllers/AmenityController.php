@@ -12,20 +12,21 @@ class AmenityController extends Controller
     public function index(Request $request)
     {
         try {
-            $perPage = $request->query('per_page', 10);
-            $amenities = Amenity::query()->paginate($perPage);
-            Log::info('Fetched amenities:', ['data' => $amenities->items()]);
+            $query = Amenity::query();
+            if ($request->query('per_page') === 'all') {
+                $amenities = $query->get();
+            } else {
+                $amenities = $query->paginate($request->query('per_page', 10));
+            }
             return response()->json([
-                'success' => true,
-                'data' => $amenities->items(),
-                'current_page' => $amenities->currentPage(),
-                'total' => $amenities->total(),
-                'per_page' => $amenities->perPage(),
-                'last_page' => $amenities->lastPage()
+                'status' => true,
+                'data' => $amenities,
             ], 200);
         } catch (\Exception $e) {
-            Log::error('Index amenities error: ' . $e->getMessage());
-            return response()->json(['success' => false, 'message' => 'Lỗi: ' . $e->getMessage()], 500);
+            return response()->json([
+                'status' => false,
+                'message' => 'Lấy danh sách tiện ích thất bại: ' . $e->getMessage(),
+            ], 500);
         }
     }
 

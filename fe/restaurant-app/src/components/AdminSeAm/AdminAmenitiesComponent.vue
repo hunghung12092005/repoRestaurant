@@ -7,7 +7,7 @@
       </button>
     </div>
     <div v-if="successMessage" class="alert alert-success">{{ successMessage }}</div>
-    <div v-if="errorMessage && !isLoading" class="alert alert-danger">{{ errorMessage }}</div>
+    <div v-if="errorMessage" class="alert alert-danger">{{ errorMessage }}</div>
 
     <!-- Tìm kiếm -->
     <div class="row mb-4">
@@ -26,7 +26,7 @@
       <table class="table table-bordered table-hover align-middle">
         <thead>
           <tr>
-            <th>#</th>
+            <th>STT</th>
             <th>Tên Tiện Nghi</th>
             <th>Mô Tả</th>
             <th>Hành Động</th>
@@ -46,7 +46,7 @@
               </button>
             </td>
           </tr>
-          <tr v-if="displayedAmenities.length === 0 && !isLoading">
+          <tr v-if="displayedAmenities.length === 0">
             <td colspan="4" class="text-center text-muted">
               Không có tiện nghi nào để hiển thị
             </td>
@@ -108,11 +108,6 @@
             <button type="button" class="btn-close" @click="closeModal"></button>
           </div>
           <div class="modal-body">
-            <div v-if="isLoading" class="text-center mb-3">
-              <div class="spinner-border text-primary">
-                <span class="visually-hidden">Đang tải...</span>
-              </div>
-            </div>
             <div v-if="modalErrorMessage" class="alert alert-warning">{{ modalErrorMessage }}</div>
             <form @submit.prevent="saveAmenity">
               <div class="mb-3">
@@ -139,8 +134,8 @@
                 ></textarea>
               </div>
               <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" @click="closeModal" :disabled="isLoading">Hủy</button>
-                <button type="submit" class="btn btn-success" :disabled="isLoading">Lưu</button>
+                <button type="button" class="btn btn-secondary" @click="closeModal">Hủy</button>
+                <button type="submit" class="btn btn-success">Lưu</button>
               </div>
             </form>
           </div>
@@ -150,284 +145,239 @@
   </div>
 </template>
 
-<script>
-import { reactive, computed, watch } from "vue";
-import axios from "axios";
+<script setup>
+import { ref, computed, watch, onMounted } from 'vue';
+import axios from 'axios';
 
 const apiClient = axios.create({
-  baseURL: "http://localhost:8000/api",
-  timeout: 10000,
-  headers: { "Content-Type": "application/json", "Accept": "application/json" }
+  baseURL: 'http://127.0.0.1:8000/api',
+  timeout: 30000,
+  headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' }
 });
 
-export default {
-  setup() {
-    const state = reactive({
-      amenities: [],
-      searchQuery: "",
-      isModalOpen: false,
-      isLoading: false,
-      currentAmenity: null,
-      successMessage: "",
-      errorMessage: "",
-      modalErrorMessage: "",
-      currentPage: 1,
-      itemsPerPage: 10,
-      totalItems: 0,
-      form: {
-        amenity_name: "",
-        description: ""
-      },
-      errors: {
-        amenity_name: ""
-      }
+// State
+const amenities = ref([]);
+const searchQuery = ref('');
+const isModalOpen = ref(false);
+const currentAmenity = ref(null);
+const successMessage = ref('');
+const errorMessage = ref('');
+const modalErrorMessage = ref('');
+const currentPage = ref(1);
+const itemsPerPage = 10; // 10 tiện ích mỗi trang
+const totalItems = ref(0);
+const form = ref({
+  amenity_name: '',
+  description: ''
+});
+const errors = ref({
+  amenity_name: ''
+});
+
+// Fetch amenities
+const fetchAmenities = async () => {
+  errorMessage.value = '';
+  try {
+    const response = await apiClient.get('/amenities', {
+      params: { per_page: 'all' }
     });
-
-    // Fetch amenities with pagination
-    const fetchAmenities = async (page = 1) => {
-      state.isLoading = true;
-      state.errorMessage = "";
-      try {
-        const response = await apiClient.get(`/amenities?page=${page}&per_page=${state.itemsPerPage}`);
-        console.log("Amenities API response:", JSON.stringify(response.data, null, 2));
-        state.amenities = Array.isArray(response.data.data) ? response.data.data : [];
-        state.totalItems = response.data.total || 0;
-        state.currentPage = response.data.current_page || 1;
-      } catch (error) {
-        console.error("Fetch amenities error:", {
-          message: error.message,
-          response: error.response?.data,
-          status: error.response?.status
-        });
-        state.errorMessage = error.response?.data?.message || "Không thể tải danh sách tiện nghi.";
-        state.amenities = [];
-        state.totalItems = 0;
-      } finally {
-        state.isLoading = false;
-      }
-    };
-
-    fetchAmenities();
-
-    // Watch for page changes
-    watch(() => state.currentPage, (newPage) => {
-      fetchAmenities(newPage);
+    console.log('Fetch amenities response:', JSON.stringify(response.data, null, 2));
+    amenities.value = Array.isArray(response.data.data) ? response.data.data : [];
+    totalItems.value = response.data.total || amenities.value.length;
+  } catch (error) {
+    console.error('Fetch amenities error:', {
+      message: error.message,
+      response: error.response?.data,
+      status: error.response?.status
     });
+    errorMessage.value = error.response?.data?.message || 'Không thể tải danh sách tiện nghi. Vui lòng kiểm tra kết nối server.';
+    amenities.value = [];
+    totalItems.value = 0;
+  }
+};
 
-    // Filter amenities
-    const filteredAmenities = computed(() => {
-      if (!Array.isArray(state.amenities)) return [];
-      return state.amenities.filter(amenity => {
-        const amenityName = amenity.amenity_name?.toLowerCase() || "";
-        const description = amenity.description?.toLowerCase() || "";
-        return (
-          amenityName.includes(state.searchQuery.toLowerCase()) ||
-          description.includes(state.searchQuery.toLowerCase())
-        );
-      });
+onMounted(fetchAmenities);
+
+// Filter and paginate amenities
+const filteredAmenities = computed(() => {
+  if (!Array.isArray(amenities.value)) return [];
+  return amenities.value.filter((amenity) => {
+    const amenityName = amenity.amenity_name?.toLowerCase() || '';
+    const description = amenity.description?.toLowerCase() || '';
+    return (
+      amenityName.includes(searchQuery.value.toLowerCase()) ||
+      description.includes(searchQuery.value.toLowerCase())
+    );
+  });
+});
+
+const totalPages = computed(() => Math.ceil(filteredAmenities.value.length / itemsPerPage));
+
+const displayedAmenities = computed(() => {
+  const start = (currentPage.value - 1) * itemsPerPage;
+  const end = start + itemsPerPage;
+  return filteredAmenities.value.slice(start, end);
+});
+
+const pageRange = computed(() => {
+  const maxPages = 5;
+  let start = Math.max(1, currentPage.value - Math.floor(maxPages / 2));
+  let end = Math.min(totalPages.value, start + maxPages - 1);
+  if (end - start + 1 < maxPages) {
+    start = Math.max(1, end - maxPages + 1);
+  }
+  return Array.from({ length: end - start + 1 }, (_, i) => start + i);
+});
+
+// Watch page changes
+watch(currentPage, () => {
+  if (currentPage.value < 1) currentPage.value = 1;
+  if (currentPage.value > totalPages.value) currentPage.value = totalPages.value;
+});
+
+// Modal actions
+const openAddModal = () => {
+  form.value = { amenity_name: '', description: '' };
+  errors.value = {};
+  currentAmenity.value = null;
+  isModalOpen.value = true;
+  successMessage.value = '';
+  modalErrorMessage.value = '';
+  console.log('Opened add modal, form reset:', { ...form.value });
+};
+
+const openEditModal = (amenity) => {
+  console.log('Opening edit modal for amenity:', JSON.stringify(amenity, null, 2));
+  if (!amenity || typeof amenity !== 'object') {
+    console.error('Invalid amenity data:', amenity);
+    errorMessage.value = 'Dữ liệu tiện nghi không hợp lệ.';
+    return;
+  }
+  form.value = {
+    amenity_name: String(amenity.amenity_name || ''),
+    description: String(amenity.description || '')
+  };
+  currentAmenity.value = { ...amenity };
+  isModalOpen.value = true;
+  errors.value = {};
+  successMessage.value = '';
+  modalErrorMessage.value = '';
+  console.log('Edit modal opened, form set:', { ...form.value });
+};
+
+const closeModal = () => {
+  isModalOpen.value = false;
+  errors.value = {};
+  modalErrorMessage.value = '';
+  currentAmenity.value = null;
+  form.value = { amenity_name: '', description: '' };
+  console.log('Closed modal, form reset:', { ...form.value });
+};
+
+// Handle input
+const onInputAmenityName = () => {
+  errors.value.amenity_name = '';
+  modalErrorMessage.value = '';
+};
+
+const onInputDescription = () => {
+  modalErrorMessage.value = '';
+};
+
+// Form validation
+const validateForm = () => {
+  errors.value = {};
+  let isValid = true;
+
+  if (!form.value.amenity_name || form.value.amenity_name.trim().length === 0) {
+    errors.value.amenity_name = 'Vui lòng nhập tên tiện nghi';
+    isValid = false;
+  }
+
+  console.log('Validation result:', {
+    isValid,
+    form: { ...form.value },
+    errors: errors.value
+  });
+  return isValid;
+};
+
+// Save amenity
+const saveAmenity = async () => {
+  console.log('Form data before validation:', { ...form.value });
+  if (!validateForm()) {
+    console.log('Validation failed, stopping save.');
+    modalErrorMessage.value = 'Vui lòng kiểm tra thông tin nhập.';
+    return;
+  }
+
+  modalErrorMessage.value = '';
+  const payload = {
+    amenity_name: form.value.amenity_name.trim(),
+    description: form.value.description.trim() || null
+  };
+  console.log('Sending POST/PUT data:', payload);
+
+  try {
+    let response;
+    if (currentAmenity.value) {
+      response = await apiClient.put(`/amenities/${currentAmenity.value.amenity_id}`, payload);
+      console.log('PUT response:', JSON.stringify(response.data, null, 2));
+      const index = amenities.value.findIndex((s) => s.amenity_id === currentAmenity.value.amenity_id);
+      if (index !== -1) {
+        amenities.value[index] = response.data.data;
+      }
+      successMessage.value = 'Cập nhật tiện nghi thành công!';
+    } else {
+      response = await apiClient.post('/amenities', payload);
+      console.log('POST response:', JSON.stringify(response.data, null, 2));
+      amenities.value.push(response.data.data);
+      totalItems.value++;
+      successMessage.value = 'Thêm tiện nghi thành công!';
+    }
+    closeModal();
+    await fetchAmenities();
+  } catch (error) {
+    console.error('Save amenity error:', {
+      message: error.message,
+      response: error.response?.data,
+      status: error.response?.status
     });
-
-    // Pagination
-    const totalPages = computed(() => Math.ceil(state.totalItems / state.itemsPerPage));
-
-    const displayedAmenities = computed(() => {
-      return filteredAmenities.value;
-    });
-
-    const pageRange = computed(() => {
-      const maxPages = 5;
-      let start = Math.max(1, state.currentPage - Math.floor(maxPages / 2));
-      let end = Math.min(totalPages.value, start + maxPages - 1);
-      if (end - start + 1 < maxPages) {
-        start = Math.max(1, end - maxPages + 1);
-      }
-      return Array.from({ length: end - start + 1 }, (_, i) => start + i);
-    });
-
-    // Modal actions
-    const openAddModal = () => {
-      state.form.amenity_name = "";
-      state.form.description = "";
-      state.errors = {};
-      state.currentAmenity = null;
-      state.isModalOpen = true;
-      state.successMessage = "";
-      state.modalErrorMessage = "";
-      console.log("Opened add modal, form reset:", { ...state.form });
-    };
-
-    const openEditModal = (amenity) => {
-      console.log("Opening edit modal for amenity:", JSON.stringify(amenity, null, 2));
-      if (!amenity || typeof amenity !== 'object') {
-        console.error("Invalid amenity data:", amenity);
-        return;
-      }
-      state.form.amenity_name = String(amenity.amenity_name || "");
-      state.form.description = String(amenity.description || "");
-      state.currentAmenity = { ...amenity };
-      state.isModalOpen = true;
-      state.errors = {};
-      state.successMessage = "";
-      state.modalErrorMessage = "";
-      console.log("Edit modal opened, form set:", { ...state.form });
-    };
-
-    const closeModal = () => {
-      state.isModalOpen = false;
-      state.errors = {};
-      state.modalErrorMessage = "";
-      state.currentAmenity = null;
-      state.form.amenity_name = "";
-      state.form.description = "";
-      console.log("Closed modal, form reset:", { ...state.form });
-    };
-
-    // Handle input for amenity_name
-    const onInputAmenityName = (event) => {
-      state.form.amenity_name = event.target.value;
-      state.errors.amenity_name = "";
-      state.modalErrorMessage = "";
-      console.log("Amenity name input:", state.form.amenity_name);
-    };
-
-    // Handle input for description
-    const onInputDescription = (event) => {
-      state.form.description = event.target.value;
-      console.log("Description input:", state.form.description);
-    };
-
-    // Form validation
-    const validateForm = () => {
-      state.errors = {};
-      let isValid = true;
-
-      if (!state.form.amenity_name || state.form.amenity_name.trim().length === 0) {
-        state.errors.amenity_name = "Vui lòng nhập tên tiện nghi";
-        isValid = false;
-      }
-
-      console.log("Validation result:", {
-        isValid,
-        form: { ...state.form },
-        errors: state.errors
-      });
-      return isValid;
-    };
-
-    // Save amenity
-    const saveAmenity = async () => {
-      console.log("Form data before validation:", { ...state.form });
-      if (!validateForm()) {
-        console.log("Validation failed, stopping save.");
-        state.modalErrorMessage = "Vui lòng kiểm tra thông tin nhập.";
-        return;
-      }
-
-      state.isLoading = true;
-      state.modalErrorMessage = "";
-      const payload = {
-        amenity_name: state.form.amenity_name.trim(),
-        description: state.form.description.trim() || null
+    const errorMsg = error.response?.data?.message || 'Lưu tiện nghi thất bại. Vui lòng thử lại.';
+    modalErrorMessage.value = errorMsg;
+    if (error.response?.status === 422) {
+      const backendErrors = error.response.data?.errors || {};
+      errors.value = {
+        amenity_name: backendErrors.amenity_name ? backendErrors.amenity_name[0] : '',
+        description: backendErrors.description ? backendErrors.description[0] : ''
       };
-      console.log("Sending POST/PUT data:", payload);
-      try {
-        let response;
-        if (state.currentAmenity) {
-          response = await apiClient.put(`/amenities/${state.currentAmenity.amenity_id}`, payload);
-          console.log("PUT response:", JSON.stringify(response.data, null, 2));
-          const index = state.amenities.findIndex(s => s.amenity_id === state.currentAmenity.amenity_id);
-          if (index !== -1) {
-            state.amenities[index] = response.data.data;
-          }
-          state.successMessage = "Cập nhật tiện nghi thành công!";
-        } else {
-          response = await apiClient.post("/amenities", payload);
-          console.log("POST response:", JSON.stringify(response.data, null, 2));
-          state.amenities.push(response.data.data);
-          state.successMessage = "Thêm tiện nghi thành công!";
-          fetchAmenities(state.currentPage);
-        }
-        closeModal();
-      } catch (error) {
-        console.error("Save amenity error:", {
-          message: error.message,
-          response: error.response?.data,
-          status: error.response?.status
-        });
-        const errorMsg = error.response?.data?.message || "Lưu tiện nghi thất bại.";
-        state.modalErrorMessage = errorMsg;
-        if (error.response?.status === 422) {
-          const backendErrors = error.response.data?.errors || {};
-          state.errors = { ...backendErrors };
-          state.modalErrorMessage += ": " + Object.values(backendErrors).flat().join(", ");
-        }
-      } finally {
-        state.isLoading = false;
-      }
-    };
+      modalErrorMessage.value += ': ' + Object.values(backendErrors).flat().join(', ');
+    } else if (error.code === 'ECONNABORTED') {
+      modalErrorMessage.value = 'Yêu cầu timeout. Vui lòng kiểm tra kết nối server.';
+    }
+  }
+};
 
-    // Delete amenity
-    const deleteAmenity = async (amenity_id) => {
-      if (!confirm("Bạn có chắc chắn muốn xóa tiện nghi này?")) return;
+// Delete amenity
+const deleteAmenity = async (amenity_id) => {
+  if (!confirm('Bạn có chắc chắn muốn xóa tiện nghi này?')) return;
 
-      state.isLoading = true;
-      state.errorMessage = "";
-      try {
-        await apiClient.delete(`/amenities/${amenity_id}`);
-        state.amenities = state.amenities.filter(s => s.amenity_id !== amenity_id);
-        if (displayedAmenities.value.length === 0 && state.currentPage > 1) {
-          state.currentPage--;
-        }
-        state.successMessage = "Xóa tiện nghi thành công!";
-        fetchAmenities(state.currentPage);
-      } catch (error) {
-        console.error("Delete amenity error:", error);
-        state.errorMessage = error.response?.data?.message || "Xóa tiện nghi thất bại.";
-      } finally {
-        state.isLoading = false;
-      }
-    };
-
-    return {
-      amenities: computed(() => state.amenities),
-      searchQuery: computed({
-        get() {
-          return state.searchQuery;
-        },
-        set(value) {
-          state.searchQuery = value;
-        }
-      }),
-      isModalOpen: computed(() => state.isModalOpen),
-      isLoading: computed(() => state.isLoading),
-      currentAmenity: computed(() => state.currentAmenity),
-      successMessage: computed(() => state.successMessage),
-      errorMessage: computed(() => state.errorMessage),
-      modalErrorMessage: computed(() => state.modalErrorMessage),
-      currentPage: computed({
-        get() {
-          return state.currentPage;
-        },
-        set(value) {
-          state.currentPage = value;
-        }
-      }),
-      itemsPerPage: state.itemsPerPage,
-      totalItems: computed(() => state.totalItems),
-      form: computed(() => state.form),
-      errors: computed(() => state.errors),
-      filteredAmenities,
-      displayedAmenities,
-      totalPages,
-      pageRange,
-      openAddModal,
-      openEditModal,
-      closeModal,
-      onInputAmenityName,
-      onInputDescription,
-      saveAmenity,
-      deleteAmenity
-    };
+  errorMessage.value = '';
+  try {
+    await apiClient.delete(`/amenities/${amenity_id}`);
+    amenities.value = amenities.value.filter((s) => s.amenity_id !== amenity_id);
+    totalItems.value--;
+    if (displayedAmenities.value.length === 0 && currentPage.value > 1) {
+      currentPage.value--;
+    }
+    successMessage.value = 'Xóa tiện nghi thành công!';
+  } catch (error) {
+    console.error('Delete amenity error:', {
+      message: error.message,
+      response: error.response?.data,
+      status: error.response?.status
+    });
+    errorMessage.value = error.response?.data?.message || 'Xóa tiện nghi thất bại.';
   }
 };
 </script>

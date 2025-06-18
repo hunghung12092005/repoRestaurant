@@ -12,20 +12,32 @@ class ServiceController extends Controller
     public function index(Request $request)
     {
         try {
-            $perPage = $request->query('per_page', 10);
-            $services = Service::query()->paginate($perPage);
-            Log::info('Fetched services:', ['data' => $services->items()]);
+            $query = Service::query();
+            if ($request->query('per_page') === 'all') {
+                $services = $query->get();
+                $total = $services->count();
+                $currentPage = 1;
+                $data = $services;
+            } else {
+                $perPage = $request->query('per_page', 10);
+                $page = $request->query('page', 1);
+                $services = $query->paginate($perPage, ['*'], 'page', $page);
+                $total = $services->total();
+                $currentPage = $services->currentPage();
+                $data = $services->items(); 
+            }
             return response()->json([
-                'success' => true,
-                'data' => $services->items(),
-                'current_page' => $services->currentPage(),
-                'total' => $services->total(),
-                'per_page' => $services->perPage(),
-                'last_page' => $services->lastPage()
+                'status' => true,
+                'data' => $data,
+                'total' => $total,
+                'current_page' => $currentPage,
             ], 200);
         } catch (\Exception $e) {
-            Log::error('Index services error: ' . $e->getMessage());
-            return response()->json(['success' => false, 'message' => 'Lỗi: ' . $e->getMessage()], 500);
+            Log::error('Fetch services error: ' . $e->getMessage());
+            return response()->json([
+                'status' => false,
+                'message' => 'Lấy danh sách dịch vụ thất bại: ' . $e->getMessage(),
+            ], 500);
         }
     }
 
