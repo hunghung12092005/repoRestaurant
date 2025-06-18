@@ -11,27 +11,20 @@ class Room extends Model
 
     protected $table = 'rooms';
     protected $primaryKey = 'room_id';
+    public $incrementing = true;
+
     protected $fillable = [
-        'room_name', 'type_id', 'capacity', 'status', 'season_id',
-        'amenities', 'description'
+        'room_name',
+        'type_id',
+        'floor_number',
+        'status',
     ];
 
-    protected $casts = [
-        'amenities' => 'array',
-    ];
-
+    /**
+     * Mối quan hệ nhiều-một với RoomType
+     */
     public function roomType()
     {
         return $this->belongsTo(RoomType::class, 'type_id', 'type_id');
-    }
-
-    public function season()
-    {
-        return $this->belongsTo(Season::class, 'season_id', 'season_id');
-    }
-
-    public function bookings()
-    {
-        return $this->hasMany(Booking::class, 'room_id', 'room_id');
     }
 }

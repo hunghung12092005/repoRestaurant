@@ -270,13 +270,11 @@ class BookingController extends Controller
             $rooms = Room::with(['roomType', 'season'])->get();
             $tables = Table::all();
             $menus = Menu::all();
-            $seasons = Season::all();
 
             Log::info('Form data fetched:', [
                 'rooms_count' => $rooms->count(),
                 'tables_count' => $tables->count(),
                 'menus_count' => $menus->count(),
-                'seasons_count' => $seasons->count()
             ]);
 
             return response()->json([
@@ -284,7 +282,6 @@ class BookingController extends Controller
                     'rooms' => $rooms,
                     'tables' => $tables,
                     'menus' => $menus,
-                    'seasons' => $seasons
                 ]
             ], 200);
         } catch (\Exception $e) {

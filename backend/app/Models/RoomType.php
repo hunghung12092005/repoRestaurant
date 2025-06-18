@@ -11,8 +11,36 @@ class RoomType extends Model
 
     protected $table = 'room_types';
     protected $primaryKey = 'type_id';
-    protected $fillable = ['type_name', 'description'];
+    public $incrementing = true;
 
+    protected $fillable = [
+        'type_name',
+        'description',
+        'bed_count',
+        'max_occupancy',
+    ];
+
+    /**
+     * Mối quan hệ nhiều-nhiều với Amenities
+     */
+    public function amenities()
+    {
+        return $this->belongsToMany(Amenity::class, 'room_type_amenities', 'type_id', 'amenity_id')
+                    ->withTimestamps();
+    }
+
+    /**
+     * Mối quan hệ nhiều-nhiều với Services
+     */
+    public function services()
+    {
+        return $this->belongsToMany(Service::class, 'room_type_services', 'type_id', 'service_id')
+                    ->withTimestamps();
+    }
+
+    /**
+     * Mối quan hệ một-nhiều với Rooms
+     */
     public function rooms()
     {
         return $this->hasMany(Room::class, 'type_id', 'type_id');

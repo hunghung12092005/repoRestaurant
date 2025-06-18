@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\AmenityController;
 use App\Http\Controllers\BookingController;
 use App\Http\Controllers\api\LoginController as ApiLoginController;
 use App\Http\Controllers\api\MenuItemController;
@@ -13,12 +14,14 @@ use App\Http\Controllers\MenuCategoryController;
 use App\Http\Controllers\MenuController;
 use App\Http\Controllers\RoomController;
 use App\Http\Controllers\RoomTypeController;
-use App\Http\Controllers\SeasonController;
+use App\Http\Controllers\PriceController;
+use App\Http\Controllers\ServiceController;
 use App\Http\Controllers\TableController;
 use App\Http\Controllers\TableTypeController;
 
 Route::apiResource('employees', EmployeeController::class);
 Route::get('/departments', [DepartmentController::class, 'index']);
+Route::get('/seasonal-pricing/current/{typeId}', [RoomController::class, 'getCurrentPricing']);
 
 Route::get('/protected', [ApiLoginController::class, 'someProtectedRoute']);
 Route::post('/login', [ApiLoginController::class, 'login']);
@@ -34,15 +37,33 @@ Route::post('/menus', [MenuController::class, 'store']);
 Route::put('/menus/{id}', [MenuController::class, 'update']);
 Route::delete('/menus/{id}', [MenuController::class, 'destroy']);
 
-Route::get('/room-types', [RoomTypeController::class, 'index']);
-Route::post('/room-types', [RoomTypeController::class, 'store']);
-Route::put('/room-types/{id}', [RoomTypeController::class, 'update']);
-Route::delete('/room-types/{id}', [RoomTypeController::class, 'destroy']);
+Route::prefix('amenities')->group(function () {
+    Route::get('/', [AmenityController::class, 'index']);
+    Route::post('/', [AmenityController::class, 'store']);
+    Route::put('/{amenity_id}', [AmenityController::class, 'update']);
+    Route::delete('/{amenity_id}', [AmenityController::class, 'destroy']);
+});
 
-Route::get('/seasons', [SeasonController::class, 'index']);
-Route::post('/seasons', [SeasonController::class, 'store']);
-Route::put('/seasons/{id}', [SeasonController::class, 'update']);
-Route::delete('/seasons/{id}', [SeasonController::class, 'destroy']);
+Route::prefix('services')->group(function () {
+    Route::get('/', [ServiceController::class, 'index']);
+    Route::post('/', [ServiceController::class, 'store']);
+    Route::put('/{service_id}', [ServiceController::class, 'update']);
+    Route::delete('/{service_id}', [ServiceController::class, 'destroy']);
+});
+
+Route::prefix('room-types')->group(function () {
+    Route::get('/', [RoomTypeController::class, 'index']);
+    Route::post('/', [RoomTypeController::class, 'store']);
+    Route::put('/{id}', [RoomTypeController::class, 'update']);
+    Route::delete('/{id}', [RoomTypeController::class, 'destroy']);
+});
+
+Route::prefix('pricese')->group(function () {
+    Route::get('/', [PriceController::class, 'index']);
+    Route::post('/', [PriceController::class, 'store']);
+    Route::put('/{id}', [PriceController::class, 'update']);
+    Route::delete('/{id}', [PriceController::class, 'destroy']);
+});
 
 Route::get('/rooms', [RoomController::class, 'index']);
 Route::post('/rooms', [RoomController::class, 'store']);

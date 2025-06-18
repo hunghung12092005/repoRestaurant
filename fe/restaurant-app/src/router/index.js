@@ -16,13 +16,21 @@ import ProductDetailComponent from '../components/ProductDetailComponent.vue';
 // import AdminStaffsComponent from '../components/AdminStaffsComponent.vue';
 import AdminTableComponent from '../components/AdminTable/AdminTableComponent.vue';
 import AdminTableTypeComponent from '../components/AdminTable/AdminTableTypeComponent.vue';
+
+// AdmỉnRoom - Phòng
 import AdminRoomTypeComponent from '../components/AdminRoom/AdminRoomTypeComponent.vue';
-import AdminSeasonComponent from '../components/AdminRoom/AdminSeasonComponent.vue';
 import AdminRoomComponent from '../components/AdminRoom/AdminRoomComponent.vue';
+import AdminPriceComponent from '../components/AdminRoom/AdminPriceComponent.vue';
+
 import AdminMenuCategoryComponent from '../components/AdminMenu/AdminMenuCategoryComponent.vue';
 import AdminMenuComponent from '../components/AdminMenu/AdminMenuComponent.vue';
-import AdminBookingComponent from '../components/AdminBookingComponent.vue';
 
+// Admin Amenities and Services - Tiện ích và Dịch vụ
+import AdminAmenitiesComponent from '../components/AdminSeAm/AdminAmenitiesComponent.vue';
+import AdminServicesComponent from '../components/AdminSeAm/AdminServicesComponent.vue';
+
+// AdminBooking - Đặt phòng
+import AdminBookingComponent from '../components/AdminBooking/AdminBookingComponent.vue';
 
 import AdminDashboardComponent from '../components/admin/AdminDashboardComponent.vue';
 import AdminStaffsComponent from '../components/admin/AdminStaffsComponent.vue';
@@ -195,9 +203,9 @@ const routes = [
     meta: { requiresAdmin: true },
   },
   {
-    path: '/admin/seasons',
-    name: 'AdminSeason',
-    component: AdminSeasonComponent,
+    path: '/admin/pricese',
+    name: 'AdminPrice',
+    component: AdminPriceComponent,
     meta: { requiresAdmin: true },
   },
   {
@@ -235,7 +243,19 @@ const routes = [
     name: 'AdminBooking',
     component: AdminBookingComponent,
     meta: { requiresAdmin: true },
-  }
+  },
+  {
+    path: '/admin/services',
+    name: 'AdminServices',
+    component: AdminServicesComponent,
+    meta: { requiresAdmin: true },
+  },
+  {
+    path: '/admin/amenities',
+    name: 'AdminAmenities',
+    component: AdminAmenitiesComponent,
+    meta: { requiresAdmin: true },
+  },
 ];
 
 const router = createRouter({
