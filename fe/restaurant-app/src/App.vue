@@ -163,6 +163,7 @@
                   </a>
                   <ul class="dropdown-menu dropdown-menu-end">
                     <li><router-link class="dropdown-item" to="/testJwt">testJwt</router-link></li>
+                    <li><router-link class="dropdown-item" to="/userprofile">Thông Tin User</router-link></li>
                     <li v-if="isAdmin"><router-link class="dropdown-item" to="/admin">Vào admin</router-link></li>
                     <li><a class="dropdown-item logout-link" @click.prevent="logout">Đăng Xuất</a></li>
                   </ul>

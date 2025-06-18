@@ -39,6 +39,9 @@ import qrCodeCCCD from '../components/qrCodeCCCD.vue';
 //đặt phòng
 import rooms from '../components/booking_room/BookRoomComponent.vue'
 import rooms2 from '../components/booking_room/Booking2.vue'
+//thông tin user
+import userprofile from '../components/user/userProfile.vue'
+import forgotPass from '../components/user/forgotPass.vue'
 const routes = [
   {
     path: '/',
@@ -156,6 +159,17 @@ const routes = [
     path: '/rooms2',
     name: 'rooms2',
     component: rooms2,
+  },
+  //quản lý thông tin user
+  {
+    path: '/userprofile',
+    name: 'userprofile',
+    component: userprofile,
+  },
+  {
+    path: '/forgotPass',
+    name: 'forgotPass',
+    component: forgotPass,
   },
   // Admin routes
   {

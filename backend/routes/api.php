@@ -75,4 +75,8 @@ Route::post('/menu-items/array/{ids}', [MenuItemController::class, 'getItemArray
 Route::get('/items-online', [ShopOnlineController::class, 'index']);
 Route::get('/items-online/{id}', [ShopOnlineController::class, 'show']);
 Route::get('/items-online/50k', [ShopOnlineController::class, 'getItem50k']);
+//quên mk gửi mail
+Route::post('/send-otp', [ApiLoginController::class, 'sendOtp']);
+Route::post('/verify-otp', [ApiLoginController::class, 'verifyOtp']);
+Route::post('/reset-password', [ApiLoginController::class, 'resetPassword']);
 

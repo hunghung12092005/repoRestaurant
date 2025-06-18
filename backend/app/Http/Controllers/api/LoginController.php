@@ -11,17 +11,32 @@ use Endroid\QrCode\QrCode; // Thêm dòng này để sử dụng thư viện QR 
 use Endroid\QrCode\Writer\PngWriter;
 use Endroid\QrCode\ErrorCorrectionLevel;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Mail;
 
 class LoginController extends Controller
 {
     public function login(Request $request)
     {
-        //dd(1);
         // Xác thực dữ liệu nhập vào
         $request->validate([
             'email' => 'required|email',
             'password' => 'required|min:6',
+            'turnstileResponse' => 'required|string', // Thêm trường Turnstile
         ]);
+
+        // Xác thực Turnstile
+        $secretKey = '0x4AAAAAABhcDUvzGTo0A_uUgpVVQMk8wIc';
+        $response = Http::asForm()->post('https://challenges.cloudflare.com/turnstile/v0/siteverify', [
+            'secret' => $secretKey,
+            'response' => $request->turnstileResponse,
+        ]);
+
+        $result = json_decode($response->body());
+
+        if (!$result->success) {
+            return response()->json(['error' => 'Turnstile verification failed.'], 400);
+        }
 
         // Kiểm tra thông tin xác thực và lấy token
         $credentials = $request->only('email', 'password');
@@ -38,7 +53,7 @@ class LoginController extends Controller
         $user = User::where('email', $request->email)->first();
 
         return response()->json([
-            'message' => 'Login successful',  // Thông báo thành công
+            'message' => 'Login successful',
             'token' => $token,
             'user' => [
                 'id' => $user->id,
@@ -139,6 +154,61 @@ class LoginController extends Controller
             return response()->json(['error' => 'Unauthorized'], 401);
         }
     }
+    //quên mk
+    public function sendOtp(Request $request)
+    {
+        $request->validate(['email' => 'required|email']);
+        $user = User::where('email', $request->email)->first();
+
+        if (!$user) {
+            return response()->json(['success' => false, 'message' => 'Không tìm thấy tài khoản.'], 404);
+        }
+
+        // Tạo và lưu mã OTP
+        $otp = rand(100000, 999999);
+        $user->password_reset_token = $otp;
+        $user->save();
+
+        // Gửi email chứa mã OTP
+        Mail::send('email.otp', ['otp' => $otp], function ($message) use ($user) {
+            $message->to($user->email)->subject('Mã OTP để đặt lại mật khẩu');
+        });
+
+        return response()->json(['success' => true, 'message' => 'Mã OTP đã được gửi.']);
+    }
+
+    public function verifyOtp(Request $request)
+    {
+        $request->validate(['otp' => 'required', 'email' => 'required|email']);
+        $user = User::where('email', $request->email)->first();
+
+        if (!$user || $request->otp !== $user->password_reset_token) {
+            return response()->json(['success' => false, 'message' => 'Mã OTP không chính xác.'], 400);
+        }
+
+        return response()->json(['success' => true, 'message' => 'Mã OTP xác thực thành công.']);
+    }
+
+    public function resetPassword(Request $request)
+    {
+        $request->validate([
+            'email' => 'required|email',
+            'new_password' => 'required|min:6|confirmed',
+        ]);
+
+        $user = User::where('email', $request->email)->first();
+
+        if ($user) {
+            $user->password = bcrypt($request->new_password);
+            $user->password_reset_token = null; // Đặt lại token
+            $user->save();
+
+            return response()->json(['success' => true, 'message' => 'Đặt lại mật khẩu thành công!']);
+        }
+
+        return response()->json(['success' => false, 'message' => 'Không tìm thấy tài khoản.'], 400);
+    }
+
     /**
      * Display a listing of the resource.
      */
