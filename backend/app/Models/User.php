@@ -16,6 +16,7 @@
            'password',
            'role',
            'qr_code',
+           'turnstileResponse',
        ];
    
        protected $hidden = [

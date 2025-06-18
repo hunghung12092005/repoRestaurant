@@ -1,5 +1,5 @@
 <template>
-  <div v-if="isLoading"></div>
+  <loading v-if="isLoading"/>
     <div>
       <h1>QR Code Scanner & Tải Ảnh</h1>
       <button @click="startScanning">Quét QR</button>
@@ -50,7 +50,6 @@
       console.error('Lỗi:', error);
     }finally{
       isLoading.value = false;
-
     }
   };
   

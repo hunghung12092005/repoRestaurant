@@ -4,11 +4,11 @@
       <div class="sidebar">
         <div class="header text-center p-3 border-bottom">
           <img src="https://i.postimg.cc/s2Ywg6YR/logo.png" alt="Luxuria Logo" class="rounded-circle" />
-          <span class="fw-bold">An Phú Ecosystem</span>
+          <span class="fw-bold"><strong>Ho Xuan Huong</strong> Ecosystem</span>
         </div>
         <div class="profile text-center p-3 border-bottom">
-          <img src="https://www.einfosoft.com/templates/admin/luxuria/source/light/assets/images/admin.jpg"
-            alt="Profile Picture" class="rounded-circle" />
+          <img src="https://www.pngkey.com/png/full/263-2635979_admin-abuse.png" alt="Profile Picture"
+            class="rounded-circle" />
           <p class="mb-0 text-muted">{{ userInfo.name || 'Admin' }}</p>
           <p class="text-muted">{{ userInfo.email || 'admin@seafoodie.com' }}</p>
           <div class="icons d-flex justify-content-center mt-2">
@@ -65,7 +65,8 @@
             </ul>
           </li>
           <li class="nav-item dropdown">
-            <a class="nav-link dropdown-toggle" href="#" id="tablesDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+            <a class="nav-link dropdown-toggle" href="#" id="tablesDropdown" role="button" data-bs-toggle="dropdown"
+              aria-expanded="false">
               <i class="bi bi-table"></i> Quản lý bàn
             </a>
             <ul class="dropdown-menu" aria-labelledby="tablesDropdown">
@@ -82,7 +83,8 @@
             </ul>
           </li>
           <li class="nav-item dropdown">
-            <a class="nav-link dropdown-toggle" href="#" id="menuDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+            <a class="nav-link dropdown-toggle" href="#" id="menuDropdown" role="button" data-bs-toggle="dropdown"
+              aria-expanded="false">
               <i class="bi bi-menu"></i> Quản lý thực đơn
             </a>
             <ul class="dropdown-menu" aria-labelledby="menuDropdown">
@@ -138,7 +140,7 @@
             <!-- Logo -->
             <a class="navbar-brand" href="/">
               <img src="https://i.postimg.cc/s2Ywg6YR/logo.png" alt="Foodie Logo" class="logo-img" />
-              An Phú Ecosystem
+              Ho Xuan Huong Eco
             </a>
 
             <!-- Toggle Button for Mobile -->
@@ -151,9 +153,8 @@
             <div class="collapse navbar-collapse" id="navbarNav" ref="navbarRef" :class="{ 'show': navbarActive }">
               <ul class="navbar-nav ms-auto">
                 <li class="nav-item"><router-link class="nav-link sisf-m-subtitle" to="/">Home</router-link></li>
-                <li class="nav-item"><router-link class="nav-link sisf-m-subtitle" to="/about">About</router-link></li>
-                <li class="nav-item"><router-link class="nav-link sisf-m-subtitle" to="/contact">Contact</router-link>
-                </li>
+
+
                 <li class="nav-item"><router-link class="nav-link sisf-m-subtitle" to="/blog">Blog</router-link></li>
                 <li class="nav-item dropdown">
                   <a class="nav-link dropdown-toggle sisf-m-subtitle" href="#" role="button" data-bs-toggle="dropdown"
@@ -167,8 +168,10 @@
                     <li><router-link class="dropdown-item " to="/CategoryShopOnline">Menu ShopOnline</router-link></li>
                   </ul>
                 </li>
-                <li class="nav-item "><router-link class="nav-link sisf-m-subtitle"
-                    to="/reservation">Reservation</router-link></li>
+                <li class="nav-item "><router-link class="nav-link sisf-m-subtitle" to="/rooms">Đặt
+                    Phòng</router-link></li>
+                <li class="nav-item "><router-link class="nav-link sisf-m-subtitle" to="/reservation">Đặt
+                    Bàn</router-link></li>
                 <li class="nav-item dropdown " v-if="isLogin">
                   <a class="nav-link dropdown-toggle sisf-m-subtitle" href="#" role="button" data-bs-toggle="dropdown"
                     aria-expanded="false">
@@ -176,6 +179,7 @@
                   </a>
                   <ul class="dropdown-menu dropdown-menu-end">
                     <li><router-link class="dropdown-item" to="/testJwt">testJwt</router-link></li>
+                    <li><router-link class="dropdown-item" to="/userprofile">Thông Tin User</router-link></li>
                     <li v-if="isAdmin"><router-link class="dropdown-item" to="/admin">Vào admin</router-link></li>
                     <li><a class="dropdown-item logout-link" @click.prevent="logout">Đăng Xuất</a></li>
                   </ul>
@@ -189,10 +193,10 @@
         </nav>
       </header>
 
-      <main>       
-          <router-view />
+      <main>
+        <router-view />
       </main>
-      
+
     </div>
   </div>
 </template>
@@ -364,6 +368,7 @@ onUnmounted(() => {
   box-sizing: border-box;
   font-family: 'Arial', sans-serif;
 }
+
 /* Styles cho layout thông thường */
 .navbar {
   transition: background-color 0.3s ease, color 0.3s ease;
@@ -717,6 +722,7 @@ body {
 }
 
 @media (min-width: 992px) {
+
   .navbar.active .navbar-brand,
   .navbar.active .nav-link,
   .navbar.active .dropdown-toggle {

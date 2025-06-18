@@ -88,7 +88,7 @@ Route::put('/bookings/{booking_id}', [BookingController::class, 'update']);
 Route::patch('/bookings/{booking_id}/confirm', [BookingController::class, 'confirm'])->name('bookings.confirm');
 Route::delete('/bookings/{booking_id}', [BookingController::class, 'destroy']);
 Route::post('/bookings/check-availability', [BookingController::class, 'checkAvailability']);
-
+//
 Route::post('/qr-login', [ApiLoginController::class, 'qrLogin']); // Thêm dòng này
 Route::get('/menu-items', [MenuItemController::class, 'index']);
 Route::post('/menu-items/array/{ids}', [MenuItemController::class, 'getItemArray']);
@@ -96,4 +96,8 @@ Route::post('/menu-items/array/{ids}', [MenuItemController::class, 'getItemArray
 Route::get('/items-online', [ShopOnlineController::class, 'index']);
 Route::get('/items-online/{id}', [ShopOnlineController::class, 'show']);
 Route::get('/items-online/50k', [ShopOnlineController::class, 'getItem50k']);
+//quên mk gửi mail
+Route::post('/send-otp', [ApiLoginController::class, 'sendOtp']);
+Route::post('/verify-otp', [ApiLoginController::class, 'verifyOtp']);
+Route::post('/reset-password', [ApiLoginController::class, 'resetPassword']);
 
