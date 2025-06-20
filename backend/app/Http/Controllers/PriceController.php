@@ -1,5 +1,4 @@
 <?php
-
 namespace App\Http\Controllers;
 
 use App\Models\Price;
@@ -32,39 +31,7 @@ class PriceController extends Controller
             return response()->json(['success' => false, 'message' => 'Lỗi: ' . $e->getMessage()], 500);
         }
     }
-    //lấy giá phòng dựa vào ngày khách nhập
-    public function getPrice(Request $request)
-    {
-        $checkin = $request->input('checkin');
-        $checkout = $request->input('checkout');
 
-        // Lấy tất cả các giá phù hợp với ngày checkin và checkout
-        $prices = Price::where('start_date', '<=', $checkout)
-            ->where('end_date', '>=', $checkin)
-            ->get();
-
-        $finalPrices = [];
-
-        foreach ($prices as $price) {
-            // Nếu có giá ưu tiên, lấy giá ưu tiên
-            if ($price->priority !== 0) {
-                $finalPrices[] = [
-                    'price' => $price->priority,
-                    'type' => 'priority',
-                    'details' => $price
-                ];
-            } else {
-                // Nếu không có giá ưu tiên, lấy giá mỗi đêm
-                $finalPrices[] = [
-                    'price' => $price->price_per_night,
-                    'type' => 'standard',
-                    'details' => $price
-                ];
-            }
-        }
-
-        return response()->json(['prices' => $finalPrices]);
-    }
     public function store(Request $request)
     {
         $validator = Validator::make($request->all(), [
@@ -128,3 +95,4 @@ class PriceController extends Controller
         }
     }
 }
+?>

@@ -63,8 +63,6 @@ Route::prefix('pricese')->group(function () {
     Route::post('/', [PriceController::class, 'store']);
     Route::put('/{id}', [PriceController::class, 'update']);
     Route::delete('/{id}', [PriceController::class, 'destroy']);
-    Route::post('/price', [PriceController::class, 'getPrice']);
-    //check giá dựa vào ngày khách nhập
 });
 
 Route::get('/rooms', [RoomController::class, 'index']);

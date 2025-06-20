@@ -12,25 +12,32 @@ class RoomController extends Controller
     public function index(Request $request)
     {
         try {
+            $query = Room::with('roomType')->orderBy('floor_number', 'asc');
             $perPage = $request->query('per_page', 10);
-            $rooms = Room::with('roomType')->paginate($perPage);
-            $data = $rooms->map(function ($room) {
-                $room->amenity_names = $room->amenities ? array_column($room->amenities, 'amenity_name') : [];
-                $room->service_names = $room->services ? array_column($room->services, 'service_name') : [];
-                return $room;
-            });
-            Log::info('Fetched rooms:', ['data' => $data->toArray()]);
+            $page = $request->query('page', 1);
+
+            if ($perPage === 'all') {
+                $rooms = $query->get();
+                $total = $rooms->count();
+                $currentPage = 1;
+            } else {
+                $rooms = $query->paginate($perPage, ['*'], 'page', $page);
+                $total = $rooms->total();
+                $currentPage = $rooms->currentPage();
+            }
+
             return response()->json([
-                'success' => true,
-                'data' => $data->toArray(),
-                'current_page' => $rooms->currentPage(),
-                'total' => $rooms->total(),
-                'per_page' => $rooms->perPage(),
-                'last_page' => $rooms->lastPage()
+                'status' => true,
+                'data' => $rooms->items(),
+                'total' => $total,
+                'current_page' => $currentPage,
             ], 200);
         } catch (\Exception $e) {
-            Log::error('Index rooms error: ' . $e->getMessage());
-            return response()->json(['success' => false, 'message' => 'Lỗi: ' . $e->getMessage()], 500);
+            Log::error('Fetch rooms error: ' . $e->getMessage());
+            return response()->json([
+                'status' => false,
+                'message' => 'Lấy danh sách phòng thất bại: ' . $e->getMessage(),
+            ], 500);
         }
     }
 
@@ -38,14 +45,11 @@ class RoomController extends Controller
     {
         Log::info('Store room request:', $request->all());
         $validator = Validator::make($request->all(), [
-            'room_name' => 'required|string|max:50',
+            'room_name' => 'required|string|max:255|unique:rooms,room_name',
             'type_id' => 'required|exists:room_types,type_id',
             'floor_number' => 'required|integer|min:1',
-            'status' => 'required|in:Trống,Đã đặt,Chờ xác nhận,Bảo trì,Đang dọn dẹp',
-            'maintenance_status' => 'required|in:Hoạt động,Đang bảo trì',
+            'status' => 'required|in:available,booked,pending_confirmation,maintenance,cleaning',
             'description' => 'nullable|string',
-            'amenities' => 'array',
-            'services' => 'array'
         ]);
 
         if ($validator->fails()) {
@@ -54,10 +58,12 @@ class RoomController extends Controller
         }
 
         try {
-            $data = $request->only(['room_name', 'type_id', 'floor_number', 'status', 'maintenance_status', 'description']);
-            $data['amenities'] = $request->amenities ? array_map('intval', $request->amenities) : [];
-            $data['services'] = $request->services ? array_map('intval', $request->services) : [];
+            $data = $request->only(['room_name', 'type_id', 'floor_number', 'status', 'description']);
+            $data['description'] = $data['description'] ?: null;
+
             $room = Room::create($data);
+            $room->load('roomType');
+
             Log::info('Room created:', $room->toArray());
             return response()->json(['success' => true, 'data' => $room], 201);
         } catch (\Exception $e) {
@@ -66,18 +72,26 @@ class RoomController extends Controller
         }
     }
 
+    public function show($room_id)
+    {
+        try {
+            $room = Room::with('roomType')->findOrFail($room_id);
+            return response()->json(['success' => true, 'data' => $room], 200);
+        } catch (\Exception $e) {
+            Log::error('Show room error: ' . $e->getMessage());
+            return response()->json(['success' => false, 'message' => 'Phòng không tồn tại.'], 404);
+        }
+    }
+
     public function update(Request $request, $room_id)
     {
         Log::info('Update room request:', ['room_id' => $room_id, 'data' => $request->all()]);
         $validator = Validator::make($request->all(), [
-            'room_name' => 'required|string|max:50',
+            'room_name' => 'required|string|max:255|unique:rooms,room_name,' . $room_id . ',room_id',
             'type_id' => 'required|exists:room_types,type_id',
             'floor_number' => 'required|integer|min:1',
-            'status' => 'required|in:Trống,Đã đặt,Chờ xác nhận,Bảo trì,Đang dọn dẹp',
-            'maintenance_status' => 'required|in:Hoạt động,Đang bảo trì',
+            'status' => 'required|in:available,booked,pending_confirmation,maintenance,cleaning',
             'description' => 'nullable|string',
-            'amenities' => 'array',
-            'services' => 'array'
         ]);
 
         if ($validator->fails()) {
@@ -87,10 +101,12 @@ class RoomController extends Controller
 
         try {
             $room = Room::findOrFail($room_id);
-            $data = $request->only(['room_name', 'type_id', 'floor_number', 'status', 'maintenance_status', 'description']);
-            $data['amenities'] = $request->amenities ? array_map('intval', $request->amenities) : [];
-            $data['services'] = $request->services ? array_map('intval', $request->services) : [];
+            $data = $request->only(['room_name', 'type_id', 'floor_number', 'status', 'description']);
+            $data['description'] = $data['description'] ?: null;
+
             $room->update($data);
+            $room->load('roomType');
+
             Log::info('Room updated:', $room->toArray());
             return response()->json(['success' => true, 'data' => $room], 200);
         } catch (\Exception $e) {

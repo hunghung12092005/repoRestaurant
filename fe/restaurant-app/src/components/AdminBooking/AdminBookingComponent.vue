@@ -400,7 +400,11 @@
 <script>
 import { ref, computed, onMounted } from 'vue';
 import axios from 'axios';
+<<<<<<< HEAD
 import Loading from '../loading.vue';
+=======
+// import Loading from './loading.vue';
+>>>>>>> beea7485f86dda5fc71cf67082462a6c0940c4eb
 // Hàm retry cho các yêu cầu API
 const retryRequest = async (fn, retries = 3, delay = 1000) => {
   for (let i = 0; i < retries; i++) {
