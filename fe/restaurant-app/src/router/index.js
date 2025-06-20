@@ -203,7 +203,7 @@ const routes = [
     meta: { requiresAdmin: true },
   },
   {
-    path: '/admin/pricese',
+    path: '/admin/prices',
     name: 'AdminPrice',
     component: AdminPriceComponent,
     meta: { requiresAdmin: true },
