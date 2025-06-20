@@ -53,7 +53,7 @@
                 </router-link>
               </li>
               <li>
-                <router-link class="dropdown-item" to="/admin/pricese">
+                <router-link class="dropdown-item" to="/admin/prices">
                   <i class='bx  bx-bed'></i> Quản lý giá phòng
                 </router-link>
               </li>

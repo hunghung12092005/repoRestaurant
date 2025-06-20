@@ -47,10 +47,6 @@
             <th>STT</th>
             <th>Số Phòng</th>
             <th>Loại Phòng</th>
-            <th>Giá/Đêm (VNĐ)</th>
-            <th>Giá/Giờ (VNĐ)</th>
-            <th>Số Giường</th>
-            <th>Sức Chứa</th>
             <th>Tầng</th>
             <th>Trạng Thái</th>
             <th>Hành Động</th>
@@ -60,23 +56,19 @@
           <tr v-for="(room, index) in displayedRooms" :key="room.room_id">
             <td>{{ (currentPage - 1) * itemsPerPage + index + 1 }}</td>
             <td>{{ room.room_name }}</td>
-            <td>{{ room.room_type ? room.room_type.type_name : 'N/A' }}</td>
-            <td>{{ formatPrice(room.price_per_night) }}</td>
-            <td>{{ formatPrice(room.hourly_price) }}</td>
-            <td>{{ room.bed_count !== null ? room.bed_count : '0' }}</td>
-            <td>{{ room.max_occupancy !== null ? room.max_occupancy : '0' }}</td>
+            <td>{{ room.roomType?.type_name || 'N/A' }}</td>
             <td>{{ room.floor_number }}</td>
             <td>
               <span
                 :class="{
-                  'badge bg-success': room.status === 'Trống',
-                  'badge bg-danger': room.status === 'Đã đặt',
-                  'badge bg-warning': room.status === 'Chờ xác nhận',
-                  'badge bg-info': room.status === 'Bảo trì',
-                  'badge bg-secondary': room.status === 'Đang dọn dẹp'
+                  'badge bg-success': room.status === 'available',
+                  'badge bg-danger': room.status === 'booked',
+                  'badge bg-warning': room.status === 'pending_confirmation',
+                  'badge bg-info': room.status === 'maintenance',
+                  'badge bg-secondary': room.status === 'cleaning'
                 }"
               >
-                {{ room.status }}
+                {{ room.status === 'available' ? 'Trống' : room.status === 'booked' ? 'Đã đặt' : room.status === 'pending_confirmation' ? 'Chờ xác nhận' : room.status === 'maintenance' ? 'Bảo trì' : room.status === 'cleaning' ? 'Đang dọn dẹp' : room.status }}
               </span>
             </td>
             <td>
@@ -89,7 +81,7 @@
             </td>
           </tr>
           <tr v-if="displayedRooms.length === 0 && !isLoading">
-            <td colspan="13" class="text-center text-muted">
+            <td colspan="6" class="text-center text-muted">
               Không có phòng nào phù hợp
             </td>
           </tr>
@@ -174,7 +166,6 @@
                 <label class="form-label">Loại Phòng</label>
                 <select
                   v-model="form.type_id"
-                  @change="updatePricing"
                   class="form-control"
                   required
                   :class="{ 'is-invalid': errors.type_id }"
@@ -208,6 +199,7 @@
                   required
                   :class="{ 'is-invalid': errors.status }"
                 >
+                  <option value="">-- Chọn trạng thái --</option>
                   <option value="Trống">Trống</option>
                   <option value="Đã đặt">Đã đặt</option>
                   <option value="Chờ xác nhận">Chờ xác nhận</option>
@@ -215,29 +207,6 @@
                   <option value="Đang dọn dẹp">Đang dọn dẹp</option>
                 </select>
                 <div v-if="errors.status" class="invalid-feedback">{{ errors.status }}</div>
-              </div>
-              <div class="mb-3">
-                <label class="form-label">Giá Theo Loại Phòng</label>
-                <div class="row">
-                  <div class="col">
-                    <label>Giá/Đêm</label>
-                    <input
-                      type="text"
-                      class="form-control"
-                      :value="formatPrice(selectedPricing.data ? selectedPricing.data.price_per_night : 0)"
-                      readonly
-                    />
-                  </div>
-                  <div class="col">
-                    <label>Giá/Giờ</label>
-                    <input
-                      type="text"
-                      class="form-control"
-                      :value="formatPrice(selectedPricing.data ? selectedPricing.data.hourly_price : 0)"
-                      readonly
-                    />
-                  </div>
-                </div>
               </div>
               <div class="mb-3">
                 <label class="form-label">Mô Tả</label>
@@ -261,416 +230,336 @@
   </div>
 </template>
 
-<script>
-import { reactive, computed, watch } from "vue";
-import axios from "axios";
+<script setup>
+import { ref, computed, watch, onMounted } from 'vue';
+import axios from 'axios';
 
+// Cấu hình API client
 const apiClient = axios.create({
-  baseURL: "http://localhost:8000/api",
-  timeout: 10000,
-  headers: { "Content-Type": "application/json", "Accept": "application/json" }
+  baseURL: 'http://127.0.0.1:8000/api',
+  timeout: 30000,
+  headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' }
 });
 
-export default {
-  setup() {
-    const state = reactive({
-      rooms: [],
-      roomTypes: [],
-      amenities: [],
-      services: [],
-      searchQuery: "",
-      filterRoomType: "",
-      filterStatus: "",
-      isModalOpen: false,
-      isLoading: false,
-      currentRoom: null,
-      successMessage: "",
-      errorMessage: "",
-      modalErrorMessage: "",
-      currentPage: 1,
-      itemsPerPage: 10,
-      totalItems: 0,
-      form: {
-        room_name: "",
-        type_id: "",
-        floor_number: 1,
-        status: "Trống",
-        maintenance_status: "Hoạt động",
-        description: "",
-        amenities: [],
-        services: []
-      },
-      errors: {
-        room_name: "",
-        type_id: "",
-        floor_number: "",
-        status: "",
-        maintenance_status: "",
-        amenities: "",
-        services: ""
-      },
-      selectedPricing: { data: null }
+// State
+const rooms = ref([]);
+const roomTypes = ref([]);
+const searchQuery = ref('');
+const filterRoomType = ref('');
+const filterStatus = ref('');
+const isModalOpen = ref(false);
+const isLoading = ref(false);
+const currentRoom = ref(null);
+const successMessage = ref('');
+const errorMessage = ref('');
+const modalErrorMessage = ref('');
+const currentPage = ref(1);
+const itemsPerPage = ref(10);
+const totalItems = ref(0);
+const form = ref({
+  room_name: '',
+  type_id: '',
+  floor_number: 1,
+  status: 'Trống',
+  description: ''
+});
+const errors = ref({
+  room_name: '',
+  type_id: '',
+  floor_number: '',
+  status: ''
+});
+
+// Fetch data
+const fetchRooms = async (page = 1) => {
+  isLoading.value = true;
+  errorMessage.value = '';
+  try {
+    const response = await apiClient.get(`/rooms?page=${page}&per_page=${itemsPerPage.value}`);
+    console.log('Rooms API response:', JSON.stringify(response.data, null, 2));
+    if (Array.isArray(response.data.data)) {
+      rooms.value = response.data.data.map(room => ({
+        ...room,
+        roomType: room.room_type || { type_name: 'N/A' } // Sửa từ roomType thành room_type
+      }));
+    } else {
+      rooms.value = [];
+    }
+    totalItems.value = response.data.total || 0;
+    currentPage.value = response.data.current_page || 1;
+  } catch (error) {
+    console.error('Fetch rooms error:', {
+      message: error.message,
+      response: error.response?.data,
+      status: error.response?.status
     });
+    errorMessage.value = error.response?.data?.message || 'Không thể tải danh sách phòng.';
+    rooms.value = [];
+    totalItems.value = 0;
+  } finally {
+    isLoading.value = false;
+  }
+};
 
-    // Format price
-    const formatPrice = (price) => {
-      return price ? new Intl.NumberFormat("vi-VN", { style: "currency", currency: "VND" }).format(price) : "0 ₫";
+const fetchRoomTypes = async () => {
+  try {
+    const response = await apiClient.get('/room-types');
+    console.log('RoomTypes API response:', JSON.stringify(response.data, null, 2));
+    roomTypes.value = Array.isArray(response.data.data) ? response.data.data : [];
+    if (roomTypes.value.length === 0) {
+      errorMessage.value = 'Không tìm thấy loại phòng nào. Vui lòng thêm loại phòng trước.';
+    }
+  } catch (error) {
+    console.error('Fetch room types error:', error);
+    errorMessage.value = error.response?.data?.message || 'Không thể tải danh sách loại phòng.';
+    roomTypes.value = [];
+  }
+};
+
+// Initialize data
+onMounted(async () => {
+  isLoading.value = true;
+  try {
+    await Promise.all([fetchRooms(), fetchRoomTypes()]);
+  } catch (error) {
+    console.error('Error initializing data:', error);
+    errorMessage.value = 'Khởi tạo dữ liệu thất bại.';
+  } finally {
+    isLoading.value = false;
+  }
+});
+
+// Watch for page changes
+watch(currentPage, (newPage) => {
+  fetchRooms(newPage);
+});
+
+// Filter rooms
+const filteredRooms = computed(() => {
+  if (!Array.isArray(rooms.value)) return [];
+  return rooms.value.filter(room => {
+    const roomName = room.room_name?.toLowerCase() || '';
+    const typeName = room.roomType?.type_name?.toLowerCase() || '';
+    const floorNumber = room.floor_number?.toString() || '';
+    const matchesSearch = roomName.includes(searchQuery.value.toLowerCase()) ||
+                         typeName.includes(searchQuery.value.toLowerCase()) ||
+                         floorNumber.includes(searchQuery.value.toLowerCase());
+    const matchesRoomType = !filterRoomType.value || room.type_id === parseInt(filterRoomType.value);
+    const statusMapping = {
+      'available': 'Trống',
+      'booked': 'Đã đặt',
+      'pending_confirmation': 'Chờ xác nhận',
+      'maintenance': 'Bảo trì',
+      'cleaning': 'Đang dọn dẹp'
     };
+    const displayStatus = statusMapping[room.status] || room.status;
+    const matchesStatus = !filterStatus.value || displayStatus === filterStatus.value;
+    return matchesSearch && matchesRoomType && matchesStatus;
+  });
+});
 
-    // Fetch data
-    const fetchRooms = async (page = 1) => {
-      state.isLoading = true;
-      state.errorMessage = "";
-      try {
-        const response = await apiClient.get(`/rooms?page=${page}&per_page=${state.itemsPerPage}`);
-        console.log("Rooms API response:", JSON.stringify(response.data, null, 2));
-        state.rooms = Array.isArray(response.data.data) ? response.data.data : [];
-        state.totalItems = response.data.total || 0;
-        state.currentPage = response.data.current_page || 1;
-      } catch (error) {
-        console.error("Fetch rooms error:", {
-          message: error.message,
-          response: error.response?.data,
-          status: error.response?.status
-        });
-        state.errorMessage = error.response?.data?.message || "Không thể tải danh sách phòng.";
-        state.rooms = [];
-        state.totalItems = 0;
-      } finally {
-        state.isLoading = false;
+// Pagination
+const totalPages = computed(() => Math.ceil(totalItems.value / itemsPerPage.value));
+
+const displayedRooms = computed(() => {
+  return filteredRooms.value;
+});
+
+const pageRange = computed(() => {
+  const maxPages = 5;
+  let start = Math.max(1, currentPage.value - Math.floor(maxPages / 2));
+  let end = Math.min(totalPages.value, start + maxPages - 1);
+  if (end - start + 1 < maxPages) {
+    start = Math.max(1, end - maxPages + 1);
+  }
+  return Array.from({ length: end - start + 1 }, (_, i) => start + i);
+});
+
+// Modal actions
+const openAddModal = () => {
+  form.value = {
+    room_name: '',
+    type_id: '',
+    floor_number: 1,
+    status: 'Trống',
+    description: ''
+  };
+  errors.value = {};
+  currentRoom.value = null;
+  isModalOpen.value = true;
+  successMessage.value = '';
+  modalErrorMessage.value = '';
+  console.log('Opened add modal, form reset:', { ...form.value });
+};
+
+const openEditModal = (room) => {
+  console.log('Opening edit modal for room:', JSON.stringify(room, null, 2));
+  if (!room || typeof room !== 'object') {
+    console.error('Invalid room data:', room);
+    return;
+  }
+  const statusMapping = {
+    'available': 'Trống',
+    'booked': 'Đã đặt',
+    'pending_confirmation': 'Chờ xác nhận',
+    'maintenance': 'Bảo trì',
+    'cleaning': 'Đang dọn dẹp'
+  };
+  form.value = {
+    room_name: String(room.room_name || ''),
+    type_id: String(room.type_id || ''),
+    floor_number: Number(room.floor_number) || 1,
+    status: statusMapping[room.status] || 'Trống',
+    description: String(room.description || '')
+  };
+  currentRoom.value = { ...room };
+  isModalOpen.value = true;
+  errors.value = {};
+  successMessage.value = '';
+  modalErrorMessage.value = '';
+  console.log('Edit modal opened, form set:', { ...form.value });
+};
+
+const closeModal = () => {
+  isModalOpen.value = false;
+  errors.value = {};
+  modalErrorMessage.value = '';
+  currentRoom.value = null;
+  form.value = {
+    room_name: '',
+    type_id: '',
+    floor_number: 1,
+    status: 'Trống',
+    description: ''
+  };
+  console.log('Closed modal, form reset:', { ...form.value });
+};
+
+// Handle inputs
+const onInputRoomName = (event) => {
+  form.value.room_name = event.target.value;
+  errors.value.room_name = '';
+  modalErrorMessage.value = '';
+  console.log('Room name input:', form.value.room_name);
+};
+
+const onInputFloorNumber = (event) => {
+  form.value.floor_number = Number(event.target.value) || 1;
+  errors.value.floor_number = '';
+  modalErrorMessage.value = '';
+  console.log('Floor number input:', form.value.floor_number);
+};
+
+const onInputDescription = (event) => {
+  form.value.description = event.target.value;
+  console.log('Description input:', form.value.description);
+};
+
+// Form validation
+const validateForm = () => {
+  errors.value = {};
+  let isValid = true;
+
+  if (!form.value.room_name || form.value.room_name.trim().length === 0) {
+    errors.value.room_name = 'Vui lòng nhập số phòng';
+    isValid = false;
+  }
+  if (!form.value.type_id) {
+    errors.value.type_id = 'Vui lòng chọn loại phòng';
+    isValid = false;
+  }
+  if (!form.value.floor_number || form.value.floor_number < 1) {
+    errors.value.floor_number = 'Tầng phải lớn hơn 0';
+    isValid = false;
+  }
+  if (!['Trống', 'Đã đặt', 'Chờ xác nhận', 'Bảo trì', 'Đang dọn dẹp'].includes(form.value.status)) {
+    errors.value.status = 'Vui lòng chọn trạng thái hợp lệ';
+    isValid = false;
+  }
+
+  console.log('Validation result:', { isValid, form: { ...form.value }, errors: errors.value });
+  return isValid;
+};
+
+// Save room
+const saveRoom = async () => {
+  console.log('Form data before validation:', { ...form.value });
+  if (!validateForm()) {
+    modalErrorMessage.value = 'Vui lòng kiểm tra thông tin nhập.';
+    return;
+  }
+
+  isLoading.value = true;
+  modalErrorMessage.value = '';
+  const statusMapping = {
+    'Trống': 'available',
+    'Đã đặt': 'booked',
+    'Chờ xác nhận': 'pending_confirmation',
+    'Bảo trì': 'maintenance',
+    'Đang dọn dẹp': 'cleaning'
+  };
+  const payload = {
+    room_name: form.value.room_name.trim(),
+    type_id: form.value.type_id,
+    floor_number: form.value.floor_number,
+    status: statusMapping[form.value.status] || 'available',
+    description: form.value.description.trim() || null
+  };
+  console.log('Sending POST/PUT data:', payload);
+  try {
+    let response;
+    if (currentRoom.value) {
+      response = await apiClient.put(`/rooms/${currentRoom.value.room_id}`, payload);
+      console.log('PUT response:', JSON.stringify(response.data, null, 2));
+      const index = rooms.value.findIndex(r => r.room_id === currentRoom.value.room_id);
+      if (index !== -1) {
+        rooms.value[index] = { ...response.data.data, roomType: response.data.data.room_type || { type_name: 'N/A' } }; // Sửa roomType thành room_type
       }
-    };
-
-    const fetchRoomTypes = async () => {
-      try {
-        const response = await apiClient.get("/room-types");
-        state.roomTypes = Array.isArray(response.data.data) ? response.data.data : [];
-      } catch (error) {
-        state.errorMessage = error.response?.data?.message || "Không thể tải danh sách loại phòng.";
-      }
-    };
-
-    const fetchAmenities = async () => {
-      try {
-        const response = await apiClient.get("/amenities");
-        state.amenities = Array.isArray(response.data.data) ? response.data.data : [];
-      } catch (error) {
-        state.errorMessage = error.response?.data?.message || "Không thể tải danh sách tiện ích.";
-      }
-    };
-
-    const fetchServices = async () => {
-      try {
-        const response = await apiClient.get("/services");
-        state.services = Array.isArray(response.data.data) ? response.data.data : [];
-      } catch (error) {
-        state.errorMessage = error.response?.data?.message || "Không thể tải danh sách dịch vụ.";
-      }
-    };
-
-    const updatePricing = async () => {
-      if (!state.form.type_id) {
-        state.selectedPricing.data = null;
-        return;
-      }
-      try {
-        const response = await apiClient.get(`/pricese/current/${state.form.type_id}`);
-        state.selectedPricing.data = response.data.data || null;
-      } catch (error) {
-        state.selectedPricing.data = null;
-        state.errorMessage = error.response?.data?.message || "Không thể tải giá phòng.";
-      }
-    };
-
-    // Initialize data
-    fetchRooms();
-    fetchRoomTypes();
-    fetchAmenities();
-    fetchServices();
-
-    // Watch for page changes
-    watch(() => state.currentPage, (newPage) => {
-      fetchRooms(newPage);
+      successMessage.value = 'Cập nhật phòng thành công!';
+    } else {
+      response = await apiClient.post('/rooms', payload);
+      console.log('POST response:', JSON.stringify(response.data, null, 2));
+      rooms.value.push({ ...response.data.data, roomType: response.data.data.room_type || { type_name: 'N/A' } }); // Sửa roomType thành room_type
+      fetchRooms(currentPage.value);
+      successMessage.value = 'Thêm phòng thành công!';
+    }
+    closeModal();
+  } catch (error) {
+    console.error('Save room error:', {
+      message: error.message,
+      response: error.response?.data,
+      status: error.response?.status
     });
+    modalErrorMessage.value = error.response?.data?.message || 'Lưu phòng thất bại.';
+    if (error.response?.status === 422) {
+      const backendErrors = error.response.data?.errors || {};
+      errors.value = { ...backendErrors };
+      modalErrorMessage.value += ': ' + Object.values(backendErrors).flat().join(', ');
+    }
+  } finally {
+    isLoading.value = false;
+  }
+};
 
-    // Watch for type_id changes
-    watch(() => state.form.type_id, () => {
-      updatePricing();
-    });
+// Delete room
+const deleteRoom = async (room_id) => {
+  if (!confirm('Bạn có chắc chắn muốn xóa phòng này?')) return;
 
-    // Filter rooms
-    const filteredRooms = computed(() => {
-      if (!Array.isArray(state.rooms)) return [];
-      return state.rooms.filter(room => {
-        const roomName = room.room_name?.toLowerCase() || "";
-        const typeName = room.room_type?.type_name?.toLowerCase() || "";
-        const floorNumber = room.floor_number?.toString() || "";
-        const amenityNames = room.amenity_names?.join(" ").toLowerCase() || "";
-        const serviceNames = room.service_names?.join(" ").toLowerCase() || "";
-        const matchesSearch =
-          roomName.includes(state.searchQuery.toLowerCase()) ||
-          typeName.includes(state.searchQuery.toLowerCase()) ||
-          floorNumber.includes(state.searchQuery.toLowerCase()) ||
-          amenityNames.includes(state.searchQuery.toLowerCase()) ||
-          serviceNames.includes(state.searchQuery.toLowerCase());
-        const matchesRoomType = !state.filterRoomType || room.type_id === parseInt(state.filterRoomType);
-        const matchesStatus = !state.filterStatus || room.status === state.filterStatus;
-        return matchesSearch && matchesRoomType && matchesStatus;
-      });
-    });
-
-    // Pagination
-    const totalPages = computed(() => Math.ceil(state.totalItems / state.itemsPerPage));
-
-    const displayedRooms = computed(() => {
-      return filteredRooms.value;
-    });
-
-    const pageRange = computed(() => {
-      const maxPages = 5;
-      let start = Math.max(1, state.currentPage - Math.floor(maxPages / 2));
-      let end = Math.min(totalPages.value, start + maxPages - 1);
-      if (end - start + 1 < maxPages) {
-        start = Math.max(1, end - maxPages + 1);
-      }
-      return Array.from({ length: end - start + 1 }, (_, i) => start + i);
-    });
-
-    // Modal actions
-    const openAddModal = () => {
-      state.form.room_name = "";
-      state.form.type_id = "";
-      state.form.floor_number = 1;
-      state.form.status = "Trống";
-      state.form.maintenance_status = "Hoạt động";
-      state.form.description = "";
-      state.form.amenities = [];
-      state.form.services = [];
-      state.errors = {};
-      state.currentRoom = null;
-      state.selectedPricing.data = null;
-      state.isModalOpen = true;
-      state.successMessage = "";
-      state.modalErrorMessage = "";
-      console.log("Opened add modal, form reset:", { ...state.form });
-    };
-
-    const openEditModal = (room) => {
-      console.log("Opening edit modal for room:", JSON.stringify(room, null, 2));
-      if (!room || typeof room !== 'object') {
-        console.error("Invalid room data:", room);
-        return;
-      }
-      state.form.room_name = String(room.room_name || "");
-      state.form.type_id = String(room.type_id || "");
-      state.form.floor_number = Number(room.floor_number) || 1;
-      state.form.status = room.status || "Trống";
-      state.form.maintenance_status = room.maintenance_status || "Hoạt động";
-      state.form.description = String(room.description || "");
-      state.form.amenities = room.amenities ? room.amenities.map(a => a.amenity_id) : [];
-      state.form.services = room.services ? room.services.map(s => s.service_id) : [];
-      state.currentRoom = { ...room };
-      updatePricing();
-      state.isModalOpen = true;
-      state.errors = {};
-      state.successMessage = "";
-      state.modalErrorMessage = "";
-      console.log("Edit modal opened, form set:", { ...state.form });
-    };
-
-    const closeModal = () => {
-      state.isModalOpen = false;
-      state.errors = {};
-      state.modalErrorMessage = "";
-      state.currentRoom = null;
-      state.selectedPricing.data = null;
-      state.form.room_name = "";
-      state.form.type_id = "";
-      state.form.floor_number = 1;
-      state.form.status = "Trống";
-      state.form.maintenance_status = "Hoạt động";
-      state.form.description = "";
-      state.form.amenities = [];
-      state.form.services = [];
-      console.log("Closed modal, form reset:", { ...state.form });
-    };
-
-    // Handle inputs
-    const onInputRoomName = (event) => {
-      state.form.room_name = event.target.value;
-      state.errors.room_name = "";
-      state.modalErrorMessage = "";
-      console.log("Room name input:", state.form.room_name);
-    };
-
-    const onInputFloorNumber = (event) => {
-      state.form.floor_number = Number(event.target.value) || 1;
-      state.errors.floor_number = "";
-      state.modalErrorMessage = "";
-      console.log("Floor number input:", state.form.floor_number);
-    };
-
-    const onInputDescription = (event) => {
-      state.form.description = event.target.value;
-      console.log("Description input:", state.form.description);
-    };
-
-    // Form validation
-    const validateForm = () => {
-      state.errors = {};
-      let isValid = true;
-
-      if (!state.form.room_name || state.form.room_name.trim().length === 0) {
-        state.errors.room_name = "Vui lòng nhập số phòng";
-        isValid = false;
-      }
-      if (!state.form.type_id) {
-        state.errors.type_id = "Vui lòng chọn loại phòng";
-        isValid = false;
-      }
-      if (!state.form.floor_number || state.form.floor_number < 1) {
-        state.errors.floor_number = "Tầng phải lớn hơn 0";
-        isValid = false;
-      }
-      if (!["Trống", "Đã đặt", "Chờ xác nhận", "Bảo trì", "Đang dọn dẹp"].includes(state.form.status)) {
-        state.errors.status = "Vui lòng chọn trạng thái hợp lệ";
-        isValid = false;
-      }
-      if (!["Hoạt động", "Đang bảo trì"].includes(state.form.maintenance_status)) {
-        state.errors.maintenance_status = "Vui lòng chọn trạng thái bảo trì hợp lệ";
-        isValid = false;
-      }
-
-      console.log("Validation result:", { isValid, form: { ...state.form }, errors: state.errors });
-      return isValid;
-    };
-
-    // Save room
-    const saveRoom = async () => {
-      console.log("Form data before validation:", { ...state.form });
-      if (!validateForm()) {
-        console.log("Validation failed, stopping save.");
-        state.modalErrorMessage = "Vui lòng kiểm tra thông tin nhập.";
-        return;
-      }
-
-      state.isLoading = true;
-      state.modalErrorMessage = "";
-      const payload = {
-        room_name: state.form.room_name.trim(),
-        type_id: state.form.type_id,
-        floor_number: state.form.floor_number,
-        status: state.form.status,
-        maintenance_status: state.form.maintenance_status,
-        description: state.form.description.trim() || null,
-        amenities: state.form.amenities,
-        services: state.form.services
-      };
-      console.log("Sending POST/PUT data:", payload);
-      try {
-        let response;
-        if (state.currentRoom) {
-          response = await apiClient.put(`/rooms/${state.currentRoom.room_id}`, payload);
-          console.log("PUT response:", JSON.stringify(response.data, null, 2));
-          const index = state.rooms.findIndex(r => r.room_id === state.currentRoom.room_id);
-          if (index !== -1) {
-            state.rooms[index] = { ...response.data.data };
-          }
-          state.successMessage = "Cập nhật phòng thành công!";
-        } else {
-          response = await apiClient.post("/rooms", payload);
-          console.log("POST response:", JSON.stringify(response.data, null, 2));
-          state.rooms.push(response.data.data);
-          state.successMessage = "Thêm phòng thành công!";
-          fetchRooms(state.currentPage);
-        }
-        closeModal();
-      } catch (error) {
-        console.error("Save room error:", {
-          message: error.message,
-          response: error.response?.data,
-          status: error.response?.status
-        });
-        state.modalErrorMessage = error.response?.data?.message || "Lưu phòng thất bại.";
-        if (error.response?.status === 422) {
-          const backendErrors = error.response.data?.errors || {};
-          state.errors = { ...backendErrors };
-          state.modalErrorMessage += ": " + Object.values(backendErrors).flat().join(", ");
-        }
-      } finally {
-        state.isLoading = false;
-      }
-    };
-
-    // Delete room
-    const deleteRoom = async (room_id) => {
-      if (!confirm("Bạn có chắc chắn muốn xóa phòng này?")) return;
-
-      state.isLoading = true;
-      state.errorMessage = "";
-      try {
-        await apiClient.delete(`/rooms/${room_id}`);
-        state.rooms = state.rooms.filter(r => r.room_id !== room_id);
-        if (displayedRooms.value.length === 0 && state.currentPage > 1) {
-          state.currentPage--;
-        }
-        state.successMessage = "Xóa phòng thành công!";
-        fetchRooms(state.currentPage);
-      } catch (error) {
-        console.error("Delete room error:", error);
-        state.errorMessage = error.response?.data?.message || "Xóa phòng thất bại.";
-      } finally {
-        state.isLoading = false;
-      }
-    };
-
-    return {
-      rooms: computed(() => state.rooms),
-      roomTypes: computed(() => state.roomTypes),
-      amenities: computed(() => state.amenities),
-      services: computed(() => state.services),
-      searchQuery: computed({
-        get: () => state.searchQuery,
-        set: (value) => { state.searchQuery = value; }
-      }),
-      filterRoomType: computed({
-        get: () => state.filterRoomType,
-        set: (value) => { state.filterRoomType = value; }
-      }),
-      filterStatus: computed({
-        get: () => state.filterStatus,
-        set: (value) => { state.filterStatus = value; }
-      }),
-      isModalOpen: computed(() => state.isModalOpen),
-      isLoading: computed(() => state.isLoading),
-      currentRoom: computed(() => state.currentRoom),
-      successMessage: computed(() => state.successMessage),
-      errorMessage: computed(() => state.errorMessage),
-      modalErrorMessage: computed(() => state.modalErrorMessage),
-      currentPage: computed({
-        get: () => state.currentPage,
-        set: (value) => { state.currentPage = value; }
-      }),
-      itemsPerPage: state.itemsPerPage,
-      totalItems: computed(() => state.totalItems),
-      form: computed(() => state.form),
-      errors: computed(() => state.errors),
-      selectedPricing: computed(() => state.selectedPricing),
-      filteredRooms,
-      displayedRooms,
-      totalPages,
-      pageRange,
-      formatPrice,
-      openAddModal,
-      openEditModal,
-      closeModal,
-      onInputRoomName,
-      onInputFloorNumber,
-      onInputDescription,
-      saveRoom,
-      deleteRoom,
-      updatePricing
-    };
+  isLoading.value = true;
+  errorMessage.value = '';
+  try {
+    await apiClient.delete(`/rooms/${room_id}`);
+    rooms.value = rooms.value.filter(r => r.room_id !== room_id);
+    if (displayedRooms.value.length === 0 && currentPage.value > 1) {
+      currentPage.value--;
+    }
+    successMessage.value = 'Xóa phòng thành công!';
+    fetchRooms(currentPage.value);
+  } catch (error) {
+    console.error('Delete room error:', error);
+    errorMessage.value = error.response?.data?.message || 'Xóa phòng thất bại.';
+  } finally {
+    isLoading.value = false;
   }
 };
 </script>
