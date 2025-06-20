@@ -5,7 +5,7 @@
 
     class Price extends Model
     {
-        protected $table = 'pricese';
+        protected $table = 'prices';
         protected $primaryKey = 'price_id';
         protected $fillable = [
             'type_id',

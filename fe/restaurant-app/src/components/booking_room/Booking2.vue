@@ -1,12 +1,31 @@
 <template>
+    <loading v-if="isLoading"></loading>
     <div>
+        <div>
+            <button @click="showPopup = true">Xem Nguyên Tắc Chung</button>
+            <Popup v-if="showPopup" :isVisible="showPopup" @close="showPopup = false" />
+        </div>
         <!-- Hero Section -->
         <header class="hero-section d-flex align-items-center">
             <div class="container text-center">
-                <h1 class="display-3 fw-bold">Find Your Perfect Stay</h1>
-                <p class="lead">Discover premium hotels at unbeatable prices worldwide</p>
+                <h1 class="display-3 fw-bold">Booking Rooms</h1>
+                <p class="lead">Hồ Xuân Hương Hotel </p>
             </div>
         </header>
+        <!-- <div class="btn btn-info" @click="showPopUpMain">Xem nguyên tắc chung</div> -->
+        <div class="tooltip-container">
+            <div class="icon" @click="showPopUpMain">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="50" height="50">
+                    <path
+                        d="M12 0C5.373 0 0 5.373 0 12s5.373 12 12 12 12-5.373 12-12S18.627 0 12 0zm0 22c-5.518 0-10-4.482-10-10s4.482-10 10-10 10 4.482 10 10-4.482 10-10 10zm-1-16h2v6h-2zm0 8h2v2h-2z">
+                    </path>
+                </svg>
+                <span class="icon-text">Nguyên Tắc Chung</span>
+            </div>
+            <div class="tooltip">
+                <p>Thông báo</p>
+            </div>
+        </div>
 
         <!-- Search Box -->
         <section class="container">
@@ -66,34 +85,51 @@
         </section>
 
         <!-- Featured Hotels -->
-        <section class="container my-5">
+        <section class="container my-4">
             <h2 class="text-center mb-4">Lựa Chọn Hạng Phòng</h2>
             <div class="row g-4">
                 <div class="col-md-6 col-lg-4" v-for="hotel in hotels" :key="hotel.id">
                     <div class="card hotel-card h-100">
-                        <!-- <img :src="hotel.image" class="card-img-top" :alt="hotel.name"
-                            style="height: 200px; object-fit: cover;" /> -->
-                        <iframe width="100%" height="255"
-                            src="https://www.youtube.com/embed/1IbCt-nY09Q?si=VNRifz2UegA4rH-R"
-                            title="YouTube video player" frameborder="0"
+                        <img :src="hotel.image" class="card-img-top" :alt="hotel.name"
+                            style="height: 200px; object-fit: cover;" />
+                        <!-- <iframe width="100%" height="255" :src="hotel.youtube_link" title="YouTube video player"
+                            frameborder="0"
                             allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-                            referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
+                            referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe> -->
+
                         <div class="card-body">
                             <div class="d-flex justify-content-between mb-2">
                                 <h5 class="card-title mb-0">{{ hotel.name }}</h5>
                                 <span class="badge bg-primary">{{ hotel.rating }} ★</span>
+
                             </div>
-                            <p class="text-muted"><i class="bi bi-geo-alt-fill"></i> {{ hotel.location }}</p>
+                            <div class="room-info">
+                                <span><img
+                                        src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQX45rlQMvzd8yDC0V5dfIZ0agx43DvR3wKWQ&s"
+                                        alt="Giường" /> {{ hotel.bed_count }} Giường </span>
+                                <span><img
+                                        src="https://images.icon-icons.com/3178/PNG/512/team_people_man_woman_group_icon_193939.png"
+                                        alt="Người" /> {{ hotel.max_occupancy }} Người</span>
+                                <span><img
+                                        src="https://static.vecteezy.com/system/resources/previews/006/996/151/non_2x/m2-area-icon-vector.jpg"
+                                        alt="Người" /> {{ hotel.m2 }} m2</span>
+
+                            </div>
                             <p class="card-text">{{ hotel.description.substring(0, 100) }}...</p>
+                            <!-- <p class="card-text">{{ hotel.bed_count }}...</p>
+                            <p class="card-text">{{ hotel.max_occupancy }}...</p> -->
+
                             <div class="d-flex align-items-center">
                                 <span class="fs-5 fw-bold text-primary">{{ hotel.currency }}{{ hotel.price }}</span>
+
                                 <span class="text-muted ms-1">/ night</span>
+
                             </div>
                         </div>
                         <div class="card-footer bg-white">
                             <div class="d-flex justify-content-between">
                                 <button class="btn btn-outline-primary" @click="viewHotelDetails(hotel)">
-                                    <i class="bi bi-info-circle me-1"></i>View Details
+                                    <i class="bi bi-info-circle me-1"></i>Xem chi tiết
                                 </button>
                                 <button class="btn btn-primary" @click="bookHotel(hotel.id)">
                                     <i class="bi bi-calendar-check me-1"></i>Book Now
@@ -158,12 +194,13 @@
                 </div>
             </div>
         </section>
-         <!-- Newsletter -->
-         <section class="bg-primary text-white py-5">
+        <!-- Newsletter -->
+        <section class="bg-primary text-white py-5">
             <div class="container">
                 <div class="row align-items-center">
                     <div class="col-lg-6">
-                        <h5>Để lại thông tin để bộ phận CSKH HXH hotel liên hệ hỗ trợ bạn ngay hoặc liên hệ chatbox CSKH Online Hotel <router-link class="dropdown-item " to="/chat">tại đây</router-link></h5>   
+                        <h5>Để lại thông tin để bộ phận CSKH HXH hotel liên hệ hỗ trợ bạn ngay hoặc liên hệ chatbox CSKH
+                            Online Hotel <router-link class="dropdown-item " to="/chat">tại đây</router-link></h5>
                     </div>
                     <div class="col-lg-6">
                         <form id="newsletterForm" class="row g-3">
@@ -217,7 +254,7 @@
                 </div>
             </div>
         </section>
-       
+
         <!-- Modal for hotel details -->
         <div v-if="showModal" class="modal fade show" style="display: block;">
             <div class="modal-dialog modal-lg">
@@ -234,54 +271,79 @@
                         <p><strong>Price per night:</strong> {{ selectedHotel.currency }}{{ selectedHotel.price }}</p>
                         <p><strong>Description:</strong> {{ selectedHotel.description }}</p>
                         <hr />
-                        <h5>Amenities:</h5>
+                        <h4>Tiện nghi:</h4>
+                        <li v-if="selectedHotel.amenities.length === 0">Không có tiện nghi đi kèm cho hạng phòng này
+                        </li>
+                        <ul>
+                            <li v-for="amenity in selectedHotel.amenities" :key="amenity.amenity_id">
+                                {{ amenity.amenity_name }}: {{ amenity.description }}
+                            </li>
+                        </ul>
+                        <h4>Dịch vụ:</h4>
+                        <li v-if="selectedHotel.services.length === 0">Không có dịch vụ đi kèm cho hạng phòng này</li>
+
+                        <ul>
+                            <li v-for="service in selectedHotel.services" :key="service.service_id">
+                                {{ service.service_name }}: {{ service.price }}
+                            </li>
+                        </ul>
+                        <!-- <h5>Amenities:</h5>
                         <ul>
                             <li v-for="amenity in selectedHotel.amenities" :key="amenity">{{ amenity }}</li>
-                        </ul>
+                        </ul> -->
                     </div>
                 </div>
             </div>
         </div>
+        <Footer></Footer>
+
     </div>
-    <Footer></Footer>
 </template>
 
 <script setup>
 import { ref, onMounted } from 'vue';
+import axios from 'axios';
 // import Modal from '../Model.vue';
+import loading from '../loading.vue';
 import Footer from '../Footer.vue';
-const hotels = ref([
-    {
-        id: 1,
-        name: "Grand Royal Hotel",
-        location: "New York, USA",
-        price: 299,
-        currency: "$",
-        rating: 4.8,
-        description: "Experience luxury at its finest in the heart of Manhattan. The Grand Royal Hotel offers stunning views of the city skyline.",
-        image: "https://images.unsplash.com/photo-1618773928121-c32242e63f39?ixlib=rb-4.0.3&auto=format&fit=crop&w=1470&q=80"
-    },
-    {
-        id: 2,
-        name: "Seaside Resort & Spa",
-        location: "Cancun, Mexico",
-        price: 189,
-        currency: "$",
-        rating: 4.6,
-        description: "Nestled on the pristine beaches of Cancun, the Seaside Resort & Spa offers an all-inclusive experience.",
-        image: "https://images.unsplash.com/photo-1566073771259-6a8506099945?ixlib=rb-4.0.3&auto=format&fit=crop&w=1470&q=80"
-    },
-    {
-        id: 3,
-        name: "Alpine Lodge",
-        location: "Interlaken, Switzerland",
-        price: 249,
-        currency: "$",
-        rating: 4.9,
-        description: "Surrounded by the majestic Swiss Alps, Alpine Lodge offers a cozy retreat with breathtaking mountain views.",
-        image: "https://images.unsplash.com/photo-1613490493576-7fde63acd811?ixlib=rb-4.0.3&auto=format&fit=crop&w=1471&q=80"
+import Popup from '../Popup.vue';
+
+const showPopup = ref(false);//popup mới vào trang
+const showPopUpMain = () => {
+    showPopup.value = true;//popup mới vào trang
+}
+const hotels = ref([]);
+const isLoading = ref(false);
+const getRoomTypes = async () => {
+    isLoading.value = true;
+    try {
+        const response = await axios.get('http://127.0.0.1:8000/api/room-types/');
+        console.log(response.data.data);
+
+        hotels.value = response.data.data.map(room => ({
+            id: room.type_id,
+            name: room.type_name,
+            description: room.description,
+            bed_count: room.bed_count,
+            amenities: room.amenities || [], // Lưu thông tin tiện nghi
+            services: room.services || [],
+            max_occupancy: room.max_occupancy,
+            image: "https://i.postimg.cc/d3pNGXPN/7c6764b8-de90-474c-9b98-05019aef3193.png", // Cập nhật với URL hình ảnh thực tế
+            youtube_link: room.youtube_link || "", // Liên kết video
+            price: 0, // Cập nhật giá nếu có
+            currency: "$", // Cập nhật loại tiền tệ nếu cần
+            rating: room.rate, // Cập nhật đánh giá nếu cần
+            m2: room.m2, // Cập nhật đánh giá nếu cần
+        }));
+        console.log(hotels.value);
+        showPopup.value = true;//popup mới vào trang
+
+    } catch (error) {
+        console.error("Có lỗi xảy ra khi lấy dữ liệu:", error);
+    } finally {
+        isLoading.value = false;
     }
-]);
+}
 
 const search = ref({
     destination: '',
@@ -311,18 +373,150 @@ function closeModal() {
 }
 
 onMounted(() => {
-    // Load featured hotels on component mount
+    getRoomTypes();
 });
 </script>
 
 <style scoped>
 .hero-section {
-    background: linear-gradient(rgba(0, 0, 0, 0.6), rgba(0, 0, 0, 0.6)),
+    background: linear-gradient(rgba(99, 208, 248, 0.6), rgba(0, 0, 0, 0.6)),
         url("https://images.unsplash.com/photo-1542314831-068cd1dbfeeb?ixlib=rb-4.0.3&auto=format&fit=crop&w=1470&q=80");
     background-size: cover;
     background-position: center;
     height: 500px;
     color: white;
+}
+
+/* From Uiverse.io by Cksunandh */
+/* Basic reset and styling */
+
+/* Tooltip container */
+.tooltip-container {
+    position: fixed;
+    /* Đổi từ relative sang fixed */
+    bottom: 20px;
+    /* Khoảng cách từ đáy màn hình */
+    right: 20px;
+    /* Khoảng cách từ bên phải màn hình */
+    display: inline-block;
+    z-index: 120;
+    margin: 0;
+    /* Đặt margin thành 0 để không có khoảng cách không mong muốn */
+}
+
+/* Icon styling */
+.icon {
+    width: 150px;
+    height: 50px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    cursor: pointer;
+    transition:
+        transform 0.3s ease,
+        filter 0.3s ease;
+}
+
+.icon-text {
+    margin-top: 5px; /* Khoảng cách giữa biểu tượng và chữ */
+    font-size: 14px; /* Kích thước chữ */
+    color: #27c5f1; /* Màu chữ */
+}
+/* SVG Animation: Rotate and scale effect */
+.icon svg {
+    transition: transform 0.5s ease-in-out;
+}
+
+.icon:hover svg {
+    transform: rotate(360deg) scale(1.2);
+}
+
+/* Tooltip styling */
+.tooltip {
+    visibility: hidden;
+    width: 200px;
+    background-color: #333;
+    color: #fff;
+    text-align: center;
+    border-radius: 5px;
+    padding: 10px;
+    position: absolute;
+    bottom: 125%;
+    /* Position above the icon */
+    left: 50%;
+    margin-left: -100px;
+    /* Center the tooltip */
+    opacity: 0;
+    transition:
+        opacity 0.5s,
+        transform 0.5s;
+    transform: translateY(10px);
+}
+
+/* Tooltip Arrow */
+.tooltip::after {
+    content: "";
+    position: absolute;
+    top: 100%;
+    left: 50%;
+    margin-left: -5px;
+    border-width: 5px;
+    border-style: solid;
+    border-color: #333 transparent transparent transparent;
+}
+
+/* Show tooltip on hover */
+.tooltip-container:hover .tooltip {
+    visibility: visible;
+    opacity: 1;
+    transform: translateY(0);
+}
+
+@keyframes bounce {
+
+    0%,
+    20%,
+    50%,
+    80%,
+    100% {
+        transform: translateY(0);
+    }
+
+    40% {
+        transform: translateY(-30px);
+    }
+
+    60% {
+        transform: translateY(-15px);
+    }
+}
+
+.tooltip-container:hover .tooltip {
+    visibility: visible;
+    opacity: 1;
+    transform: translateY(0);
+    animation: bounce 0.6s ease;
+}
+
+.room-info {
+    display: flex;
+    justify-content: space-around;
+    margin-top: 12px;
+}
+
+.room-info span {
+    display: flex;
+    align-items: center;
+    font-size: 14px;
+    color: #7d7d7d;
+}
+
+.room-info img {
+    margin-right: 4px;
+    width: 50px;
+    /* Kích thước icon */
+    height: 50px;
+    /* Kích thước icon */
 }
 
 .search-box {
@@ -338,10 +532,5 @@ onMounted(() => {
 .hotel-card:hover {
     transform: translateY(-5px);
     box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
-}
-
-.footer {
-    background-color: #343a40;
-    color: white;
 }
 </style>
