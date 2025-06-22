@@ -23,6 +23,7 @@ import AdminMenuCategoryComponent from '../components/AdminMenu/AdminMenuCategor
 import AdminMenuComponent from '../components/AdminMenu/AdminMenuComponent.vue';
 import AdminBookingComponent from '../components/AdminBookingComponent.vue';
 
+import AdminOccupancyComponent from '../components/AdminRoom/AdminOccupancy.vue';
 
 import AdminDashboardComponent from '../components/admin/AdminDashboardComponent.vue';
 import AdminStaffsComponent from '../components/admin/AdminStaffsComponent.vue';
@@ -36,6 +37,7 @@ import buynow from '../components/ShopOnline/BuyNow.vue';
 import ChatAdmin from '../components/ChatAdmin.vue';
 import Chat from '../components/Chat.vue';
 import qrCodeCCCD from '../components/qrCodeCCCD.vue';
+// import adminOccupancy from '../components/AdminRoom/AdminRoomOccupancy.vue';   //hiển thị room admin
 const routes = [
   {
     path: '/',
@@ -47,6 +49,7 @@ const routes = [
     name: 'AboutComponent',
     component: AboutComponent,
   },
+  
   {
     path: '/contact',
     name: 'ContactComponent',
@@ -207,7 +210,18 @@ const routes = [
     name: 'AdminBooking',
     component: AdminBookingComponent,
     meta: { requiresAdmin: true },
-  }
+  },
+  {// quản lý trạng thái phòng
+    path: '/admin/occupancy',
+    name: 'AdminOccupancy',
+    component: AdminOccupancyComponent,
+    meta: { requiresAdmin: true },
+  },
+  // {
+  //   path: '/admin/Occupancy',
+  //   name: 'adminOccupancy',
+  //   component: adminOccupancy,
+  // }
 ];
 
 const router = createRouter({
