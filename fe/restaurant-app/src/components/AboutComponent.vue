@@ -10,7 +10,7 @@
         </div> -->
       <div class="home-text mt-4">
         <span class="">Sầm Sơn Beach</span>
-        <h1>An Phú Eco<br> Kính chào quý khách!</h1>
+        <h1>Hồ Xuân Hương Eco<br> Kính chào quý khách!</h1>
 
         <a href="/menu" class="btn">Xem Menu</a>
       </div>
@@ -50,9 +50,9 @@
               <h2 class="sisf-m-title">Thiết Kế Sang Trọng</h2>
               <div class="sisf-m-text text-center">
                 <p>
-                  Với thiết kế hiện đại và sang trọng, mỗi góc nhỏ của villa đều được chăm chút tỉ mỉ, mang đến cảm giác
+                  Với thiết kế hiện đại và sang trọng, mỗi góc nhỏ của  đều được chăm chút tỉ mỉ, mang đến cảm giác
                   thoải mái và ấm cúng.
-                  Tiện Nghi Đầy Đủ: Villa được trang bị đầy đủ tiện nghi hiện đại, từ bể bơi riêng, phòng gym đến khu
+                  Tiện Nghi Đầy Đủ:  được trang bị đầy đủ tiện nghi hiện đại, từ bể bơi riêng, phòng gym đến khu
                   vực nướng BBQ, phục vụ mọi nhu cầu của khách hàng.
                   Dịch Vụ Chăm Sóc Khách Hàng: Đội ngũ nhân viên chuyên nghiệp và thân thiện luôn sẵn sàng phục vụ, đảm
                   bảo mang đến trải nghiệm nghỉ dưỡng tuyệt vời cho bạn.
@@ -75,11 +75,11 @@
             </div>
           </div>
         </div>
-        <div class="row">
+        <!-- <div class="row">
           <div class="col-md-2 d-flex align-items-end">
             <div class="float">
               <figure>
-                <img src="https://dishify-html.wpthemeverse.com/images/dishify-culinary_img2.png" alt="Dishify" />
+                <img src="https://cdn2.vietnambooking.com/wp-content/uploads/hotel_pro/hotel_335645/c0d87b6831ca64bd8e616cb59b3f5bc6.jpg" alt="Dishify" />
               </figure>
             </div>
           </div>
@@ -87,7 +87,7 @@
             <div class="text-end">
               <figure>
                 <img
-                  src="https://cf.bstatic.com/xdata/images/hotel/max1280x900/295359142.jpg?k=85a076e98de0459cd6ad0776faf1fdfb772d40abe3faba412718ec7708a741af&o=&hp=1"
+                  src="https://cdn2.vietnambooking.com/wp-content/uploads/hotel_pro/hotel_335645/8ab456af864681dd67ded2299798e194.jpg"
                   alt="Dishify" />
               </figure>
             </div>
@@ -95,11 +95,11 @@
           <div class="col-md-2">
             <div class="float">
               <figure class="md-none">
-                <img src="https://dishify-html.wpthemeverse.com/images/dishify-culinary_img3.png" alt="Dishify" />
+                <img src="https://pix10.agoda.net/hotelImages/461265/3446277/3ade519cb63ae73bf7887d0f71543f1e.jpeg?ce=0&s=414x232&ar=16x9" alt="Dishify" />
               </figure>
             </div>
           </div>
-        </div>
+        </div> -->
       </div>
     </div>
     <!-- Culinary Journey Section End -->
@@ -112,7 +112,7 @@
             <div class="sisf-e-img-holder">
               <figure>
                 <img
-                  src="https://cf.bstatic.com/xdata/images/hotel/max1280x900/295357855.jpg?k=e956a0891f88b860876d453220cc9ff153fd59f65f4b3d8d1db7ccdaac8d36bb&o=&hp=1"
+                  src="https://cdn3.ivivu.com/2014/01/SUPER-DELUXE2.jpg"
                   alt="Dishify" />
               </figure>
             </div>
@@ -120,8 +120,8 @@
           <div class="col-md-6">
             <!-- Section Title Start -->
             <div class="sisf-sis-section-title section-title wow fadeInRight" data-wow-delay="0.2s">
-              <h3 class="sisf-m-subtitle">An Phú Villa</h3>
-              <h2 class="sisf-m-title">Địa Điểm Lý Tưởng: Nằm ở vị trí đắc địa, villa dễ dàng tiếp cận các điểm tham
+              <h3 class="sisf-m-subtitle">Hồ Xuân Hương </h3>
+              <h2 class="sisf-m-title">Địa Điểm Lý Tưởng: Nằm ở vị trí đắc địa,  dễ dàng tiếp cận các điểm tham
                 quan nổi tiếng và các hoạt động giải trí thú vị.
 
               </h2>
@@ -164,7 +164,7 @@
               <h2 class="sisf-m-title text-white">Đánh giá dịch vụ</h2>
               <div class="sisf-m-text">
                 <p class="text-white">
-                  An Phú Villa tự hào mang đến trải nghiệm ẩm thực đa dạng, từ các món ăn truyền thống Việt Nam đến các
+                  Hồ Xuân Hương  tự hào mang đến trải nghiệm ẩm thực đa dạng, từ các món ăn truyền thống Việt Nam đến các
                   hương vị quốc tế. Chúng tôi cam kết sử dụng nguyên liệu tươi ngon nhất và công thức nấu ăn độc đáo để
                   mang đến cho bạn những món ăn ngon miệng và đáng nhớ.
                 </p>
@@ -304,8 +304,8 @@
           <div class="col-12 text-center">
             <!-- Section Title Start -->
             <div class="sisf-sis-section-title sisf-center-text section-title wow bounceIn" data-wow-delay="0.2s">
-              <h3 class="sisf-m-subtitle">Giám Đốc AN PHÚ Villa</h3>
-              <h2 class="sisf-m-title">Giám Đốc AN PHÚ Villa</h2>
+              <h3 class="sisf-m-subtitle">Giám Đốc Hồ Xuân Hương </h3>
+              <h2 class="sisf-m-title">Giám Đốc Hồ Xuân Hương </h2>
             </div>
             <!-- Section Title End -->
             <div class="carousel">
@@ -320,9 +320,7 @@
                     <span class="sisf-e-author-job">{{ testimonial.job }}</span>
                   </div>
                   <p class="sisf-e-text">{{ testimonial.text }}</p>
-                  <div class="sisf-icon-holder">
-                    <i class="fa-solid fa-quote-left"></i>
-                  </div>
+                 
                 </div>
               </div>
 
@@ -333,12 +331,14 @@
       </div>
     </div>
     <!-- Testimonial Section End -->
+    <Footer></Footer>
 
 
   </div>
 </template>
 <script setup>
 import sliderComponent from './sliderComponent.vue';
+import Footer from './Footer.vue';
 </script>
 <script>
 import { scrollToTop } from '../assets/script'; // Đường dẫn đến tệp JavaScript
@@ -356,10 +356,10 @@ export default {
       ],
       testimonials: [
         {
-          image: 'https://dishify-html.wpthemeverse.com/images/testimonial-chris.png',
+          image: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTKLYohDbTqgPOkuIlFi3YY8ZDqHAc6fqYQEg&s',
           name: 'Tên Giám Đốc',
           job: 'Main-Boss',
-          text: 'Đại diện pháp lý của An Phú Villa, chúng tôi cam kết mang đến dịch vụ tốt nhất cho khách hàng. Với đội ngũ nhân viên chuyên nghiệp và tận tâm, chúng tôi luôn sẵn sàng đáp ứng mọi nhu cầu của bạn.',
+          text: 'Đại diện pháp lý của Hồ Xuân Hương , chúng tôi cam kết mang đến dịch vụ tốt nhất cho khách hàng. Với đội ngũ nhân viên chuyên nghiệp và tận tâm, chúng tôi luôn sẵn sàng đáp ứng mọi nhu cầu của bạn.',
         }
       ],
       currentTestimonial: 0,

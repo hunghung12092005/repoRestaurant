@@ -22,7 +22,7 @@
                         </path>
                     </g>
                 </svg>
-                <input type="text" class="input" v-model="email" placeholder="Enter your Email">
+                <input type="text" class="input" v-model="email" placeholder="Enter your Email" required>
             </div>
             <div class="flex-column" v-if="!isLogin">
                 <label>Name </label>
@@ -47,6 +47,7 @@
             <div class="flex-column">
                 <label>Password </label>
             </div>
+
             <div class="inputForm">
                 <svg height="20" viewBox="-64 0 512 512" width="20" xmlns="http://www.w3.org/2000/svg">
                     <path
@@ -56,19 +57,21 @@
                         d="m304 224c-8.832031 0-16-7.167969-16-16v-80c0-52.929688-43.070312-96-96-96s-96 43.070312-96 96v80c0 8.832031-7.167969 16-16 16s-16-7.167969-16-16v-80c0-70.59375 57.40625-128 128-128s128 57.40625 128 128v80c0 8.832031-7.167969 16-16 16zm0 0">
                     </path>
                 </svg>
-                <input type="password" class="input" v-model="password" placeholder="Enter your Password">
+                <input type="password" class="input" v-model="password" placeholder="Enter your Password" required>
                 <svg viewBox="0 0 576 512" height="1em" xmlns="http://www.w3.org/2000/svg">
                     <path
                         d="M288 32c-80.8 0-145.5 36.8-192.6 80.6C48.6 156 17.3 208 2.5 243.7c-3.3 7.9-3.3 16.7 0 24.6C17.3 304 48.6 356 95.4 399.4C142.5 443.2 207.2 480 288 480s145.5-36.8 192.6-80.6c46.8-43.5 78.1-95.4 93-131.1c3.3-7.9 3.3-16.7 0-24.6c-14.9-35.7-46.2-87.7-93-131.1C433.5 68.8 368.8 32 288 32zM144 256a144 144 0 1 1 288 0 144 144 0 1 1 -288 0zm144-64c0 35.3-28.7 64-64 64c-7.1 0-13.9-1.2-20.3-3.3c-5.5-1.8-11.9 1.6-11.7 7.4c.3 6.9 1.3 13.8 3.2 20.7c13.7 51.2 66.4 81.6 117.6 67.9s81.6-66.4 67.9-117.6c-11.1-41.5-47.8-69.4-88.6-71.1c-5.8-.2-9.2 6.1-7.4 11.7c2.1 6.4 3.3 13.2 3.3 20.3z">
                     </path>
                 </svg>
             </div>
+            <div class="cf-turnstile" data-sitekey="0x4AAAAAABhcDWU29f0qZu4n"></div>
+
             <div class="flex-row">
                 <div>
                     <input type="checkbox">
                     <label>Remember me </label>
                 </div>
-                <span class="span">Forgot password?</span>
+                <span class="span"><router-link to="/forgotPass">Forgot password?</router-link></span>
             </div>
             <div id="alert"></div>
             <button class="btn-main" type="submit">
@@ -87,13 +90,14 @@
 
             </p>
 
-            <p class="p line">Or With</p>
+            <p v-if="isLogin" class="p line">Or With</p>
             <div v-if="isLogin">
                 <h4>Đăng Nhập Nhanh Qua Mã QR</h4>
-                <input type="file" @change="onFileChange" accept="image/*" />
-                <button class="btn btn-info" @click="startQRCodeScanner">Quét Mã QR</button>
-                <div id="reader" style="width: 300px; height: 300px; display: none;"></div>
-                <button class="btn btn-info m-2" @click="stopQRCodeScanner">dừng</button>
+                <!-- <input type="file" @change="onFileChange" accept="image/*" /> -->
+                
+                <button class="btn-main" @click="startQRCodeScanner">Quét Mã QR</button>
+                <div id="reader" style="width: 100%; height: 300px; display: none;"></div>
+                <!-- <button class="btn btn-info m-2" @click="stopQRCodeScanner">dừng</button> -->
                 <p v-if="errorMessageQr">{{ errorMessage }}</p>
             </div>
             <p class="p line">Or With</p>
@@ -150,41 +154,51 @@ const toggleForm = () => {
 };
 const submitForm = async () => {
     isLoading.value = true;
+
+    // Lấy giá trị Turnstile response
+    const turnstileResponse = document.querySelector('input[name="cf-turnstile-response"]').value; console.log("Turnstile response:", turnstileResponse); // In giá trị ra console
+    if (!turnstileResponse) {
+        showError("Please complete the Turnstile challenge."); // Hiển thị thông báo nếu Turnstile chưa hoàn thành
+        isLoading.value = false;
+        return;
+    }
+
     try {
         if (isLogin.value) {
             const response = await axios.post(`${apiUrl}/api/login`, {
                 email: email.value,
                 password: password.value,
+                turnstileResponse, // Gửi Turnstile response cho login
             });
             const token = response.data.token;
             const user = response.data.user;
-            userInfo.value = user; // Sửa this.userInfo thành userInfo.value
+            userInfo.value = user;
             localStorage.setItem('tokenJwt', token);
             localStorage.setItem('userInfo', JSON.stringify(user));
             window.location.href = 'http://127.0.0.1:5173/';
         } else {
             const response = await axios.post(`${apiUrl}/api/register`, {
-                name: name.value, // Sửa this.name thành name.value
+                name: name.value,
                 email: email.value,
                 password: password.value,
+                turnstileResponse, // Gửi Turnstile response cho register
             });
             const token = response.data.token;
-            qrCode.value = response.data.qr_code; // Lưu mã QR vào biến
+            qrCode.value = response.data.qr_code;
             localStorage.setItem('tokenJwt', token);
-            console.log(response.data.message);
+            //console.log(response.data.message);
             showAlert(response.data.message);
             // this.$router.push('/login');
         }
     } catch (error) {
         if (error.response && error.response.data) {
-            // Kiểm tra xem có lỗi trong password không
             if (error.response.data.errors && error.response.data.errors.password) {
-                showError(error.response.data.errors.password[0]); // Lấy thông báo lỗi đầu tiên
+                showError(error.response.data.errors.password[0]);
             } else {
                 showError(error.response.data.message || 'Sai pass!');
             }
         } else {
-            //errorMessage.value = 'Đã xảy ra lỗi không xác định!';
+            showError('Đã xảy ra lỗi không xác định!');
         }
     } finally {
         isLoading.value = false;
@@ -292,6 +306,20 @@ const stopQRCodeScanner = () => {
         document.getElementById("reader").style.display = "none"; // Ẩn video
     }
 };
+onMounted(() => {
+    const script = document.createElement('script');
+    script.src = 'https://challenges.cloudflare.com/turnstile/v0/api.js';
+    script.async = true;
+
+    script.onload = () => {
+        console.log("Turnstile script loaded successfully."); // Kiểm tra xem script đã tải
+        // Kiểm tra xem widget có tồn tại không
+        const turnstileWidget = document.querySelector('.cf-turnstile');
+        console.log("Turnstile widget:", turnstileWidget); // In ra widget
+    };
+
+    document.body.appendChild(script);
+});
 onBeforeUnmount(() => {
     stopQRCodeScanner(); // Dừng quét khi component bị hủy
 });
@@ -327,6 +355,7 @@ function showAlert(message) {
         }, 500);
     }, 5000);
 }
+
 </script>
 <style scoped>
 .main-login {

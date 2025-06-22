@@ -6,7 +6,7 @@
         <div class="container">
           <div class="row justify-content-center">
             <div class="col-xl-9 col-lg-10 col-md-8 text-center">
-              <h1>An Phú Ecosystem</h1>
+              <h1>Hồ Xuân Hương Ecosystem</h1>
               <p>Đặt Bàn Online </p>
             </div>
           </div>
