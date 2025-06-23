@@ -33,11 +33,7 @@ import AdminServicesComponent from '../components/AdminSeAm/AdminServicesCompone
 // AdminBooking - Đặt phòng
 
 import AdminDashboardComponent from '../components/admin/AdminDashboardComponent.vue';
-import AdminOccupancyComponent from '../components/admin/AdminOccupancy.vue';
 import AdminUsersComponent from '../components/admin/AdminUsersComponent.vue';
-import AdminNewsComponent from '../components/admin/news/AdminNewsComponent.vue';
-import AdminNewsCategoryComponent from '../components/admin/news/AdminNewsCategoryComponent.vue';
-import AdminNewsCommentComponent from '../components/admin/news/AdminNewsCommentComponent.vue';
 import Shop from '../components/Shop.vue';
 import ghn from '../components/ghn/mainghn.vue';
 import menu_online from '../components/ShopOnline/menu_online.vue';
@@ -46,7 +42,6 @@ import detailMenu from '../components/ShopOnline/detailMenu.vue';
 import detailOrderMenu from '../components/menu_item/detailOrderMenu.vue';
 import CategoryShopOnline from '../components/ShopOnline/CategoryShopOnline.vue';
 import buynow from '../components/ShopOnline/BuyNow.vue';
-import StaffDashboardComponent from '../components/staff/StaffDashboardComponent.vue';
 
 import ChatAdmin from '../components/ChatAdmin.vue';
 import Chat from '../components/Chat.vue';
@@ -96,8 +91,8 @@ const routes = [
     component: Shop,
   },
   {
-    path: '/blog',
-    name: 'BlogComponent',
+    path: '/news', 
+    name: 'NewsList',
     component: BlogComponent,
   },
   {
@@ -116,8 +111,8 @@ const routes = [
     component: TestJwtComponent,
   },
   {
-    path: '/blog-detail',
-    name: 'BlogDetailComponent',
+    path: '/news/:id', 
+    name: 'NewsDetail', 
     component: BlogDetailComponent,
   },
   {
@@ -260,22 +255,6 @@ const routes = [
     meta: { requiresAdmin: true },
   },
   
-  {// quản lý trạng thái phòng
-    path: '/admin/occupancy',
-    name: 'AdminOccupancy',
-    component: AdminOccupancyComponent,
-    meta: { requiresAdmin: true },
-  },
-  {// quản lý trạng thái phòng
-    path: '/admin/AdminBooking',
-    name: 'AdminBookingComponent',
-    component: AdminBookingComponent,
-  },
-  // {
-  //   path: '/admin/Occupancy',
-  //   name: 'adminOccupancy',
-  //   component: adminOccupancy,
-  // }
   {
     path: '/admin/services',
     name: 'AdminServices',
@@ -304,6 +283,12 @@ const routes = [
     path: '/admin/news-comments',
     name: 'AdminNewsComments',
     component: AdminNewsCommentComponent,
+    meta: { requiresAdmin: true },
+  },
+  {
+    path: '/admin/users',
+    name: 'AdminUsers',
+    component: AdminUsersComponent,
     meta: { requiresAdmin: true },
   },
 ];

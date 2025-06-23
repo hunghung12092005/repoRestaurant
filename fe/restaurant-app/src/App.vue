@@ -127,54 +127,6 @@
       </div>
     </div>
 
-    <!-- Layout cho staff -->
-    <div v-else-if="$route.path.startsWith('/staff')" class="d-flex">
-      <!-- Sidebar -->
-      <div class="sidebar">
-        <div class="header text-center p-3 border-bottom">
-          <img src="https://i.postimg.cc/s2Ywg6YR/logo.png" alt="Luxuria Logo" class="rounded-circle" />
-          <span class="fw-bold">An Phú Ecosystem</span>
-        </div>
-        <div class="profile text-center p-3 border-bottom">
-          <img src="https://www.einfosoft.com/templates/admin/luxuria/source/light/assets/images/admin.jpg"
-            alt="Profile Picture" class="rounded-circle" />
-          <p class="mb-0 text-muted">{{ userInfo.name || 'Staff' }}</p>
-          <p class="text-muted">{{ userInfo.email || 'staff@seafoodie.com' }}</p>
-          <div class="icons d-flex justify-content-center mt-2">
-            <i class="bi bi-person mx-2" @click="goToProfile"></i>
-            <i class="bi bi-pencil mx-2" @click="editProfile"></i>
-            <i class="bi bi-bookmark-check mx-2"></i>
-            <i class="bi bi-box-arrow-right mx-2" @click.prevent="logout"></i>
-          </div>
-        </div>
-        <ul class="nav flex-column">
-          <li class="nav-item"><router-link class="nav-link" to="/staff/bookings"><i class="bi bi-book"></i> Quản lý đặt phòng</router-link></li>
-          <li class="nav-item"><router-link class="nav-link" to="/staff/reservations"><i class="bi bi-table"></i> Quản lý đặt bàn</router-link></li>
-          <li class="nav-item"><router-link class="nav-link" to="/staff/menu"><i class="bi bi-menu-button-wide"></i> Quản lý món ăn</router-link></li>
-          <li class="nav-item"><router-link class="nav-link" to="/staff/orders"><i class="bi bi-cart"></i> Quản lý đơn hàng</router-link></li>
-          <li class="nav-item"><router-link class="nav-link" to="/"><i class="bi bi-box-arrow-left"></i> Thoát</router-link></li>
-        </ul>
-      </div>
-
-      <!-- Main Content -->
-      <div class="main-content">
-        <!-- Top Navbar -->
-        <div class="navbar-top" :class="{ 'scrolled': navbarSticky }">
-          <div class="d-flex align-items-center">
-            <i class="bi bi-globe"></i>
-            <i class="bi bi-bell mx-3"></i>
-            <span>{{ userInfo.name || 'Staff' }}</span>
-          </div>
-        </div>
-
-        <!-- Dynamic Content -->
-        <main class="admin-main">
-          <RouterView></RouterView>
-        </main>
-        <footer class="admin-footer text-center py-3">Staff Footer - Sea Foodie</footer>
-      </div>
-    </div>
-
     <!-- Layout cho các route không phải admin hoặc staff -->
     <div v-else>
       <header ref="headerRef">
@@ -198,7 +150,7 @@
                 <li class="nav-item"><router-link class="nav-link sisf-m-subtitle" to="/">Home</router-link></li>
 
 
-                <li class="nav-item"><router-link class="nav-link sisf-m-subtitle" to="/blog">Blog</router-link></li>
+                <li class="nav-item"><router-link class="nav-link sisf-m-subtitle" to="/news">Blog</router-link></li>
                 <li class="nav-item dropdown">
                   <a class="nav-link dropdown-toggle sisf-m-subtitle" href="#" role="button" data-bs-toggle="dropdown"
                     aria-expanded="false">
@@ -239,10 +191,6 @@
       <main>
         <router-view />
       </main>
-<<<<<<< HEAD
-=======
-
->>>>>>> main
     </div>
   </div>
 </template>
