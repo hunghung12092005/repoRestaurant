@@ -39,7 +39,6 @@ Route::post('/menus', [MenuController::class, 'store']);
 Route::put('/menus/{id}', [MenuController::class, 'update']);
 Route::delete('/menus/{id}', [MenuController::class, 'destroy']);
 
-<<<<<<< HEAD
 Route::post('/customers', [OccupancyController::class, 'storeCustomer']); //thêm dữ liệu khách vào bảng customer
 Route::get('/rooms/{room_id}/customer', [OccupancyController::class, 'getCustomerByRoom']); //hiển thị thông tin khách
 Route::post('/rooms/{room_id}/checkout', [OccupancyController::class, 'checkoutRoom']); //checkout
@@ -50,14 +49,12 @@ Route::get('/room-types', [RoomTypeController::class, 'index']);
 Route::post('/room-types', [RoomTypeController::class, 'store']);
 Route::put('/room-types/{id}', [RoomTypeController::class, 'update']);
 Route::delete('/room-types/{id}', [RoomTypeController::class, 'destroy']);
-=======
 Route::prefix('amenities')->group(function () {
     Route::get('/', [AmenityController::class, 'index']);
     Route::post('/', [AmenityController::class, 'store']);
     Route::put('/{amenity_id}', [AmenityController::class, 'update']);
     Route::delete('/{amenity_id}', [AmenityController::class, 'destroy']);
 });
->>>>>>> 19f162ee00db00aadcd27b6528f634697a74c906
 
 Route::prefix('services')->group(function () {
     Route::get('/', [ServiceController::class, 'index']);
