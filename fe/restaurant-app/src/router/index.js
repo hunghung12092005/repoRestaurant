@@ -21,20 +21,11 @@ import AdminTableTypeComponent from '../components/AdminTable/AdminTableTypeComp
 import AdminRoomTypeComponent from '../components/AdminRoom/AdminRoomTypeComponent.vue';
 import AdminRoomComponent from '../components/AdminRoom/AdminRoomComponent.vue';
 import AdminPriceComponent from '../components/AdminRoom/AdminPriceComponent.vue';
-
+import AdminBookingComponent from '../components/AdminBooking/AdminBookingComponent.vue';
 import AdminMenuCategoryComponent from '../components/AdminMenu/AdminMenuCategoryComponent.vue';
 import AdminMenuComponent from '../components/AdminMenu/AdminMenuComponent.vue';
 
-<<<<<<< HEAD
 import AdminOccupancyComponent from '../components/AdminRoom/AdminOccupancy.vue';
-=======
-// Admin Amenities and Services - Tiện ích và Dịch vụ
-import AdminAmenitiesComponent from '../components/AdminSeAm/AdminAmenitiesComponent.vue';
-import AdminServicesComponent from '../components/AdminSeAm/AdminServicesComponent.vue';
-
-// AdminBooking - Đặt phòng
-import AdminBookingComponent from '../components/AdminBooking/AdminBookingComponent.vue';
->>>>>>> 19f162ee00db00aadcd27b6528f634697a74c906
 
 import AdminDashboardComponent from '../components/admin/AdminDashboardComponent.vue';
 import AdminStaffsComponent from '../components/admin/AdminStaffsComponent.vue';
@@ -48,16 +39,12 @@ import buynow from '../components/ShopOnline/BuyNow.vue';
 import ChatAdmin from '../components/ChatAdmin.vue';
 import Chat from '../components/Chat.vue';
 import qrCodeCCCD from '../components/qrCodeCCCD.vue';
-<<<<<<< HEAD
-// import adminOccupancy from '../components/AdminRoom/AdminRoomOccupancy.vue';   //hiển thị room admin
-=======
 //đặt phòng
 import rooms from '../components/booking_room/BookRoomComponent.vue'
 import rooms2 from '../components/booking_room/Booking2.vue'
 //thông tin user
 import userprofile from '../components/user/userProfile.vue'
 import forgotPass from '../components/user/forgotPass.vue'
->>>>>>> 19f162ee00db00aadcd27b6528f634697a74c906
 const routes = [
   {
     path: '/',
@@ -253,7 +240,6 @@ const routes = [
     component: AdminBookingComponent,
     meta: { requiresAdmin: true },
   },
-<<<<<<< HEAD
   {// quản lý trạng thái phòng
     path: '/admin/occupancy',
     name: 'AdminOccupancy',
@@ -265,20 +251,6 @@ const routes = [
   //   name: 'adminOccupancy',
   //   component: adminOccupancy,
   // }
-=======
-  {
-    path: '/admin/services',
-    name: 'AdminServices',
-    component: AdminServicesComponent,
-    meta: { requiresAdmin: true },
-  },
-  {
-    path: '/admin/amenities',
-    name: 'AdminAmenities',
-    component: AdminAmenitiesComponent,
-    meta: { requiresAdmin: true },
-  },
->>>>>>> 19f162ee00db00aadcd27b6528f634697a74c906
 ];
 
 const router = createRouter({

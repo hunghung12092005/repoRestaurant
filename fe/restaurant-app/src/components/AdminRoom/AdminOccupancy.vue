@@ -216,6 +216,7 @@ const showAddGuest = (room_id) => {
   };
   showForm.value = true;
 };
+console.log("Dữ liệu gửi:", formData.value);
 
 // Gửi dữ liệu từ form vào backend Laravel
 const submitCustomerForm = async () => {
