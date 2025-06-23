@@ -5,49 +5,57 @@ namespace App\Http\Controllers\api;
 use App\Http\Controllers\Controller;
 use App\Models\NewsCategory;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Validator;
 
 class NewsCategoryController extends Controller
 {
     public function index()
     {
-        $categories = NewsCategory::all();
-        return response()->json($categories);
+        return response()->json(NewsCategory::orderBy('name')->get());
     }
 
     public function store(Request $request)
     {
-        $request->validate([
-            'name' => 'required|string|max:100',
+        $validator = Validator::make($request->all(), [
+            'name' => 'required|string|max:100|unique:news_categories',
             'description' => 'nullable|string',
         ]);
 
-        $category = NewsCategory::create($request->only(['name', 'description']));
+        if ($validator->fails()) {
+            return response()->json(['errors' => $validator->errors()], 422);
+        }
+
+        $category = NewsCategory::create($request->all());
         return response()->json($category, 201);
     }
 
-    public function show($id)
+    public function show(NewsCategory $newsCategory)
     {
-        $category = NewsCategory::findOrFail($id);
-        return response()->json($category);
+        return response()->json($newsCategory);
     }
 
-    public function update(Request $request, $id)
+    public function update(Request $request, NewsCategory $newsCategory)
     {
-        $category = NewsCategory::findOrFail($id);
-
-        $request->validate([
-            'name' => 'required|string|max:100',
+        $validator = Validator::make($request->all(), [
+            'name' => 'required|string|max:100|unique:news_categories,name,' . $newsCategory->id,
             'description' => 'nullable|string',
         ]);
 
-        $category->update($request->only(['name', 'description']));
-        return response()->json($category);
+        if ($validator->fails()) {
+            return response()->json(['errors' => $validator->errors()], 422);
+        }
+
+        $newsCategory->update($request->all());
+        return response()->json($newsCategory);
     }
 
-    public function destroy($id)
+    public function destroy(NewsCategory $newsCategory)
     {
-        $category = NewsCategory::findOrFail($id);
-        $category->delete();
+        // Bạn có thể thêm logic để xử lý các tin tức liên quan trước khi xóa
+        // Ví dụ: set category_id của chúng thành null
+        $newsCategory->news()->update(['category_id' => null]);
+        
+        $newsCategory->delete();
         return response()->json(null, 204);
     }
 }

@@ -13,6 +13,7 @@ import TestJwtComponent from '../components/testTokenJwt.vue';
 import BlogDetailComponent from '../components/News/BlogDetailComponent.vue';
 import ProductDetailComponent from '../components/ProductDetailComponent.vue';
 import AdminDashboardComponent from '../components/admin/AdminDashboardComponent.vue';
+import AdminOccupancyComponent from '../components/admin/AdminOccupancy.vue';
 import AdminUsersComponent from '../components/admin/AdminUsersComponent.vue';
 import AdminNewsComponent from '../components/admin/news/AdminNewsComponent.vue';
 import AdminNewsCategoryComponent from '../components/admin/news/AdminNewsCategoryComponent.vue';
@@ -152,6 +153,12 @@ const routes = [
     path: '/admin/dashboard',
     name: 'AdminDashboard',
     component: AdminDashboardComponent,
+    meta: { requiresAdmin: true },
+  },
+  {
+    path: '/admin/occupancy',
+    name: 'AdminOccupancy',
+    component: AdminOccupancyComponent,
     meta: { requiresAdmin: true },
   },
   {

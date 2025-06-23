@@ -8,30 +8,33 @@ use Illuminate\Database\Eloquent\Model;
 class NewsComment extends Model
 {
     use HasFactory;
-
-    protected $table = 'news_comments';
-    protected $primaryKey = 'comment_id';
-    public $timestamps = false;
     
+    // Đổi tên model để khớp với bảng `comments`
+    protected $table = 'comments';
+    
+    // Laravel sẽ tự quản lý created_at và updated_at nếu có trong bảng. 
+    // Bảng của bạn chỉ có created_at, nên ta cần chỉ định.
+    const UPDATED_AT = null;
+
     protected $fillable = [
-        'news_id',
         'user_id',
-        'comment_text',
-        'comment_date',
-        'status',
+        'news_id',
+        'content',
     ];
 
-    protected $casts = [
-        'comment_date' => 'datetime',
-    ];
-
-    public function news()
-    {
-        return $this->belongsTo(News::class, 'news_id');
-    }
-
+    /**
+     * Lấy người dùng đã bình luận.
+     */
     public function user()
     {
         return $this->belongsTo(User::class, 'user_id');
+    }
+
+    /**
+     * Lấy tin tức được bình luận.
+     */
+    public function news()
+    {
+        return $this->belongsTo(News::class, 'news_id');
     }
 }

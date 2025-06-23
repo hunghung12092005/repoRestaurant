@@ -10,4 +10,13 @@ export default defineConfig({
         }),
         vue(), // Thêm plugin Vue vào đây
     ],
+    server: {
+    proxy: {
+      '/api': {
+        // Thay bằng địa chỉ server Laravel của bạn
+        target: 'http://localhost:8000', 
+        changeOrigin: true,
+      },
+    },
+  },
 });

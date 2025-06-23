@@ -1,67 +1,70 @@
 <template>
   <div class="staff-container">
+    <!-- Notification Alert -->
     <div v-if="showAlert" :class="['alert', alertType, 'custom-alert']" role="alert">
       {{ alertMessage }}
       <span class="close-btn" @click="showAlert = false">×</span>
     </div>
 
+    <!-- Header Section -->
     <div class="header-section mb-4">
       <h3 class="fw-bold">Quản lý Tin tức</h3>
       <div class="d-flex justify-content-between align-items-center mt-3">
         <div class="search-form position-relative">
-          <input
-            type="text"
-            class="form-control"
-            v-model="searchQuery"
-            placeholder="Tìm kiếm theo tiêu đề tin tức..."
-          />
+          <input type="text" class="form-control" v-model="searchQuery"
+            @input="handleSearch"
+            placeholder="Tìm kiếm theo tiêu đề..." />
           <i class="bi bi-search search-icon position-absolute"></i>
         </div>
-        <button class="btn btn-primary" @click="openCreateModal">
-          <i class="bi bi-plus-circle me-2"></i>Thêm Tin tức
+        <button class="btn btn-primary shadow-sm" @click="openModal(false)">
+          <i class="bi bi-plus-circle"></i> Thêm mới
         </button>
       </div>
     </div>
 
+    <!-- Table Section -->
     <div class="card shadow-sm rounded-3">
       <div class="card-body p-0">
         <div class="table-responsive custom-scroll">
           <table class="table table-hover table-bordered mb-0">
             <thead class="table-light">
               <tr>
-                <th scope="col"><input type="checkbox" class="form-check-input" v-model="selectAll" @change="toggleSelectAll" /></th>
-                <th scope="col">Tiêu đề</th>
-                <th scope="col">Danh mục</th>
-                <th scope="col">Tác giả</th>
-                <th scope="col">Ngày đăng</th>
-                <th scope="col">Trạng thái</th>
-                <th scope="col">Ghim</th>
-                <th scope="col">Hành động</th>
+                <th>Ảnh</th>
+                <th>Tiêu đề</th>
+                <th>Danh mục</th>
+                <th>Trạng thái</th>
+                <th>Ngày đăng</th>
+                <th style="width: 180px;">Hành động</th>
               </tr>
             </thead>
             <tbody>
-              <tr v-for="news in paginatedNews" :key="news.news_id">
-                <td><input type="checkbox" class="form-check-input" v-model="selectedNews" :value="news.news_id" @change="updateSelectAll" /></td>
-                <td>{{ news.title }}</td>
-                <td>{{ news.category ? news.category.name : 'N/A' }}</td>
-                <td>{{ news.author ? news.author.name : 'N/A' }}</td>
-                <td>{{ formatDate(news.publish_date) }}</td>
-                <td>{{ news.status ? 'Hoạt động' : 'Không hoạt động' }}</td>
-                <td>{{ news.is_pinned ? 'Có' : 'Không' }}</td>
+              <tr v-for="item in items" :key="item.id">
                 <td>
-                  <button class="btn btn-sm btn-outline-primary me-2" @click="openDetailModal(news)">
+                  <img :src="getImageUrl(item.thumbnail)" alt="thumbnail"
+                    style="width: 80px; height: 50px; object-fit: cover; border-radius: 4px;">
+                </td>
+                <td>{{ item.title }}</td>
+                <td>{{ item.category?.name || 'N/A' }}</td>
+                <td>
+                  <span :class="['badge', item.status ? 'bg-success' : 'bg-secondary']">
+                    {{ item.status ? 'Hiển thị' : 'Ẩn' }}
+                  </span>
+                </td>
+                <td>{{ formatDate(item.publish_date) }}</td>
+                <td>
+                  <button class="btn btn-sm btn-outline-info me-2" @click="openDetailModal(item)" title="Xem chi tiết">
                     <i class="bi bi-eye"></i>
                   </button>
-                  <button class="btn btn-sm btn-outline-warning me-2" @click="openEditModal(news)">
-                    <i class="bi bi-pencil"></i>
+                  <button class="btn btn-sm btn-outline-warning me-2" @click="openModal(true, item)" title="Sửa">
+                    <i class="bi bi-pencil-square"></i>
                   </button>
-                  <button class="btn btn-sm btn-outline-danger" @click="deleteNews(news.news_id)">
+                  <button class="btn btn-sm btn-outline-danger" @click="deleteItem(item.id)" title="Xóa">
                     <i class="bi bi-trash"></i>
                   </button>
                 </td>
               </tr>
-              <tr v-if="!paginatedNews.length">
-                <td colspan="8" class="text-center text-muted">Không tìm thấy tin tức</td>
+              <tr v-if="!items.length">
+                <td colspan="6" class="text-center text-muted">Không tìm thấy tin tức</td>
               </tr>
             </tbody>
           </table>
@@ -69,92 +72,119 @@
       </div>
     </div>
 
-    <div class="pagination-controls d-flex justify-content-center align-items-center mt-4">
-      <button
-        class="btn btn-outline-secondary me-2 shadow-sm rounded-pill"
-        :disabled="currentPage === 1"
-        @click="currentPage--"
-      >
+    <!-- Pagination -->
+     <div v-if="totalPages > 1" class="pagination-controls d-flex justify-content-center align-items-center mt-4">
+      <button class="btn btn-outline-secondary me-2 shadow-sm rounded-pill" :disabled="currentPage === 1" @click="fetchData(currentPage - 1)">
         Trước
       </button>
       <span class="mx-3 font-weight-bold">Trang {{ currentPage }} / {{ totalPages }}</span>
-      <button
-        class="btn btn-outline-secondary shadow-sm rounded-pill"
-        :disabled="currentPage === totalPages || totalPages === 0"
-        @click="currentPage++"
-      >
+      <button class="btn btn-outline-secondary shadow-sm rounded-pill" :disabled="currentPage === totalPages" @click="fetchData(currentPage + 1)">
         Tiếp
       </button>
     </div>
 
+    <!-- Create/Edit Modal -->
     <div class="modal fade" id="newsModal" tabindex="-1" aria-labelledby="newsModalLabel" aria-hidden="true">
-      <div class="modal-dialog modal-lg modal-custom-wide">
+      <div class="modal-dialog modal-xl">
         <div class="modal-content">
           <div class="modal-header">
-            <h5 class="modal-title" id="newsModalLabel">{{ isEditMode ? 'Chỉnh sửa Tin tức' : 'Thêm Tin tức' }}</h5>
+            <h5 class="modal-title" id="newsModalLabel">{{ isEditMode ? 'Chỉnh sửa Tin tức' : 'Tạo mới Tin tức' }}</h5>
             <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Đóng"></button>
           </div>
-          <div class="modal-body">
-            <NewsCreate v-if="!isEditMode" :categories="categories" @save="saveNews" @close="closeModal" />
-            <NewsEdit v-else :news="form" :categories="categories" @save="saveNews" @close="closeModal" />
-          </div>
+          <form @submit.prevent="handleSubmit">
+            <div class="modal-body">
+              <div class="row">
+                <div class="col-md-8">
+                  <div class="mb-3">
+                    <label for="title" class="form-label">Tiêu đề</label>
+                    <input type="text" class="form-control" id="title" v-model="form.title" required>
+                  </div>
+                  <div class="mb-3">
+                    <label for="summary" class="form-label">Tóm tắt</label>
+                    <textarea class="form-control" id="summary" rows="3" v-model="form.summary"></textarea>
+                  </div>
+                  <div class="mb-3">
+                    <label class="form-label">Nội dung</label>
+                    <div v-if="isModalVisible">
+                      <QuillEditor
+                          theme="snow"
+                          toolbar="full"
+                          contentType="html"
+                          v-model:content="form.content"
+                      />
+                    </div>
+                  </div>
+                </div>
+                <div class="col-md-4">
+                  <div class="mb-3">
+                    <label for="category_id" class="form-label">Danh mục</label>
+                    <select class="form-select" id="category_id" v-model="form.category_id" required>
+                      <option :value="null" disabled>-- Chọn danh mục --</option>
+                      <option v-for="cat in categories" :key="cat.id" :value="cat.id">{{ cat.name }}</option>
+                    </select>
+                  </div>
+                  <div class="mb-3">
+                    <label for="thumbnailFile" class="form-label">Ảnh đại diện</label>
+                    <input type="file" class="form-control" id="thumbnailFile" @change="handleFileChange" accept="image/png, image/jpeg, image/gif">
+                    <img v-if="thumbnailPreview" :src="thumbnailPreview" class="mt-2" style="max-width: 100%; border-radius: 4px;"/>
+                  </div>
+                  <div class="mb-3">
+                    <label for="tags" class="form-label">Tags (cách nhau bởi dấu phẩy)</label>
+                    <input type="text" class="form-control" id="tags" v-model="form.tags">
+                  </div>
+                  <div class="form-check form-switch mb-3">
+                    <input class="form-check-input" type="checkbox" role="switch" id="statusSwitch" v-model="form.status" :true-value="1" :false-value="0">
+                    <label class="form-check-label" for="statusSwitch">Hiển thị</label>
+                  </div>
+                  <div class="form-check form-switch mb-3">
+                    <input class="form-check-input" type="checkbox" role="switch" id="pinnedSwitch" v-model="form.is_pinned">
+                    <label class="form-check-label" for="pinnedSwitch">Ghim tin nổi bật</label>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="modal-footer">
+              <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
+              <button type="submit" class="btn btn-primary">
+                {{ isEditMode ? 'Lưu thay đổi' : 'Tạo mới' }}
+              </button>
+            </div>
+          </form>
         </div>
       </div>
     </div>
-
-    <div class="modal fade" id="detailModal" tabindex="-1" aria-labelledby="detailModalLabel" aria-hidden="true">
-      <div class="modal-dialog modal-lg">
+    
+    <!-- Modal Xem Chi Tiết Tin Tức (Đã Cập Nhật) -->
+    <div class="modal fade" id="detailNewsModal" tabindex="-1" aria-labelledby="detailNewsModalLabel" aria-hidden="true">
+      <div class="modal-dialog modal-xl modal-dialog-scrollable">
         <div class="modal-content">
           <div class="modal-header">
-            <h5 class="modal-title" id="detailModalLabel">Chi tiết Tin tức</h5>
+            <h5 class="modal-title" id="detailNewsModalLabel">Chi tiết Tin tức</h5>
             <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Đóng"></button>
           </div>
-          <div class="modal-body">
-            <div class="row">
-              <div class="col-md-6 mb-3">
-                <strong>Tiêu đề:</strong> {{ selectedNews.title }}
+          <div class="modal-body news-detail-modal-body">
+            <div v-if="selectedNewsDetail">
+              <h2 class="mb-3">{{ selectedNewsDetail.title }}</h2>
+              <div class="metadata mb-4 text-muted">
+                  <span><i class="bi bi-person-fill"></i> {{ selectedNewsDetail.author ? selectedNewsDetail.author.name : 'Không xác định' }}</span>
+                  <span class="mx-2">|</span>
+                  <span><i class="bi bi-folder-fill"></i> {{ selectedNewsDetail.category?.name || 'N/A' }}</span>
+                  <span class="mx-2">|</span>
+                  <span><i class="bi bi-calendar-event-fill"></i> {{ formatDate(selectedNewsDetail.publish_date) }}</span>
+                  <span class="mx-2">|</span>
+                  <span><i class="bi bi-eye-fill"></i> {{ selectedNewsDetail.views.toLocaleString('vi-VN') }} lượt xem</span>
               </div>
-              <div class="col-md-6 mb-3">
-                <strong>Danh mục:</strong> {{ selectedNews.category ? selectedNews.category.name : 'N/A' }}
-              </div>
+              
+              <!-- THAY ĐỔI: Đã loại bỏ thẻ img và div.summary-block -->
+              
+              <hr>
+
+              <div class="content-wrapper" v-html="selectedNewsDetail.content"></div>
+
             </div>
-            <div class="row">
-              <div class="col-md-6 mb-3">
-                <strong>Tác giả:</strong> {{ selectedNews.author ? selectedNews.author.name : 'N/A' }}
-              </div>
-              <div class="col-md-6 mb-3">
-                <strong>Ngày đăng:</strong> {{ formatDate(selectedNews.publish_date) }}
-              </div>
-            </div>
-            <div class="row">
-              <div class="col-md-6 mb-3">
-                <strong>Trạng thái:</strong> {{ selectedNews.status ? 'Hoạt động' : 'Không hoạt động' }}
-              </div>
-              <div class="col-md-6 mb-3">
-                <strong>Ghim:</strong> {{ selectedNews.is_pinned ? 'Có' : 'Không' }}
-              </div>
-            </div>
-            <div class="row">
-              <div class="col-md-12 mb-3">
-                <strong>Tóm tắt:</strong> {{ selectedNews.summary || 'Không có' }}
-              </div>
-            </div>
-            <div class="row">
-              <div class="col-md-12 mb-3">
-                <strong>Nội dung:</strong>
-                <div v-html="selectedNews.content"></div>
-              </div>
-            </div>
-            <div class="row">
-              <div class="col-md-12 mb-3">
-                <strong>Thumbnail:</strong>
-                <img v-if="selectedNews.thumbnail" :src="selectedNews.thumbnail" alt="Thumbnail" style="max-width: 200px;" />
-                <span v-else>Không có</span>
-              </div>
-            </div>
-            <div class="row">
-              <div class="col-md-12 mb-3">
-                <strong>Tags:</strong> {{ selectedNews.tags || 'Không có' }}
+            <div v-else class="text-center py-5">
+              <div class="spinner-border text-primary" role="status">
+                <span class="visually-hidden">Đang tải...</span>
               </div>
             </div>
           </div>
@@ -168,167 +198,210 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted, watch } from 'vue';
-import axios from 'axios';
+import { ref, onMounted } from 'vue';
 import { inject } from 'vue';
+import axios from 'axios';
 import { Modal } from 'bootstrap';
-import NewsCreate from './NewsCreate.vue';
-import NewsEdit from './NewsEdit.vue';
+import { QuillEditor } from '@vueup/vue-quill';
+import '@vueup/vue-quill/dist/vue-quill.snow.css';
 
-const apiUrl = inject('apiUrl');
-const newsList = ref([]);
+// State Variables
+const items = ref([]);
 const categories = ref([]);
-const form = ref({
-  news_id: null,
-  title: '',
-  summary: '',
-  content: '',
-  thumbnail: '',
-  category_id: '',
-  status: 1,
-  tags: '',
-  is_pinned: false,
-});
+const form = ref({});
 const isEditMode = ref(false);
-const selectedNews = ref({});
-const selectAll = ref(false);
+const thumbnailFile = ref(null);
+const thumbnailPreview = ref('');
 const searchQuery = ref('');
 const currentPage = ref(1);
-const itemsPerPage = 10;
+const totalPages = ref(1);
 const showAlert = ref(false);
 const alertMessage = ref('');
 const alertType = ref('alert-success');
-let newsModal = null;
-let detailModal = null;
+const isModalVisible = ref(false);
+const selectedNewsDetail = ref(null);
 
+// Modal Instances
+let editModalInstance = null;
+let detailModalInstance = null;
+
+const apiUrl = inject('apiUrl');
+
+// Axios Instance
+const axiosInstance = axios.create({ 
+  baseURL: apiUrl, 
+  headers: { 'Authorization': `Bearer ${localStorage.getItem('tokenJwt') || ''}` } 
+});
+
+// Helper Functions
 const showNotification = (message, type = 'success') => {
   alertType.value = type === 'success' ? 'alert-success' : 'alert-danger';
   alertMessage.value = message;
   showAlert.value = true;
-  setTimeout(() => (showAlert.value = false), 3000);
+  setTimeout(() => { showAlert.value = false }, 3000);
 };
 
-const toggleSelectAll = () => {
-  selectedNews.value = selectAll.value
-    ? paginatedNews.value.map((news) => news.news_id)
-    : [];
+const formatDate = (dateString) => {
+  return dateString ? new Date(dateString).toLocaleDateString('vi-VN') : 'N/A';
 };
 
-const updateSelectAll = () => {
-  selectAll.value =
-    paginatedNews.value.length > 0 &&
-    selectedNews.value.length === paginatedNews.value.length &&
-    paginatedNews.value.every((news) => selectedNews.value.includes(news.news_id));
+const getImageUrl = (filename) => {
+  if (!filename) {
+    return 'https://via.placeholder.com/80x50';
+  }
+  return `${apiUrl}/images/news_thumbnails/${filename.split('/').pop()}`;
 };
 
-const fetchNews = async () => {
+const resetForm = () => {
+  form.value = { 
+    title: '', 
+    summary: '', 
+    content: '',
+    category_id: null, 
+    tags: '', 
+    status: 1, 
+    is_pinned: false 
+  };
+  thumbnailFile.value = null;
+  thumbnailPreview.value = '';
+  const fileInput = document.querySelector('#newsModal input[type="file"]');
+  if (fileInput) fileInput.value = '';
+};
+
+// API Functions
+const fetchData = async (page = 1) => {
   try {
-    const response = await axios.get(`${apiUrl}/api/news`, {
-      params: { q: searchQuery.value },
+    const response = await axiosInstance.get('/api/news', {
+      params: { page: page, q: searchQuery.value }
     });
-    newsList.value = response.data;
-    selectedNews.value = [];
-    selectAll.value = false;
+    items.value = response.data.data;
+    currentPage.value = response.data.current_page;
+    totalPages.value = response.data.last_page;
   } catch (error) {
     showNotification('Không thể tải danh sách tin tức.', 'error');
   }
 };
 
 const fetchCategories = async () => {
-  try {
-    const response = await axios.get(`${apiUrl}/api/news-categories`);
-    categories.value = response.data;
-  } catch (error) {
-    showNotification('Không thể tải danh sách danh mục.', 'error');
-  }
-};
-
-const filteredNews = computed(() => {
-  if (!searchQuery.value) return newsList.value;
-  const query = searchQuery.value.toLowerCase();
-  return newsList.value.filter(
-    (news) =>
-      (news.title && news.title.toLowerCase().includes(query)) ||
-      (news.summary && news.summary.toLowerCase().includes(query)) ||
-      (news.content && news.content.toLowerCase().includes(query))
-  );
-});
-
-const totalPages = computed(() => Math.ceil(filteredNews.value.length / itemsPerPage));
-
-const paginatedNews = computed(() => {
-  const start = (currentPage.value - 1) * itemsPerPage;
-  return filteredNews.value.slice(start, start + itemsPerPage);
-});
-
-const openCreateModal = () => {
-  isEditMode.value = false;
-  form.value = { news_id: null, title: '', summary: '', content: '', thumbnail: '', category_id: '', status: 1, tags: '', is_pinned: false };
-  newsModal = new Modal(document.getElementById('newsModal'));
-  newsModal.show();
-};
-
-const openEditModal = (news) => {
-  isEditMode.value = true;
-  form.value = { ...news };
-  newsModal = new Modal(document.getElementById('newsModal'));
-  newsModal.show();
-};
-
-const openDetailModal = (news) => {
-  selectedNews.value = news;
-  detailModal = new Modal(document.getElementById('detailModal'));
-  detailModal.show();
-};
-
-const closeModal = () => {
-  if (newsModal) newsModal.hide();
-  if (detailModal) detailModal.hide();
-};
-
-const saveNews = async (newsData) => {
-  try {
-    if (isEditMode.value) {
-      await axios.put(`${apiUrl}/api/news/${newsData.news_id}`, newsData);
-      showNotification('Cập nhật tin tức thành công!');
-    } else {
-      await axios.post(`${apiUrl}/api/news`, newsData);
-      showNotification('Thêm tin tức thành công!');
+    try {
+        const response = await axiosInstance.get('/api/news-categories');
+        categories.value = response.data;
+    } catch (error) {
+        showNotification('Không thể tải danh mục.', 'error');
     }
-    fetchNews();
-    closeModal();
-  } catch (error) {
-    showNotification('Lưu tin tức thất bại.', 'error');
-  }
 };
 
-const deleteNews = async (id) => {
-  if (!confirm('Bạn có chắc muốn xóa tin tức này?')) return;
-  try {
-    await axios.delete(`${apiUrl}/api/news/${id}`);
-    selectedNews.value = selectedNews.value.filter((newsId) => newsId !== id);
-    await fetchNews();
-    if (paginatedNews.value.length === 0 && currentPage.value > 1) {
-      currentPage.value--;
+// Event Handlers
+let searchTimeout = null;
+const handleSearch = () => {
+    clearTimeout(searchTimeout);
+    searchTimeout = setTimeout(() => {
+        fetchData(1);
+    }, 300);
+};
+
+const openModal = (editMode = false, item = null) => {
+  isEditMode.value = editMode;
+  if (editMode && item) {
+    form.value = { 
+      ...item, 
+      content: item.content ?? '',
+      status: item.status ? 1 : 0, 
+      is_pinned: !!item.is_pinned 
+    };
+    thumbnailPreview.value = getImageUrl(item.thumbnail);
+    thumbnailFile.value = null; 
+  } else {
+    resetForm();
+  }
+  editModalInstance.show();
+};
+
+const openDetailModal = async (item) => {
+    selectedNewsDetail.value = null;
+    detailModalInstance.show();
+
+    try {
+        const response = await axiosInstance.get(`/api/news/${item.id}`);
+        selectedNewsDetail.value = response.data;
+    } catch (error) {
+        showNotification('Không thể tải chi tiết tin tức.', 'error');
+        detailModalInstance.hide();
     }
-    showNotification('Xóa tin tức thành công!');
-  } catch (error) {
-    showNotification('Xóa tin tức thất bại.', 'error');
-  }
 };
 
-const formatDate = (date) => {
-  return new Date(date).toLocaleDateString('vi-VN');
+const handleFileChange = (event) => {
+    const file = event.target.files[0];
+    if (file) {
+        thumbnailFile.value = file;
+        thumbnailPreview.value = URL.createObjectURL(file);
+    }
 };
 
+const handleSubmit = async () => {
+    const formData = new FormData();
+    
+    formData.append('title', form.value.title);
+    formData.append('content', form.value.content || '');
+    formData.append('category_id', form.value.category_id);
+    formData.append('status', form.value.status ? 1 : 0);
+    formData.append('is_pinned', form.value.is_pinned ? 1 : 0);
+    
+    if (form.value.summary) formData.append('summary', form.value.summary);
+    if (form.value.tags) formData.append('tags', form.value.tags);
+    
+    if (thumbnailFile.value) {
+      formData.append('thumbnail', thumbnailFile.value);
+    }
+    
+    try {
+        if (isEditMode.value) {
+            formData.append('_method', 'PUT');
+            await axiosInstance.post(`/api/news/${form.value.id}`, formData);
+        } else {
+            await axiosInstance.post('/api/news', formData);
+        }
+        showNotification(`Thao tác thành công!`);
+        editModalInstance.hide();
+        fetchData(isEditMode.value ? currentPage.value : 1); 
+    } catch (error) {
+        const errorMessage = error.response?.data?.errors ? JSON.stringify(error.response.data.errors) : 'Đã có lỗi xảy ra.';
+        showNotification('Thao tác thất bại: ' + errorMessage, 'error');
+    }
+};
+
+const deleteItem = async (id) => {
+    if (confirm('Bạn có chắc chắn muốn xóa tin tức này?')) {
+        try {
+            await axiosInstance.delete(`/api/news/${id}`);
+            showNotification('Xóa tin tức thành công!');
+            if (items.value.length === 1 && currentPage.value > 1) {
+                fetchData(currentPage.value - 1);
+            } else {
+                fetchData(currentPage.value);
+            }
+        } catch (error) {
+            showNotification('Xóa thất bại.', 'error');
+        }
+    }
+};
+
+// Lifecycle Hook
 onMounted(() => {
-  fetchNews();
+  fetchData(); 
   fetchCategories();
-});
+  
+  const editModalElement = document.getElementById('newsModal');
+  if (editModalElement) {
+    editModalInstance = new Modal(editModalElement);
+    editModalElement.addEventListener('shown.bs.modal', () => { isModalVisible.value = true; });
+    editModalElement.addEventListener('hidden.bs.modal', () => { isModalVisible.value = false; });
+  }
 
-watch(searchQuery, () => {
-  currentPage.value = 1;
-  fetchNews();
+  const detailModalElement = document.getElementById('detailNewsModal');
+  if (detailModalElement) {
+      detailModalInstance = new Modal(detailModalElement);
+  }
 });
 </script>
 
@@ -347,16 +420,6 @@ watch(searchQuery, () => {
   right: 15px;
   transform: translateY(-50%);
   color: #666;
-  cursor: pointer;
-  font-size: 1rem;
-}
-.search-form .search-icon:hover {
-  color: #16B978;
-}
-.search-form input:focus {
-  border-color: #16B978;
-  outline: none;
-  box-shadow: 0 0 5px rgba(22, 185, 120, 0.3);
 }
 .table th {
   background-color: #f8f9fa;
@@ -369,57 +432,23 @@ watch(searchQuery, () => {
   color: #666;
   white-space: nowrap;
   padding: 10px 15px;
-  overflow: hidden;
-  text-overflow: ellipsis;
+  vertical-align: middle;
 }
-.table td:first-child,
-.table td:last-child,
-.table td:nth-child(5),
-.table td:nth-child(6),
-.table td:nth-child(7) {
+.table td:last-child {
   text-align: center;
-  min-width: 80px;
-}
-.table td:nth-child(2) {
-  min-width: 200px;
-}
-.table td:nth-child(3),
-.table td:nth-child(4) {
-  min-height: 150px;
+  min-width: 180px;
 }
 .table-hover tbody tr:hover {
   background-color: #f1f3f5;
 }
-.btn-primary {
-  background-color: #16B978;
-  border-color: #16B978;
-  transition: background-color 0.3s ease;
-}
-.btn-primary:hover {
-  background-color: #13a567;
-  border-color: #13a567;
-}
-.btn-outline-primary,
-.btn-outline-warning,
-.btn-outline-danger {
+.btn-outline-primary, .btn-outline-warning, .btn-outline-danger, .btn-outline-info {
   padding: 4px 8px;
   font-size: 0.9rem;
-}
-.btn-outline-primary i,
-.btn-outline-warning i,
-.btn-outline-danger i {
-  font-size: 1rem;
 }
 .pagination-controls .btn {
   padding: 8px 20px;
   font-size: 0.85rem;
   border-width: 1px;
-  transition: all 0.3s ease;
-}
-.pagination-controls .btn:hover {
-  background-color: #34495e;
-  color: #fff;
-  border-color: #34495e;
 }
 .pagination-controls .btn:disabled {
   opacity: 0.4;
@@ -432,28 +461,17 @@ watch(searchQuery, () => {
 }
 .table-responsive.custom-scroll {
   overflow-x: auto;
-  -webkit-overflow-scrolling: touch;
 }
 .custom-scroll::-webkit-scrollbar {
-  height: 10px;
+  height: 8px;
 }
 .custom-scroll::-webkit-scrollbar-track {
   background: #f1f3f5;
-  border-radius: 6px;
+  border-radius: 4px;
 }
 .custom-scroll::-webkit-scrollbar-thumb {
   background: #16B978;
-  border-radius: 6px;
-}
-.custom-scroll::-webkit-scrollbar-thumb:hover {
-  background: #13a567;
-}
-.custom-scroll {
-  scrollbar-width: thin;
-  scrollbar-color: #16B978 #f1f3f5;
-}
-table {
-  min-width: 800px;
+  border-radius: 4px;
 }
 .custom-alert {
   position: fixed;
@@ -482,78 +500,54 @@ table {
 .custom-alert .close-btn {
   cursor: pointer;
   font-size: 1.2rem;
-  line-height: 1;
-  color: inherit;
-  opacity: 0.7;
-  transition: opacity 0.2s;
-}
-.custom-alert .close-btn:hover {
-  opacity: 1;
 }
 @keyframes fadeIn {
-  from {
-    opacity: 0;
-    transform: translateY(-10px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
+  from { opacity: 0; transform: translateY(-10px); }
+  to { opacity: 1; transform: translateY(0); }
 }
 @keyframes fadeOut {
-  from {
-    opacity: 1;
-    transform: translateY(0);
-  }
-  to {
-    opacity: 0;
-    transform: translateY(-10px);
-  }
-}
-.modal-custom-wide {
-  max-width: 1000px; /* Tùy chỉnh chiều rộng lớn hơn modal-lg */
-  width: 90%; /* Đảm bảo responsive */
+  from { opacity: 1; transform: translateY(0); }
+  to { opacity: 0; transform: translateY(-10px); }
 }
 
-/* Responsive adjustments */
-@media (max-width: 768px) {
-  .staff-container {
-    padding: 10px;
-  }
-  .table th,
-  .table td {
-    padding: 8px;
-    font-size: 0.75rem;
-  }
-  .header-section .d-flex {
-    flex-direction: column;
-    gap: 10px;
-  }
-  .search-form input {
-    width: 100%;
-    max-width: 220px;
-  }
-  .btn {
-    width: 100%;
-  }
-  .pagination-controls .btn {
-    padding: 6px 15px;
-    font-size: 0.75rem;
-  }
-  .pagination-controls span {
-    font-size: 0.8rem;
-  }
-  .custom-alert {
-    min-width: 250px;
-    right: 10px;
-    top: 10px;
-  }
-  table {
-    min-width: 600px;
-  }
-  .modal-custom-wide {
-    width: 95%; /* Giảm chiều rộng trên màn hình nhỏ */
-    max-width: 95%;
-  }
+:deep(.ql-editor) {
+  height: 400px;
+  overflow-y: auto;
+}
+
+.news-detail-modal-body .metadata {
+    font-size: 0.9rem;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 5px;
+    align-items: center;
+}
+/* THAY ĐỔI: Xóa style cho .summary-block */
+.news-detail-modal-body .content-wrapper {
+    line-height: 1.7;
+    word-wrap: break-word;
+}
+.news-detail-modal-body .content-wrapper :deep(p) {
+    margin-bottom: 1rem;
+}
+.news-detail-modal-body .content-wrapper :deep(h1),
+.news-detail-modal-body .content-wrapper :deep(h2),
+.news-detail-modal-body .content-wrapper :deep(h3) {
+    margin-top: 1.5rem;
+    margin-bottom: 1rem;
+    font-weight: 600;
+}
+.news-detail-modal-body .content-wrapper :deep(img) {
+    max-width: 100%;
+    height: auto;
+    border-radius: 8px;
+    margin: 1rem 0;
+}
+.news-detail-modal-body .content-wrapper :deep(blockquote) {
+    border-left: 4px solid #ccc;
+    padding-left: 1rem;
+    margin-left: 0;
+    font-style: italic;
+    color: #6c757d;
 }
 </style>

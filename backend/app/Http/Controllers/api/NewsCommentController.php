@@ -1,72 +1,52 @@
 <?php
+
 namespace App\Http\Controllers\api;
 
 use App\Http\Controllers\Controller;
 use App\Models\NewsComment;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Auth; // <-- THÊM DÒNG NÀY
+use Illuminate\Support\Facades\Validator;
 
 class NewsCommentController extends Controller
 {
-    public function index(Request $request)
+    // ... các phương thức khác không thay đổi ...
+    public function index()
     {
-        $query = $request->query('q');
-        $comments = NewsComment::with(['user', 'news'])
-            ->when($query, function ($q) use ($query) {
-                $q->where('comment_text', 'like', $query)
-                  ->orWhereHas('user', function ($q) use ($query) {
-                      $q->where('name', 'like', $query);
-                  })
-                  ->orWhereHas('news', function ($q) use ($query) {
-                      $q->where('title', 'like', $query);
-                  });
-            })
-            ->get();
-
+        $comments = NewsComment::with(['user', 'news:id,title'])->latest()->paginate(15);
         return response()->json($comments);
+    }
+
+    public function destroy(NewsComment $comment)
+    {
+        $comment->delete();
+        return response()->json(null, 204);
     }
 
     public function commentsByNewsId($newsId)
     {
-        $comments = NewsComment::where('news_id', $newsId)->with(['user', 'news'])->get();
+        $comments = NewsComment::with('user')->where('news_id', $newsId)->latest()->get();
         return response()->json($comments);
     }
-
+    
     public function store(Request $request, $newsId)
     {
-        $request->validate([
-            'comment_text' => 'required|string',
-            'status' => 'in', ['0', '1'],
+        $validator = Validator::make($request->all(), [
+            'content' => 'required|string',
         ]);
+
+        if ($validator->fails()) {
+            return response()->json(['errors' => $validator->errors()], 422);
+        }
 
         $comment = NewsComment::create([
+            'content' => $request->input('content'),
             'news_id' => $newsId,
-            'user_id' => Auth::id(),
-            'comment_text' => $request->comment_text,
-            'comment_date' => now(),
-            'status' => $request->status ?? 1,
+            'user_id' => Auth::id() // Yêu cầu người dùng phải đăng nhập
         ]);
+        
+        $comment->load('user');
 
-        return response()->json($comment->load(['user', 'news']), 201);
-    }
-
-    public function update(Request $request, $id)
-    {
-        $comment = NewsComment::findOrFail($id);
-
-        $request->validate([
-            'comment_text' => 'required|string',
-            'status' => 'in', ['0', '1'],
-        ]);
-
-        $comment->update($request->only(['comment_text', 'status']));
-        return response()->json($comment->load(['user', 'news']));
-    }
-
-    public function destroy($id)
-    {
-        $comment = NewsComment::findOrFail($id);
-        $comment->delete();
-        return response()->json(null, 204);
+        return response()->json($comment, 201);
     }
 }

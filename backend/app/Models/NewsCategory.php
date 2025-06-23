@@ -10,14 +10,16 @@ class NewsCategory extends Model
     use HasFactory;
 
     protected $table = 'news_categories';
-    protected $primaryKey = 'category_id';
-    public $timestamps = false;
+    public $timestamps = false; // Bảng này không có created_at, updated_at
 
     protected $fillable = [
         'name',
         'description',
     ];
 
+    /**
+     * Lấy tất cả các tin tức thuộc về danh mục này.
+     */
     public function news()
     {
         return $this->hasMany(News::class, 'category_id');
