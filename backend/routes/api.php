@@ -16,7 +16,7 @@ use App\Http\Controllers\PriceController;
 use App\Http\Controllers\ServiceController;
 use App\Http\Controllers\TableController;
 use App\Http\Controllers\TableTypeController;
-use App\Http\Controllers\UsersController;
+use App\Http\Controllers\api\UsersController;
 use App\Http\Controllers\api\NewsController;
 use App\Http\Controllers\api\NewsCategoryController;
 use App\Http\Controllers\api\NewsCommentController;
