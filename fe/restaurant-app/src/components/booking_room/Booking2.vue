@@ -30,7 +30,7 @@
         <!-- Search Box -->
         <section class="container">
             <div class="search-box p-4 shadow">
-                <form @submit.prevent="searchHotels">
+                <form @submit.prevent="getRoomPrices">
                     <div class="row g-3">
                         <!-- <div class="col-md-3">
                 <label for="destination" class="form-label">Destination</label>
@@ -43,29 +43,29 @@
                             <label for="checkIn" class="form-label">Check in</label>
                             <div class="input-group">
                                 <span class="input-group-text"><i class="bi bi-calendar-event"></i></span>
-                                <input type="date" class="form-control" v-model="search.checkIn" />
+                                <input type="date" class="form-control" v-model="checkin" />
                             </div>
                         </div>
                         <div class="col-md-2">
                             <label for="checkOut" class="form-label">Check out</label>
                             <div class="input-group">
                                 <span class="input-group-text"><i class="bi bi-calendar-event"></i></span>
-                                <input type="date" class="form-control" v-model="search.checkOut" />
+                                <input type="date" class="form-control" v-model="checkOut" />
                             </div>
                         </div>
                         <div class="col-md-3">
                             <label for="destination" class="form-label">Số Phòng</label>
                             <div class="input-group">
                                 <span class="input-group-text"><i class="bi bi-geo-alt"></i></span>
-                                <input type="text" class="form-control" v-model="search.destination"
+                                <input type="text" class="form-control" v-model="bookrooms"
                                     placeholder="Bạn muốn book bao nhiêu rooms?" />
                             </div>
                         </div>
-                        <div class="col-md-2">
+                        <!-- <div class="col-md-2">
                             <label for="guests" class="form-label">Số Khách</label>
                             <div class="input-group">
                                 <span class="input-group-text"><i class="bi bi-people"></i></span>
-                                <select class="form-select" v-model="search.guests">
+                                <select class="form-select">
                                     <option value="1">1 Adult</option>
                                     <option value="2">2 Adults</option>
                                     <option value="3">3 Adults</option>
@@ -73,7 +73,7 @@
                                     <option value="5">5+ Adults</option>
                                 </select>
                             </div>
-                        </div>
+                        </div> -->
                         <div class="col-md-3 d-flex align-items-end">
                             <button type="submit" class="btn btn-primary w-100 py-3">
                                 <i class="bi bi-search me-2"></i>Search Hotels
@@ -116,14 +116,15 @@
 
                             </div>
                             <p class="card-text">{{ hotel.description.substring(0, 100) }}...</p>
+                            <p class="card-text">Phụ thu: {{ hotel.surcharges }}</p>
                             <!-- <p class="card-text">{{ hotel.bed_count }}...</p>
                             <p class="card-text">{{ hotel.max_occupancy }}...</p> -->
 
                             <div class="d-flex align-items-center">
-                                <span class="fs-5 fw-bold text-primary">{{ hotel.currency }}{{ hotel.price }}</span>
+                                <span class="fs-5 fw-bold text-primary">{{ formatPrice(hotel.price) }}</span>
 
-                                <span class="text-muted ms-1">/ night</span>
-
+                                <span class="text-muted ms-1">/ {{ hotel.total_days }} Night / {{ hotel.so_phong }} Phòng </span>
+                            
                             </div>
                         </div>
                         <div class="card-footer bg-white">
@@ -267,8 +268,11 @@
                         <h4>{{ selectedHotel.name }}</h4>
                         <img :src="selectedHotel.image" class="card-img-top" :alt="selectedHotel.name"
                             style="height: 200px; object-fit: cover;" />
-                        <p><strong>Location:</strong> {{ selectedHotel.location }}</p>
-                        <p><strong>Price per night:</strong> {{ selectedHotel.currency }}{{ selectedHotel.price }}</p>
+                        <p><strong>Giá 1 đêm/phòng:</strong>{{ formatPrice(selectedHotel.price_per_night) }}</p>
+                        <p><strong>Phụ Thu (chỉ phụ thu dịp lễ , ngày đặc biệt) :</strong> {{ formatPrice(selectedHotel.surcharges )}}</p>
+                        <p><strong>Số Phòng:</strong> {{ selectedHotel.so_phong }}</p>
+                        <p><strong>Số ngày ở:</strong> {{ selectedHotel.currency }}{{ selectedHotel.total_days }} Ngày</p>
+                        <p><strong>Tổng tiền:</strong>{{ formatPrice(selectedHotel.price) }}</p>
                         <p><strong>Description:</strong> {{ selectedHotel.description }}</p>
                         <hr />
                         <h4>Tiện nghi:</h4>
@@ -314,12 +318,17 @@ const showPopUpMain = () => {
 }
 const hotels = ref([]);
 const isLoading = ref(false);
+const formatPrice = (value) => {
+  return new Intl.NumberFormat('vi-VN', {
+    style: 'currency',
+    currency: 'VND',
+  }).format(value);
+};
 const getRoomTypes = async () => {
     isLoading.value = true;
     try {
         const response = await axios.get('http://127.0.0.1:8000/api/room-types/');
         console.log(response.data.data);
-
         hotels.value = response.data.data.map(room => ({
             id: room.type_id,
             name: room.type_name,
@@ -331,11 +340,10 @@ const getRoomTypes = async () => {
             image: "https://i.postimg.cc/d3pNGXPN/7c6764b8-de90-474c-9b98-05019aef3193.png", // Cập nhật với URL hình ảnh thực tế
             youtube_link: room.youtube_link || "", // Liên kết video
             price: 0, // Cập nhật giá nếu có
-            currency: "$", // Cập nhật loại tiền tệ nếu cần
             rating: room.rate, // Cập nhật đánh giá nếu cần
             m2: room.m2, // Cập nhật đánh giá nếu cần
         }));
-        console.log(hotels.value);
+        //console.log(hotels.value);
         showPopup.value = true;//popup mới vào trang
 
     } catch (error) {
@@ -344,7 +352,46 @@ const getRoomTypes = async () => {
         isLoading.value = false;
     }
 }
+const checkin = ref();
+const checkOut = ref();
+const bookrooms = ref();
+const getRoomPrices = async () => {
+    isLoading.value = true; // Bắt đầu tải dữ liệu
+    try {
+        // Dữ liệu cần gửi
+        const requestData = {
+            checkin: checkin.value,
+            checkout: checkOut.value,
+            bookrooms: bookrooms.value
+        };
 
+        // Gọi API lấy giá phòng
+        const roomPricesResponse = await axios.post('http://127.0.0.1:8000/api/prices/prices_client', requestData);
+        const roomPrices = roomPricesResponse.data || []; // Đảm bảo roomPrices là một mảng
+        console.log("Room Prices:", roomPrices); // Kiểm tra giá phòng
+
+        // Giả định rằng hotels.value đã được khởi tạo và chứa thông tin phòng
+        hotels.value = hotels.value.map(room => {
+            const roomPrice = roomPrices.find(price => price.type_id === room.id); // Tìm giá tương ứng với type_id
+
+            return {
+                ...room, // Kết hợp thông tin phòng hiện tại
+                price_per_night: roomPrice ? roomPrice.gia_tien1ngay : 0, // Gán giá nếu tìm thấy, nếu không gán 0
+                total_days: roomPrice ? roomPrice.total_days : 0, // Bạn có thể thêm các thông tin khác nếu cần
+                surcharges: roomPrice ? roomPrice.surcharges : 0 ,// Thêm phụ phí nếu có
+                price: roomPrice.total_price,
+                so_phong: roomPrice.so_phong
+            };
+        });
+
+        console.log("Updated Hotels:", hotels.value); // In ra mảng hotels đã được cập nhật
+
+    } catch (error) {
+        console.error("Có lỗi xảy ra khi lấy dữ liệu:", error);
+    } finally {
+        isLoading.value = false; // Kết thúc tải dữ liệu
+    }
+}
 const search = ref({
     destination: '',
     checkIn: '',

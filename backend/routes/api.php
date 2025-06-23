@@ -49,6 +49,15 @@ Route::get('/room-types', [RoomTypeController::class, 'index']);
 Route::post('/room-types', [RoomTypeController::class, 'store']);
 Route::put('/room-types/{id}', [RoomTypeController::class, 'update']);
 Route::delete('/room-types/{id}', [RoomTypeController::class, 'destroy']);
+<<<<<<< HEAD
+=======
+Route::prefix('amenities')->group(function () {
+    Route::get('/', [AmenityController::class, 'index']);
+    Route::post('/', [AmenityController::class, 'store']);
+    Route::put('/{amenity_id}', [AmenityController::class, 'update']);
+    Route::delete('/{amenity_id}', [AmenityController::class, 'destroy']);
+});
+>>>>>>> 625ee96ae8c6b7fbbc89fad51f5a604c53f279c9
 
 Route::prefix('services')->group(function () {
     Route::get('/', [ServiceController::class, 'index']);
@@ -66,6 +75,9 @@ Route::prefix('room-types')->group(function () {
 
 Route::prefix('prices')->group(function () {
     Route::get('/', [PriceController::class, 'index']);
+    Route::post('/', [PriceController::class, 'store']);
+    //lấy giá ra client dựa vào ngày 
+    Route::post('/prices_client', [PriceController::class, 'getPrice']);
     Route::post('/', [PriceController::class, 'store']);
     Route::put('/{id}', [PriceController::class, 'update']);
     Route::delete('/{id}', [PriceController::class, 'destroy']);
