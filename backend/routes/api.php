@@ -19,6 +19,9 @@ use App\Http\Controllers\PriceController;
 use App\Http\Controllers\ServiceController;
 use App\Http\Controllers\TableController;
 use App\Http\Controllers\TableTypeController;
+use App\Http\Controllers\api\NewsController;
+use App\Http\Controllers\api\NewsCategoryController;
+use App\Http\Controllers\api\NewsCommentController;
 
 Route::apiResource('employees', EmployeeController::class);
 Route::get('/departments', [DepartmentController::class, 'index']);
@@ -43,6 +46,12 @@ Route::post('/customers', [OccupancyController::class, 'storeCustomer']); //thê
 Route::get('/rooms/{room_id}/customer', [OccupancyController::class, 'getCustomerByRoom']); //hiển thị thông tin khách
 Route::post('/rooms/{room_id}/checkout', [OccupancyController::class, 'checkoutRoom']); //checkout
 
+//news
+Route::apiResource('news', NewsController::class);
+Route::apiResource('news-categories', NewsCategoryController::class);
+Route::get('/news-comments', [NewsCommentController::class, 'index']); // Trang admin lấy tất cả bình luận
+Route::put('/comments/{id}', [NewsCommentController::class, 'update']); // Admin cập nhật bình luận
+Route::delete('/comments/{id}', [NewsCommentController::class, 'destroy']);
 
 Route::post('/rooms/{room_id}/add-guest', [OccupancyController::class, 'addGuestToRoom']); //khi khách đặt phòng thì đổi trạng thái
 Route::get('/room-types', [RoomTypeController::class, 'index']);
@@ -112,4 +121,5 @@ Route::get('/items-online/50k', [ShopOnlineController::class, 'getItem50k']);
 Route::post('/send-otp', [ApiLoginController::class, 'sendOtp']);
 Route::post('/verify-otp', [ApiLoginController::class, 'verifyOtp']);
 Route::post('/reset-password', [ApiLoginController::class, 'resetPassword']);
+
 

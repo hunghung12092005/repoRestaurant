@@ -52,6 +52,10 @@ import rooms2 from '../components/booking_room/Booking2.vue'
 //thông tin user
 import userprofile from '../components/user/userProfile.vue'
 import forgotPass from '../components/user/forgotPass.vue'
+//news
+import AdminNewsComponent from '../components/admin/news/AdminNewsComponent.vue';
+import AdminNewsCategoryComponent from '../components/admin/news/AdminNewsCategoryComponent.vue';
+import AdminNewsCommentComponent from '../components/admin/news/AdminNewsCommentComponent.vue';
 const routes = [
   {
     path: '/',
@@ -268,6 +272,24 @@ const routes = [
     path: '/admin/amenities',
     name: 'AdminAmenities',
     component: AdminAmenitiesComponent,
+    meta: { requiresAdmin: true },
+  },
+  {
+    path: '/admin/news',
+    name: 'AdminNews',
+    component: AdminNewsComponent,
+    meta: { requiresAdmin: true },
+  },
+  {
+    path: '/admin/news-categories',
+    name: 'AdminNewsCategories',
+    component: AdminNewsCategoryComponent,
+    meta: { requiresAdmin: true },
+  },
+  {
+    path: '/admin/news-comments',
+    name: 'AdminNewsComments',
+    component: AdminNewsCommentComponent,
     meta: { requiresAdmin: true },
   },
 ];
