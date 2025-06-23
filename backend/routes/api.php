@@ -49,6 +49,12 @@ Route::get('/room-types', [RoomTypeController::class, 'index']);
 Route::post('/room-types', [RoomTypeController::class, 'store']);
 Route::put('/room-types/{id}', [RoomTypeController::class, 'update']);
 Route::delete('/room-types/{id}', [RoomTypeController::class, 'destroy']);
+Route::prefix('amenities')->group(function () {
+    Route::get('/', [AmenityController::class, 'index']);
+    Route::post('/', [AmenityController::class, 'store']);
+    Route::put('/{amenity_id}', [AmenityController::class, 'update']);
+    Route::delete('/{amenity_id}', [AmenityController::class, 'destroy']);
+});
 
 Route::prefix('services')->group(function () {
     Route::get('/', [ServiceController::class, 'index']);

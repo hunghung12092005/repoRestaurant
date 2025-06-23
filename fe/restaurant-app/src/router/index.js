@@ -26,6 +26,12 @@ import AdminMenuCategoryComponent from '../components/AdminMenu/AdminMenuCategor
 import AdminMenuComponent from '../components/AdminMenu/AdminMenuComponent.vue';
 
 import AdminOccupancyComponent from '../components/AdminRoom/AdminOccupancy.vue';
+// Admin Amenities and Services - Tiện ích và Dịch vụ
+import AdminAmenitiesComponent from '../components/AdminSeAm/AdminAmenitiesComponent.vue';
+import AdminServicesComponent from '../components/AdminSeAm/AdminServicesComponent.vue';
+
+// AdminBooking - Đặt phòng
+import AdminBookingComponent from '../components/AdminBooking/AdminBookingComponent.vue';
 
 import AdminDashboardComponent from '../components/admin/AdminDashboardComponent.vue';
 import AdminStaffsComponent from '../components/admin/AdminStaffsComponent.vue';
@@ -258,6 +264,18 @@ const routes = [
   //   name: 'adminOccupancy',
   //   component: adminOccupancy,
   // }
+  {
+    path: '/admin/services',
+    name: 'AdminServices',
+    component: AdminServicesComponent,
+    meta: { requiresAdmin: true },
+  },
+  {
+    path: '/admin/amenities',
+    name: 'AdminAmenities',
+    component: AdminAmenitiesComponent,
+    meta: { requiresAdmin: true },
+  },
 ];
 
 const router = createRouter({
