@@ -216,6 +216,7 @@ const showAddGuest = (room_id) => {
   };
   showForm.value = true;
 };
+console.log("Dữ liệu gửi:", formData.value);
 
 // Gửi dữ liệu từ form vào backend Laravel
 const submitCustomerForm = async () => {
@@ -510,6 +511,7 @@ watch([selectedStatus, selectedRoomType, selectedFloor], (newValues) => {
 
 .modal-overlay {
   position: fixed;
+  z-index: 1000;
   top: 0;
   left: 0;
   width: 100%;

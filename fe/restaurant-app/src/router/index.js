@@ -21,7 +21,6 @@ import AdminTableTypeComponent from '../components/AdminTable/AdminTableTypeComp
 import AdminRoomTypeComponent from '../components/AdminRoom/AdminRoomTypeComponent.vue';
 import AdminRoomComponent from '../components/AdminRoom/AdminRoomComponent.vue';
 import AdminPriceComponent from '../components/AdminRoom/AdminPriceComponent.vue';
-
 import AdminMenuCategoryComponent from '../components/AdminMenu/AdminMenuCategoryComponent.vue';
 import AdminMenuComponent from '../components/AdminMenu/AdminMenuComponent.vue';
 
@@ -31,7 +30,6 @@ import AdminAmenitiesComponent from '../components/AdminSeAm/AdminAmenitiesCompo
 import AdminServicesComponent from '../components/AdminSeAm/AdminServicesComponent.vue';
 
 // AdminBooking - Đặt phòng
-import AdminBookingComponent from '../components/AdminBooking/AdminBookingComponent.vue';
 
 import AdminDashboardComponent from '../components/admin/AdminDashboardComponent.vue';
 import AdminStaffsComponent from '../components/admin/AdminStaffsComponent.vue';
@@ -45,7 +43,6 @@ import buynow from '../components/ShopOnline/BuyNow.vue';
 import ChatAdmin from '../components/ChatAdmin.vue';
 import Chat from '../components/Chat.vue';
 import qrCodeCCCD from '../components/qrCodeCCCD.vue';
-// import adminOccupancy from '../components/AdminRoom/AdminRoomOccupancy.vue';   //hiển thị room admin
 //đặt phòng
 import rooms from '../components/booking_room/BookRoomComponent.vue'
 import rooms2 from '../components/booking_room/Booking2.vue'
@@ -56,6 +53,8 @@ import forgotPass from '../components/user/forgotPass.vue'
 import AdminNewsComponent from '../components/admin/news/AdminNewsComponent.vue';
 import AdminNewsCategoryComponent from '../components/admin/news/AdminNewsCategoryComponent.vue';
 import AdminNewsCommentComponent from '../components/admin/news/AdminNewsCommentComponent.vue';
+// AdminBookingComponent
+import AdminBookingComponent from '../components/AdminBooking/AdminBookingComponent.vue'
 const routes = [
   {
     path: '/',
@@ -245,17 +244,17 @@ const routes = [
     component: AdminMenuComponent,
     meta: { requiresAdmin: true },
   },
-  {
-    path: '/admin/bookings',
-    name: 'AdminBooking',
-    component: AdminBookingComponent,
-    meta: { requiresAdmin: true },
-  },
+  
   {// quản lý trạng thái phòng
     path: '/admin/occupancy',
     name: 'AdminOccupancy',
     component: AdminOccupancyComponent,
     meta: { requiresAdmin: true },
+  },
+  {// quản lý trạng thái phòng
+    path: '/admin/AdminBooking',
+    name: 'AdminBookingComponent',
+    component: AdminBookingComponent,
   },
   // {
   //   path: '/admin/Occupancy',
