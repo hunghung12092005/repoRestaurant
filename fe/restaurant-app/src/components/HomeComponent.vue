@@ -1,18 +1,25 @@
 <template>
-        <loading v-if="isLoading" />
-
-    <!-- <section class="home" id="home">
+    <!-- <loading v-if="isLoading" /> -->
+    <section class="home" id="home">
         <div class="home-text">
+
+            <!-- <span>hh to our</span>
+            <h1>Healthy Food <br>Collection!</h1>
+            <p>Discover our carefully curated selection of nutritious and delicious meals, made with fresh ingredients
+                to nourish your body and delight your taste buds</p>
+            <a href="/menu-list" class="btn">Xem Menu</a> -->
+
             <span>Sầm Sơn Beach</span>
-            <h1>An Phú Villa <br>Kính chào quý khách!</h1>
+            <h1>Hồ Xuân Hương  <br>Kính chào quý khách!</h1>
             
             <a href="/menu" class="btn">Xem Menu</a>
+
         </div>
         <div class="home-img">
             <img src="https://png.pngtree.com/png-clipart/20240318/original/pngtree-cutout-isolated-background-young-adult-asian-travel-couple-carry-luggage-for-png-image_14613197.png" alt="food image">
             <img src="https://i.postimg.cc/gJBk5PMz/salad.png" alt="food image">
         </div>
-    </section> -->
+    </section> 
     <sliderComponent />
 
     <section class="about" id="about">
@@ -113,7 +120,7 @@
             </div>
         </div>
     </section>
-    
+    <Footer></Footer>
 </template>
 <style scoped>
 @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&family=Turret+Road:wght@400;500;700;800&display=swap');
@@ -718,5 +725,5 @@ onMounted(() => {
     fetchMenuItems();
     fetchTopPriceItems();
 });
-</script>
+</script>   
 

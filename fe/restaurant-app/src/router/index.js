@@ -12,6 +12,26 @@ import LoginComponent from '../components/Login.vue';
 import TestJwtComponent from '../components/testTokenJwt.vue';
 import BlogDetailComponent from '../components/News/BlogDetailComponent.vue';
 import ProductDetailComponent from '../components/ProductDetailComponent.vue';
+
+// import AdminDashboardComponent from '../components/AdminDashboardComponent.vue';
+// import AdminStaffsComponent from '../components/AdminStaffsComponent.vue';
+import AdminTableComponent from '../components/AdminTable/AdminTableComponent.vue';
+import AdminTableTypeComponent from '../components/AdminTable/AdminTableTypeComponent.vue';
+
+// AdmỉnRoom - Phòng
+import AdminRoomTypeComponent from '../components/AdminRoom/AdminRoomTypeComponent.vue';
+import AdminRoomComponent from '../components/AdminRoom/AdminRoomComponent.vue';
+import AdminPriceComponent from '../components/AdminRoom/AdminPriceComponent.vue';
+import AdminMenuCategoryComponent from '../components/AdminMenu/AdminMenuCategoryComponent.vue';
+import AdminMenuComponent from '../components/AdminMenu/AdminMenuComponent.vue';
+
+import AdminOccupancyComponent from '../components/AdminRoom/AdminOccupancy.vue';
+// Admin Amenities and Services - Tiện ích và Dịch vụ
+import AdminAmenitiesComponent from '../components/AdminSeAm/AdminAmenitiesComponent.vue';
+import AdminServicesComponent from '../components/AdminSeAm/AdminServicesComponent.vue';
+
+// AdminBooking - Đặt phòng
+
 import AdminDashboardComponent from '../components/admin/AdminDashboardComponent.vue';
 import AdminOccupancyComponent from '../components/admin/AdminOccupancy.vue';
 import AdminUsersComponent from '../components/admin/AdminUsersComponent.vue';
@@ -22,6 +42,7 @@ import Shop from '../components/Shop.vue';
 import ghn from '../components/ghn/mainghn.vue';
 import menu_online from '../components/ShopOnline/menu_online.vue';
 import detailMenu from '../components/ShopOnline/detailMenu.vue';
+
 import detailOrderMenu from '../components/menu_item/detailOrderMenu.vue';
 import CategoryShopOnline from '../components/ShopOnline/CategoryShopOnline.vue';
 import buynow from '../components/ShopOnline/BuyNow.vue';
@@ -30,6 +51,18 @@ import StaffDashboardComponent from '../components/staff/StaffDashboardComponent
 import ChatAdmin from '../components/ChatAdmin.vue';
 import Chat from '../components/Chat.vue';
 import qrCodeCCCD from '../components/qrCodeCCCD.vue';
+//đặt phòng
+import rooms from '../components/booking_room/BookRoomComponent.vue'
+import rooms2 from '../components/booking_room/Booking2.vue'
+//thông tin user
+import userprofile from '../components/user/userProfile.vue'
+import forgotPass from '../components/user/forgotPass.vue'
+//news
+import AdminNewsComponent from '../components/admin/news/AdminNewsComponent.vue';
+import AdminNewsCategoryComponent from '../components/admin/news/AdminNewsCategoryComponent.vue';
+import AdminNewsCommentComponent from '../components/admin/news/AdminNewsCommentComponent.vue';
+// AdminBookingComponent
+import AdminBookingComponent from '../components/AdminBooking/AdminBookingComponent.vue'
 const routes = [
   {
     path: '/',
@@ -41,6 +74,7 @@ const routes = [
     name: 'AboutComponent',
     component: AboutComponent,
   },
+  
   {
     path: '/contact',
     name: 'ContactComponent',
@@ -144,6 +178,28 @@ const routes = [
     name: 'qrCodeCCCD',
     component: qrCodeCCCD,
   },
+  // đặt phòng
+  {
+    path: '/rooms',
+    name: 'rooms',
+    component: rooms,
+  },
+  {
+    path: '/rooms2',
+    name: 'rooms2',
+    component: rooms2,
+  },
+  //quản lý thông tin user
+  {
+    path: '/userprofile',
+    name: 'userprofile',
+    component: userprofile,
+  },
+  {
+    path: '/forgotPass',
+    name: 'forgotPass',
+    component: forgotPass,
+  },
   // Admin routes
   {
     path: '/admin',
@@ -162,12 +218,76 @@ const routes = [
     meta: { requiresAdmin: true },
   },
   {
-    path: '/admin/users',
-    name: 'AdminUsers',
-    component: AdminUsersComponent,
+    path: '/admin/room-types',
+    name: 'AdminRoomType',
+    component: AdminRoomTypeComponent,
+    meta: { requiresAdmin: true },
+  },
+  {
+    path: '/admin/prices',
+    name: 'AdminPrice',
+    component: AdminPriceComponent,
+    meta: { requiresAdmin: true },
+  },
+  {
+    path: '/admin/rooms',
+    name: 'AdminRoom',
+    component: AdminRoomComponent,
+    meta: { requiresAdmin: true },
+  },
+  {
+    path: '/admin/table-types',
+    name: 'AdminTableType',
+    component: AdminTableTypeComponent,
+    meta: { requiresAdmin: true },
+  },
+  {
+    path: '/admin/tables',
+    name: 'AdminTable',
+    component: AdminTableComponent,
+    meta: { requiresAdmin: true },
+  },
+  {
+    path: '/admin/menu-categories',
+    name: 'AdminMenuCategory',
+    component: AdminMenuCategoryComponent,
+    meta: { requiresAdmin: true },
+  },
+  {
+    path: '/admin/menus',
+    name: 'AdminMenu',
+    component: AdminMenuComponent,
     meta: { requiresAdmin: true },
   },
   
+  {// quản lý trạng thái phòng
+    path: '/admin/occupancy',
+    name: 'AdminOccupancy',
+    component: AdminOccupancyComponent,
+    meta: { requiresAdmin: true },
+  },
+  {// quản lý trạng thái phòng
+    path: '/admin/AdminBooking',
+    name: 'AdminBookingComponent',
+    component: AdminBookingComponent,
+  },
+  // {
+  //   path: '/admin/Occupancy',
+  //   name: 'adminOccupancy',
+  //   component: adminOccupancy,
+  // }
+  {
+    path: '/admin/services',
+    name: 'AdminServices',
+    component: AdminServicesComponent,
+    meta: { requiresAdmin: true },
+  },
+  {
+    path: '/admin/amenities',
+    name: 'AdminAmenities',
+    component: AdminAmenitiesComponent,
+    meta: { requiresAdmin: true },
+  },
   {
     path: '/admin/news',
     name: 'AdminNews',
@@ -185,13 +305,6 @@ const routes = [
     name: 'AdminNewsComments',
     component: AdminNewsCommentComponent,
     meta: { requiresAdmin: true },
-  },
-  // Staff routes
-  {
-    path: '/staff/dashboard',
-    name: 'StaffDashboard',
-    component: StaffDashboardComponent,
-    meta: { requiresStaff: true },
   },
 ];
 

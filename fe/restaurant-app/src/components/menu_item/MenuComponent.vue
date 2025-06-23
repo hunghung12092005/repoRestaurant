@@ -121,7 +121,6 @@ export default {
   padding: 3rem 1rem; 
 }
 
-
 .hover-link:hover {
   color: #ff6f61 !important;
 }
