@@ -23,8 +23,10 @@ const io = new Server(server, {
 });
 
 // Cấu hình Redis
-const redisClient = createClient();
-
+const redisClient = createClient({
+    //url: 'redis://YOUR_REDIS_HOST:YOUR_REDIS_PORT', 
+    //password: 'YOUR_REDIS_PASSWORD' 
+});
 redisClient.on('error', (err) => {
     console.error('Redis Client Error', err);
 });

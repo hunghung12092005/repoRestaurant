@@ -15,6 +15,7 @@ class AdminMiddleware
         if (!$user || $user->role !== 'admin') {
             return redirect('/')->with('error', 'Bạn không có quyền truy cập.');
         }
+       
 
         // Nếu có quyền admin, tiếp tục với request
         return $next($request);

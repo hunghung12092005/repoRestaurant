@@ -1,16 +1,14 @@
 <template>
   <div>
-    <!-- Layout cho admin -->
     <div v-if="$route.path.startsWith('/admin')" class="d-flex">
-      <!-- Sidebar -->
       <div class="sidebar">
         <div class="header text-center p-3 border-bottom">
-          <img src="https://i.postimg.cc/s2Ywg6YR/logo.png" alt="Luxuria Logo" class="rounded-circle" />
-          <span class="fw-bold">An Phú Ecosystem</span>
+          <img src="https://i.postimg.cc/d3pNGXPN/7c6764b8-de90-474c-9b98-05019aef3193.png" alt="Luxuria Logo" class="rounded-circle" />
+          <span class="fw-bold"><strong>Ho Xuan Huong</strong> Ecosystem</span>
         </div>
         <div class="profile text-center p-3 border-bottom">
-          <img src="https://www.einfosoft.com/templates/admin/luxuria/source/light/assets/images/admin.jpg"
-            alt="Profile Picture" class="rounded-circle" />
+          <img src="https://www.pngkey.com/png/full/263-2635979_admin-abuse.png" alt="Profile Picture"
+            class="rounded-circle" />
           <p class="mb-0 text-muted">{{ userInfo.name || 'Admin' }}</p>
           <p class="text-muted">{{ userInfo.email || 'admin@seafoodie.com' }}</p>
           <div class="icons d-flex justify-content-center mt-2">
@@ -21,11 +19,88 @@
           </div>
         </div>
         <ul class="nav flex-column">
-          <li class="nav-item"><router-link class="nav-link" to="/admin/dashboard"><i class="bi bi-grid"></i> Dashboard</router-link></li>
-          <li class="nav-item"><router-link class="nav-link" to="/admin/occupancy"><i class="bi bi-house-door"></i> Occupancy <span class="badge bg-danger">5</span></router-link></li>
-          <li class="nav-item"><router-link class="nav-link" to="/admin/bookings"><i class="bi bi-book"></i> Bookings</router-link></li>
-          <li class="nav-item"><router-link class="nav-link" to="/admin/rooms"><i class='bx bx-bed'></i>  Rooms</router-link></li>
-          <li class="nav-item"><router-link class="nav-link" to="/admin/users"><i class="bi bi-people"></i> Quản lý tài khoản</router-link></li>
+          <li class="nav-item"><router-link class="nav-link" to="/admin/dashboard"><i class="bi bi-grid"></i>
+              Dashboard</router-link></li>
+          <li class="nav-item"><router-link class="nav-link" to="/admin/occupancy"><i class="bi bi-house-door"></i>
+              Occupancy <span class="badge bg-danger">5</span></router-link></li>
+          <li class="nav-item"><router-link class="nav-link" to="/admin/bookings"><i class="bi bi-book"></i>
+              Bookings</router-link></li>
+          <li class="nav-item dropdown">
+            <a class="nav-link dropdown-toggle" href="#" id="roomsDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+              <i class='bx  bx-bed'></i> Dịch vụ và tiện nghi
+            </a>
+            <ul class="dropdown-menu" aria-labelledby="roomsDropdown">
+              <li>
+                <router-link class="dropdown-item" to="/admin/services">
+                  <i class="bi bi-list-ul me-2"></i> Quản lý dịch vụ
+                </router-link>
+              </li>
+              <li>
+                <router-link class="dropdown-item" to="/admin/amenities">
+                  <i class='bx  bx-bed'></i> Quản lý tiện nghi
+                </router-link>
+              </li>
+            </ul>
+          </li>
+          <li class="nav-item dropdown">
+            <a class="nav-link dropdown-toggle" href="#" id="roomsDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+              <i class='bx  bx-bed'></i> Quản lý phòng
+            </a>
+            <ul class="dropdown-menu" aria-labelledby="roomsDropdown">
+              <li>
+                <router-link class="dropdown-item" to="/admin/room-types">
+                  <i class="bi bi-list-ul me-2"></i> Danh mục phòng
+                </router-link>
+              </li>
+              <li>
+                <router-link class="dropdown-item" to="/admin/prices">
+                  <i class='bx  bx-bed'></i> Quản lý giá phòng
+                </router-link>
+              </li>
+              <li>
+                <router-link class="dropdown-item" to="/admin/rooms">
+                  <i class='bx  bx-bed'></i> Quản lý phòng
+                </router-link>
+              </li>
+            </ul>
+          </li>
+          <li class="nav-item dropdown">
+            <a class="nav-link dropdown-toggle" href="#" id="tablesDropdown" role="button" data-bs-toggle="dropdown"
+              aria-expanded="false">
+              <i class="bi bi-table"></i> Quản lý bàn
+            </a>
+            <ul class="dropdown-menu" aria-labelledby="tablesDropdown">
+              <li>
+                <router-link class="dropdown-item" to="/admin/table-types">
+                  <i class="bi bi-list-ul me-2"></i> Danh mục bàn
+                </router-link>
+              </li>
+              <li>
+                <router-link class="dropdown-item" to="/admin/tables">
+                  <i class="bi bi-table me-2"></i> Quản lý bàn
+                </router-link>
+              </li>
+            </ul>
+          </li>
+          <li class="nav-item dropdown">
+            <a class="nav-link dropdown-toggle" href="#" id="menuDropdown" role="button" data-bs-toggle="dropdown"
+              aria-expanded="false">
+              <i class="bi bi-menu"></i> Quản lý thực đơn
+            </a>
+            <ul class="dropdown-menu" aria-labelledby="menuDropdown">
+              <li>
+                <router-link class="dropdown-item" to="/admin/menu-categories">
+                  <i class="bi bi-list-ul me-2"></i> Danh mục thực đơn
+                </router-link>
+              </li>
+              <li>
+                <router-link class="dropdown-item" to="/admin/menus">
+                  <i class="bi bi-menu me-2"></i> Quản lý thực đơn
+                </router-link>
+              </li>
+            </ul>
+          </li>
+         <li class="nav-item"><router-link class="nav-link" to="/admin/users"><i class="bi bi-people"></i> Quản lý tài khoản</router-link></li>
           <li class="nav-item"><router-link class="nav-link" to="/admin/news"><i class="bi bi-newspaper"></i> Tin tức</router-link></li>
           <li class="nav-item"><router-link class="nav-link" to="/admin/news-categories"><i class="bi bi-tags"></i> Danh mục Tin tức</router-link></li>
           <li class="nav-item"><router-link class="nav-link" to="/admin/news-comments"><i class="bi bi-chat"></i> Bình luận</router-link></li>
@@ -107,8 +182,8 @@
           <div class="container-fluid">
             <!-- Logo -->
             <a class="navbar-brand" href="/">
-              <img src="https://i.postimg.cc/s2Ywg6YR/logo.png" alt="Foodie Logo" class="logo-img" />
-              An Phú Ecosystem
+              <img src="https://i.postimg.cc/d3pNGXPN/7c6764b8-de90-474c-9b98-05019aef3193.png" alt="Foodie Logo" class="logo-img" />
+              Ho Xuan Huong Eco
             </a>
 
             <!-- Toggle Button for Mobile -->
@@ -121,8 +196,8 @@
             <div class="collapse navbar-collapse" id="navbarNav" ref="navbarRef" :class="{ 'show': navbarActive }">
               <ul class="navbar-nav ms-auto">
                 <li class="nav-item"><router-link class="nav-link sisf-m-subtitle" to="/">Home</router-link></li>
-                <li class="nav-item"><router-link class="nav-link sisf-m-subtitle" to="/about">About</router-link></li>
-                <li class="nav-item"><router-link class="nav-link sisf-m-subtitle" to="/contact">Contact</router-link></li>
+
+
                 <li class="nav-item"><router-link class="nav-link sisf-m-subtitle" to="/blog">Blog</router-link></li>
                 <li class="nav-item dropdown">
                   <a class="nav-link dropdown-toggle sisf-m-subtitle" href="#" role="button" data-bs-toggle="dropdown"
@@ -136,15 +211,18 @@
                     <li><router-link class="dropdown-item" to="/CategoryShopOnline">Menu ShopOnline</router-link></li>
                   </ul>
                 </li>
-                <li class="nav-item"><router-link class="nav-link sisf-m-subtitle" to="/reservation">Reservation</router-link></li>
-                <li class="nav-item dropdown" v-if="isLogin">
+                <li class="nav-item "><router-link class="nav-link sisf-m-subtitle" to="/rooms">Đặt
+                    Phòng</router-link></li>
+                <li class="nav-item "><router-link class="nav-link sisf-m-subtitle" to="/reservation">Đặt
+                    Bàn</router-link></li>
+                <li class="nav-item dropdown " v-if="isLogin">
                   <a class="nav-link dropdown-toggle sisf-m-subtitle" href="#" role="button" data-bs-toggle="dropdown"
                     aria-expanded="false">
                     Xin chào, {{ userInfo.name }}!
                   </a>
                   <ul class="dropdown-menu dropdown-menu-end">
                     <li><router-link class="dropdown-item" to="/testJwt">testJwt</router-link></li>
-                    <li v-if="userInfo.role === 'staff'"><router-link class="dropdown-item" to="/staff/bookings">Staff Dashboard</router-link></li>
+                    <li><router-link class="dropdown-item" to="/userprofile">Thông Tin User</router-link></li>
                     <li v-if="isAdmin"><router-link class="dropdown-item" to="/admin">Vào admin</router-link></li>
                     <li><a class="dropdown-item logout-link" @click.prevent="logout">Đăng Xuất</a></li>
                   </ul>
@@ -161,6 +239,10 @@
       <main>
         <router-view />
       </main>
+<<<<<<< HEAD
+=======
+
+>>>>>>> main
     </div>
   </div>
 </template>
@@ -238,7 +320,7 @@ const fetchUserInfo = async () => {
   } catch (error) {
     console.error('Error fetching user info:', error.response ? error.response.data : error.message);
     if (error.response?.status === 401) {
-      logout();
+      logout(); // Xóa token và đăng xuất nếu token không hợp lệ
     }
   }
 };
@@ -256,6 +338,7 @@ const handleUrlParams = () => {
       userInfo.value = parsedUser;
       isLogin.value = true;
       isAdmin.value = parsedUser.role === 'admin';
+      // Xóa query params khỏi URL
       router.replace({ query: {} });
     } catch (e) {
       console.error('Error parsing user from URL:', e);
@@ -273,17 +356,29 @@ const logout = () => {
 };
 
 const goToProfile = () => {
-  router.push(userInfo.value.role === 'admin' ? '/admin/profile' : '/staff/profile');
+  router.push('/admin/profile');
 };
 
 const editProfile = () => {
-  router.push(userInfo.value.role === 'admin' ? '/admin/edit-profile' : '/staff/edit-profile');
+  router.push('/admin/edit-profile');
 };
 
+// Navigation guard để bảo vệ route admin
+router.beforeEach((to, from, next) => {
+  const isAuthenticated = !!localStorage.getItem('tokenJwt');
+  const isAdminUser = userInfo.value?.role === 'admin';
+
+  if (to.path.startsWith('/admin') && (!isAuthenticated || !isAdminUser)) {
+    next('/'); // Chuyển về trang chủ nếu không đăng nhập hoặc không phải admin
+  } else {
+    next();
+  }
+});
+
 onMounted(() => {
-  restoreUserSession();
-  handleUrlParams();
-  fetchUserInfo();
+  restoreUserSession(); // Khôi phục phiên từ localStorage
+  handleUrlParams(); // Xử lý token/user từ URL nếu có
+  fetchUserInfo(); // Lấy thông tin người dùng từ API
   window.addEventListener('scroll', handleScroll);
   document.addEventListener('click', handleOutsideClick);
 });
@@ -345,6 +440,10 @@ onUnmounted(() => {
 .navbar.active .nav-link,
 .navbar.active .dropdown-toggle {
   color: black;
+}
+
+.navbar.active .navbar-toggler-icon {
+  filter: brightness(0) invert(1);
 }
 
 .navbar.active .navbar-toggler-icon {
@@ -595,6 +694,10 @@ body {
   .navbar.active .nav-link,
   .navbar.active .dropdown-toggle {
     color: #000 !important;
+  }
+
+  .navbar.active .navbar-toggler-icon {
+    filter: brightness(0) invert(1);
   }
 
   .navbar.active .navbar-toggler-icon {
