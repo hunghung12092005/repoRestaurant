@@ -16,7 +16,7 @@ use App\Http\Controllers\PriceController;
 use App\Http\Controllers\ServiceController;
 use App\Http\Controllers\TableController;
 use App\Http\Controllers\TableTypeController;
-use App\Http\Controllers\api\UsersController;
+use App\Http\Controllers\UsersController;
 use App\Http\Controllers\api\NewsController;
 use App\Http\Controllers\api\NewsCategoryController;
 use App\Http\Controllers\api\NewsCommentController;
@@ -38,11 +38,12 @@ Route::post('/menus', [MenuController::class, 'store']);
 Route::put('/menus/{id}', [MenuController::class, 'update']);
 Route::delete('/menus/{id}', [MenuController::class, 'destroy']);
 
-Route::apiResource('users', UsersController::class);
 
 Route::post('/customers', [OccupancyController::class, 'storeCustomer']); //thêm dữ liệu khách vào bảng customer
 Route::get('/rooms/{room_id}/customer', [OccupancyController::class, 'getCustomerByRoom']); //hiển thị thông tin khách
 Route::post('/rooms/{room_id}/checkout', [OccupancyController::class, 'checkoutRoom']); //checkout
+
+Route::apiResource('users', UsersController::class);
 
 //news
 Route::apiResource('news', NewsController::class);
