@@ -4,6 +4,8 @@ use App\Http\Controllers\BookingController;
 use App\Http\Controllers\api\LoginController as ApiLoginController;
 use App\Http\Controllers\api\MenuItemController;
 use App\Http\Controllers\api\ShopOnlineController;
+use App\Http\Controllers\api\NewsController;
+use App\Http\Controllers\api\NewsCategoryController;
 use App\Http\Controllers\api\OccupancyController;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Log;
@@ -36,6 +38,10 @@ Route::get('/menus', [MenuController::class, 'index']);
 Route::post('/menus', [MenuController::class, 'store']);
 Route::put('/menus/{id}', [MenuController::class, 'update']);
 Route::delete('/menus/{id}', [MenuController::class, 'destroy']);
+
+Route::get('/news-comments', [NewsCommentController::class, 'index']); // Trang admin lấy tất cả bình luận
+Route::put('/comments/{id}', [NewsCommentController::class, 'update']); // Admin cập nhật bình luận
+Route::delete('/comments/{id}', [NewsCommentController::class, 'destroy']);
 
 Route::post('/customers', [OccupancyController::class, 'storeCustomer']); //thêm dữ liệu khách vào bảng customer
 Route::get('/rooms/{room_id}/customer', [OccupancyController::class, 'getCustomerByRoom']); //hiển thị thông tin khách
@@ -128,5 +134,4 @@ Route::get('/items-online/50k', [ShopOnlineController::class, 'getItem50k']);
 Route::post('/send-otp', [ApiLoginController::class, 'sendOtp']);
 Route::post('/verify-otp', [ApiLoginController::class, 'verifyOtp']);
 Route::post('/reset-password', [ApiLoginController::class, 'resetPassword']);
-
 

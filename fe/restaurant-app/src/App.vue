@@ -100,11 +100,11 @@
               </li>
             </ul>
           </li>
+         <li class="nav-item"><router-link class="nav-link" to="/admin/users"><i class="bi bi-people"></i> Quản lý tài khoản</router-link></li>
           <li class="nav-item"><router-link class="nav-link" to="/admin/news"><i class="bi bi-newspaper"></i> Tin tức</router-link></li>
           <li class="nav-item"><router-link class="nav-link" to="/admin/news-categories"><i class="bi bi-tags"></i> Danh mục Tin tức</router-link></li>
           <li class="nav-item"><router-link class="nav-link" to="/admin/news-comments"><i class="bi bi-chat"></i> Bình luận</router-link></li>
-          <li class="nav-item"><router-link class="nav-link" to="/"><i class="bi bi-box-arrow-left"></i>
-              Thoát</router-link></li>
+          <li class="nav-item"><router-link class="nav-link" to="/"><i class="bi bi-box-arrow-left"></i> Thoát</router-link></li>
         </ul>
       </div>
 
