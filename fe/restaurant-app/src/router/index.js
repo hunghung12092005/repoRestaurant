@@ -31,7 +31,6 @@ import AdminAmenitiesComponent from '../components/AdminSeAm/AdminAmenitiesCompo
 import AdminServicesComponent from '../components/AdminSeAm/AdminServicesComponent.vue';
 
 // AdminBooking - Đặt phòng
-import AdminBookingComponent from '../components/AdminBooking/AdminBookingComponent.vue';
 
 import AdminDashboardComponent from '../components/admin/AdminDashboardComponent.vue';
 import AdminStaffsComponent from '../components/admin/AdminStaffsComponent.vue';
