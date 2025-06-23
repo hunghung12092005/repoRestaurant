@@ -7,8 +7,7 @@
           <span class="fw-bold"><strong>Ho Xuan Huong</strong> Ecosystem</span>
         </div>
         <div class="profile text-center p-3 border-bottom">
-          <img src="https://www.pngkey.com/png/full/263-2635979_admin-abuse.png" alt="Profile Picture"
-            class="rounded-circle" />
+         
           <p class="mb-0 text-muted">{{ userInfo.name || 'Admin' }}</p>
           <p class="text-muted">{{ userInfo.email || 'admin@seafoodie.com' }}</p>
           <div class="icons d-flex justify-content-center mt-2">
@@ -100,14 +99,14 @@
               </li>
             </ul>
           </li>
-          <li class="nav-item"><router-link class="nav-link" to="/admin/staffs"><i class="bi bi-people"></i>
+          <!-- <li class="nav-item"><router-link class="nav-link" to="/admin/staffs"><i class="bi bi-people"></i>
               Staffs</router-link></li>
           <li class="nav-item"><router-link class="nav-link" to="/admin/departments"><i class="bi bi-gear"></i>
               Departments</router-link></li>
           <li class="nav-item"><router-link class="nav-link" to="/admin/housekeeping"><i class="bi bi-house"></i>
               Housekeeping</router-link></li>
           <li class="nav-item"><router-link class="nav-link" to="/admin/leave-management"><i class="bi bi-calendar"></i>
-              Leave Management</router-link></li>
+              Leave Management</router-link></li> -->
           <li class="nav-item"><router-link class="nav-link" to="/"><i class="bi bi-box-arrow-left"></i>
               Thoát</router-link></li>
         </ul>

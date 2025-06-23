@@ -43,12 +43,13 @@ Route::post('/customers', [OccupancyController::class, 'storeCustomer']); //thê
 Route::get('/rooms/{room_id}/customer', [OccupancyController::class, 'getCustomerByRoom']); //hiển thị thông tin khách
 Route::post('/rooms/{room_id}/checkout', [OccupancyController::class, 'checkoutRoom']); //checkout
 
-
 Route::post('/rooms/{room_id}/add-guest', [OccupancyController::class, 'addGuestToRoom']); //khi khách đặt phòng thì đổi trạng thái
-Route::get('/room-types', [RoomTypeController::class, 'index']);
-Route::post('/room-types', [RoomTypeController::class, 'store']);
-Route::put('/room-types/{id}', [RoomTypeController::class, 'update']);
-Route::delete('/room-types/{id}', [RoomTypeController::class, 'destroy']);
+
+// Route::get('/room-types', [RoomTypeController::class, 'index']);
+// Route::post('/room-types', [RoomTypeController::class, 'store']);
+// Route::put('/room-types/{id}', [RoomTypeController::class, 'update']);
+// Route::delete('/room-types/{id}', [RoomTypeController::class, 'destroy']);
+
 Route::prefix('amenities')->group(function () {
     Route::get('/', [AmenityController::class, 'index']);
     Route::post('/', [AmenityController::class, 'store']);
