@@ -12,5 +12,5 @@ import '@vueup/vue-quill/dist/vue-quill.snow.css';
 import 'flatpickr/dist/flatpickr.css';
 createApp(App)
   .use(router) // Sử dụng router
-  .mount('#app')
-  .component('QuillEditor', QuillEditor);
+  .component('QuillEditor', QuillEditor)
+  .mount('#app');
