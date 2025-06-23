@@ -99,14 +99,9 @@
               </li>
             </ul>
           </li>
-          <!-- <li class="nav-item"><router-link class="nav-link" to="/admin/staffs"><i class="bi bi-people"></i>
-              Staffs</router-link></li>
-          <li class="nav-item"><router-link class="nav-link" to="/admin/departments"><i class="bi bi-gear"></i>
-              Departments</router-link></li>
-          <li class="nav-item"><router-link class="nav-link" to="/admin/housekeeping"><i class="bi bi-house"></i>
-              Housekeeping</router-link></li>
-          <li class="nav-item"><router-link class="nav-link" to="/admin/leave-management"><i class="bi bi-calendar"></i>
-              Leave Management</router-link></li> -->
+          <li class="nav-item"><router-link class="nav-link" to="/admin/news"><i class="bi bi-newspaper"></i> Tin tức</router-link></li>
+          <li class="nav-item"><router-link class="nav-link" to="/admin/news-categories"><i class="bi bi-tags"></i> Danh mục Tin tức</router-link></li>
+          <li class="nav-item"><router-link class="nav-link" to="/admin/news-comments"><i class="bi bi-chat"></i> Bình luận</router-link></li>
           <li class="nav-item"><router-link class="nav-link" to="/"><i class="bi bi-box-arrow-left"></i>
               Thoát</router-link></li>
         </ul>

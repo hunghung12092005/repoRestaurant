@@ -21,7 +21,6 @@ import AdminTableTypeComponent from '../components/AdminTable/AdminTableTypeComp
 import AdminRoomTypeComponent from '../components/AdminRoom/AdminRoomTypeComponent.vue';
 import AdminRoomComponent from '../components/AdminRoom/AdminRoomComponent.vue';
 import AdminPriceComponent from '../components/AdminRoom/AdminPriceComponent.vue';
-
 import AdminMenuCategoryComponent from '../components/AdminMenu/AdminMenuCategoryComponent.vue';
 import AdminMenuComponent from '../components/AdminMenu/AdminMenuComponent.vue';
 
@@ -50,6 +49,10 @@ import rooms2 from '../components/booking_room/Booking2.vue'
 //thông tin user
 import userprofile from '../components/user/userProfile.vue'
 import forgotPass from '../components/user/forgotPass.vue'
+//news
+import AdminNewsComponent from '../components/admin/news/AdminNewsComponent.vue';
+import AdminNewsCategoryComponent from '../components/admin/news/AdminNewsCategoryComponent.vue';
+import AdminNewsCommentComponent from '../components/admin/news/AdminNewsCommentComponent.vue';
 // AdminBookingComponent
 import AdminBookingComponent from '../components/AdminBooking/AdminBookingComponent.vue'
 const routes = [
@@ -241,12 +244,7 @@ const routes = [
     component: AdminMenuComponent,
     meta: { requiresAdmin: true },
   },
-  {
-    path: '/admin/bookings',
-    name: 'AdminBooking',
-    component: AdminBookingComponent,
-    meta: { requiresAdmin: true },
-  },
+  
   {// quản lý trạng thái phòng
     path: '/admin/occupancy',
     name: 'AdminOccupancy',
@@ -273,6 +271,24 @@ const routes = [
     path: '/admin/amenities',
     name: 'AdminAmenities',
     component: AdminAmenitiesComponent,
+    meta: { requiresAdmin: true },
+  },
+  {
+    path: '/admin/news',
+    name: 'AdminNews',
+    component: AdminNewsComponent,
+    meta: { requiresAdmin: true },
+  },
+  {
+    path: '/admin/news-categories',
+    name: 'AdminNewsCategories',
+    component: AdminNewsCategoryComponent,
+    meta: { requiresAdmin: true },
+  },
+  {
+    path: '/admin/news-comments',
+    name: 'AdminNewsComments',
+    component: AdminNewsCommentComponent,
     meta: { requiresAdmin: true },
   },
 ];
