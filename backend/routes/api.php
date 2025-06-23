@@ -45,10 +45,11 @@ Route::post('/rooms/{room_id}/checkout', [OccupancyController::class, 'checkoutR
 Route::post('/rooms/{room_id}/add-guest', [OccupancyController::class, 'addGuestToRoom']); //khi khách đặt phòng thì đổi trạng thái
 
 
-Route::get('/room-types', [RoomTypeController::class, 'index']);
-Route::post('/room-types', [RoomTypeController::class, 'store']);
-Route::put('/room-types/{id}', [RoomTypeController::class, 'update']);
-Route::delete('/room-types/{id}', [RoomTypeController::class, 'destroy']);
+// Route::get('/room-types', [RoomTypeController::class, 'index']);
+// Route::post('/room-types', [RoomTypeController::class, 'store']);
+// Route::put('/room-types/{id}', [RoomTypeController::class, 'update']);
+// Route::delete('/room-types/{id}', [RoomTypeController::class, 'destroy']);
+
 Route::prefix('amenities')->group(function () {
     Route::get('/', [AmenityController::class, 'index']);
     Route::post('/', [AmenityController::class, 'store']);
@@ -81,9 +82,15 @@ Route::prefix('prices')->group(function () {
 });
 
 
+// Route::post('/rooms', [RoomController::class, 'store']);
+// Route::put('/rooms/{id}', [RoomController::class, 'update']);
+// Route::delete('/rooms/{id}', [RoomController::class, 'destroy']);
+
+Route::get('/rooms', [RoomController::class, 'index']);
 Route::post('/rooms', [RoomController::class, 'store']);
 Route::put('/rooms/{id}', [RoomController::class, 'update']);
 Route::delete('/rooms/{id}', [RoomController::class, 'destroy']);
+
 
 Route::get('/table-types', [TableTypeController::class, 'index']);
 Route::post('/table-types', [TableTypeController::class, 'store']);
