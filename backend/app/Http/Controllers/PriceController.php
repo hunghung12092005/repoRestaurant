@@ -69,7 +69,7 @@ class PriceController extends Controller
                 ->where(function ($query) use ($data) {
                     $query->where(function ($q) use ($data) {
                         $q->where('start_date', '<=', $data['end_date'])
-                          ->where('end_date', '>=', $data['start_date']);
+                            ->where('end_date', '>=', $data['start_date']);
                     });
                 })
                 ->orderBy('priority', 'desc')
@@ -121,7 +121,7 @@ class PriceController extends Controller
                 ->where(function ($query) use ($data) {
                     $query->where(function ($q) use ($data) {
                         $q->where('start_date', '<=', $data['end_date'])
-                          ->where('end_date', '>=', $data['start_date']);
+                            ->where('end_date', '>=', $data['start_date']);
                     });
                 })
                 ->orderBy('priority', 'desc')
@@ -156,5 +156,74 @@ class PriceController extends Controller
             Log::error('Delete price error: ' . $e->getMessage());
             return response()->json(['success' => false, 'message' => 'Lỗi: ' . $e->getMessage()], 500);
         }
+    }
+    //lấy giá ra clietn dựa vào ngày
+    public function getPrice(Request $request)
+    {
+        $checkin = $request->input('checkin');
+        $checkout = $request->input('checkout');
+        $bookrooms = $request->input('bookrooms');
+
+        // Lấy tất cả các giá phù hợp với ngày checkin và checkout
+        $prices = Price::where('start_date', '<=', $checkout)
+            ->where('end_date', '>=', $checkin)
+            ->get();
+
+        $groupedPrices = $prices->groupBy('type_id');
+
+        $finalPrices = [];
+
+        foreach ($groupedPrices as $typeId => $group) {
+            $priorityPriceRecord = null;
+            $standardPriceRecord = null;
+
+            foreach ($group as $price) {
+                // Lưu bản ghi ưu tiên
+                if ($price->priority === 1 && $price->start_date <= $checkout && $price->end_date >= $checkin) {
+                    $priorityPriceRecord = $price;
+                }
+
+                // Lưu bản ghi tiêu chuẩn
+                if ($price->start_date <= $checkout && $price->end_date >= $checkin) {
+                    $standardPriceRecord = $price;
+                }
+            }
+
+            // Tính tổng số ngày khách ở
+            $totalDays = (strtotime($checkout) - strtotime($checkin)) / (60 * 60 * 24) + 1;
+
+            // Tính tổng giá 1 ngày 1 phòng
+        $pricePerNight = $priorityPriceRecord ? $priorityPriceRecord->price_per_night : ($standardPriceRecord ? $standardPriceRecord->price_per_night : 0);
+            $surcharges = 0;
+
+            // Nếu có bản ghi ưu tiên, thêm phụ phí
+            if ($priorityPriceRecord) {
+                $surcharges = 100000; // Phụ phí
+            }
+            $so_tien1phong =  $pricePerNight * $totalDays + $surcharges;
+            // Cộng phụ phí và tổng phòng vào tổng giá và nhân với số ngày khách ở
+            $totalPrice =  $so_tien1phong * $bookrooms;
+
+            // Thêm thông tin vào kết quả
+            $result = [
+                'type_id' => $typeId,
+                'total_days' => $totalDays,
+                'gia_tien1ngay' => $standardPriceRecord ? $standardPriceRecord->price_per_night : 0,
+                'priority' => $priorityPriceRecord ? 'yes' : 'no',
+                'surcharges' => $surcharges,
+                'so_tien1phong' => $so_tien1phong,
+                'so_phong' => $bookrooms,
+                'total_price' => $totalPrice,
+            ];
+
+            $finalPrices[] = $result;
+        }
+
+        // Nếu không có giá nào, trả về thông báo
+        if (empty($finalPrices)) {
+            return response()->json(['message' => 'No price available'], 404);
+        }
+
+        return response()->json($finalPrices);
     }
 }

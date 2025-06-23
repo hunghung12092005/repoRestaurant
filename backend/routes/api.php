@@ -58,8 +58,11 @@ Route::prefix('room-types')->group(function () {
     Route::delete('/{id}', [RoomTypeController::class, 'destroy']);
 });
 
-Route::prefix('pricese')->group(function () {
+Route::prefix('prices')->group(function () {
     Route::get('/', [PriceController::class, 'index']);
+    Route::post('/', [PriceController::class, 'store']);
+    //lấy giá ra client dựa vào ngày 
+    Route::post('/prices_client', [PriceController::class, 'getPrice']);
     Route::post('/', [PriceController::class, 'store']);
     Route::put('/{id}', [PriceController::class, 'update']);
     Route::delete('/{id}', [PriceController::class, 'destroy']);
