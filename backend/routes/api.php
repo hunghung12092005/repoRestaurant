@@ -7,6 +7,7 @@ use App\Http\Controllers\api\MenuItemController;
 use App\Http\Controllers\api\ShopOnlineController;
 use App\Http\Controllers\api\EmployeeController;
 use App\Http\Controllers\api\DepartmentController;
+use App\Http\Controllers\api\OccupancyController;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Log;
 use App\Http\Controllers\LoginController;
@@ -32,17 +33,22 @@ Route::post('/menu-categories', [MenuCategoryController::class, 'store']);
 Route::put('/menu-categories/{id}', [MenuCategoryController::class, 'update']);
 Route::delete('/menu-categories/{id}', [MenuCategoryController::class, 'destroy']);
 
+Route::get('/occupancy/rooms', [OccupancyController::class, 'index']);
 Route::get('/menus', [MenuController::class, 'index']);
 Route::post('/menus', [MenuController::class, 'store']);
 Route::put('/menus/{id}', [MenuController::class, 'update']);
 Route::delete('/menus/{id}', [MenuController::class, 'destroy']);
 
-Route::prefix('amenities')->group(function () {
-    Route::get('/', [AmenityController::class, 'index']);
-    Route::post('/', [AmenityController::class, 'store']);
-    Route::put('/{amenity_id}', [AmenityController::class, 'update']);
-    Route::delete('/{amenity_id}', [AmenityController::class, 'destroy']);
-});
+Route::post('/customers', [OccupancyController::class, 'storeCustomer']); //thêm dữ liệu khách vào bảng customer
+Route::get('/rooms/{room_id}/customer', [OccupancyController::class, 'getCustomerByRoom']); //hiển thị thông tin khách
+Route::post('/rooms/{room_id}/checkout', [OccupancyController::class, 'checkoutRoom']); //checkout
+
+
+Route::post('/rooms/{room_id}/add-guest', [OccupancyController::class, 'addGuestToRoom']); //khi khách đặt phòng thì đổi trạng thái
+Route::get('/room-types', [RoomTypeController::class, 'index']);
+Route::post('/room-types', [RoomTypeController::class, 'store']);
+Route::put('/room-types/{id}', [RoomTypeController::class, 'update']);
+Route::delete('/room-types/{id}', [RoomTypeController::class, 'destroy']);
 
 Route::prefix('services')->group(function () {
     Route::get('/', [ServiceController::class, 'index']);
@@ -68,7 +74,7 @@ Route::prefix('prices')->group(function () {
     Route::delete('/{id}', [PriceController::class, 'destroy']);
 });
 
-Route::get('/rooms', [RoomController::class, 'index']);
+
 Route::post('/rooms', [RoomController::class, 'store']);
 Route::put('/rooms/{id}', [RoomController::class, 'update']);
 Route::delete('/rooms/{id}', [RoomController::class, 'destroy']);

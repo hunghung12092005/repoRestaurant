@@ -25,12 +25,7 @@ import AdminPriceComponent from '../components/AdminRoom/AdminPriceComponent.vue
 import AdminMenuCategoryComponent from '../components/AdminMenu/AdminMenuCategoryComponent.vue';
 import AdminMenuComponent from '../components/AdminMenu/AdminMenuComponent.vue';
 
-// Admin Amenities and Services - Tiện ích và Dịch vụ
-import AdminAmenitiesComponent from '../components/AdminSeAm/AdminAmenitiesComponent.vue';
-import AdminServicesComponent from '../components/AdminSeAm/AdminServicesComponent.vue';
-
-// AdminBooking - Đặt phòng
-import AdminBookingComponent from '../components/AdminBooking/AdminBookingComponent.vue';
+import AdminOccupancyComponent from '../components/AdminRoom/AdminOccupancy.vue';
 
 import AdminDashboardComponent from '../components/admin/AdminDashboardComponent.vue';
 import AdminStaffsComponent from '../components/admin/AdminStaffsComponent.vue';
@@ -50,6 +45,8 @@ import rooms2 from '../components/booking_room/Booking2.vue'
 //thông tin user
 import userprofile from '../components/user/userProfile.vue'
 import forgotPass from '../components/user/forgotPass.vue'
+// AdminBookingComponent
+import AdminBookingComponent from '../components/AdminBooking/AdminBookingComponent.vue'
 const routes = [
   {
     path: '/',
@@ -61,6 +58,7 @@ const routes = [
     name: 'AboutComponent',
     component: AboutComponent,
   },
+  
   {
     path: '/contact',
     name: 'ContactComponent',
@@ -244,18 +242,22 @@ const routes = [
     component: AdminBookingComponent,
     meta: { requiresAdmin: true },
   },
-  {
-    path: '/admin/services',
-    name: 'AdminServices',
-    component: AdminServicesComponent,
+  {// quản lý trạng thái phòng
+    path: '/admin/occupancy',
+    name: 'AdminOccupancy',
+    component: AdminOccupancyComponent,
     meta: { requiresAdmin: true },
   },
-  {
-    path: '/admin/amenities',
-    name: 'AdminAmenities',
-    component: AdminAmenitiesComponent,
-    meta: { requiresAdmin: true },
+  {// quản lý trạng thái phòng
+    path: '/admin/AdminBooking',
+    name: 'AdminBookingComponent',
+    component: AdminBookingComponent,
   },
+  // {
+  //   path: '/admin/Occupancy',
+  //   name: 'adminOccupancy',
+  //   component: adminOccupancy,
+  // }
 ];
 
 const router = createRouter({
