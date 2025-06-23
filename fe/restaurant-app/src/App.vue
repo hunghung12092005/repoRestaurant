@@ -7,8 +7,7 @@
           <span class="fw-bold"><strong>Ho Xuan Huong</strong> Ecosystem</span>
         </div>
         <div class="profile text-center p-3 border-bottom">
-          <img src="https://www.pngkey.com/png/full/263-2635979_admin-abuse.png" alt="Profile Picture"
-            class="rounded-circle" />
+         
           <p class="mb-0 text-muted">{{ userInfo.name || 'Admin' }}</p>
           <p class="text-muted">{{ userInfo.email || 'admin@seafoodie.com' }}</p>
           <div class="icons d-flex justify-content-center mt-2">

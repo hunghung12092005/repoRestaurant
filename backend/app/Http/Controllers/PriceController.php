@@ -190,7 +190,7 @@ class PriceController extends Controller
             }
 
             // Tính tổng số ngày khách ở
-            $totalDays = (strtotime($checkout) - strtotime($checkin)) / (60 * 60 * 24) + 1;
+            $totalDays = (strtotime($checkout) - strtotime($checkin)) / (60 * 60 * 24) + 0;
 
             // Tính tổng giá 1 ngày 1 phòng
         $pricePerNight = $priorityPriceRecord ? $priorityPriceRecord->price_per_night : ($standardPriceRecord ? $standardPriceRecord->price_per_night : 0);
@@ -198,11 +198,11 @@ class PriceController extends Controller
 
             // Nếu có bản ghi ưu tiên, thêm phụ phí
             if ($priorityPriceRecord) {
-                $surcharges = 100000; // Phụ phí
+                $surcharges = 100000 * $bookrooms; // Phụ phí
             }
-            $so_tien1phong =  $pricePerNight * $totalDays + $surcharges;
+            $so_tien1phong =  ($pricePerNight * $totalDays) ;
             // Cộng phụ phí và tổng phòng vào tổng giá và nhân với số ngày khách ở
-            $totalPrice =  $so_tien1phong * $bookrooms;
+            $totalPrice =  $so_tien1phong * $bookrooms + $surcharges;
 
             // Thêm thông tin vào kết quả
             $result = [
