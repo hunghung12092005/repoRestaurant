@@ -816,7 +816,7 @@ onMounted(() => {
     display: flex;
     justify-content: center;
     align-items: center;
-    z-index: 1001;
+    z-index: 2000;
     /* Đảm bảo popup nằm trên các phần tử khác */
 }
 
