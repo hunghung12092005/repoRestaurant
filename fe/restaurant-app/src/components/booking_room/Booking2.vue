@@ -269,45 +269,41 @@
 
         <!-- Modal for hotel details -->
         <div v-if="showModal" class="modal fade show" style="display: block;">
-            <div class="modal-dialog modal-lg">
+            <div class="modal-dialogdetail modal-lg">
                 <div class="modal-content">
                     <div class="modal-header">
                         <h5 class="modal-title">Hotel Details</h5>
-                        <button type="button" class="btn-close" @click="closeModal" aria-label="Close"></button>
+                       
+                        <button type="button" class="btn-close" @click="closeModal" aria-label="Close">X</button>
                     </div>
                     <div class="modal-body">
-                        <h4>{{ selectedHotel.name }}</h4>
-                        <img :src="selectedHotel.image" class="card-img-top" :alt="selectedHotel.name"
-                            style="height: 200px; object-fit: cover;" />
-                        <p><strong>Giá 1 đêm/phòng:</strong>{{ formatPrice(selectedHotel.price_per_night) }}</p>
-                        <p><strong>Phụ Thu (chỉ phụ thu dịp lễ , ngày đặc biệt) :</strong> {{
+                        <h4 class="hotel-name">{{ selectedHotel.name }}</h4>
+                        <img :src="selectedHotel.image" class="card-img-top" :alt="selectedHotel.name" />
+                        <p><strong>Giá 1 đêm/phòng:</strong> {{ formatPrice(selectedHotel.price_per_night) }}</p>
+                        <p><strong>Phụ Thu (chỉ áp dụng dịp lễ, ngày đặc biệt):</strong> {{
                             formatPrice(selectedHotel.surcharges) }}</p>
                         <p><strong>Số Phòng:</strong> {{ selectedHotel.so_phong }}</p>
                         <p><strong>Số ngày ở:</strong> {{ selectedHotel.currency }}{{ selectedHotel.total_days }} Ngày
                         </p>
-                        <p><strong>Tổng tiền:</strong>{{ formatPrice(selectedHotel.price) }}</p>
-                        <p><strong>Description:</strong> {{ selectedHotel.description }}</p>
+                        <p><strong>Tổng tiền:</strong> {{ formatPrice(selectedHotel.price) }}</p>
+                        <p><strong>Mô Tả:</strong> {{ selectedHotel.description }}</p>
                         <hr />
-                        <h4>Tiện nghi:</h4>
-                        <li v-if="selectedHotel.amenities.length === 0">Không có tiện nghi đi kèm cho hạng phòng này
-                        </li>
+                        <h4>Tiện Nghi:</h4>
                         <ul>
+                            <li v-if="selectedHotel.amenities.length === 0">Không có tiện nghi đi kèm cho hạng phòng này
+                            </li>
                             <li v-for="amenity in selectedHotel.amenities" :key="amenity.amenity_id">
                                 {{ amenity.amenity_name }}: {{ amenity.description }}
                             </li>
                         </ul>
-                        <h4>Dịch vụ:</h4>
-                        <li v-if="selectedHotel.services.length === 0">Không có dịch vụ đi kèm cho hạng phòng này</li>
-
+                        <h4>Dịch Vụ:</h4>
                         <ul>
+                            <li v-if="selectedHotel.services.length === 0">Không có dịch vụ đi kèm cho hạng phòng này
+                            </li>
                             <li v-for="service in selectedHotel.services" :key="service.service_id">
-                                {{ service.service_name }}: {{ service.price }}
+                                {{ service.service_name }}: {{ formatPrice(service.price) }}
                             </li>
                         </ul>
-                        <!-- <h5>Amenities:</h5>
-                        <ul>
-                            <li v-for="amenity in selectedHotel.amenities" :key="amenity">{{ amenity }}</li>
-                        </ul> -->
                     </div>
                 </div>
             </div>
@@ -351,7 +347,7 @@
                                                 <span class="circle"></span>
                                                 Thanh Toán Sau
                                             </div>
-                                            <span class="info-pay" >SMS OTP</span>
+                                            <span class="info-pay">SMS OTP</span>
                                         </label>
 
                                         <input value="value-2" name="value-radio" id="value-2" type="radio"
@@ -426,7 +422,8 @@
                     </div>
                     <div class="modal-footer m-4">
                         <button type="button" class="btn btn-secondary m-2" @click="closeModal">Đóng</button>
-                        <button v-if="confirmBooking" type="submit" class="btn btn-primary" @click="submitBooking">Xác nhận Đặt
+                        <button v-if="confirmBooking" type="submit" class="btn btn-primary" @click="submitBooking">Xác
+                            nhận Đặt
                             phòng</button>
                     </div>
                 </div>
@@ -505,7 +502,7 @@ const getRoomTypes = async () => {
     isLoading.value = true;
     try {
         const response = await axios.get('http://127.0.0.1:8000/api/room-types/');
-        console.log(response.data.data);
+        //console.log(response.data.data);
         hotels.value = response.data.data.map(room => ({
             id: room.type_id,
             name: room.type_name,
@@ -546,7 +543,7 @@ const getRoomPrices = async () => {
         // Gọi API lấy giá phòng
         const roomPricesResponse = await axios.post('http://127.0.0.1:8000/api/prices/prices_client', requestData);
         const roomPrices = roomPricesResponse.data || []; // Đảm bảo roomPrices là một mảng
-        console.log("Room Prices:", roomPrices); // Kiểm tra giá phòng
+        //console.log("Room Prices:", roomPrices); // Kiểm tra giá phòng
 
         // Giả định rằng hotels.value đã được khởi tạo và chứa thông tin phòng
         hotels.value = hotels.value.map(room => {
@@ -565,7 +562,7 @@ const getRoomPrices = async () => {
             };
         });
 
-        console.log("Updated Hotels:", hotels.value); // In ra mảng hotels đã được cập nhật
+        // console.log("Updated Hotels:", hotels.value); // In ra mảng hotels đã được cập nhật
 
     } catch (error) {
         console.error("Có lỗi xảy ra khi lấy dữ liệu:", error);
@@ -606,7 +603,7 @@ const submitBooking = () => {
 };
 function bookHotel(hotel) {
     selectedHotelBooking.value = hotel;
-    console.log(selectedHotelBooking.value);
+    //console.log(selectedHotelBooking.value);
     showModalBooking.value = true;
 }
 
@@ -629,63 +626,63 @@ const verificationId = ref(null);
 
 const sendOtpSMS = async () => {
     isLoading.value = true; // Bắt đầu quá trình tải
-  try {
-    // Kiểm tra xem số điện thoại đã được nhập chưa
-    if (!phoneNumber.value) {
-      alert('Vui lòng nhập số điện thoại!');
-      // Tập trung vào input số điện thoại
-      document.getElementById('phone').focus(); // Đảm bảo ID đúng với input của bạn
-      return; // Ngừng thực hiện hàm nếu không có số điện thoại
+    try {
+        // Kiểm tra xem số điện thoại đã được nhập chưa
+        if (!phoneNumber.value) {
+            alert('Vui lòng nhập số điện thoại!');
+            // Tập trung vào input số điện thoại
+            document.getElementById('phone').focus(); // Đảm bảo ID đúng với input của bạn
+            return; // Ngừng thực hiện hàm nếu không có số điện thoại
+        }
+        // Kiểm tra xem auth có được khởi tạo đúng cách
+        if (!auth) {
+            throw new Error('auth chưa được khởi tạo. Kiểm tra cấu hình Firebase.');
+        }
+
+        // Khởi tạo RecaptchaVerifier
+        const appVerifier = new RecaptchaVerifier(auth, 'recaptcha-container', {
+            size: 'invisible',
+            callback: (response) => {
+                //console.log('ReCAPTCHA đã được xác minh:', response);
+            },
+            'expired-callback': () => {
+                //console.warn('ReCAPTCHA đã hết hạn.');
+            },
+        });
+        // Thêm +84 vào trước số điện thoại
+        const fullPhoneNumber = `+84${phoneNumber.value}`;
+        // console.log(fullPhoneNumber)
+
+        const confirmationResult = await signInWithPhoneNumber(auth, fullPhoneNumber, appVerifier);
+        verificationId.value = confirmationResult.verificationId;
+        //alert('Mã xác nhận đã được gửi thành công! Vui lòng kiểm tra tin nhắn.');
+        isOtp.value = true;
+
+    } catch (error) {
+        console.error('Lỗi gửi mã xác nhận:', error.message || error);
+        alert(`Lỗi gửi mã xác nhận: ${error.message || error}`);
+    } finally {
+        isLoading.value = false; // Kết thúc quá trình tải
+
     }
-    // Kiểm tra xem auth có được khởi tạo đúng cách
-    if (!auth) {
-      throw new Error('auth chưa được khởi tạo. Kiểm tra cấu hình Firebase.');
-    }
-
-    // Khởi tạo RecaptchaVerifier
-    const appVerifier = new RecaptchaVerifier(auth, 'recaptcha-container', {
-      size: 'invisible',
-      callback: (response) => {
-        //console.log('ReCAPTCHA đã được xác minh:', response);
-      },
-      'expired-callback': () => {
-        //console.warn('ReCAPTCHA đã hết hạn.');
-      },
-    });
-    // Thêm +84 vào trước số điện thoại
-    const fullPhoneNumber = `+84${phoneNumber.value}`;
-    console.log(fullPhoneNumber)
-
-    const confirmationResult = await signInWithPhoneNumber(auth, fullPhoneNumber, appVerifier);
-    verificationId.value = confirmationResult.verificationId;
-    //alert('Mã xác nhận đã được gửi thành công! Vui lòng kiểm tra tin nhắn.');
-    isOtp.value = true;
-
-  } catch (error) {
-    console.error('Lỗi gửi mã xác nhận:', error.message || error);
-    alert(`Lỗi gửi mã xác nhận: ${error.message || error}`);
-  } finally {
-    isLoading.value = false; // Kết thúc quá trình tải
-
-  }
 }
 const confirmBooking = ref(true);
 const verifyCode = async () => {
-  isLoading.value = true;
-  try {
-    const credential = PhoneAuthProvider.credential(verificationId.value, otpInputs.value);
-    const result = await signInWithCredential(auth, credential);
-    //alert('Xác nhận thành công!');
-    //closePopup(); // Đóng popup sau khi xác nhận thành công
-    isOtp.value = false; //ẩn form  hiển thị otp
-    confirmBooking.value = true; // Đặt trạng thái đơn hàng đã được xác nhận
-    // Thực hiện hành động tiếp theo
-  } catch (error) {
-    console.error('Lỗi xác minh mã:', error.message || error);
-    alert(`Lỗi xác minh mã: ${error.message || error}`);
-  } finally{
-    isLoading.value = false;
-  }
+    isLoading.value = true;
+    try {
+        const credential = PhoneAuthProvider.credential(verificationId.value, otpInputs.value);
+        const result = await signInWithCredential(auth, credential);
+        //alert('Xác nhận thành công!');
+        //closePopup(); // Đóng popup sau khi xác nhận thành công
+        isOtp.value = false; //ẩn form  hiển thị otp
+        confirmBooking.value = true; // Đặt trạng thái đơn hàng đã được xác nhận
+        // Thực hiện hành động tiếp theo
+    } catch (error) {
+        console.error('Lỗi xác minh mã:', error.message || error);
+        alert(`Lỗi xác minh mã: ${error.message || error}`);
+    } finally {
+        isLoading.value = false;
+    }
 };
 
 const closeModalOtp = async () => {
@@ -714,9 +711,100 @@ onMounted(() => {
     height: 500px;
     color: white;
 }
+/* popup detail  hotel */
+.modal-backdrop {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(0, 0, 0, 0.8); /* Tối hơn để làm nổi bật modal */
+    z-index: 1040; /* Đảm bảo nằm trên các phần tử khác */
+}
 
+.modal-dialogdetail {
+    width: 100%;
+    margin: 0 auto;
+    max-width: 700px; 
+    background-color: #f8f9fa; /* Màu nền nhẹ nhàng */
+    border-radius: 12px; /* Bo góc cho modal */
+    box-shadow: 0 4px 30px rgba(0, 0, 0, 0.15); /* Đổ bóng tinh tế */
+    overflow-y: auto; /* Cuộn dọc khi nội dung vượt quá chiều cao */
+}
+
+.modal-content {
+    padding: 20px; /* Đệm cho nội dung */
+    border: none; /* Bỏ đường viền */
+}
+
+.modal-header {
+    border-bottom: 2px solid #4A90E2; /* Đường viền dưới cho header */
+    display: flex;
+    justify-content: space-between; /* Căn giữa nội dung */
+    align-items: center; /* Căn giữa theo chiều dọc */
+    background-color: #ffffff; /* Nền trắng cho header */
+}
+
+.modal-title {
+    font-size: 1.8rem; /* Kích thước chữ tiêu đề lớn hơn */
+    color: #333; /* Màu chữ tối */
+    font-weight: 600; /* Đậm hơn */
+}
+
+.btn-close {
+    background: none; /* Bỏ nền cho nút đóng */
+    border: none; /* Bỏ đường viền */
+    color: #999; /* Màu chữ cho nút đóng */
+    font-size: 1.5rem; /* Kích thước chữ cho nút đóng */
+}
+
+.btn-close:hover {
+    color: #4A90E2; /* Thay đổi màu khi hover */
+}
+
+.modal-body {
+    font-size: 1rem; /* Kích thước chữ cho nội dung */
+    color: #555; /* Màu chữ */
+    line-height: 1.5; /* Khoảng cách giữa các dòng */
+}
+
+.hotel-name {
+    color: #4A90E2; /* Màu sắc cho tên khách sạn */
+    margin-bottom: 15px; /* Khoảng cách dưới cho tên khách sạn */
+    font-weight: 700; /* Đậm hơn */
+}
+
+.modal-body img {
+    width: 100%; /* Đảm bảo hình ảnh chiếm toàn bộ chiều rộng */
+    border-radius: 8px; /* Bo góc cho hình ảnh */
+    margin-bottom: 15px; /* Khoảng cách dưới cho hình ảnh */
+}
+
+.modal-body h4 {
+    margin-top: 20px; /* Khoảng cách trên cho tiêu đề */
+    color: #4A90E2; /* Màu sắc cho tiêu đề */
+    font-weight: 600; /* Đậm hơn */
+}
+
+.modal-body p {
+    margin: 10px 0; /* Khoảng cách giữa các đoạn */
+}
+
+.modal-body ul {
+    list-style-type: none; /* Bỏ kiểu danh sách */
+    padding: 0; /* Bỏ đệm */
+}
+
+.modal-body li {
+    padding: 8px 0; /* Đệm cho các mục */
+    border-bottom: 1px solid #ddd; /* Đường viền dưới cho các mục */
+    transition: background-color 0.2s; /* Hiệu ứng chuyển đổi */
+}
+
+.modal-body li:hover {
+    background-color: #f1f1f1; /* Hiệu ứng hover cho mục */
+}
 /* form otp */
-/* From Uiverse.io by gharsh11032000 */
 .popup-overlay {
     position: fixed;
     top: 0;
