@@ -59,12 +59,15 @@
             <p class="bed-size">{{ room.bedSize }}</p>
 
             <div v-if="room.status === 'Đã đặt'">
-              <a href="#" class="action-link" @click.prevent="showGuestDetails(room)">Chi tiết khách</a>
+              <a href="#" class="action-link" @click.prevent="showGuestDetails(room)"><button>Chi tiết khách</button></a>
               <br>
-              <a href="#" class="action-link" @click.prevent="checkoutRoom(room.room_id)">Thanh toán</a>
+              <a href="#" class="action-link" @click.prevent="checkoutRoom(room.room_id)"><button>Thanh toán</button></a>
+              <br>
+              <a href="#" class="action-link" @click.prevent="showExtendForm(room.room_id)"><button>Gia hạn</button></a>
+
             </div>
             <a v-else href="#" class="action-link" @click.prevent="showAddGuest(room.room_id)">
-              Thêm khách
+              <button>Thêm khách</button>
             </a>
 
           </div>
@@ -99,8 +102,22 @@
           <label>Địa chỉ</label>
           <input v-model="formData.address" />
         </div>
+        <input type="hidden" v-model="formData.pricing_type" />
 
+        <div class="form-group">
+          <label>Ngày giờ nhận phòng</label>
+          <input type="datetime-local" v-model="formData.check_in_date" required />
+        </div>
+        <div class="form-group">
+          <label>Ngày giờ trả phòng</label>
+          <input type="datetime-local" v-model="formData.check_out_date" required />
+        </div>
         <div class="form-actions">
+          <div v-if="totalPricePreview" class="form-group">
+            <label>Tổng tiền ước tính:</label>
+            <div style="font-weight: bold; color: #2c3e50;">{{ totalPricePreview }}</div>
+          </div>
+
           <button type="submit">Lưu</button>
           <button type="button" @click="showForm = false">Hủy</button>
         </div>
@@ -120,6 +137,22 @@
       </div>
     </div>
   </div>
+  <div v-if="showExtendModal" class="modal-overlay">
+  <div class="modal-content">
+    <h2>Gia hạn thuê phòng</h2>
+    <form @submit.prevent="submitExtendForm">
+      <div class="form-group">
+        <label>Ngày giờ trả mới:</label>
+        <input type="datetime-local" v-model="extendForm.check_out_date" required />
+      </div>
+      <div class="form-actions">
+        <button type="submit">Xác nhận</button>
+        <button type="button" @click="showExtendModal = false">Hủy</button>
+      </div>
+    </form>
+  </div>
+</div>
+
 </template>
 
 <script setup>
@@ -139,12 +172,17 @@ const selectedFloor = ref('Tất cả');
 
 // Dữ liệu form thêm khách
 const showForm = ref(false);
+const totalPricePreview = ref(null); // Xem trước giá
+
 const formData = ref({
   customer_name: '',
   customer_phone: '',
   customer_email: '',
   address: '',
-  room_id: null
+  room_id: null,
+  check_in_date: '',
+  check_out_date: '',
+  pricing_type: 'nightly' // mặc định
 });
 const guestInfo = ref(null);
 const showGuestModal = ref(false);
@@ -212,37 +250,59 @@ const showAddGuest = (room_id) => {
     customer_phone: '',
     customer_email: '',
     address: '',
-    room_id: room_id
+    room_id: room_id,
+    pricing_type: 'nightly'
   };
   showForm.value = true;
+  calculateTotalPricePreview(); // ✅ thêm dòng này
 };
 console.log("Dữ liệu gửi:", formData.value);
 
 // Gửi dữ liệu từ form vào backend Laravel
 const submitCustomerForm = async () => {
+
+
   try {
     const confirm = window.confirm("Bạn có chắc muốn lưu thông tin khách hàng?");
     if (!confirm) return;
-    console.log(formData.value);
-    const response = await axios.post(`${apiUrl}/api/customers`, {
+
+    const payload = {
       customer_name: formData.value.customer_name,
       customer_phone: formData.value.customer_phone,
       customer_email: formData.value.customer_email,
-      room_id: formData.value.room_id,
-      address: formData.value.address
-    });
-    // GỌI THÊM API đổi trạng thái phòng
-    await axios.post(`${apiUrl}/api/rooms/${formData.value.room_id}/add-guest`);
+      address: formData.value.address,
+      check_in_date: formData.value.check_in_date,
+      check_out_date: formData.value.check_out_date,
+      pricing_type: formData.value.pricing_type
+    };
 
-    alert(response.data.message || "Đăng ký khách hàng thành công!");
+    const response = await axios.post(`${apiUrl}/api/rooms/${formData.value.room_id}/add-guest`, payload);
+
+    alert(response.data.message + '\nTổng tiền: ' + (response.data.total_price || 'Không rõ'));
     showForm.value = false;
-    await fetchRooms(); // Làm mới danh sách phòng nếu cần
+    await fetchRooms();
   } catch (error) {
     console.error("Lỗi khi gửi dữ liệu khách hàng:", error);
     alert("Không thể lưu thông tin khách hàng.");
   }
 };
 
+const calculateTotalPricePreview = async () => {
+  if (!formData.value.room_id) return; // ✅ thêm dòng này vào đầu
+  try {
+    const response = await axios.post(`${apiUrl}/api/rooms/preview-price`, {
+      room_id: formData.value.room_id,
+      check_in_date: formData.value.check_in_date,
+      check_out_date: formData.value.check_out_date,
+      pricing_type: formData.value.pricing_type || 'nightly', // nếu bị null
+      is_extend: false // 👈 đặt false nếu là đặt mới (không phải gia hạn)
+    });
+
+    totalPricePreview.value = response.data.total_price;
+  } catch (error) {
+    totalPricePreview.value = "Không thể tính giá";
+  }
+};
 // Lọc dữ liệu phòng
 const roomTypes = computed(() => {
   const types = new Set(allRooms.value.map(room => room.type));
@@ -298,15 +358,51 @@ const showGuestDetails = async (room) => {
     console.error(error);
   }
 };
+const showExtendModal = ref(false);
+const extendForm = ref({
+  room_id: null,
+  check_out_date: ''
+});
+
+const showExtendForm = (room_id) => {
+  extendForm.value.room_id = room_id;
+  extendForm.value.check_out_date = '';
+  showExtendModal.value = true;
+};
+
+const submitExtendForm = async () => {
+  try {
+    const res = await axios.post(`${apiUrl}/api/rooms/${extendForm.value.room_id}/extend`, {
+      check_out_date: extendForm.value.check_out_date
+    });
+    alert(res.data.message + '\nTổng tiền mới: ' + res.data.total_price);
+    showExtendModal.value = false;
+    await fetchRooms();
+  } catch (err) {
+    console.error("Lỗi gia hạn:", err);
+    alert("Không thể gia hạn.");
+  }
+};
 
 
 onMounted(() => {
   fetchRooms();
 });
+watch(() => [
+  formData.value.check_in_date,
+  formData.value.check_out_date,
+  formData.value.pricing_type
+], calculateTotalPricePreview);
 
 watch([selectedStatus, selectedRoomType, selectedFloor], (newValues) => {
   console.log('Bộ lọc đã thay đổi:', newValues);
 });
+watch(() => formData.value.room_id, () => {
+  if (formData.value.check_in_date && formData.value.check_out_date) {
+    calculateTotalPricePreview();
+  }
+});
+
 </script>
 
 
@@ -510,6 +606,7 @@ watch([selectedStatus, selectedRoomType, selectedFloor], (newValues) => {
 }
 
 .modal-overlay {
+  z-index: 1000;
   position: fixed;
   top: 0;
   left: 0;
@@ -544,4 +641,41 @@ watch([selectedStatus, selectedRoomType, selectedFloor], (newValues) => {
   gap: 12px;
   justify-content: flex-end;
 }
+button {
+  padding: 6px 14px;
+  background-color: #4f46e5; /* tím dịu */
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease-in-out;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
+}
+
+button:hover {
+  background-color: #4338ca; /* tím đậm hơn */
+  transform: translateY(-1px);
+}
+
+button:active {
+  transform: scale(0.97);
+}
+
+button:disabled {
+  background-color: #ccc;
+  cursor: not-allowed;
+  box-shadow: none;
+}
+
+button.secondary {
+  background-color: #f3f4f6; /* xám sáng */
+  color: #333;
+}
+
+button.secondary:hover {
+  background-color: #e5e7eb; /* xám hover */
+}
+
 </style>

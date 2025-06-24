@@ -257,8 +257,6 @@ const routes = [
   //   name: 'adminOccupancy',
   //   component: adminOccupancy,
   // }
-<<<<<<< HEAD
-=======
   {
     path: '/admin/services',
     name: 'AdminServices',
@@ -271,7 +269,6 @@ const routes = [
     component: AdminAmenitiesComponent,
     meta: { requiresAdmin: true },
   },
->>>>>>> 625ee96ae8c6b7fbbc89fad51f5a604c53f279c9
 ];
 
 const router = createRouter({
