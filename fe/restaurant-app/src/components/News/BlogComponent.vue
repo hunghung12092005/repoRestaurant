@@ -1,41 +1,41 @@
 <template>
   <div class="blog-page-wrapper">
-    <!-- Banner Section with Background Image -->
+    <!-- Khu vực Banner với ảnh nền -->
     <section class="blog-banner">
       <div class="banner-content-wrapper text-center">
-        <h1 class="banner-title">News & Blogs</h1>
+        <h1 class="banner-title">Tin Tức & Blog</h1>
         <nav aria-label="breadcrumb">
           <ol class="breadcrumb justify-content-center">
-            <li class="breadcrumb-item"><a href="/">Home</a></li>
-            <li class="breadcrumb-item active" aria-current="page">News</li>
+            <li class="breadcrumb-item"><a href="/">Trang Chủ</a></li>
+            <li class="breadcrumb-item active" aria-current="page">Tin Tức</li>
           </ol>
         </nav>
       </div>
     </section>
 
-    <!-- Main Content Section -->
+    <!-- Khu vực Nội dung chính -->
     <section class="blog-content-area py-5">
       <div class="container">
         <div class="row">
-          <!-- Blog Posts Column -->
+          <!-- Cột các bài viết Blog -->
           <div class="col-lg-8">
             <div class="blog-posts-wrapper">
               
-              <!-- Loading State -->
+              <!-- Trạng thái đang tải -->
               <div v-if="loading" class="text-center py-5">
                 <div class="spinner-border text-primary" role="status">
-                  <span class="visually-hidden">Loading...</span>
+                  <span class="visually-hidden">Đang tải...</span>
                 </div>
               </div>
 
-              <!-- Content when loaded -->
+              <!-- Nội dung khi đã tải xong -->
               <div v-else>
-                <!-- Grid container for blog posts -->
+                <!-- Lưới chứa các bài viết -->
                 <div class="row">
                   <div v-if="!blogPosts.length" class="col-12 text-center py-5">
-                    <p>No news articles found.</p>
+                    <p>Không tìm thấy bài viết nào.</p>
                   </div>
-                  <!-- Loop through posts from API -->
+                  <!-- Vòng lặp qua các bài viết từ API -->
                   <div v-for="post in blogPosts" :key="post.id" class="col-md-6">
                     <div class="blog-post-item mb-5">
                       <div class="post-image">
@@ -43,31 +43,30 @@
                       </div>
                       <div class="post-content p-3">
                         <div class="post-meta d-flex align-items-center mb-2">
-                          <span class="me-4"><i class="bi bi-person me-2"></i>By {{ post.author ? post.author.name : 'Unknown' }}</span>
+                          <span class="me-4"><i class="bi bi-person me-2"></i>Bởi {{ post.author ? post.author.name : 'Không rõ' }}</span>
                           <span><i class="bi bi-calendar-event me-2"></i>{{ formatDate(post.publish_date) }}</span>
                         </div>
                         <h3 class="post-title">
                           <router-link :to="`/news/${post.id}`">{{ post.title }}</router-link>
                         </h3>
                         <p class="post-excerpt">{{ post.summary }}</p>
-                        <!-- Đã xóa class mt-2 vì đã xử lý trong CSS -->
-                        <router-link :to="`/news/${post.id}`" class="btn btn-sea-primary mt-2">READ MORE</router-link>
+                        <router-link :to="`/news/${post.id}`" class="btn btn-sea-primary mt-2">ĐỌC THÊM</router-link>
                       </div>
                     </div>
                   </div>
                 </div>
 
-                <!-- Dynamic Pagination -->
+                <!-- Phân trang động -->
                 <nav v-if="pagination && pagination.last_page > 1" aria-label="Page navigation">
                   <ul class="pagination justify-content-start mt-4">
                     <li class="page-item" :class="{ 'disabled': pagination.current_page === 1 }">
-                      <a class="page-link" href="#" @click.prevent="changePage(pagination.current_page - 1)">Prev</a>
+                      <a class="page-link" href="#" @click.prevent="changePage(pagination.current_page - 1)">Trước</a>
                     </li>
                     <li v-for="page in pagination.last_page" :key="page" class="page-item" :class="{ 'active': page === pagination.current_page }">
                       <a class="page-link" href="#" @click.prevent="changePage(page)">{{ page }}</a>
                     </li>
                     <li class="page-item" :class="{ 'disabled': pagination.current_page === pagination.last_page }">
-                      <a class="page-link" href="#" @click.prevent="changePage(pagination.current_page + 1)">Next</a>
+                      <a class="page-link" href="#" @click.prevent="changePage(pagination.current_page + 1)">Sau</a>
                     </li>
                   </ul>
                 </nav>
@@ -76,19 +75,19 @@
             </div>
           </div>
 
-          <!-- Sidebar Column -->
+          <!-- Cột Sidebar -->
           <div class="col-lg-4">
             <div class="blog-sidebar">
               <div class="sidebar-widget p-4 rounded mb-4">
-                <h4 class="widget-title mb-3">Search Here</h4>
+                <h4 class="widget-title mb-3">Tìm Kiếm Tại Đây</h4>
                 <div class="input-group">
-                  <input type="text" v-model="searchQuery" @keyup.enter="handleSearch" class="form-control" placeholder="Search here..." aria-label="Search here">
+                  <input type="text" v-model="searchQuery" @keyup.enter="handleSearch" class="form-control" placeholder="Tìm kiếm tại đây..." aria-label="Tìm kiếm tại đây">
                   <button class="btn btn-search" type="button" @click="handleSearch"><i class="bi bi-search"></i></button>
                 </div>
               </div>
 
               <div class="sidebar-widget p-4 rounded mb-4">
-                <h4 class="widget-title mb-3">Categories</h4>
+                <h4 class="widget-title mb-3">Danh Mục</h4>
                 <ul class="list-unstyled category-list">
                   <li v-for="category in categories" :key="category.id">
                     <a href="#" class="d-flex justify-content-between align-items-center">
@@ -99,7 +98,7 @@
               </div>
 
               <div class="sidebar-widget p-4 rounded mb-4">
-                <h4 class="widget-title mb-3">Recent Post</h4>
+                <h4 class="widget-title mb-3">Bài Viết Gần Đây</h4>
                 <div v-for="post in recentPosts" :key="post.id" class="recent-post-item d-flex align-items-center mb-3">
                   <img :src="getThumbnailUrl(post.thumbnail)" :alt="post.title" class="rounded me-3">
                   <div>
@@ -110,7 +109,7 @@
               </div>
               
               <div class="sidebar-widget p-4 rounded mb-4">
-                <h4 class="widget-title mb-3">Popular Tags</h4>
+                <h4 class="widget-title mb-3">Thẻ Phổ Biến</h4>
                 <div class="tag-cloud">
                     <a href="#" v-for="tag in popularTags" :key="tag.name">{{ tag.name }}</a>
                 </div>
@@ -128,7 +127,7 @@ import { ref, onMounted, inject } from 'vue';
 import axios from 'axios';
 import { Modal } from 'bootstrap';
 
-// --- STATE MANAGEMENT ---
+// --- QUẢN LÝ TRẠNG THÁI ---
 const blogPosts = ref([]);
 const categories = ref([]);
 const recentPosts = ref([]);
@@ -137,18 +136,18 @@ const loading = ref(true);
 const searchQuery = ref('');
 
 const popularTags = ref([
-    { name: 'Fast Foods' }, { name: 'Lunch' }, { name: 'Restaurant' },
-    { name: 'Burger' }, { name: 'Dinner' }, { name: 'Chicken' },
+    { name: 'Đồ Ăn Nhanh' }, { name: 'Bữa Trưa' }, { name: 'Nhà Hàng' },
+    { name: 'Burger' }, { name: 'Bữa Tối' }, { name: 'Gà Rán' },
 ]);
 
 const apiUrl = inject('apiUrl');
 
-// --- HELPER FUNCTIONS ---
+// --- HÀM HỖ TRỢ ---
 const getThumbnailUrl = (thumbnail) => {
   if (thumbnail) {
     return `${apiUrl}/images/news_thumbnails/${thumbnail}`;
   }
-  return 'https://via.placeholder.com/400x300.png?text=No+Image';
+  return 'https://via.placeholder.com/400x300.png?text=No+Image'; // Giữ nguyên hoặc dịch "Ảnh bị lỗi"
 };
 
 const formatDate = (dateString) => {
@@ -166,7 +165,7 @@ const formatDate = (dateString) => {
   return `${formattedDay}/${formattedMonth}/${year}`;
 };
 
-// --- API CALLS ---
+// --- GỌI API ---
 const fetchNews = async (page = 1, query = '') => {
   loading.value = true;
   try {
@@ -181,7 +180,7 @@ const fetchNews = async (page = 1, query = '') => {
       last_page: response.data.last_page,
     };
   } catch (error) {
-    console.error("Failed to fetch news:", error);
+    console.error("Lỗi khi tải tin tức:", error);
   } finally {
     loading.value = false;
   }
@@ -192,7 +191,7 @@ const fetchCategories = async () => {
     const response = await axios.get(`${apiUrl}/api/news-categories`);
     categories.value = response.data;
   } catch (error) {
-    console.error("Failed to fetch categories:", error);
+    console.error("Lỗi khi tải danh mục:", error);
   }
 };
 
@@ -201,11 +200,11 @@ const fetchRecentPosts = async () => {
         const response = await axios.get(`${apiUrl}/api/news?per_page=3`);
         recentPosts.value = response.data.data;
     } catch (error) {
-        console.error("Failed to fetch recent posts:", error);
+        console.error("Lỗi khi tải bài viết gần đây:", error);
     }
 };
 
-// --- EVENT HANDLERS ---
+// --- HÀM XỬ LÝ SỰ KIỆN ---
 const handleSearch = () => {
   fetchNews(1, searchQuery.value);
 };
@@ -216,7 +215,7 @@ const changePage = (page) => {
   }
 };
 
-// --- LIFECYCLE HOOK ---
+// --- VÒNG ĐỜI COMPONENT ---
 onMounted(() => {
   fetchNews();
   fetchCategories();
@@ -225,7 +224,7 @@ onMounted(() => {
 </script>
 
 <style scoped>
-/* General Styling */
+/* Kiểu dáng chung */
 a {
   text-decoration: none;
   color: #343a40;
@@ -249,12 +248,11 @@ h1, h2, h3, h4, h5, h6 {
   display: flex;
   flex-direction: column;
 }
-/* ĐÃ XÓA flex-grow: 1; để nút không bị đẩy xuống dưới cùng */
 .post-excerpt {
-  /* flex-grow: 1; */
+  /* flex-grow: 1; */ /* Đã xóa để nút không bị giãn ra */
 }
 
-/* Banner Section */
+/* Khu vực Banner */
 .blog-banner {
   width: 100%;
   height: 350px;
@@ -285,7 +283,7 @@ h1, h2, h3, h4, h5, h6 {
   color: #ffc107;
 }
 
-/* Main Content Area */
+/* Khu vực Nội dung chính */
 .blog-content-area {
   background-color: #ffffff;
 }
@@ -304,7 +302,6 @@ h1, h2, h3, h4, h5, h6 {
   font-size: 0.9rem;
   margin-bottom: 1rem; /* Thêm khoảng cách dưới cho đoạn văn */
 }
-/* ĐÃ CẬP NHẬT: margin-top: auto để đẩy nút xuống */
 .btn-sea-primary {
   background-color: #007bff;
   color: #fff;
@@ -326,7 +323,7 @@ h1, h2, h3, h4, h5, h6 {
     object-fit: cover;
 }
 
-/* Pagination */
+/* Phân trang */
 .pagination .page-item .page-link {
   border: 1px solid #dee2e6;
   background-color: #fff;
@@ -354,7 +351,7 @@ h1, h2, h3, h4, h5, h6 {
   background-color: #007bff;
 }
 
-/* Sidebar */
+/* Thanh bên (Sidebar) */
 .blog-sidebar .sidebar-widget {
   background-color: #f8f9fa;
   border: 1px solid #dee2e6;
@@ -365,7 +362,7 @@ h1, h2, h3, h4, h5, h6 {
   border-bottom: 2px solid #dee2e6;
 }
 
-/* Search Widget */
+/* Widget Tìm kiếm */
 .sidebar-widget .form-control:focus {
   box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
   border-color: #007bff;
@@ -378,7 +375,7 @@ h1, h2, h3, h4, h5, h6 {
   background-color: #0056b3;
 }
 
-/* Categories & Tags */
+/* Widget Danh mục & Thẻ */
 .category-list li a, .tag-cloud a {
   background-color: #fff;
   color: #343a40;
@@ -398,7 +395,7 @@ h1, h2, h3, h4, h5, h6 {
 .category-list li a:hover .bi-arrow-right { opacity: 1; }
 .tag-cloud a { display: inline-block; padding: 8px 15px; margin: 0 5px 10px 0; border-radius: 20px; font-size: 0.9rem; }
 
-/* Recent Post Widget */
+/* Widget Bài viết gần đây */
 .recent-post-item img { 
     width: 70px; 
     height: 70px; 

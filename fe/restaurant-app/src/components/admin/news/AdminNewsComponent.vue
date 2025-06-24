@@ -1,4 +1,5 @@
 <template>
+  <!-- ... HTML của bạn giữ nguyên ... -->
   <div class="staff-container">
     <!-- Notification Alert -->
     <div v-if="showAlert" :class="['alert', alertType, 'custom-alert']" role="alert">
@@ -73,7 +74,7 @@
     </div>
 
     <!-- Pagination -->
-     <div v-if="totalPages > 1" class="pagination-controls d-flex justify-content-center align-items-center mt-4">
+    <div v-if="totalPages > 1" class="pagination-controls d-flex justify-content-center align-items-center mt-4">
       <button class="btn btn-outline-secondary me-2 shadow-sm rounded-pill" :disabled="currentPage === 1" @click="fetchData(currentPage - 1)">
         Trước
       </button>
@@ -125,7 +126,8 @@
                   </div>
                   <div class="mb-3">
                     <label for="thumbnailFile" class="form-label">Ảnh đại diện</label>
-                    <input type="file" class="form-control" id="thumbnailFile" @change="handleFileChange" accept="image/png, image/jpeg, image/gif">
+                    <input type="file" class="form-control" id="thumbnailFile" @change="handleFileChange" accept="image/png,image/jpeg,image/jpg,image/gif">
+                    <div v-if="thumbnailError" class="text-danger mt-1">{{ thumbnailError }}</div>
                     <img v-if="thumbnailPreview" :src="thumbnailPreview" class="mt-2" style="max-width: 100%; border-radius: 4px;"/>
                   </div>
                   <div class="mb-3">
@@ -145,7 +147,7 @@
             </div>
             <div class="modal-footer">
               <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
-              <button type="submit" class="btn btn-primary">
+              <button type="submit" class="btn btn-primary" :disabled="isSubmitting">
                 {{ isEditMode ? 'Lưu thay đổi' : 'Tạo mới' }}
               </button>
             </div>
@@ -154,7 +156,7 @@
       </div>
     </div>
     
-    <!-- Modal Xem Chi Tiết Tin Tức (Đã Cập Nhật) -->
+    <!-- Detail Modal -->
     <div class="modal fade" id="detailNewsModal" tabindex="-1" aria-labelledby="detailNewsModalLabel" aria-hidden="true">
       <div class="modal-dialog modal-xl modal-dialog-scrollable">
         <div class="modal-content">
@@ -174,13 +176,8 @@
                   <span class="mx-2">|</span>
                   <span><i class="bi bi-eye-fill"></i> {{ selectedNewsDetail.views.toLocaleString('vi-VN') }} lượt xem</span>
               </div>
-              
-              <!-- THAY ĐỔI: Đã loại bỏ thẻ img và div.summary-block -->
-              
               <hr>
-
               <div class="content-wrapper" v-html="selectedNewsDetail.content"></div>
-
             </div>
             <div v-else class="text-center py-5">
               <div class="spinner-border text-primary" role="status">
@@ -208,10 +205,19 @@ import '@vueup/vue-quill/dist/vue-quill.snow.css';
 // State Variables
 const items = ref([]);
 const categories = ref([]);
-const form = ref({});
+const form = ref({
+    title: '',
+    summary: '',
+    content: '',
+    category_id: null,
+    tags: '',
+    status: 1,
+    is_pinned: false
+});
 const isEditMode = ref(false);
 const thumbnailFile = ref(null);
 const thumbnailPreview = ref('');
+const thumbnailError = ref('');
 const searchQuery = ref('');
 const currentPage = ref(1);
 const totalPages = ref(1);
@@ -220,6 +226,7 @@ const alertMessage = ref('');
 const alertType = ref('alert-success');
 const isModalVisible = ref(false);
 const selectedNewsDetail = ref(null);
+const isSubmitting = ref(false);
 
 // Modal Instances
 let editModalInstance = null;
@@ -228,58 +235,93 @@ let detailModalInstance = null;
 const apiUrl = inject('apiUrl');
 
 // Axios Instance
-const axiosInstance = axios.create({ 
-  baseURL: apiUrl, 
-  headers: { 'Authorization': `Bearer ${localStorage.getItem('tokenJwt') || ''}` } 
+const axiosInstance = axios.create({
+    baseURL: apiUrl,
+    headers: {
+        'Accept': 'application/json',
+        // 'Content-Type' is set dynamically for FormData
+    }
 });
+
+// **THAY ĐỔI: Thêm hàm lấy thông tin người dùng từ localStorage**
+const getLoggedInUser = () => {
+    const user = localStorage.getItem('userInfo');
+    if (user) {
+        try {
+            return JSON.parse(user);
+        } catch (e) {
+            console.error("Lỗi khi parse thông tin người dùng từ localStorage", e);
+            return null;
+        }
+    }
+    return null;
+};
+
 
 // Helper Functions
 const showNotification = (message, type = 'success') => {
-  alertType.value = type === 'success' ? 'alert-success' : 'alert-danger';
-  alertMessage.value = message;
-  showAlert.value = true;
-  setTimeout(() => { showAlert.value = false }, 3000);
+    alertType.value = type === 'success' ? 'alert-success' : 'alert-danger';
+    alertMessage.value = message;
+    showAlert.value = true;
+    setTimeout(() => { showAlert.value = false; }, 3000);
 };
 
 const formatDate = (dateString) => {
-  return dateString ? new Date(dateString).toLocaleDateString('vi-VN') : 'N/A';
+    return dateString ? new Date(dateString).toLocaleDateString('vi-VN') : 'N/A';
 };
 
 const getImageUrl = (filename) => {
-  if (!filename) {
-    return 'https://via.placeholder.com/80x50';
-  }
-  return `${apiUrl}/images/news_thumbnails/${filename.split('/').pop()}`;
+    if (!filename) {
+        return 'https://via.placeholder.com/80x50';
+    }
+    return `${apiUrl}/images/news_thumbnails/${filename.split('/').pop()}`;
 };
 
 const resetForm = () => {
-  form.value = { 
-    title: '', 
-    summary: '', 
-    content: '',
-    category_id: null, 
-    tags: '', 
-    status: 1, 
-    is_pinned: false 
-  };
-  thumbnailFile.value = null;
-  thumbnailPreview.value = '';
-  const fileInput = document.querySelector('#newsModal input[type="file"]');
-  if (fileInput) fileInput.value = '';
+    form.value = {
+        title: '',
+        summary: '',
+        content: '',
+        category_id: null,
+        tags: '',
+        status: 1,
+        is_pinned: false
+    };
+    thumbnailFile.value = null;
+    thumbnailPreview.value = '';
+    thumbnailError.value = '';
+    const fileInput = document.querySelector('#newsModal input[type="file"]');
+    if (fileInput) fileInput.value = '';
+};
+
+// Validate File Type
+const validateFile = (file) => {
+    if (!file) return true; // No file is valid (optional)
+    const validTypes = ['image/jpeg', 'image/png', 'image/jpg', 'image/gif'];
+    if (!validTypes.includes(file.type)) {
+        thumbnailError.value = 'File phải là ảnh (jpeg, png, jpg, gif).';
+        return false;
+    }
+    if (file.size > 2 * 1024 * 1024) { // 2MB limit
+        thumbnailError.value = 'File không được lớn hơn 2MB.';
+        return false;
+    }
+    thumbnailError.value = '';
+    return true;
 };
 
 // API Functions
 const fetchData = async (page = 1) => {
-  try {
-    const response = await axiosInstance.get('/api/news', {
-      params: { page: page, q: searchQuery.value }
-    });
-    items.value = response.data.data;
-    currentPage.value = response.data.current_page;
-    totalPages.value = response.data.last_page;
-  } catch (error) {
-    showNotification('Không thể tải danh sách tin tức.', 'error');
-  }
+    try {
+        const response = await axiosInstance.get('/api/news', {
+            params: { page: page, q: searchQuery.value }
+        });
+        items.value = response.data.data;
+        currentPage.value = response.data.current_page;
+        totalPages.value = response.data.last_page;
+    } catch (error) {
+        showNotification('Không thể tải danh sách tin tức.', 'error');
+    }
 };
 
 const fetchCategories = async () => {
@@ -301,30 +343,35 @@ const handleSearch = () => {
 };
 
 const openModal = (editMode = false, item = null) => {
-  isEditMode.value = editMode;
-  if (editMode && item) {
-    form.value = { 
-      ...item, 
-      content: item.content ?? '',
-      status: item.status ? 1 : 0, 
-      is_pinned: !!item.is_pinned 
-    };
-    thumbnailPreview.value = getImageUrl(item.thumbnail);
-    thumbnailFile.value = null; 
-  } else {
-    resetForm();
-  }
-  editModalInstance.show();
+    isEditMode.value = editMode;
+    if (editMode && item) {
+        form.value = {
+            ...item,
+            content: item.content ?? '',
+            status: item.status ? 1 : 0,
+            is_pinned: !!item.is_pinned
+        };
+        thumbnailPreview.value = getImageUrl(item.thumbnail);
+        thumbnailFile.value = null;
+    } else {
+        resetForm();
+    }
+    editModalInstance.show();
 };
 
 const openDetailModal = async (item) => {
     selectedNewsDetail.value = null;
     detailModalInstance.show();
-
     try {
-        const response = await axiosInstance.get(`/api/news/${item.id}`);
+        // Lời gọi API MỚI, có thêm tham số 'params'
+        const response = await axiosInstance.get(`/api/news/${item.id}`, {
+            params: {
+                from_admin: true // Gửi tham số để backend biết đây là admin
+            }
+        });
         selectedNewsDetail.value = response.data;
-    } catch (error) {
+    } catch (error)
+    {
         showNotification('Không thể tải chi tiết tin tức.', 'error');
         detailModalInstance.hide();
     }
@@ -332,41 +379,71 @@ const openDetailModal = async (item) => {
 
 const handleFileChange = (event) => {
     const file = event.target.files[0];
-    if (file) {
+    if (file && validateFile(file)) {
         thumbnailFile.value = file;
         thumbnailPreview.value = URL.createObjectURL(file);
+    } else {
+        thumbnailFile.value = null;
+        if (!file) thumbnailPreview.value = '';
     }
 };
 
+// **THAY ĐỔI: Chỉnh sửa handleSubmit để gửi author_id**
 const handleSubmit = async () => {
+    if (thumbnailFile.value && !validateFile(thumbnailFile.value)) {
+        return;
+    }
+
+    isSubmitting.value = true;
     const formData = new FormData();
     
+    // Thêm các trường dữ liệu vào formData
     formData.append('title', form.value.title);
     formData.append('content', form.value.content || '');
     formData.append('category_id', form.value.category_id);
-    formData.append('status', form.value.status ? 1 : 0);
-    formData.append('is_pinned', form.value.is_pinned ? 1 : 0);
+    formData.append('status', form.value.status ? '1' : '0');
+    formData.append('is_pinned', form.value.is_pinned ? '1' : '0');
     
     if (form.value.summary) formData.append('summary', form.value.summary);
     if (form.value.tags) formData.append('tags', form.value.tags);
     
     if (thumbnailFile.value) {
-      formData.append('thumbnail', thumbnailFile.value);
+        formData.append('thumbnail', thumbnailFile.value);
     }
     
+    // Logic gửi request
     try {
         if (isEditMode.value) {
+            // Khi sửa, chúng ta không gửi author_id để không thay đổi tác giả gốc
             formData.append('_method', 'PUT');
-            await axiosInstance.post(`/api/news/${form.value.id}`, formData);
+            await axiosInstance.post(`/api/news/${form.value.id}`, formData, {
+                headers: { 'Content-Type': 'multipart/form-data' }
+            });
         } else {
-            await axiosInstance.post('/api/news', formData);
+            // **Khi tạo mới, lấy user_id từ localStorage và thêm vào form**
+            const user = getLoggedInUser();
+            if (!user || !user.id) {
+                showNotification('Không tìm thấy thông tin người dùng. Vui lòng đăng nhập lại.', 'error');
+                isSubmitting.value = false;
+                return;
+            }
+            formData.append('author_id', user.id);
+
+            await axiosInstance.post('/api/news', formData, {
+                headers: { 'Content-Type': 'multipart/form-data' }
+            });
         }
+
         showNotification(`Thao tác thành công!`);
         editModalInstance.hide();
-        fetchData(isEditMode.value ? currentPage.value : 1); 
+        fetchData(isEditMode.value ? currentPage.value : 1);
     } catch (error) {
-        const errorMessage = error.response?.data?.errors ? JSON.stringify(error.response.data.errors) : 'Đã có lỗi xảy ra.';
-        showNotification('Thao tác thất bại: ' + errorMessage, 'error');
+        const errorMessage = error.response?.data?.errors
+            ? Object.values(error.response.data.errors).flat().join('<br/>')
+            : 'Đã có lỗi xảy ra.';
+        showNotification('Thao tác thất bại: <br/>' + errorMessage, 'error');
+    } finally {
+        isSubmitting.value = false;
     }
 };
 
@@ -388,24 +465,25 @@ const deleteItem = async (id) => {
 
 // Lifecycle Hook
 onMounted(() => {
-  fetchData(); 
-  fetchCategories();
-  
-  const editModalElement = document.getElementById('newsModal');
-  if (editModalElement) {
-    editModalInstance = new Modal(editModalElement);
-    editModalElement.addEventListener('shown.bs.modal', () => { isModalVisible.value = true; });
-    editModalElement.addEventListener('hidden.bs.modal', () => { isModalVisible.value = false; });
-  }
+    fetchData();
+    fetchCategories();
+    
+    const editModalElement = document.getElementById('newsModal');
+    if (editModalElement) {
+        editModalInstance = new Modal(editModalElement);
+        editModalElement.addEventListener('shown.bs.modal', () => { isModalVisible.value = true; });
+        editModalElement.addEventListener('hidden.bs.modal', () => { isModalVisible.value = false; });
+    }
 
-  const detailModalElement = document.getElementById('detailNewsModal');
-  if (detailModalElement) {
-      detailModalInstance = new Modal(detailModalElement);
-  }
+    const detailModalElement = document.getElementById('detailNewsModal');
+    if (detailModalElement) {
+        detailModalInstance = new Modal(detailModalElement);
+    }
 });
 </script>
 
 <style scoped>
+/* ... CSS của bạn giữ nguyên ... */
 .staff-container {
   padding: 20px;
 }
@@ -509,12 +587,10 @@ onMounted(() => {
   from { opacity: 1; transform: translateY(0); }
   to { opacity: 0; transform: translateY(-10px); }
 }
-
 :deep(.ql-editor) {
   height: 400px;
   overflow-y: auto;
 }
-
 .news-detail-modal-body .metadata {
     font-size: 0.9rem;
     display: flex;
@@ -522,7 +598,6 @@ onMounted(() => {
     gap: 5px;
     align-items: center;
 }
-/* THAY ĐỔI: Xóa style cho .summary-block */
 .news-detail-modal-body .content-wrapper {
     line-height: 1.7;
     word-wrap: break-word;
