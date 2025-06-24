@@ -1,800 +1,405 @@
 <template>
-  <!-- From Uiverse.io by ahmed150up -->
-  <div class="chat-card" v-if="isFormChat">
-    <div class="chat-header">
-      <div class="h2">ChatGPT <button type="button" class="btn btn-warning" @click="closePopup">Close Chat</button>
+  <div class="blog-page-wrapper">
+    <!-- Khu vực Banner với ảnh nền -->
+    <section class="blog-banner">
+      <div class="banner-content-wrapper text-center">
+        <h1 class="banner-title">Tin Tức & Blog</h1>
+        <nav aria-label="breadcrumb">
+          <ol class="breadcrumb justify-content-center">
+            <li class="breadcrumb-item"><a href="/">Trang Chủ</a></li>
+            <li class="breadcrumb-item active" aria-current="page">Tin Tức</li>
+          </ol>
+        </nav>
       </div>
-    </div>
-    <div class="chat-body">
-      <div class="message incoming">
-        <p>Xin chào, tôi là ChatGPT tôi đã sẵn sàng để giải đáp thắc mắc của bạn?</p>
-        <div v-if="isLoadingChat" class=""><!-- From Uiverse.io by G4b413l -->
-          <div class="newtons-cradle">
-            <div class="newtons-cradle__dot"></div>
-            <div class="newtons-cradle__dot"></div>
-            <div class="newtons-cradle__dot"></div>
-            <div class="newtons-cradle__dot"></div>
-          </div>
-        </div>
-        <div class="result" v-if="result">ChatGPT: {{ result }}</div>
-      </div>
-    </div>
-    <div class="chat-footer">
-      <form @submit.prevent="sendRequest">
-        <input v-model="inputText" placeholder="Hey ChatGPT" type="text" required />
-        <button type="submit">Gửi</button>
-      </form>
-    </div>
-  </div>
-  <div class="logo" v-if="isLogoChat"><!-- From Uiverse.io by VassoD -->
-    <div class="btn-main" @click="showPopup">Chat Cùng AI</div>
-  </div>
+    </section>
 
-  <!-- Blog Grid Banner -->
-  <div class="sisf-banner position-relative">
-    <div class="banner-img">
-      <figure>
-        <img src="https://dishify-html.wpthemeverse.com/images/dishify-about-banner.png" alt="Dishify" />
-      </figure>
-    </div>
-    <div class="sisf-page-title sisf-m sisf-title--standard sisf-alignment--center">
-      <div class="sisf-m-inner">
-        <div class="sisf-m-content sisf-content-grid">
-          <h1 class="sisf-m-title entry-title">Blog Grid</h1>
-        </div>
-      </div>
-    </div>
-  </div>
-  <!-- Page Section -->
-  <div class="sisf-page-section blog-section section">
-    <div class="sisf-grid sisf-layout--template">
-      <div class="sisf-grid-inner container">
+    <!-- Khu vực Nội dung chính -->
+    <section class="blog-content-area py-5">
+      <div class="container">
         <div class="row">
-          <!-- Blog Grid -->
-          <div class="col-lg-9">
-            <div class="row">
-              <div class="col-lg-6 col-md-6" v-for="(post, index) in blogPosts" :key="index">
-                <div class="sisf-blog">
-                  <div class="sisf-blog-item">
-                    <div class="sisf-e-inner">
-                      <div class="sisf-e-media">
-                        <div class="sisf-e-media-image">
-                          <a :href="post.link">
-                            <figure class="image-anime reveal">
-                              <img :src="post.image" class="image-fluid" alt="Dishify">
-                            </figure>
-                          </a>
-                        </div>
+          <!-- Cột các bài viết Blog -->
+          <div class="col-lg-8">
+            <div class="blog-posts-wrapper">
+              
+              <!-- Trạng thái đang tải -->
+              <div v-if="loading" class="text-center py-5">
+                <div class="spinner-border text-primary" role="status">
+                  <span class="visually-hidden">Đang tải...</span>
+                </div>
+              </div>
+
+              <!-- Nội dung khi đã tải xong -->
+              <div v-else>
+                <!-- Lưới chứa các bài viết -->
+                <div class="row">
+                  <div v-if="!blogPosts.length" class="col-12 text-center py-5">
+                    <p>Không tìm thấy bài viết nào.</p>
+                  </div>
+                  <!-- Vòng lặp qua các bài viết từ API -->
+                  <div v-for="post in blogPosts" :key="post.id" class="col-md-6">
+                    <div class="blog-post-item mb-5">
+                      <div class="post-image">
+                        <img :src="getThumbnailUrl(post.thumbnail)" :alt="post.title" class="img-fluid rounded">
                       </div>
-                      <div class="sisf-e-content">
-                        <div class="sisf-e-info sisf-info--top mb-2 d-flex align-items-center">
-                          <div class="sisf-e-info-date">
-                            <a href="blogs.html">{{ post.date }}</a>
-                          </div>
-                          <span class="sisf-e-info-divider">·</span>
-                          <div class="sisf-e-info-category">
-                            <a href="blogs.html">{{ post.category }}</a>
-                          </div>
+                      <div class="post-content p-3">
+                        <div class="post-meta d-flex align-items-center mb-2">
+                          <span class="me-4"><i class="bi bi-person me-2"></i>Bởi {{ post.author ? post.author.name : 'Không rõ' }}</span>
+                          <span><i class="bi bi-calendar-event me-2"></i>{{ formatDate(post.publish_date) }}</span>
                         </div>
-                        <div class="sisf-e-text">
-                          <h2 class="sisf-e-title">
-                            <a class="sisf-e-title-link" :href="post.link">{{ post.title }}</a>
-                          </h2>
-                          <p class="sisf-e-excerpt">{{ post.excerpt }}</p>
-                        </div>
-                        <div class="sisf-m-button">
-                          <a :href="post.link" class="btn-default blog-button">
-                            <span>VIEW MORE <i class="fa-solid fa-arrow-right"></i></span>
-                          </a>
-                        </div>
+                        <h3 class="post-title">
+                          <router-link :to="`/news/${post.id}`">{{ post.title }}</router-link>
+                        </h3>
+                        <p class="post-excerpt">{{ post.summary }}</p>
+                        <router-link :to="`/news/${post.id}`" class="btn btn-sea-primary mt-2">ĐỌC THÊM</router-link>
                       </div>
                     </div>
                   </div>
                 </div>
+
+                <!-- Phân trang động -->
+                <nav v-if="pagination && pagination.last_page > 1" aria-label="Page navigation">
+                  <ul class="pagination justify-content-start mt-4">
+                    <li class="page-item" :class="{ 'disabled': pagination.current_page === 1 }">
+                      <a class="page-link" href="#" @click.prevent="changePage(pagination.current_page - 1)">Trước</a>
+                    </li>
+                    <li v-for="page in pagination.last_page" :key="page" class="page-item" :class="{ 'active': page === pagination.current_page }">
+                      <a class="page-link" href="#" @click.prevent="changePage(page)">{{ page }}</a>
+                    </li>
+                    <li class="page-item" :class="{ 'disabled': pagination.current_page === pagination.last_page }">
+                      <a class="page-link" href="#" @click.prevent="changePage(pagination.current_page + 1)">Sau</a>
+                    </li>
+                  </ul>
+                </nav>
               </div>
+
             </div>
           </div>
-          <!-- Blog Sidebar -->
-          <div class="col-lg-3 col-md-3">
-            <div class="sisf-page-sidebar bg-white">
-              <!-- Search Widget -->
-              <div class="sidebar-widget widget_search">
-                <div class="sisf-search-form">
-                  <div class="sisf-search-form-inner">
-                    <input type="search" class="sisf-search-form-field" v-model="searchQuery" placeholder="Search…"
-                      required />
-                    <button type="submit" class="sisf-search-form-button">
-                      <i class="fa-solid fa-magnifying-glass"></i>
-                    </button>
+
+          <!-- Cột Sidebar -->
+          <div class="col-lg-4">
+            <div class="blog-sidebar">
+              <div class="sidebar-widget p-4 rounded mb-4">
+                <h4 class="widget-title mb-3">Tìm Kiếm Tại Đây</h4>
+                <div class="input-group">
+                  <input type="text" v-model="searchQuery" @keyup.enter="handleSearch" class="form-control" placeholder="Tìm kiếm tại đây..." aria-label="Tìm kiếm tại đây">
+                  <button class="btn btn-search" type="button" @click="handleSearch"><i class="bi bi-search"></i></button>
+                </div>
+              </div>
+
+              <div class="sidebar-widget p-4 rounded mb-4">
+                <h4 class="widget-title mb-3">Danh Mục</h4>
+                <ul class="list-unstyled category-list">
+                  <li v-for="category in categories" :key="category.id">
+                    <a href="#" class="d-flex justify-content-between align-items-center">
+                      <span>{{ category.name }}</span>
+                    </a>
+                  </li>
+                </ul>
+              </div>
+
+              <div class="sidebar-widget p-4 rounded mb-4">
+                <h4 class="widget-title mb-3">Bài Viết Gần Đây</h4>
+                <div v-for="post in recentPosts" :key="post.id" class="recent-post-item d-flex align-items-center mb-3">
+                  <img :src="getThumbnailUrl(post.thumbnail)" :alt="post.title" class="rounded me-3">
+                  <div>
+                    <h6 class="mb-1"><router-link :to="`/news/${post.id}`">{{ post.title }}</router-link></h6>
+                    <small class="text-muted"><i class="bi bi-calendar-event me-1"></i>{{ formatDate(post.publish_date) }}</small>
                   </div>
                 </div>
               </div>
-              <div class="sidebar-separator">
-                <hr class="separator sidebar-line" />
-              </div>
-              <!-- Categories Widget -->
-              <div class="sidebar-widget widget_categories">
-                <h3 class="sidebar-title">Categories</h3>
-                <div class="product-categories">
-                  <ul class="product-categories-list">
-                    <li class="product-categories-list-item" v-for="(category, index) in categories" :key="index">
-                      <a :href="category.link">{{ category.name }}</a>
-                    </li>
-                  </ul>
-                </div>
-              </div>
-              <div class="sidebar-separator">
-                <hr class="separator sidebar-line" />
-              </div>
-              <!-- Popular Posts Widget -->
-              <div class="sidebar-widget widget_popular_blog">
-                <h3 class="sidebar-title">Popular Posts</h3>
-                <div class="sidebar_blog-list">
-                  <ul class="blog-list-widget">
-                    <li v-for="(post, index) in popularPosts" :key="index">
-                      <div class="sisf-blog-image">
-                        <a :href="post.link"><img :src="post.image" class="image-fluid" alt="Dishify" /></a>
-                      </div>
-                      <div class="sisf-blog-content">
-                        <h5 class="sisf-blog-title"><a :href="post.link">{{ post.title }}</a></h5>
-                        <div class="sisf-date">
-                          <span class="publish-date">{{ post.date }}</span>
-                        </div>
-                      </div>
-                    </li>
-                  </ul>
-                </div>
-              </div>
-              <div class="sidebar-separator">
-                <hr class="separator sidebar-line" />
-              </div>
-              <!-- Popular Tags Widget -->
-              <div class="sidebar-widget widget_popular_tag">
-                <h3 class="sidebar-title">Popular Tags</h3>
-                <div class="sidebar_tag-list">
-                  <a :href="tag.link" class="tag" v-for="(tag, index) in tags" :key="index">{{ tag.name }}</a>
+              
+              <div class="sidebar-widget p-4 rounded mb-4">
+                <h4 class="widget-title mb-3">Thẻ Phổ Biến</h4>
+                <div class="tag-cloud">
+                    <a href="#" v-for="tag in popularTags" :key="tag.name">{{ tag.name }}</a>
                 </div>
               </div>
             </div>
           </div>
         </div>
       </div>
-    </div>
+    </section>
   </div>
 </template>
+
 <script setup>
-import { ref } from 'vue';
+import { ref, onMounted, inject } from 'vue';
+import axios from 'axios';
+import { Modal } from 'bootstrap';
 
-const inputText = ref('');
-const result = ref('');
-const isFormChat = ref(true);
-const isLoadingChat = ref(false);
-const sendRequest = async () => {
-  isLoadingChat.value = true;
+// --- QUẢN LÝ TRẠNG THÁI ---
+const blogPosts = ref([]);
+const categories = ref([]);
+const recentPosts = ref([]);
+const pagination = ref({});
+const loading = ref(true);
+const searchQuery = ref('');
+
+const popularTags = ref([
+    { name: 'Đồ Ăn Nhanh' }, { name: 'Bữa Trưa' }, { name: 'Nhà Hàng' },
+    { name: 'Burger' }, { name: 'Bữa Tối' }, { name: 'Gà Rán' },
+]);
+
+const apiUrl = inject('apiUrl');
+
+// --- HÀM HỖ TRỢ ---
+const getThumbnailUrl = (thumbnail) => {
+  if (thumbnail) {
+    return `${apiUrl}/images/news_thumbnails/${thumbnail}`;
+  }
+  return 'https://via.placeholder.com/400x300.png?text=No+Image'; // Giữ nguyên hoặc dịch "Ảnh bị lỗi"
+};
+
+const formatDate = (dateString) => {
+  if (!dateString) return '';
+  
+  const date = new Date(dateString);
+  
+  const day = date.getDate();
+  const month = date.getMonth() + 1;
+  const year = date.getFullYear();
+
+  const formattedDay = String(day).padStart(2, '0');
+  const formattedMonth = String(month).padStart(2, '0');
+
+  return `${formattedDay}/${formattedMonth}/${year}`;
+};
+
+// --- GỌI API ---
+const fetchNews = async (page = 1, query = '') => {
+  loading.value = true;
   try {
-    const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
-      method: 'POST',
-      headers: {
-        Authorization: 'Bearer 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',
-        'Content-Type': 'application/json',
-        'HTTP-Referer': 'http://127.0.0.1:5173/', // Optional. Site URL for rankings on openrouter.ai.
-        'X-Title': 'adadda', // Optional. Site title for rankings on openrouter.ai.
-      },
-      body: JSON.stringify({
-        model: 'gpt-3.5-turbo',
-        messages: [{ role: 'user', content: inputText.value }]
-      })
-    });
-
-    if (!response.ok) {
-      throw new Error(`HTTP error! Status: ${response.status}`);
+    let url = `${apiUrl}/api/news?page=${page}`;
+    if (query) {
+      url += `&q=${query}`;
     }
-
-    const data = await response.json();
-
-    // Hiển thị kết quả
-    inputText.value = '';
-    result.value = data.choices[0].message.content;
-
-  } catch (error) {
-    if (error.message.includes('Failed to fetch')) {
-      result.value = 'Không thể kết nối tới máy chủ. Vui lòng kiểm tra kết nối mạng hoặc URL.';
-    } else if (error.message.includes('ERR_NAME_NOT_RESOLVED')) {
-      result.value = 'Không thể giải quyết tên miền. Vui lòng kiểm tra URL hoặc kết nối mạng.';
-    } else {
-      result.value = 'Đã xảy ra lỗi: ' + error.message;
-    }
-  } finally {
-    isLoadingChat.value = false;
-  }
-};
-const isLogoChat = ref(false);
-const closePopup = () => {
-  isFormChat.value = false;
-  isLogoChat.value = true;
-}
-const showPopup = () => {
-  isFormChat.value = true;
-  isLogoChat.value = false;
-}
-</script>
-<script>
-export default {
-  name: 'BlogComponent',
-  data() {
-    return {
-      searchQuery: '',
-      blogPosts: [
-        {
-          image: 'https://dishify-html.wpthemeverse.com/images/blog-list-1.png',
-          link: '/blog-detail',
-          date: '5 Apr, 2025', /* Updated date to current year */
-          category: 'Italian',
-          title: 'Discovering Deliciousness, One Recipe at a Time',
-          excerpt: 'Discovering Deliciousness, One Recipe at a Time invites you on a culinary journey filled with tantalizing flavors, aromatic spices, and mouthwatering dishes...'
-        },
-        {
-          image: 'https://dishify-html.wpthemeverse.com/images/blog-list-2.png',
-          link: '/blog-detail',
-          date: '5 Apr, 2025', /* Updated date to current year */
-          category: 'Pizza & Fast Food',
-          title: 'Indulge in Delicious Creations',
-          excerpt: 'Indulge in delicious creations that tantalize your taste buds and transport you to a world of culinary delight...'
-        },
-        {
-          image: 'https://dishify-html.wpthemeverse.com/images/blog-list-3.png',
-          link: '/blog-detail',
-          date: '5 Apr, 2025', /* Updated date to current year */
-          category: 'Pizza & Fast Food',
-          title: 'Painting Palates with Flavorful Delights',
-          excerpt: 'Nestled within the vibrant heart of a bustling city, Painting Palates with Flavorful Delights stands as a beacon of culinary creativity...'
-        },
-        {
-          image: 'https://dishify-html.wpthemeverse.com/images/blog-list-4.png',
-          link: '/blog-detail',
-          date: '5 Apr, 2025', /* Updated date to current year */
-          category: 'Desserts',
-          title: 'Stories Behind the Dishes We Love',
-          excerpt: '“Stories Behind the Dishes We Love” delves into the captivating narratives intertwined with some of the most beloved culinary creations...'
-        },
-        {
-          image: 'https://dishify-html.wpthemeverse.com/images/blog-list-5.png',
-          link: '/blog-detail',
-          date: '5 Apr, 2025', /* Updated date to current year */
-          category: 'Italian',
-          title: 'Recipes and Reviews for Food Enthusiasts',
-          excerpt: 'Recipes and Reviews for Food Enthusiasts is a platform designed to cater to the discerning palates and culinary curiosities of passionate food lovers...'
-        },
-        {
-          image: 'https://dishify-html.wpthemeverse.com/images/blog-list-1.png',
-          link: '/blog-detail',
-          date: '5 Apr, 2025', /* Updated date to current year */
-          category: 'Sea Food',
-          title: 'Tales from the Gastronomic World',
-          excerpt: 'Amidst the bustling streets and quiet corners of the gastronomic world lie tales waiting to be told—stories that evoke the tantalizing aroma of spices...'
-        }
-      ],
-      categories: [
-        { name: 'Desserts', link: 'blogs.html' },
-        { name: 'Italian', link: 'blogs.html' },
-        { name: 'Mexican', link: 'blogs.html' },
-        { name: 'Pizza & Fast Food', link: 'blogs.html' },
-        { name: 'Sea Food', link: 'blogs.html' }
-      ],
-      popularPosts: [
-        {
-          image: 'https://dishify-html.wpthemeverse.com/images/blog_detail-small-1.png',
-          link: '/blog-detail',
-          title: 'Discovering Deliciousness,',
-          date: 'April 5, 2025' /* Updated date to current year */
-        },
-        {
-          image: 'https://dishify-html.wpthemeverse.com/images/blog_detail-small-2.png',
-          link: '/blog-detail',
-          title: 'Indulge in Delicious Creations',
-          date: 'April 5, 2025' /* Updated date to current year */
-        },
-        {
-          image: 'https://dishify-html.wpthemeverse.com/images/blog_detail-small-3.png',
-          link: '/blog-detail',
-          title: 'Painting Palates with Flavorful',
-          date: 'April 5, 2025' /* Updated date to current year */
-        }
-      ],
-      tags: [
-        { name: 'Desserts', link: 'blogs.html' },
-        { name: 'Italian', link: 'blogs.html' },
-        { name: 'Mexican', link: 'blogs.html' },
-        { name: 'Pizza & Fast Food', link: 'blogs.html' },
-        { name: 'Sea Food', link: 'blogs.html' }
-      ]
+    const response = await axios.get(url);
+    blogPosts.value = response.data.data;
+    pagination.value = {
+      current_page: response.data.current_page,
+      last_page: response.data.last_page,
     };
+  } catch (error) {
+    console.error("Lỗi khi tải tin tức:", error);
+  } finally {
+    loading.value = false;
   }
 };
+
+const fetchCategories = async () => {
+  try {
+    const response = await axios.get(`${apiUrl}/api/news-categories`);
+    categories.value = response.data;
+  } catch (error) {
+    console.error("Lỗi khi tải danh mục:", error);
+  }
+};
+
+const fetchRecentPosts = async () => {
+    try {
+        const response = await axios.get(`${apiUrl}/api/news?per_page=3`);
+        recentPosts.value = response.data.data;
+    } catch (error) {
+        console.error("Lỗi khi tải bài viết gần đây:", error);
+    }
+};
+
+// --- HÀM XỬ LÝ SỰ KIỆN ---
+const handleSearch = () => {
+  fetchNews(1, searchQuery.value);
+};
+
+const changePage = (page) => {
+  if (page >= 1 && page <= pagination.value.last_page) {
+    fetchNews(page, searchQuery.value);
+  }
+};
+
+// --- VÒNG ĐỜI COMPONENT ---
+onMounted(() => {
+  fetchNews();
+  fetchCategories();
+  fetchRecentPosts();
+});
 </script>
 
 <style scoped>
-/* From Uiverse.io by G4b413l */
-.newtons-cradle {
-  --uib-size: 50px;
-  --uib-speed: 1.2s;
-  --uib-color: #1ae3e3;
-  position: relative;
-  display: flex;
-  margin: 0 auto;
-  align-items: center;
-  justify-content: center;
-  width: var(--uib-size);
-  height: var(--uib-size);
+/* Kiểu dáng chung */
+a {
+  text-decoration: none;
+  color: #343a40;
+  transition: color 0.3s ease;
 }
-
-.newtons-cradle__dot {
-  position: relative;
+.post-title a:hover,
+.recent-post-item h6 a:hover {
+  color: #007bff;
+}
+h1, h2, h3, h4, h5, h6 {
+  font-weight: 700;
+  color: #343a40;
+}
+.blog-post-item {
   display: flex;
-  align-items: center;
+  flex-direction: column;
   height: 100%;
-  width: 25%;
-  transform-origin: center top;
 }
-
-.newtons-cradle__dot::after {
-  content: '';
-  display: block;
-  width: 100%;
-  height: 25%;
-  border-radius: 50%;
-  background-color: var(--uib-color);
-}
-
-.newtons-cradle__dot:first-child {
-  animation: swing var(--uib-speed) linear infinite;
-}
-
-.newtons-cradle__dot:last-child {
-  animation: swing2 var(--uib-speed) linear infinite;
-}
-
-@keyframes swing {
-  0% {
-    transform: rotate(0deg);
-    animation-timing-function: ease-out;
-  }
-
-  25% {
-    transform: rotate(70deg);
-    animation-timing-function: ease-in;
-  }
-
-  50% {
-    transform: rotate(0deg);
-    animation-timing-function: linear;
-  }
-}
-
-@keyframes swing2 {
-  0% {
-    transform: rotate(0deg);
-    animation-timing-function: linear;
-  }
-
-  50% {
-    transform: rotate(0deg);
-    animation-timing-function: ease-out;
-  }
-
-  75% {
-    transform: rotate(-70deg);
-    animation-timing-function: ease-in;
-  }
-}
-
-
-/* From Uiverse.io by ahmed150up */
-.chat-card {
-  width: 300px;
-  /* margin: 0 auto; */
-  background-color: #fff;
-  border-radius: 5px;
-  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-  overflow: hidden;
-  position: fixed;
-  /* Đặt vị trí cố định */
-  bottom: 5%;
-  right: 2%;
-  /* Cách bên phải 10px */
-}
-
-.logo {
-  position: fixed;
-  /* Đặt vị trí cố định */
-  bottom: 5%;
-  right: 2%;
-}
-
-
-.chat-header {
-  padding: 10px;
-  background-color: #f2f2f2;
-  display: flex;
-  align-items: center;
-}
-
-.chat-header .h2 {
-  font-size: 16px;
-  color: #333;
-}
-
-.chat-body {
-  padding: 20px;
-}
-
-.result {
-  margin-top: 10px;
-  font-size: 14px;
-  color: #333;
-  max-height: 250px;
-  /* Đặt chiều cao tối đa */
-  overflow-y: auto;
-  /* Thêm thanh cuộn dọc */
-  padding: 10px;
-  /* Thêm khoảng đệm */
-  border: 1px solid #ccc;
-  /* Thêm viền */
-  border-radius: 5px;
-  /* Bo góc */
-  background-color: #f9f9f9;
-  /* Màu nền */
-}
-
-.message {
-  margin-bottom: 10px;
-  padding: 10px;
-  border-radius: 5px;
-}
-
-.incoming {
-  background-color: #e1e1e1;
-
-}
-
-.outgoing {
-  background-color: #f2f2f2;
-  text-align: right;
-}
-
-.message p {
-  font-size: 12px;
-  color: orange;
-  font-weight: 500px;
-  margin: 0;
-}
-
-.chat-footer {
-  padding: 10px;
-  background-color: #f2f2f2;
-  display: flex;
-}
-
-.chat-footer input[type="text"] {
+.post-content {
   flex-grow: 1;
-  padding: 5px;
-  border: none;
-  border-radius: 3px;
+  display: flex;
+  flex-direction: column;
+}
+.post-excerpt {
+  /* flex-grow: 1; */ /* Đã xóa để nút không bị giãn ra */
 }
 
-.chat-footer button {
-  padding: 5px 10px;
-  border: none;
-  background-color: #4285f4;
-  color: #fff;
-  font-weight: bold;
-  cursor: pointer;
-  transition: background-color 0.3s;
-}
-
-.chat-footer button:hover {
-  background-color: #0f9d58;
-}
-
-@keyframes chatAnimation {
-  0% {
-    opacity: 0;
-    transform: translateY(10px);
-  }
-
-  100% {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-.chat-card .message {
-  animation: chatAnimation 0.3s ease-in-out;
-  animation-fill-mode: both;
-  animation-delay: 0.1s;
-}
-
-.chat-card .message:nth-child(even) {
-  animation-delay: 0.2s;
-}
-
-.chat-card .message:nth-child(odd) {
-  animation-delay: 0.3s;
-}
-
-/* Bootstrap and custom styles should be included in your project */
-@import url('https://fonts.googleapis.com/css2?family=Cormorant+Infant:ital,wght@0,300;0,400;0,500;0,600;0,700;1,300;1,400;1,500;1,600;1,700&family=Work+Sans:ital,wght@0,100..900;1,100..900&display=swap');
-@import url('https://fonts.googleapis.com/css2?family=Cherish&display=swap');
-@import url('https://fonts.googleapis.com/css2?family=Corinthia:wght@400;700&display=swap');
-
-/* Hero Banner Styles */
-.sisf-banner {
+/* Khu vực Banner */
+.blog-banner {
+  width: 100%;
+  height: 350px;
   position: relative;
-  width: 100%;
-  overflow: hidden;
-}
-
-.banner-img {
-  width: 100%;
-}
-
-.banner-img figure {
-  margin: 0;
-}
-
-.banner-img img {
-  width: 100%;
-  height: auto;
-  display: block;
-}
-
-.sisf-page-title {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  width: 100%;
-  text-align: center;
-}
-
-.sisf-m-title {
-  font-size: 48px;
-  color: #fff;
-  text-transform: uppercase;
-  margin: 0;
-  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
-  font-family: 'Cormorant Infant', serif;
-}
-
-/* Blog Section Styles */
-.sisf-page-section {
-  padding: 60px 0;
-  background: #f8f7f7;
-}
-
-.sisf-blog-item {
-  margin-bottom: 30px;
-}
-
-.sisf-e-media-image img {
-  width: 100%;
-  height: 200px;
-  object-fit: cover;
-  display: block;
-}
-
-.sisf-e-content {
-  padding: 20px;
-  min-height: 300px;
-  /* Ensure equal height for all posts */
-}
-
-.sisf-e-info {
   display: flex;
+  justify-content: center;
   align-items: center;
+  background: 
+    linear-gradient(rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.5)),
+    url('https://anhphathotel.com/wp-content/uploads/2023/06/resort-thanh-hoa-4.jpg');
+  background-size: cover;
+  background-position: center;
 }
-
-.sisf-e-info-date a,
-.sisf-e-info-category a {
-  color: #888;
-  font-size: 14px;
-  text-decoration: none;
-  font-family: 'Work Sans', sans-serif;
-}
-
-.sisf-e-info-date a:hover,
-.sisf-e-info-category a:hover {
-  color: #f4a261;
-}
-
-.sisf-e-info-divider {
-  margin: 0 5px;
-  color: #888;
-}
-
-.sisf-e-title {
-  font-size: 20px;
-  margin: 10px 0;
-  font-weight: 600;
-  font-family: 'Cormorant Infant', serif;
-}
-
-.sisf-e-title-link {
-  color: #333;
-  text-decoration: none;
-}
-
-.sisf-e-title-link:hover {
-  color: #f4a261;
-}
-
-.sisf-e-excerpt {
-  font-size: 14px;
-  color: #666;
-  line-height: 1.6;
-  margin-bottom: 15px;
-  font-family: 'Work Sans', sans-serif;
-}
-
-.btn-default {
-  display: inline-flex;
-  align-items: center;
-  padding: 8px 15px;
-  background: #f4a261;
+.banner-title {
+  font-size: 3.5rem;
+  font-weight: 800;
   color: #fff;
-  text-transform: uppercase;
-  font-size: 12px;
-  border: none;
-  text-decoration: none;
-  border-radius: 3px;
-  transition: background 0.3s;
-  font-family: 'Work Sans', sans-serif;
 }
-
-.btn-default:hover {
-  background: #e76f51;
+.breadcrumb {
+  background-color: transparent;
+  padding: 0;
 }
-
-/* Sidebar Styles */
-.sisf-page-sidebar {
-  padding: 20px;
-  border: 1px solid #eee;
-  /* Restored border */
-  background: #fff;
-}
-
-.sidebar-title {
-  font-size: 18px;
-  margin-bottom: 15px;
-  color: #333;
+.breadcrumb-item a {
+  color: #f1f1f1;
   font-weight: 600;
-  text-align: start;
-  font-family: 'Cormorant Infant', serif;
+}
+.breadcrumb-item.active {
+  color: #ffc107;
 }
 
-.sisf-search-form {
-  display: flex;
-  align-items: center;
-  border: 1px solid #ddd;
+/* Khu vực Nội dung chính */
+.blog-content-area {
+  background-color: #ffffff;
+}
+.post-meta {
+  color: #6c757d;
+  font-size: 0.85rem;
+}
+.post-title {
+  font-size: 1.25rem;
+  margin-top: 10px;
+  margin-bottom: 15px;
+}
+.post-excerpt {
+  color: #343a40;
+  line-height: 1.5;
+  font-size: 0.9rem;
+  margin-bottom: 1rem; /* Thêm khoảng cách dưới cho đoạn văn */
+}
+.btn-sea-primary {
+  background-color: #007bff;
+  color: #fff;
+  padding: 8px 20px;
+  font-weight: 600;
   border-radius: 5px;
-  overflow: hidden;
-}
-
-.sisf-search-form-inner {
-  display: flex;
-  width: 100%;
-}
-
-.sisf-search-form-field {
   border: none;
-  padding: 10px;
-  width: 100%;
-  font-size: 14px;
-  outline: none;
-  font-family: 'Work Sans', sans-serif;
+  transition: background-color 0.3s ease;
+  align-self: flex-start;
+  margin-top: auto; /* Đẩy nút xuống dưới cùng của flex container */
+}
+.btn-sea-primary:hover {
+  background-color: #0056b3;
+  color: #fff;
+}
+.post-image img {
+    width: 100%;
+    height: 200px;
+    object-fit: cover;
 }
 
-.sisf-search-form-button {
-  background: none;
-  border: none;
-  padding: 10px;
+/* Phân trang */
+.pagination .page-item .page-link {
+  border: 1px solid #dee2e6;
+  background-color: #fff;
+  margin: 0 5px;
+  border-radius: 8px;
+  color: #343a40;
+  font-weight: 600;
   cursor: pointer;
 }
-
-.sisf-search-form-button i {
-  color: #888;
+.pagination .page-item.active .page-link {
+  background-color: #007bff;
+  color: #fff;
+  border-color: #007bff;
+}
+.pagination .page-item.disabled .page-link {
+    color: #6c757d;
+    pointer-events: none;
+    background-color: #e9ecef;
+    border-color: #dee2e6;
+}
+.pagination .page-link:hover {
+  background-color: #e9ecef;
+}
+.pagination .page-item.active .page-link:hover {
+  background-color: #007bff;
 }
 
-.product-categories-list {
-  padding: 0;
-  margin: 0;
-  list-style: none;
+/* Thanh bên (Sidebar) */
+.blog-sidebar .sidebar-widget {
+  background-color: #f8f9fa;
+  border: 1px solid #dee2e6;
+}
+.widget-title {
+  position: relative;
+  padding-bottom: 10px;
+  border-bottom: 2px solid #dee2e6;
 }
 
-.product-categories-list li {
-  margin-bottom: 10px;
-  text-align: start;
+/* Widget Tìm kiếm */
+.sidebar-widget .form-control:focus {
+  box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+  border-color: #007bff;
+}
+.sidebar-widget .btn-search {
+  background-color: #007bff;
+  color: white;
+}
+.sidebar-widget .btn-search:hover {
+  background-color: #0056b3;
 }
 
-.product-categories-list a {
-  color: #333;
-  font-size: 14px;
-  text-decoration: none;
-  font-family: 'Work Sans', sans-serif;
+/* Widget Danh mục & Thẻ */
+.category-list li a, .tag-cloud a {
+  background-color: #fff;
+  color: #343a40;
+  border: 1px solid #ddd;
+  transition: all 0.3s ease;
 }
+.category-list li a:hover, .tag-cloud a:hover {
+  background-color: #007bff;
+  color: #fff;
+  border-color: #007bff;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+}
+.category-list li { margin-bottom: 10px; }
+.category-list li a { display: block; padding: 12px 15px; border-radius: 5px; font-weight: 500; }
+.category-list li a .bi-arrow-right { opacity: 0; transition: opacity 0.3s ease; }
+.category-list li a:hover .bi-arrow-right { opacity: 1; }
+.tag-cloud a { display: inline-block; padding: 8px 15px; margin: 0 5px 10px 0; border-radius: 20px; font-size: 0.9rem; }
 
-.product-categories-list a:hover {
-  color: #f4a261;
+/* Widget Bài viết gần đây */
+.recent-post-item img { 
+    width: 70px; 
+    height: 70px; 
+    object-fit: cover;
 }
-
-.blog-list-widget {
-  padding: 0;
-  margin: 0;
-  list-style: none;
-}
-
-.blog-list-widget li {
-  display: flex;
-  align-items: center;
-  margin-bottom: 15px;
-}
-
-.sisf-blog-image {
-  flex-shrink: 0;
-}
-
-.sisf-blog-image img {
-  width: 60px;
-  height: 60px;
-  object-fit: cover;
-  border-radius: 5px;
-}
-
-.sisf-blog-content {
-  flex-grow: 1;
-  margin-left: 15px;
-  text-align: start;
-}
-
-.sisf-blog-title {
-  margin: 0;
-}
-
-.sisf-blog-title a {
-  font-size: 14px;
-  color: #333;
-  text-decoration: none;
-  font-family: 'Work Sans', sans-serif;
-}
-
-.sisf-blog-title a:hover {
-  color: #f4a261;
-}
-
-.publish-date {
-  font-size: 12px;
-  color: #f4a261;
-  font-family: 'Work Sans', sans-serif;
-}
-
-.sidebar_tag-list a {
-  display: inline-block;
-  padding: 5px 10px;
-  background: #f1f1f1;
-  color: #333;
-  margin-right: 5px;
-  margin-bottom: 5px;
-  text-decoration: none;
-  border-radius: 3px;
-  font-family: 'Work Sans', sans-serif;
-}
-
-.sidebar_tag-list a:hover {
-  background: #ddd;
-}
-
-.sidebar-separator hr {
-  border: 2px solid #5f5c59;
-  border-top: 1px solid #eee;
-}
+.recent-post-item h6 { font-size: 0.95rem; line-height: 1.3; }
 </style>

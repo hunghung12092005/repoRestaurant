@@ -295,19 +295,7 @@
                   aria-describedby="fullNameHelp">
                 <small id="fullNameHelp" class="form-text text-muted">Nhập họ và tên đầy đủ.</small>
               </div>
-              <!-- <div class="mb-3">
-                <label for="address" class="form-label">Địa chỉ <span class="text-muted small">(Bắt buộc)</span></label>
-                <input type="text" class="form-control" id="address" v-model="customer.address" required
-                  aria-describedby="addressHelp">
-                <small id="addressHelp" class="form-text text-muted">Nhập địa chỉ đường phố.</small>
-              </div>
-              <div class="mb-3">
-                <label for="email" class="form-label">Địa chỉ Email <span class="text-muted small">(Bắt
-                    buộc)</span></label>
-                <input type="email" class="form-control" id="email" v-model="customer.email" required
-                  aria-describedby="emailHelp">
-                <small id="emailHelp" class="form-text text-muted">Nhập email hợp lệ để nhận xác nhận.</small>
-              </div> -->
+              
               <div class="mb-3">
                 <label for="phone" class="form-label">Số điện thoại <span class="text-muted small">(Bắt
                     buộc)</span></label>
@@ -368,55 +356,7 @@
               <p class="thanks">Thank you for shopping with us!</p>
             </div>
 
-            <!-- <h3 class="section-subtitle">Cách Thanh toán</h3>
-            <div class="mb-3">
-              <label class="form-label">Tổng tiền: ${{ totalPrice }}</label>
-              <p class="form-control-plaintext">Bao gồm: {{ selectedRoomTypes.length }} phòng từ {{ checkIn }} đến {{
-                checkOut }}</p>
-            </div>
-            <div class="mb-3">
-              <label class="form-label">Phương thức thanh toán:</label>
-              <div class="form-check">
-                <input class="form-check-input" type="radio" name="paymentMethod" id="cash" v-model="paymentMethod"
-                  value="cash" required>
-                <label class="form-check-label" for="cash">Thanh toán bằng tiền mặt</label>
-              </div>
-              <div class="form-check">
-                <input class="form-check-input" type="radio" name="paymentMethod" id="card" v-model="paymentMethod"
-                  value="card" required>
-                <label class="form-check-label" for="card">Thanh toán bằng thẻ tín dụng</label>
-              </div>
-              <div v-if="paymentMethod === 'card'" class="mt-3">
-                <label for="cardNumber" class="form-label">Số thẻ <span class="text-muted small">(Bắt
-                    buộc)</span></label>
-                <input type="text" class="form-control" id="cardNumber" v-model="cardDetails.number" required
-                  aria-describedby="cardNumberHelp">
-                <small id="cardNumberHelp" class="form-text text-muted">Nhập số thẻ 16 chữ số.</small>
-                <div class="row">
-                  <div class="col-6">
-                    <label for="expiryDate" class="form-label">Ngày hết hạn <span class="text-muted small">(Bắt
-                        buộc)</span></label>
-                    <input type="text" class="form-control" id="expiryDate" v-model="cardDetails.expiry"
-                      placeholder="MM/YY" required aria-describedby="expiryDateHelp">
-                    <small id="expiryDateHelp" class="form-text text-muted">Định dạng: MM/YY.</small>
-                  </div>
-                  <div class="col-6">
-                    <label for="cvv" class="form-label">CVV <span class="text-muted small">(Bắt buộc)</span></label>
-                    <input type="text" class="form-control" id="cvv" v-model="cardDetails.cvv" required
-                      aria-describedby="cvvHelp">
-                    <small id="cvvHelp" class="form-text text-muted">Nhập mã CVV 3-4 chữ số.</small>
-                  </div>
-                </div>
-              </div>
-            </div>
-            <div class="text-center mt-4">
-              <button class="btn btn-outline-primary me-2" @click.prevent="prevStep" aria-label="Quay lại">Quay
-                lại</button>
-              <button class="btn btn-primary" @click.prevent="nextStep" :disabled="!isPaymentComplete"
-                aria-label="Tiếp tục">Tiếp tục</button>
-              <div v-if="!isPaymentComplete" class="text-danger small mt-2">Vui lòng điền đầy đủ thông tin để tiếp tục.
-              </div>
-            </div> -->
+            
           </div>
         </div>
       </div>

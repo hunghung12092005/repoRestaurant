@@ -41,25 +41,20 @@ class LoginController extends Controller
         // Kiểm tra thông tin xác thực và lấy token
         $credentials = $request->only('email', 'password');
 
-        try {
-            if (!$token = JWTAuth::attempt($credentials)) {
-                return response()->json(['error' => 'Sai pass rồi bạn ơi'], 401);
-            }
-        } catch (JWTException $e) {
-            return response()->json(['error' => 'could_not_create_token'], 500);
+        if (!$token = JWTAuth::attempt($credentials)) {
+            return response()->json(['message' => 'Invalid credentials'], 401);
         }
 
-        // Lấy thông tin người dùng
-        $user = User::where('email', $request->email)->first();
-
+        $user = Auth::user();
         return response()->json([
             'message' => 'Login successful',
             'token' => $token,
             'user' => [
                 'id' => $user->id,
                 'name' => $user->name,
+                'email' => $user->email,
                 'role' => $user->role,
-            ],
+            ]
         ]);
     }
     public function register(Request $request)

@@ -608,6 +608,7 @@ watch(() => formData.value.room_id, () => {
 .modal-overlay {
   z-index: 1000;
   position: fixed;
+  z-index: 1000;
   top: 0;
   left: 0;
   width: 100%;

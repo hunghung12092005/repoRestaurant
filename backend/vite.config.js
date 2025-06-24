@@ -19,4 +19,13 @@ export default defineConfig({
   server: {
     port: 5173,
   },
+   server: {
+    proxy: {
+      '/api': {
+        // Thay bằng địa chỉ server Laravel của bạn
+        target: 'http://localhost:8000', 
+        changeOrigin: true,
+      },
+    },
+  },
 });
