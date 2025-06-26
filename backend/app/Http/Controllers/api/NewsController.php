@@ -11,9 +11,11 @@ use Illuminate\Support\Facades\Validator;
 
 class NewsController extends Controller
 {
-    public function index(Request $request)
+     public function index(Request $request)
     {
         $query = News::with(['category', 'author'])->latest('publish_date');
+
+        // Lọc theo từ khóa tìm kiếm
         if ($request->has('q') && $request->input('q')) {
             $searchQuery = $request->input('q');
             $query->where('title', 'like', '%' . $searchQuery . '%')
@@ -21,6 +23,12 @@ class NewsController extends Controller
                       $q->where('name', 'like', '%' . $searchQuery . '%');
                   });
         }
+        
+        // [THAY ĐỔI] Thêm bộ lọc theo danh mục
+        if ($request->has('category_id') && $request->input('category_id')) {
+            $query->where('category_id', $request->input('category_id'));
+        }
+
         $news = $query->paginate(10);
         return response()->json($news);
     }

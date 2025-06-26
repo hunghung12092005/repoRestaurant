@@ -89,10 +89,25 @@
               <div class="sidebar-widget p-4 rounded mb-4">
                 <h4 class="widget-title mb-3">Danh Mục</h4>
                 <ul class="list-unstyled category-list">
+                  <!-- [THAY ĐỔI] Thêm lại "Tất cả danh mục" -->
+                  <li>
+                    <router-link 
+                      to="/news" 
+                      class="d-flex justify-content-between align-items-center"
+                      :class="{ 'active-category': isAllCategoriesActive }"
+                    >
+                      <span>Tất cả danh mục</span>
+                    </router-link>
+                  </li>
+                  <!-- Lặp qua các danh mục -->
                   <li v-for="category in categories" :key="category.id">
-                    <a href="#" class="d-flex justify-content-between align-items-center">
+                    <router-link 
+                      :to="{ path: '/news', query: { category: category.id } }"
+                      class="d-flex justify-content-between align-items-center"
+                      :class="{ 'active-category': isCategoryActive(category.id) }"
+                    >
                       <span>{{ category.name }}</span>
-                    </a>
+                    </router-link>
                   </li>
                 </ul>
               </div>
@@ -123,11 +138,13 @@
 </template>
 
 <script setup>
-import { ref, onMounted, inject } from 'vue';
+import { ref, onMounted, inject, watch, computed } from 'vue';
+import { useRoute, useRouter } from 'vue-router';
 import axios from 'axios';
-import { Modal } from 'bootstrap';
 
 // --- QUẢN LÝ TRẠNG THÁI ---
+const route = useRoute();
+const router = useRouter();
 const blogPosts = ref([]);
 const categories = ref([]);
 const recentPosts = ref([]);
@@ -142,36 +159,42 @@ const popularTags = ref([
 
 const apiUrl = inject('apiUrl');
 
+// [THAY ĐỔI] Các computed property để xác định trạng thái active
+const isAllCategoriesActive = computed(() => {
+  return !route.query.category;
+});
+
+const isCategoryActive = (categoryId) => {
+  return Number(route.query.category) === categoryId;
+};
+
 // --- HÀM HỖ TRỢ ---
 const getThumbnailUrl = (thumbnail) => {
   if (thumbnail) {
     return `${apiUrl}/images/news_thumbnails/${thumbnail}`;
   }
-  return 'https://via.placeholder.com/400x300.png?text=No+Image'; // Giữ nguyên hoặc dịch "Ảnh bị lỗi"
+  return 'https://via.placeholder.com/400x300.png?text=No+Image';
 };
 
 const formatDate = (dateString) => {
   if (!dateString) return '';
-  
   const date = new Date(dateString);
-  
-  const day = date.getDate();
-  const month = date.getMonth() + 1;
+  const day = String(date.getDate()).padStart(2, '0');
+  const month = String(date.getMonth() + 1).padStart(2, '0');
   const year = date.getFullYear();
-
-  const formattedDay = String(day).padStart(2, '0');
-  const formattedMonth = String(month).padStart(2, '0');
-
-  return `${formattedDay}/${formattedMonth}/${year}`;
+  return `${day}/${month}/${year}`;
 };
 
 // --- GỌI API ---
-const fetchNews = async (page = 1, query = '') => {
+const fetchNews = async (page = 1, query = '', categoryId = null) => {
   loading.value = true;
   try {
     let url = `${apiUrl}/api/news?page=${page}`;
     if (query) {
       url += `&q=${query}`;
+    }
+    if (categoryId) {
+      url += `&category_id=${categoryId}`;
     }
     const response = await axios.get(url);
     blogPosts.value = response.data.data;
@@ -206,18 +229,25 @@ const fetchRecentPosts = async () => {
 
 // --- HÀM XỬ LÝ SỰ KIỆN ---
 const handleSearch = () => {
-  fetchNews(1, searchQuery.value);
+  router.push({ path: '/news', query: { q: searchQuery.value, category: route.query.category } });
 };
 
 const changePage = (page) => {
   if (page >= 1 && page <= pagination.value.last_page) {
-    fetchNews(page, searchQuery.value);
+    router.push({ path: '/news', query: { ...route.query, page: page } });
   }
 };
 
 // --- VÒNG ĐỜI COMPONENT ---
+watch(
+  () => route.query,
+  (newQuery) => {
+    fetchNews(newQuery.page, newQuery.q, newQuery.category);
+  },
+  { deep: true, immediate: true }
+);
+
 onMounted(() => {
-  fetchNews();
   fetchCategories();
   fetchRecentPosts();
 });
@@ -247,9 +277,6 @@ h1, h2, h3, h4, h5, h6 {
   flex-grow: 1;
   display: flex;
   flex-direction: column;
-}
-.post-excerpt {
-  /* flex-grow: 1; */ /* Đã xóa để nút không bị giãn ra */
 }
 
 /* Khu vực Banner */
@@ -300,7 +327,7 @@ h1, h2, h3, h4, h5, h6 {
   color: #343a40;
   line-height: 1.5;
   font-size: 0.9rem;
-  margin-bottom: 1rem; /* Thêm khoảng cách dưới cho đoạn văn */
+  margin-bottom: 1rem;
 }
 .btn-sea-primary {
   background-color: #007bff;
@@ -311,7 +338,7 @@ h1, h2, h3, h4, h5, h6 {
   border: none;
   transition: background-color 0.3s ease;
   align-self: flex-start;
-  margin-top: auto; /* Đẩy nút xuống dưới cùng của flex container */
+  margin-top: auto;
 }
 .btn-sea-primary:hover {
   background-color: #0056b3;
@@ -382,18 +409,34 @@ h1, h2, h3, h4, h5, h6 {
   border: 1px solid #ddd;
   transition: all 0.3s ease;
 }
-.category-list li a:hover, .tag-cloud a:hover {
+.category-list li a:hover {
   background-color: #007bff;
   color: #fff;
   border-color: #007bff;
   transform: translateY(-2px);
   box-shadow: 0 4px 8px rgba(0,0,0,0.1);
 }
+/* Style cho danh mục đang được chọn */
+.category-list li a.active-category,
+.category-list li a.active-category:hover {
+  background-color: #007bff;
+  color: #fff;
+  border-color: #007bff;
+  transform: translateY(0);
+  box-shadow: none;
+}
 .category-list li { margin-bottom: 10px; }
 .category-list li a { display: block; padding: 12px 15px; border-radius: 5px; font-weight: 500; }
 .category-list li a .bi-arrow-right { opacity: 0; transition: opacity 0.3s ease; }
 .category-list li a:hover .bi-arrow-right { opacity: 1; }
 .tag-cloud a { display: inline-block; padding: 8px 15px; margin: 0 5px 10px 0; border-radius: 20px; font-size: 0.9rem; }
+.tag-cloud a:hover {
+  background-color: #007bff;
+  color: #fff;
+  border-color: #007bff;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+}
 
 /* Widget Bài viết gần đây */
 .recent-post-item img { 

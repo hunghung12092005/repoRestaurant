@@ -48,9 +48,12 @@ Route::apiResource('users', UsersController::class);
 //news
 Route::apiResource('news', NewsController::class);
 Route::apiResource('news-categories', NewsCategoryController::class);
-Route::get('/news-comments', [NewsCommentController::class, 'index']); // Trang admin lấy tất cả bình luận
-Route::put('/comments/{id}', [NewsCommentController::class, 'update']); // Admin cập nhật bình luận
-Route::delete('/comments/{id}', [NewsCommentController::class, 'destroy']);
+// Comments
+Route::get('/news/{newsId}/comments', [NewsCommentController::class, 'commentsByNewsId']);
+Route::post('/news/{newsId}/comments', [NewsCommentController::class, 'store']);
+Route::get('/news-comments', [NewsCommentController::class, 'index']);
+Route::delete('/comments/{comment}', [NewsCommentController::class, 'destroy']);
+
 
 Route::post('/rooms/{room_id}/add-guest', [OccupancyController::class, 'addGuestToRoom']); //khi khách đặt phòng thì đổi trạng thái
 
