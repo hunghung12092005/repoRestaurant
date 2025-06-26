@@ -58,18 +58,11 @@ Route::post('/rooms/{room_id}/extend', [OccupancyController::class, 'extendStay'
 
 
 
-<<<<<<< HEAD
-Route::get('/room-types', [RoomTypeController::class, 'index']);
-Route::post('/room-types', [RoomTypeController::class, 'store']);
-Route::put('/room-types/{id}', [RoomTypeController::class, 'update']);
-Route::delete('/room-types/{id}', [RoomTypeController::class, 'destroy']);
-=======
 // Route::get('/room-types', [RoomTypeController::class, 'index']);
 // Route::post('/room-types', [RoomTypeController::class, 'store']);
 // Route::put('/room-types/{id}', [RoomTypeController::class, 'update']);
 // Route::delete('/room-types/{id}', [RoomTypeController::class, 'destroy']);
 
->>>>>>> 8b3b0b94dae292788fc3b438ecfa11cb01903710
 Route::prefix('amenities')->group(function () {
     Route::get('/', [AmenityController::class, 'index']);
     Route::post('/', [AmenityController::class, 'store']);

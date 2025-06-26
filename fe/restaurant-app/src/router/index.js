@@ -255,25 +255,6 @@ const routes = [
     meta: { requiresAdmin: true },
   },
   
-<<<<<<< HEAD
-  {// quản lý trạng thái phòng
-    path: '/admin/occupancy',
-    name: 'AdminOccupancy',
-    component: AdminOccupancyComponent,
-    meta: { requiresAdmin: true },
-  },
-  {// quản lý trạng thái phòng
-    path: '/admin/AdminBooking',
-    name: 'AdminBookingComponent',
-    component: AdminBookingComponent,
-  },
-  // {
-  //   path: '/admin/Occupancy',
-  //   name: 'adminOccupancy',
-  //   component: adminOccupancy,
-  // }
-=======
->>>>>>> 8b3b0b94dae292788fc3b438ecfa11cb01903710
   {
     path: '/admin/services',
     name: 'AdminServices',
@@ -286,8 +267,6 @@ const routes = [
     component: AdminAmenitiesComponent,
     meta: { requiresAdmin: true },
   },
-<<<<<<< HEAD
-=======
   {
     path: '/admin/news',
     name: 'AdminNews',
@@ -313,7 +292,6 @@ const routes = [
     component: AdminUsersComponent,
     meta: { requiresAdmin: true },
   },
->>>>>>> 8b3b0b94dae292788fc3b438ecfa11cb01903710
 ];
 
 const router = createRouter({
