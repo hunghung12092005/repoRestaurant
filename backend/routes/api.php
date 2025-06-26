@@ -54,6 +54,9 @@ Route::put('/comments/{id}', [NewsCommentController::class, 'update']); // Admin
 Route::delete('/comments/{id}', [NewsCommentController::class, 'destroy']);
 
 Route::post('/rooms/{room_id}/add-guest', [OccupancyController::class, 'addGuestToRoom']); //khi khách đặt phòng thì đổi trạng thái
+Route::post('/rooms/preview-price', [OccupancyController::class, 'previewPrice']);//xem trước giá
+Route::post('/rooms/{room_id}/extend', [OccupancyController::class, 'extendStay']);//gia hạn phòng
+
 
 
 // Route::get('/room-types', [RoomTypeController::class, 'index']);
