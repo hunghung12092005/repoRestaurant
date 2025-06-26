@@ -494,7 +494,7 @@
 
 <script setup>
 
-import { ref, onMounted, computed } from 'vue';
+import { ref, onMounted, computed, inject } from 'vue';
 import axios from 'axios';
 // import Modal from '../Model.vue';
 import loading from '../loading.vue';
@@ -763,39 +763,41 @@ const verifyCode = async () => {
 const closeModalOtp = async () => {
     isOtp.value = false;
 }
+const apiUrl = inject('apiUrl'); // Lấy URL API từ inject
+
 //xử lý khi nhấn đặt phòng
-const submitBooking = () => {
-    // Xử lý logic đặt phòng ở đây
+const submitBooking = async () => {
+    // Kiểm tra thông tin nhập
     if (!phoneNumber.value) {
         alert('Vui lòng nhập số điện thoại!');
-        document.getElementById('phone').focus(); // Đảm bảo ID đúng với input của bạn
-        return; // 
-    }
-    if (customer.createAccount = false) {
-        alert('Vui lòng xác nhận điều kiện!');
-        document.getElementById('createAccount').focus(); // Đảm bảo ID đúng với input của bạn
+        document.getElementById('phone').focus();
         return;
     }
-    if (!phoneNumber.value) {
-        alert('Vui lòng nhập số điện thoại!');
-        document.getElementById('phone').focus(); 
-        return;
-    }
-    // Lấy thông tin đặt phòng
-    //console.log(selectedServices.value);
+
+    // if (!customer.createAccount) {
+    //     alert('Vui lòng xác nhận điều kiện!');
+    //     document.getElementById('createAccount').focus();
+    //     return;
+    // }
+
+    // Tính toán giá phòng và dịch vụ
     const gia_phong = gia1_phong.value / bookrooms.value;
     const gia_dich_vu = calculateServiceTotal.value / numberOfRooms.value;
-    const  gia_phong_dich_vu  = gia_phong +  gia_dich_vu;
+    const gia_phong_dich_vu = gia_phong + gia_dich_vu;
+
+    const so_phong_dich_vu = gia_dich_vu <= 0 ? 0 : numberOfRooms.value;
+
+    // Lấy thông tin đặt phòng
     const bookingDetails = {
         check_in_date: checkin.value,
         check_out_date: checkOut.value,
         total_rooms: bookrooms.value,
-        //hotel: selectedHotelBooking.value,
-        so_phong_dich_vu: numberOfRooms.value,
-        services_id: selectedServices.value.map(service => service.id), // Lấy service_id
-        services_name: selectedServices.value.map(service => service.name), // Lấy service_name
+        type_id: selectedHotelBooking.value.id,
+        so_phong_dich_vu: so_phong_dich_vu,
+        services_id: selectedServices.value.map(service => service.id),
+        services_name: selectedServices.value.map(service => service.name),
         gia_dich_vu_1phong: gia_dich_vu,
-        gia_1phong_dich_vu:gia_phong_dich_vu,
+        gia_1phong_dich_vu: gia_phong_dich_vu,
         gia_1phong: gia_phong,
         total_price: totalPrice.value,
         phone: phoneNumber.value,
@@ -803,14 +805,37 @@ const submitBooking = () => {
         paymentMethod: paymentMethod.value,
         booking_type: 'online',
         pricing_type: 'nightly',
-        note: orderNotes.value,
-        //createAccount: customer.createAccount,
+        note: orderNotes.value || 'Không có ghi chú',
     };
 
-    // Xử lý logic đặt phòng ở đây 
-    console.log('Thông tin đặt phòng:', bookingDetails);
-    //console.log(customer.value);
-    //showModalBooking.value = false; // Đóng modal sau khi xác nhận
+    try {
+        isLoading.value = true; // Bắt đầu quá trình gửi dữ liệu
+        //console.log('API URL:', apiUrl);
+        //console.log('Thông tin đặt phòng:', JSON.stringify(bookingDetails, null, 2)); isLoading.value = true; // Bắt đầu quá trình gửi dữ liệu
+        const response = await axios.post(`${apiUrl}/api/booking-client`, bookingDetails, {
+            headers: {
+                'Content-Type': 'application/json',
+                // Thêm các header khác nếu cần
+            }
+        });
+        //console.log('Đặt phòng thành công:', response.data);
+    } catch (error) {
+        console.error('Lỗi khi gửi thông tin đặt phòng:', error);
+
+        // Kiểm tra phản hồi từ server
+        const errorMessage = error.response && error.response.data && error.response.data.error
+            ? error.response.data.error
+            : error.message || 'Đã xảy ra lỗi không xác định';
+
+        alert(`Lỗi khi gửi thông tin đặt phòng: ${errorMessage}`);
+        return;
+    } finally {
+        isLoading.value = false; // Kết thúc quá trình gửi dữ liệu
+    }
+
+    // Xử lý logic sau khi đặt phòng thành công
+    //console.log('Thông tin đặt phòng:', bookingDetails);
+    //showModalBooking.value = false; // Đóng modal sau khi xác nhận nếu cần
 };
 
 onMounted(() => {
@@ -870,14 +895,17 @@ onMounted(() => {
 
 /* Media Query */
 @media screen and (max-width: 400px) {
+
     .decrement-button,
     .increment-button {
-        width: 25px; /* Kích thước nút nhỏ hơn trên màn hình nhỏ */
+        width: 25px;
+        /* Kích thước nút nhỏ hơn trên màn hình nhỏ */
         height: 25px;
     }
 
-    
+
 }
+
 .decrement-button:disabled,
 .increment-button:disabled {
     background-color: #ccc;
