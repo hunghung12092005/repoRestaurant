@@ -99,11 +99,11 @@
               </li>
             </ul>
           </li>
-          <li class="nav-item"><router-link class="nav-link" to="/admin/news"><i class="bi bi-newspaper"></i> Tin tức</router-link></li>
-          <li class="nav-item"><router-link class="nav-link" to="/admin/news-categories"><i class="bi bi-tags"></i> Danh mục Tin tức</router-link></li>
-          <li class="nav-item"><router-link class="nav-link" to="/admin/news-comments"><i class="bi bi-chat"></i> Bình luận</router-link></li>
-          <li class="nav-item"><router-link class="nav-link" to="/"><i class="bi bi-box-arrow-left"></i>
-              Thoát</router-link></li>
+         <li class="nav-item"><router-link class="nav-link" to="/admin/users"><i class="bi bi-people"></i>Quản lý tài khoản</router-link></li>
+          <li class="nav-item"><router-link class="nav-link" to="/admin/news"><i class="bi bi-newspaper"></i>Tin tức</router-link></li>
+          <li class="nav-item"><router-link class="nav-link" to="/admin/news-categories"><i class="bi bi-tags"></i>Danh mục Tin tức</router-link></li>
+          <li class="nav-item"><router-link class="nav-link" to="/admin/news-comments"><i class="bi bi-chat"></i>Bình luận</router-link></li>
+          <li class="nav-item"><router-link class="nav-link" to="/"><i class="bi bi-box-arrow-left"></i>Thoát</router-link></li>
         </ul>
       </div>
 
@@ -126,7 +126,7 @@
       </div>
     </div>
 
-    <!-- Layout cho các route không phải admin -->
+    <!-- Layout cho các route không phải admin hoặc staff -->
     <div v-else>
       <header ref="headerRef">
         <nav class="navbar navbar-expand-lg navbar-light fixed-top" :class="{ 'active': navbarSticky }">
@@ -149,17 +149,17 @@
                 <li class="nav-item"><router-link class="nav-link sisf-m-subtitle" to="/">Home</router-link></li>
 
 
-                <li class="nav-item"><router-link class="nav-link sisf-m-subtitle" to="/blog">Blog</router-link></li>
+                <li class="nav-item"><router-link class="nav-link sisf-m-subtitle" to="/news">Blog</router-link></li>
                 <li class="nav-item dropdown">
                   <a class="nav-link dropdown-toggle sisf-m-subtitle" href="#" role="button" data-bs-toggle="dropdown"
                     aria-expanded="false">
                     Menu
                   </a>
                   <ul class="dropdown-menu">
-                    <li><router-link class="dropdown-item " to="/menu-list">Menu Đặt Món</router-link></li>
-                    <li><router-link class="dropdown-item " to="/menu">menu</router-link></li>
-                    <li><router-link class="dropdown-item " to="/product-detail">Chi Tiết Online</router-link></li>
-                    <li><router-link class="dropdown-item " to="/CategoryShopOnline">Menu ShopOnline</router-link></li>
+                    <li><router-link class="dropdown-item" to="/menu-list">Menu Đặt Món</router-link></li>
+                    <li><router-link class="dropdown-item" to="/menu">menu</router-link></li>
+                    <li><router-link class="dropdown-item" to="/product-detail">Chi Tiết Online</router-link></li>
+                    <li><router-link class="dropdown-item" to="/CategoryShopOnline">Menu ShopOnline</router-link></li>
                   </ul>
                 </li>
                 <li class="nav-item "><router-link class="nav-link sisf-m-subtitle" to="/rooms">Đặt
@@ -190,7 +190,6 @@
       <main>
         <router-view />
       </main>
-
     </div>
   </div>
 </template>
@@ -213,7 +212,6 @@ const isAdmin = ref(false);
 const apiUrl = 'http://localhost:8000';
 provide('apiUrl', apiUrl);
 
-// Biến để theo dõi vị trí cuộn trước đó
 const lastScrollPosition = ref(0);
 
 const toggleMenu = () => {
@@ -221,17 +219,13 @@ const toggleMenu = () => {
 };
 
 const handleScroll = () => {
-  if (headerRef.value || route.path.startsWith('/admin')) {
+  if (headerRef.value || route.path.startsWith('/admin') || route.path.startsWith('/staff')) {
     const currentScrollPosition = window.scrollY;
-
-    // Áp dụng hiệu ứng sticky cho navbar trên mọi kích thước màn hình
     navbarSticky.value = currentScrollPosition > 50;
-
     lastScrollPosition.value = currentScrollPosition;
   }
 };
 
-// Đóng menu khi nhấn bên ngoài
 const handleOutsideClick = (event) => {
   if (window.innerWidth <= 991 && navbarActive.value && navbarRef.value) {
     const isClickInside = navbarRef.value.contains(event.target);
@@ -367,7 +361,6 @@ onUnmounted(() => {
 .navbar {
   transition: background-color 0.3s ease, color 0.3s ease;
   padding: 10px 15px;
-  /* background: url('https://i.pinimg.com/1200x/61/e5/99/61e599a4b5a497cf75d3e61f030574cc.jpg'); */
   background-size: cover;
   background-color: rgb(56, 80, 124);
 }
@@ -387,7 +380,6 @@ onUnmounted(() => {
   line-height: 1.2;
   font-weight: 600;
   padding: 0 20px !important;
-  /* color:rgba(43, 212, 231, 0.7); */
   color: white;
 }
 
@@ -399,7 +391,6 @@ onUnmounted(() => {
 
 .navbar.active .navbar-toggler-icon {
   filter: brightness(0) invert(1);
-  /* Đổi màu biểu tượng toggle thành trắng khi active */
 }
 
 .navbar.active .navbar-toggler-icon {
@@ -409,21 +400,12 @@ onUnmounted(() => {
 .logo-img {
   width: 35px;
   margin-right: 10px;
-  filter: brightness(0);
+  filter: brightness(100);
 }
 
 .navbar.active .logo-img {
   filter: brightness(100);
 }
-
-/* .nav-link {
-  font-size: 1rem;
-  font-weight: 500;
-  color: rgb(14, 192, 224);
-  padding: 8px 15px !important;
-  transition: all 0.3s ease;
-} */
-
 
 .nav-link:hover {
   color: black;
@@ -453,8 +435,6 @@ onUnmounted(() => {
 }
 
 main {
-  /* padding-top: 70px; */
-  /* margin-bottom: 20px; */
   min-height: calc(100vh - 70px);
   width: 100%;
 }
@@ -464,7 +444,7 @@ footer {
   color: #fff;
 }
 
-/* Admin Layout Styles */
+/* Admin và Staff Layout Styles */
 body {
   background-color: #f5f7fb;
   height: 100%;
@@ -661,12 +641,14 @@ body {
   .navbar.active .nav-link,
   .navbar.active .dropdown-toggle {
     color: #000 !important;
-    /* Màu đen cho mobile khi active */
   }
 
   .navbar.active .navbar-toggler-icon {
     filter: brightness(0) invert(1);
-    /* Đổi màu biểu tượng toggle thành trắng khi active trên mobile */
+  }
+
+  .navbar.active .navbar-toggler-icon {
+    filter: brightness(0) invert(1);
   }
 
   .navbar.active .navbar-toggler-icon {
@@ -716,7 +698,6 @@ body {
 }
 
 @media (min-width: 992px) {
-
   .navbar.active .navbar-brand,
   .navbar.active .nav-link,
   .navbar.active .dropdown-toggle {
