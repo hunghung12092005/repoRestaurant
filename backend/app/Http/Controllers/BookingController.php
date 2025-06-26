@@ -327,9 +327,9 @@ class BookingController extends Controller
                     ->where('status', '!=', 'cancelled')
                     ->where(function ($q) use ($request) {
                         $q->whereBetween('check_in_date', [$request->check_in_date, $request->check_out_date])
-                          ->orWhereBetween('check_out_date', [$request->check_in_date, $request->check_out_date])
-                          ->orWhere('check_in_date', '<=', $request->check_in_date)
-                          ->where('check_out_date', '>=', $request->check_out_date);
+                            ->orWhereBetween('check_out_date', [$request->check_in_date, $request->check_out_date])
+                            ->orWhere('check_in_date', '<=', $request->check_in_date)
+                            ->where('check_out_date', '>=', $request->check_out_date);
                     })
                     ->where('booking_id', '!=', $request->booking_id)
                     ->exists();
@@ -366,4 +366,48 @@ class BookingController extends Controller
             return response()->json(['message' => 'Lỗi khi kiểm tra lịch trống', 'error' => $e->getMessage()], 500);
         }
     }
+    //
+
+    // public function storeBooking(Request $request)
+    // {
+    //     // Validate the incoming request data
+    //     $bookingDetails = $request->validate([
+    //         'check_in_date' => 'required|date',
+    //         'check_out_date' => 'required|date',
+    //         'bookrooms' => 'required|integer',
+    //         'fullName' => 'required|string',
+    //         'phone' => 'required|string',
+    //         'paymentMethod' => 'required|string',
+    //         'note' => 'nullable|string',
+    //         'total_price' => 'required|numeric',
+    //         'totalRoom_service' => 'required|integer', // Số lượng phòng có dịch vụ
+    //         'services_id' => 'required|array', // Mảng dịch vụ
+    //     ]);
+
+    //     // Tính giá cho mỗi phòng có dịch vụ
+    //     $servicePrice = $bookingDetails['total_price'] / $bookingDetails['totalRoom_service'];
+
+    //     // Lưu các booking cho mỗi phòng
+    //     for ($i = 0; $i < $bookingDetails['bookrooms']; $i++) {
+    //         // Tạo booking mới
+    //         $booking = Booking::create([
+    //             'customer_id' => $request->user()->id, // Hoặc lấy từ dữ liệu nào đó
+    //             'room_id' => $request->input('room_id'), // ID phòng tương ứng
+    //             'booking_type' => 'online',
+    //             'pricing_type' => 'nightly',
+    //             'check_in_date' => $bookingDetails['check_in_date'],
+    //             'check_out_date' => $bookingDetails['check_out_date'],
+    //             'total_price' => ($i < $bookingDetails['totalRoom_service']) ? $servicePrice : 0, // Giá cho phòng có dịch vụ, phòng không dịch vụ là 0
+    //             'note' => $bookingDetails['note'],
+    //         ]);
+
+    //         // Thêm dịch vụ cho các booking tương ứng với totalRoom_service
+    //         if ($i < $bookingDetails['totalRoom_service']) {
+    //             $serviceId = $request->input('services_id')[$i]; // Lấy dịch vụ tương ứng
+    //             $booking->services()->attach($serviceId);
+    //         }
+    //     }
+
+    //     return response()->json(['message' => 'Bookings created successfully!']);
+    // }
 }

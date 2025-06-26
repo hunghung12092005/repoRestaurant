@@ -20,6 +20,7 @@ use App\Http\Controllers\api\UsersController;
 use App\Http\Controllers\api\NewsController;
 use App\Http\Controllers\api\NewsCategoryController;
 use App\Http\Controllers\api\NewsCommentController;
+use App\Http\Controllers\BookingHotelController;
 
 Route::get('/seasonal-pricing/current/{typeId}', [RoomController::class, 'getCurrentPricing']);
 
@@ -132,4 +133,6 @@ Route::get('/items-online/50k', [ShopOnlineController::class, 'getItem50k']);
 Route::post('/send-otp', [ApiLoginController::class, 'sendOtp']);
 Route::post('/verify-otp', [ApiLoginController::class, 'verifyOtp']);
 Route::post('/reset-password', [ApiLoginController::class, 'resetPassword']);
+//thêm booking từ client
+Route::post('/booking-client', [BookingHotelController::class, 'storeBooking']);
 
