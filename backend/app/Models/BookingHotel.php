@@ -10,7 +10,7 @@ class BookingHotel extends Model
     use HasFactory;
 
     protected $table = 'booking_hotel';
-
+    protected $primaryKey = 'booking_id'; // Sử dụng cột booking_id làm khóa chính
     protected $fillable = [
         'customer_id',
         'booking_type',
