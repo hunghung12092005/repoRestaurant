@@ -807,6 +807,10 @@ const submitBooking = async () => {
 
     // Xác thực và lấy token
     let token;
+    //     const axiosWithoutHeader = axios.create({
+    //    // baseURL: apiUrl, // Đặt base URL nếu cần
+    //     headers: {} // Không thêm header nào
+    // });
     try {
         const authResponse = await axios.post(`${apiUrl}/api/generate-token`, {
             name: fullName.value,
@@ -814,6 +818,7 @@ const submitBooking = async () => {
             address: '', // Có thể thêm địa chỉ nếu cần
         });
         token = authResponse.data.token;
+        console.log('Token xác thực:', token);
     } catch (error) {
         console.error('Lỗi khi xác thực:', error);
         alert('Không thể xác thực, vui lòng kiểm tra thông tin!');
@@ -845,18 +850,18 @@ const submitBooking = async () => {
             gia_dich_vu_1phong: 0,
         });
     }
-
+    const axiosWithoutHeader = axios.create({
+        // baseURL: apiUrl, // Đặt base URL nếu cần
+        headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`, // Thêm token vào header
+        }
+    });
     try {
         isLoading.value = true; // Bắt đầu quá trình gửi dữ liệu
         console.log('Thông tin đặt phòng:', JSON.stringify(bookingDetails, null, 2));
-
         // Gửi yêu cầu đặt phòng
-        const response = await axios.post(`${apiUrl}/api/booking-client`, bookingDetails, {
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${token}`, // Thêm token vào header
-            }
-        });
+        const response = await axiosWithoutHeader.post(`${apiUrl}/api/booking-client`, bookingDetails);
         console.log('Đặt phòng thành công:', response.data);
     } catch (error) {
         console.error('Lỗi khi gửi thông tin đặt phòng:', error);
