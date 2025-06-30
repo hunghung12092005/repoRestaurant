@@ -214,6 +214,7 @@ class PriceController extends Controller
                 'so_tien1phong' => $so_tien1phong,
                 'so_phong' => $bookrooms,
                 'total_price' => $totalPrice,
+                'gia1h' => $standardPriceRecord ? $standardPriceRecord->hourly_price : 0
             ];
 
             $finalPrices[] = $result;

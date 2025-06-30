@@ -23,17 +23,24 @@
                 </button>
             </header>
             <section class="modal-container-body rtf">
+                <h3>Quy Tắc Đặt Phòng</h3>
+                <ul>
+                    <li>Ở bao nhiêu HXH Hotel tính tiền bấy nhiêu</li>
+                    <li>Phòng nghỉ giờ: Lưu trú 6 tiếng trở xuống tính tiền theo giờ.</li>
+                    <li>Phòng ngày đêm: Lưu trú trên 6 tiếng tính tiền 1 ngày đêm.</li>
+                    <li>Ngày check-in và check_out phải lớn hơn 1 ngày</li>
+                    <li>Đối với trường hợp khách đã thanh toán online nhưng nếu check-out sớm hơn thì HXH Hotel vẫn sẽ hoàn lại số tiền của khách còn dư theo quy định của khách sạn</li>
+                </ul>
                 <h3>Giờ Nhận/ Trả Phòng</h3>
                 <ul>
-                    <li>Giờ nhận phòng cố định là sau 12:00 chiều.</li>
+                    <li>Giờ nhận phòng cố định là sau 14:00 chiều.</li>
                     <li>Giờ trả phòng cố định là 12:00 trưa.</li>
-                    <li>Khách hàng có thể nhận phòng sớm nếu có phòng sẵn.</li>
-                    <li>Phòng nghỉ giờ: Lưu trú 2 tiếng trở xuống.</li>
-                    <li>Phòng ngày đêm: Lưu trú 24 tiếng hoặc phòng nghỉ giờ.</li>
-                    <li>Trả phòng sau 03h00 sáng hoặc nhận phòng trước 06h00 sáng tính thêm giờ.</li>
+                    <li>Khách hàng có thể nhận phòng sớm nếu có phòng sẵn và tính tiền theo giá tiền theo giờ được niêm yết cho tới giờ check-in.</li>
+                  
+                    <li>Trả phòng sau 14h00 chiều hoặc nhận phòng trước 12h00 sáng tính thêm giờ(sẽ có nhân viên gọi điện xác nhận trước cho khách hàng).</li>
                 </ul>
 
-                <h3>Quy Định Hủy Phòng</h3>
+                <h3>Quy Định Hủy Phòng / Dịch Vụ</h3>
                 <ul>
                     <li>Báo hủy từ 1 tháng trở lên không thu phí.</li>
                     <li>Báo hủy từ 10 ngày đến dưới 1 tháng bồi thường 20% tổng giá trị hợp đồng.</li>
