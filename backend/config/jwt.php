@@ -26,7 +26,7 @@ return [
     */
 
     'secret' => env('JWT_SECRET'),
-
+    //'algorithm' => 'HS256', // Đây là mặc định cho HMAC SHA-256
     /*
     |--------------------------------------------------------------------------
     | JWT Authentication Keys

@@ -59,7 +59,9 @@
             <p class="bed-size">{{ room.bedSize }}</p>
 
             <div v-if="room.status === 'Đã đặt'">
-              <a href="#" class="action-link" @click.prevent="showGuestDetails(room)"><button>Chi tiết khách</button></a>
+              <button class="action-link" @click.prevent="showGuestDetails(room)">
+                Chi tiết
+              </button>
               <br>
               <a href="#" class="action-link" @click.prevent="checkoutRoom(room.room_id)"><button>Thanh toán</button></a>
               <br>
@@ -115,7 +117,9 @@
         <div class="form-actions">
           <div v-if="totalPricePreview" class="form-group">
             <label>Tổng tiền ước tính:</label>
-            <div style="font-weight: bold; color: #2c3e50;">{{ totalPricePreview }}</div>
+            <div style="font-weight: bold; color: #2c3e50;">
+              {{ Number(totalPricePreview).toLocaleString('vi-VN') + ' VND' }}
+            </div>
           </div>
 
           <button type="submit">Lưu</button>
@@ -126,33 +130,55 @@
   </div>
   <div v-if="showGuestModal" class="modal-overlay">
     <div class="modal-content">
-      <h2>Thông tin khách hàng</h2>
-      <p><strong>Họ tên:</strong> {{ guestInfo.customer_name }}</p>
-      <p><strong>SĐT:</strong> {{ guestInfo.customer_phone }}</p>
-      <p><strong>Email:</strong> {{ guestInfo.customer_email }}</p>
-      <p><strong>Địa chỉ:</strong> {{ guestInfo.address }}</p>
+      <h2>Chi tiết phòng & khách</h2>
+
+      <!-- Chi tiết Phòng -->
+      <p v-if="guestInfo.room"><strong>Phòng:</strong> {{ guestInfo.room.room_name }} - {{ guestInfo.room.type_name }} (Tầng {{ guestInfo.room.floor_number }})</p>
+<p v-else>Đang tải thông tin phòng...</p>
+
+      <p><strong>Trạng thái:</strong> {{ guestInfo.room?.status }}</p>
+
+      <hr />
+
+      <!-- Chi tiết Khách -->
+      <p v-if="guestInfo.room"><strong>Khách hàng:</strong> {{ guestInfo.customer?.customer_name || 'Chưa có' }}</p>
+      <p v-if="guestInfo.room"><strong>SĐT:</strong> {{ guestInfo.customer?.customer_phone || '...' }}</p>
+      <p v-if="guestInfo.room"><strong>Email:</strong> {{ guestInfo.customer?.customer_email || '...' }}</p>
+      <p v-if="guestInfo.room"><strong>Địa chỉ:</strong> {{ guestInfo.customer?.address || '...' }}</p>
+
+      <hr />
+
+      <!-- Thông tin đặt phòng -->
+      <p v-if="guestInfo.room"><strong>Nhận phòng:</strong> {{ guestInfo.booking?.check_in_date || '...' }}</p>
+      <p v-if="guestInfo.room"><strong>Trả phòng dự kiến:</strong> {{ guestInfo.booking?.check_out_date || '...' }}</p>
+      <p v-if="guestInfo.room"><strong>Trả phòng thực tế:</strong> {{ guestInfo.booking?.actual_check_out_time || 'Chưa trả' }}</p>
+      <p v-if="guestInfo.room"><strong>Loại giá:</strong> {{ guestInfo.booking?.pricing_type || '...' }}</p>
+      <p v-if="guestInfo.room"><strong>Trạng thái:</strong> {{ guestInfo.booking?.status || '...' }}</p>
+      <p v-if="guestInfo.room"><strong>Tổng tiền:</strong> {{ guestInfo.booking?.total_price ?
+        Number(guestInfo.booking.total_price).toLocaleString('vi-VN') + ' VND' : '...' }}</p>
 
       <div class="form-actions">
         <button @click="showGuestModal = false">Đóng</button>
       </div>
     </div>
+
+
   </div>
   <div v-if="showExtendModal" class="modal-overlay">
-  <div class="modal-content">
-    <h2>Gia hạn thuê phòng</h2>
-    <form @submit.prevent="submitExtendForm">
-      <div class="form-group">
-        <label>Ngày giờ trả mới:</label>
-        <input type="datetime-local" v-model="extendForm.check_out_date" required />
-      </div>
-      <div class="form-actions">
-        <button type="submit">Xác nhận</button>
-        <button type="button" @click="showExtendModal = false">Hủy</button>
-      </div>
-    </form>
+    <div class="modal-content">
+      <h2>Gia hạn thuê phòng</h2>
+      <form @submit.prevent="submitExtendForm">
+        <div class="form-group">
+          <label>Ngày giờ trả mới:</label>
+          <input type="datetime-local" v-model="extendForm.check_out_date" required />
+        </div>
+        <div class="form-actions">
+          <button type="submit">Xác nhận</button>
+          <button type="button" @click="showExtendModal = false">Hủy</button>
+        </div>
+      </form>
+    </div>
   </div>
-</div>
-
 </template>
 
 <script setup>
@@ -184,7 +210,7 @@ const formData = ref({
   check_out_date: '',
   pricing_type: 'nightly' // mặc định
 });
-const guestInfo = ref(null);
+const guestInfo = ref({});
 const showGuestModal = ref(false);
 
 const checkoutRoom = async (room_id) => {
@@ -193,13 +219,21 @@ const checkoutRoom = async (room_id) => {
 
   try {
     const response = await axios.post(`${apiUrl}/api/rooms/${room_id}/checkout`);
-    alert(response.data.message || "Phòng đã được chuyển về trạng thái trống.");
+    const data = response.data;
+
+    alert(
+      `${data.message}\n\n` +
+      `💰 Tổng tiền thực tế: ${data.actual_total}\n` +
+      (data.note ? `🧾 Ghi chú: ${data.note}` : "")
+    );
+
     await fetchRooms(); // Làm mới danh sách phòng
   } catch (error) {
     console.error("Lỗi khi thanh toán:", error);
     alert("Không thể thanh toán phòng.");
   }
 };
+
 
 // Chuyển trạng thái từ API
 const mapApiStatusToVietnamese = (status) => {
@@ -351,7 +385,12 @@ const clearFilters = () => {
 const showGuestDetails = async (room) => {
   try {
     const response = await axios.get(`${apiUrl}/api/rooms/${room.room_id}/customer`);
-    guestInfo.value = response.data.data;
+    guestInfo.value = {
+  room: response.data.room,
+  customer: response.data.customer,
+  booking: response.data.booking
+};
+
     showGuestModal.value = true;
   } catch (error) {
     alert("Không tìm thấy thông tin khách cho phòng này.");
@@ -642,9 +681,11 @@ watch(() => formData.value.room_id, () => {
   gap: 12px;
   justify-content: flex-end;
 }
+
 button {
   padding: 6px 14px;
-  background-color: #4f46e5; /* tím dịu */
+  background-color: #4f46e5;
+  /* tím dịu */
   color: white;
   border: none;
   border-radius: 8px;
@@ -656,7 +697,8 @@ button {
 }
 
 button:hover {
-  background-color: #4338ca; /* tím đậm hơn */
+  background-color: #4338ca;
+  /* tím đậm hơn */
   transform: translateY(-1px);
 }
 
@@ -671,12 +713,14 @@ button:disabled {
 }
 
 button.secondary {
-  background-color: #f3f4f6; /* xám sáng */
+  background-color: #f3f4f6;
+  /* xám sáng */
   color: #333;
 }
 
 button.secondary:hover {
-  background-color: #e5e7eb; /* xám hover */
+  background-color: #e5e7eb;
+  /* xám hover */
 }
 
 </style>

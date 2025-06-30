@@ -7,24 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 class BookingHotel extends Model
 {
     protected $table = 'booking_hotel';
-    protected $primaryKey = 'booking_id';
-    public $incrementing = true;
-    public $timestamps = true;
-
-    protected $casts = [
-        'booking_type' => 'string',
-        'pricing_type' => 'string',
-        'check_in_date' => 'date',
-        'check_out_date' => 'date',
-        'total_rooms' => 'integer',
-        'total_price' => 'decimal:2',
-        'additional_fee' => 'decimal:2',
-        'payment_status' => 'string',
-        'status' => 'string',
-        'created_at' => 'datetime',
-        'updated_at' => 'datetime',
-    ];
-
+    protected $primaryKey = 'booking_id'; // Sử dụng cột booking_id làm khóa chính
     protected $fillable = [
         'customer_id',
         'booking_type',
