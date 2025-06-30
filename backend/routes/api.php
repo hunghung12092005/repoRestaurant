@@ -138,4 +138,6 @@ Route::post('/verify-otp', [ApiLoginController::class, 'verifyOtp']);
 Route::post('/reset-password', [ApiLoginController::class, 'resetPassword']);
 //thêm booking từ client
 Route::post('/booking-client', [BookingHotelController::class, 'storeBooking']);
+//tao token jwt cho khách hàng
+Route::post('/generate-token', [BookingHotelController::class, 'generateToken']);
 
