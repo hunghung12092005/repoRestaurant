@@ -15,6 +15,11 @@ class NewsController extends Controller
     {
         $query = News::with(['category', 'author'])->latest('publish_date');
 
+          if (!$request->has('from_admin')) {
+            $query->where('status', true); // Chỉ lấy các tin có status = 1 (true)
+        }
+
+
         // Lọc theo từ khóa tìm kiếm
         if ($request->has('q') && $request->input('q')) {
             $searchQuery = $request->input('q');

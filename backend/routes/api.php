@@ -54,6 +54,7 @@ Route::get('/news/{newsId}/comments', [NewsCommentController::class, 'commentsBy
 Route::post('/news/{newsId}/comments', [NewsCommentController::class, 'store']);
 Route::get('/news-comments', [NewsCommentController::class, 'index']);
 Route::delete('/comments/{comment}', [NewsCommentController::class, 'destroy']);
+ Route::patch('/comments/{comment}/toggle-visibility', [NewsCommentController::class, 'toggleVisibility']);
 
 
 Route::post('/rooms/{room_id}/add-guest', [OccupancyController::class, 'addGuestToRoom']); //khi khách đặt phòng thì đổi trạng thái

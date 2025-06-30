@@ -89,7 +89,6 @@
               <div class="sidebar-widget p-4 rounded mb-4">
                 <h4 class="widget-title mb-3">Danh Mục</h4>
                 <ul class="list-unstyled category-list">
-                  <!-- [THAY ĐỔI] Thêm lại "Tất cả danh mục" -->
                   <li>
                     <router-link 
                       to="/news" 
@@ -159,7 +158,6 @@ const popularTags = ref([
 
 const apiUrl = inject('apiUrl');
 
-// [THAY ĐỔI] Các computed property để xác định trạng thái active
 const isAllCategoriesActive = computed(() => {
   return !route.query.category;
 });
@@ -204,6 +202,7 @@ const fetchNews = async (page = 1, query = '', categoryId = null) => {
     };
   } catch (error) {
     console.error("Lỗi khi tải tin tức:", error);
+    blogPosts.value = []; // Xóa bài viết cũ nếu có lỗi
   } finally {
     loading.value = false;
   }
@@ -220,6 +219,7 @@ const fetchCategories = async () => {
 
 const fetchRecentPosts = async () => {
     try {
+        // Lấy 3 bài viết gần nhất đang hiển thị
         const response = await axios.get(`${apiUrl}/api/news?per_page=3`);
         recentPosts.value = response.data.data;
     } catch (error) {
@@ -242,6 +242,8 @@ const changePage = (page) => {
 watch(
   () => route.query,
   (newQuery) => {
+    // Cập nhật lại searchQuery trên thanh tìm kiếm nếu query URL thay đổi
+    searchQuery.value = newQuery.q || ''; 
     fetchNews(newQuery.page, newQuery.q, newQuery.category);
   },
   { deep: true, immediate: true }
@@ -252,6 +254,7 @@ onMounted(() => {
   fetchRecentPosts();
 });
 </script>
+
 
 <style scoped>
 /* Kiểu dáng chung */

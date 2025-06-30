@@ -26,7 +26,11 @@ class NewsCommentController extends Controller
 
     public function commentsByNewsId($newsId)
     {
-        $comments = NewsComment::with('user:id,name')->where('news_id', $newsId)->latest()->get();
+        $comments = NewsComment::with('user:id,name')
+            ->where('news_id', $newsId)
+            ->where('is_visible', true) // <-- CHỈ LẤY BÌNH LUẬN ĐƯỢC PHÉP HIỂN THỊ
+            ->latest()
+            ->get();
         return response()->json($comments);
     }
     
@@ -57,5 +61,15 @@ class NewsCommentController extends Controller
         $comment->load('user:id,name');
 
         return response()->json($comment, 201);
+    }
+
+    public function toggleVisibility(NewsComment $comment)
+    {
+        // Đảo ngược giá trị is_visible
+        $comment->is_visible = !$comment->is_visible;
+        $comment->save();
+
+        // Trả về bình luận đã cập nhật
+        return response()->json($comment);
     }
 }

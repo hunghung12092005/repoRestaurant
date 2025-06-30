@@ -20,6 +20,11 @@ class NewsComment extends Model
         'user_id',
         'news_id',
         'content',
+        'is_visible', // Thêm trường này để quản lý trạng thái hiển thị của bình luận
+    ];
+
+    protected $casts = [
+        'is_visible' => 'boolean', // Đảm bảo luôn là true/false
     ];
 
     /**
