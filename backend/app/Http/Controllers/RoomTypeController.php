@@ -4,14 +4,13 @@ namespace App\Http\Controllers;
 
 use App\Models\RoomType;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\DB;
+use Carbon\Carbon;
 
 class RoomTypeController extends Controller
 {
-    /**
-     * Lấy danh sách tất cả loại phòng cùng tiện ích và dịch vụ
-     */
     public function index()
     {
         try {
@@ -28,9 +27,6 @@ class RoomTypeController extends Controller
         }
     }
 
-    /**
-     * Thêm loại phòng mới
-     */
     public function store(Request $request)
     {
         $validator = Validator::make($request->all(), [
@@ -91,9 +87,6 @@ class RoomTypeController extends Controller
         }
     }
 
-    /**
-     * Cập nhật loại phòng
-     */
     public function update(Request $request, $type_id)
     {
         $roomType = RoomType::find($type_id);
@@ -158,9 +151,6 @@ class RoomTypeController extends Controller
         }
     }
 
-    /**
-     * Xóa loại phòng
-     */
     public function destroy($type_id)
     {
         $roomType = RoomType::find($type_id);
@@ -194,6 +184,45 @@ class RoomTypeController extends Controller
                 'status' => false,
                 'message' => 'Xóa loại phòng thất bại: ' . $e->getMessage(),
             ], 500);
+        }
+    }
+
+    public function show($type_id, Request $request)
+    {
+        try {
+            $checkInDate = $request ? $request->query('check_in', Carbon::now()->toDateString()) : Carbon::now()->toDateString();
+            $roomType = RoomType::with(['amenities', 'services', 'rooms', 'prices'])
+                ->findOrFail($type_id);
+
+            // Lấy giá phù hợp với ngày check-in
+            $price = $roomType->prices()
+                ->where('start_date', '<=', $checkInDate)
+                ->where('end_date', '>=', $checkInDate)
+                ->orderBy('priority', 'desc')
+                ->first();
+
+            $priceData = $price ? [
+                'price_per_night' => $price->price_per_night,
+                'hourly_price' => $price->hourly_price,
+                'start_date' => $price->start_date,
+                'end_date' => $price->end_date,
+            ] : ['price_per_night' => 0, 'hourly_price' => 0];
+
+            Log::info('RoomType show - type_id: ' . $type_id . ', checkInDate: ' . $checkInDate . ', price: ' . json_encode($priceData));
+
+            return response()->json([
+                'type_id' => $roomType->type_id,
+                'type_name' => $roomType->type_name,
+                'description' => $roomType->description,
+                'bed_count' => $roomType->bed_count,
+                'max_occupancy' => $roomType->max_occupancy,
+                'amenities' => $roomType->amenities,
+                'services' => $roomType->services,
+                'price' => $priceData,
+            ], 200);
+        } catch (\Exception $e) {
+            Log::error('Lỗi khi lấy loại phòng (type_id: ' . $type_id . '): ' . $e->getMessage());
+            return response()->json(['error' => 'Không tìm thấy loại phòng: ' . $e->getMessage()], 404);
         }
     }
 }

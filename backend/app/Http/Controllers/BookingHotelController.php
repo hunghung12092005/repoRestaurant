@@ -7,107 +7,227 @@ use App\Models\BookingHotelDetail;
 use App\Models\BookingHotelService;
 use App\Models\Room;
 use App\Models\Service;
+use App\Models\Customer;
 use Illuminate\Http\Request;
-use League\OAuth1\Client\Server\Server;
+use Illuminate\Support\Facades\Log;
 
 class BookingHotelController extends Controller
 {
+    public function getBookings(Request $request)
+    {
+        try {
+            $status = $request->query('status', 'pending_confirmation');
+            $bookings = BookingHotel::with(['customer', 'details.room.roomType'])
+                ->where('status', $status)
+                ->get()
+                ->map(function ($booking) {
+                    $firstDetail = $booking->details->first();
+                    $booking->type_id = $firstDetail ? ($firstDetail->room ? $firstDetail->room->type_id : $booking->type_id) : null;
+                    $booking->so_phong_dich_vu = $booking->so_phong_dich_vu ?? 0;
+                    return $booking;
+                });
+
+            Log::info('Số lượng booking lấy được: ' . $bookings->count());
+
+            return response()->json($bookings);
+        } catch (\Exception $e) {
+            return response()->json(['error' => 'Không thể lấy danh sách booking: ' . $e->getMessage()], 500);
+        }
+    }
+
+    public function getBookingDetails($bookingId)
+    {
+        try {
+            $details = BookingHotelDetail::with(['room', 'room.roomType'])
+                ->where('booking_id', $bookingId)
+                ->get()
+                ->map(function ($detail) {
+                    $roomType = $detail->room ? $detail->room->roomType : null;
+                    $booking = BookingHotel::find($detail->booking_id);
+                    $checkInDate = $booking ? $booking->check_in_date : now()->toDateString();
+                    $price = $roomType ? $roomType->prices()
+                        ->where('start_date', '<=', $checkInDate)
+                        ->where('end_date', '>=', $checkInDate)
+                        ->orderBy('priority', 'desc')
+                        ->first() : null;
+                    $gia_phong = $price ? $price->price_per_night : ($detail->gia_phong ?? 0);
+
+                    Log::info('BookingDetail - booking_detail_id: ' . $detail->booking_detail_id . ', roomType: ' . ($roomType ? $roomType->type_name : 'null') . ', gia_phong: ' . $gia_phong);
+
+                    return [
+                        'booking_detail_id' => $detail->booking_detail_id,
+                        'room_id' => $detail->room_id,
+                        'initial_room_type' => $roomType ? $roomType->type_name : 'Chưa chọn loại phòng',
+                        'gia_phong' => $gia_phong,
+                        'room' => $detail->room,
+                        'note' => $detail->note,
+                    ];
+                });
+
+            return response()->json($details);
+        } catch (\Exception $e) {
+            Log::error('Lỗi khi lấy chi tiết booking (bookingId: ' . $bookingId . '): ' . $e->getMessage());
+            return response()->json(['error' => 'Không thể lấy chi tiết booking: ' . $e->getMessage()], 500);
+        }
+    }
+
+    public function getBookingServices($bookingId)
+    {
+        try {
+            $services = BookingHotelService::whereIn('booking_detail_id', function ($query) use ($bookingId) {
+                $query->select('booking_detail_id')
+                      ->from('booking_hotel_detail')
+                      ->where('booking_id', $bookingId);
+            })->get();
+
+            return response()->json($services);
+        } catch (\Exception $e) {
+            return response()->json(['error' => 'Không thể lấy dịch vụ booking: ' . $e->getMessage()], 500);
+        }
+    }
+
+    public function getAvailableRooms(Request $request)
+    {
+        try {
+            $checkIn = $request->query('check_in');
+            $checkOut = $request->query('check_out');
+            $typeId = $request->query('type_id'); // Lọc theo type_id
+
+            $bookedRoomIds = BookingHotelDetail::whereIn('booking_id', function ($query) use ($checkIn, $checkOut) {
+                $query->select('booking_id')
+                      ->from('booking_hotel')
+                      ->where('check_in_date', '<', $checkOut)
+                      ->where('check_out_date', '>', $checkIn)
+                      ->where('status', 'booked');
+            })->whereNotNull('room_id')->pluck('room_id');
+
+            $rooms = Room::with('roomType')
+                ->whereNotIn('room_id', $bookedRoomIds)
+                ->where('status', 'available')
+                ->when($typeId, function ($query) use ($typeId) {
+                    return $query->where('type_id', $typeId);
+                })
+                ->select('room_id as id', 'room_name as name', 'type_id')
+                ->get();
+
+            return response()->json($rooms);
+        } catch (\Exception $e) {
+            return response()->json(['error' => 'Không thể lấy danh sách phòng trống: ' . $e->getMessage()], 500);
+        }
+    }
+
+    public function assignRoom($bookingDetailId, Request $request)
+    {
+        try {
+            $request->validate([
+                'room_id' => 'required|integer|exists:rooms,room_id',
+            ]);
+
+            $detail = BookingHotelDetail::findOrFail($bookingDetailId);
+            $detail->room_id = $request->room_id;
+            $detail->save();
+
+            $room = Room::findOrFail($request->room_id);
+            $room->status = 'occupied';
+            $room->save();
+
+            return response()->json(['message' => 'Xếp phòng thành công']);
+        } catch (\Exception $e) {
+            return response()->json(['error' => 'Không thể xếp phòng: ' . $e->getMessage()], 500);
+        }
+    }
+
+    public function confirmBooking($bookingId, Request $request)
+    {
+        try {
+            $request->validate([
+                'status' => 'required|in:booked,cancelled',
+            ]);
+
+            $booking = BookingHotel::findOrFail($bookingId);
+            $booking->status = $request->status;
+            $booking->save();
+
+            return response()->json(['message' => 'Cập nhật trạng thái thành công']);
+        } catch (\Exception $e) {
+            return response()->json(['error' => 'Không thể xác nhận booking: ' . $e->getMessage()], 500);
+        }
+    }
+
     public function storeBooking(Request $request)
     {
         try {
-            // Validate the incoming request data
             $bookingDetails = $request->validate([
                 'check_in_date' => 'required|date',
                 'check_out_date' => 'required|date',
-                'type_id' => 'required',
-                'total_rooms' => 'required|integer',
-                'so_phong_dich_vu' => 'required|integer',
-                 'services_id' => 'nullable|array',
-                'total_price' => 'required|numeric',
-                'phone' => 'required',
+                'type_id' => 'required|exists:room_types,type_id',
+                'total_rooms' => 'required|integer|min:1',
+                'so_phong_dich_vu' => 'required|integer|min:0',
+                'services_id' => 'nullable|array',
+                'services_id.*' => 'exists:services,id',
+                'total_price' => 'required|numeric|min:0',
+                'phone' => 'required|string',
                 'fullName' => 'required|string',
                 'paymentMethod' => 'required|string',
-                'booking_type' => 'required|string',
-                'pricing_type' => 'required|string',
+                'booking_type' => 'required|in:online,offline',
+                'pricing_type' => 'required|in:nightly,weekly,monthly',
                 'note' => 'nullable|string',
-                'gia_1phong' => 'required|numeric',
-                'gia_1phong_dich_vu' => 'required|numeric',
+                'gia_1phong' => 'required|numeric|min:0',
+                'gia_1phong_dich_vu' => 'required|numeric|min:0',
             ]);
-            //check xem còn phòng trống không
-            $availableRooms = Room::where('status', 'available')
-                ->where('type_id', $bookingDetails['type_id'])
-                ->whereDoesntHave('bookings', function ($query) use ($bookingDetails) {
-                    $query->where(function ($query) use ($bookingDetails) {
-                        $query->whereBetween('check_in_date', [$bookingDetails['check_in_date'], $bookingDetails['check_out_date']])
-                            ->orWhereBetween('check_out_date', [$bookingDetails['check_in_date'], $bookingDetails['check_out_date']])
-                            ->orWhere(function ($query) use ($bookingDetails) {
-                                $query->where('check_in_date', '<=', $bookingDetails['check_in_date'])
-                                    ->where('check_out_date', '>=', $bookingDetails['check_out_date']);
-                            });
-                    });
-                })
-                ->take($bookingDetails['total_rooms'])
-                ->pluck('room_id');
-            //return response()->json(['availableRooms' => $availableRooms]);
-            // Kiểm tra xem có đủ phòng không
-            if ($availableRooms->count() < $bookingDetails['total_rooms']) {
-                return response()->json(['error' => 'HXH THÔNG BÁO SỐ LƯỢNG PHÒNG BẠN CHỌN ĐANG NHIỀU HƠN SỐ LƯỢNG PHÒNG KHÁCH SẠN CÒN TRỐNG'], 400);
-            }
-            // Lưu thông tin booking chính
+
+            $customer = Customer::firstOrCreate(
+                ['customer_phone' => $bookingDetails['phone']],
+                [
+                    'customer_name' => $bookingDetails['fullName'],
+                    'customer_email' => null,
+                    'address' => null,
+                    'room_id' => null,
+                ]
+            );
+
             $booking = BookingHotel::create([
-                'customer_id' => 1, // Thay đổi theo logic thực tế
+                'customer_id' => $customer->customer_id,
                 'booking_type' => $bookingDetails['booking_type'],
                 'pricing_type' => $bookingDetails['pricing_type'],
                 'check_in_date' => $bookingDetails['check_in_date'],
                 'check_out_date' => $bookingDetails['check_out_date'],
                 'total_rooms' => $bookingDetails['total_rooms'],
+                'so_phong_dich_vu' => $bookingDetails['so_phong_dich_vu'], // Lưu số phòng dùng dịch vụ
                 'total_price' => $bookingDetails['total_price'],
                 'payment_status' => 'pending',
                 'status' => 'pending_confirmation',
                 'note' => $bookingDetails['note'],
             ]);
 
-            // Lấy danh sách phòng từ cơ sở dữ liệu
-
-
-
-            // Lưu thông tin chi tiết cho từng phòng
-            foreach ($availableRooms as $i => $roomId) {
+            for ($i = 0; $i < $bookingDetails['total_rooms']; $i++) {
                 $isServiceUsed = $i < $bookingDetails['so_phong_dich_vu'];
-                $totalPrice = $isServiceUsed ? $bookingDetails['gia_1phong_dich_vu'] : $bookingDetails['gia_1phong'];
+                $giaPhong = $isServiceUsed ? $bookingDetails['gia_1phong_dich_vu'] : $bookingDetails['gia_1phong'];
 
                 $bookingDetail = BookingHotelDetail::create([
-                    'booking_id' => $booking->id,
-                    //'room_id' => $roomId,
+                    'booking_id' => $booking->booking_id,
                     'room_id' => null,
-                    'total_price' => $totalPrice,
+                    'gia_phong' => $giaPhong,
+                    'total_price' => $giaPhong,
                     'note' => $bookingDetails['note'],
                 ]);
 
-                // Lưu dịch vụ nếu có
-                if ($isServiceUsed) {
+                if ($isServiceUsed && !empty($bookingDetails['services_id'])) {
                     foreach ($bookingDetails['services_id'] as $serviceId) {
-                        // Lấy thông tin dịch vụ từ bảng services
                         $service = Service::find($serviceId);
-
-                        // Kiểm tra xem dịch vụ có tồn tại không
                         if ($service) {
                             BookingHotelService::create([
-                                'booking_detail_id' => $bookingDetail->id,
+                                'booking_detail_id' => $bookingDetail->booking_detail_id,
                                 'service_id' => $serviceId,
-                                'service_price' => $service->price, // Sử dụng giá từ bảng services
+                                'service_price' => $service->price,
                             ]);
-                        } else {
-                            // Xử lý nếu dịch vụ không tồn tại (nếu cần)
-                            // Ví dụ: trả về lỗi hoặc log thông báo
                         }
                     }
                 }
             }
 
-            return response()->json(['message' => 'Booking created successfully!']);
+            return response()->json(['message' => 'Booking created successfully!'], 201);
         } catch (\Exception $e) {
-            // Trả về thông tin lỗi chi tiết
             return response()->json(['error' => 'An error occurred: ' . $e->getMessage()], 500);
         }
     }

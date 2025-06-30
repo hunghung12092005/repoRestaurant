@@ -57,7 +57,7 @@ import AdminNewsComponent from '../components/admin/news/AdminNewsComponent.vue'
 import AdminNewsCategoryComponent from '../components/admin/news/AdminNewsCategoryComponent.vue';
 import AdminNewsCommentComponent from '../components/admin/news/AdminNewsCommentComponent.vue';
 // AdminBookingComponent
-import AdminBookingComponent from '../components/AdminBooking/AdminBookingComponent.vue'
+import AdminBookingsComponent from '../components/AdminBooking/AdminBookingComponent.vue'
 const routes = [
   {
     path: '/',
@@ -290,6 +290,12 @@ const routes = [
     path: '/admin/users',
     name: 'AdminUsers',
     component: AdminUsersComponent,
+    meta: { requiresAdmin: true },
+  },
+  {
+    path: '/admin/bookings',
+    name: 'AdminBookings',
+    component: AdminBookingsComponent,
     meta: { requiresAdmin: true },
   },
 ];

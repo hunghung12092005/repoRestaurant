@@ -45,4 +45,12 @@ class RoomType extends Model
     {
         return $this->hasMany(Room::class, 'type_id', 'type_id');
     }
+
+    /**
+     * Mối quan hệ một-nhiều với Prices
+     */
+    public function prices()
+    {
+        return $this->hasMany(Price::class, 'type_id', 'type_id');
+    }
 }
