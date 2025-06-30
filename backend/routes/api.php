@@ -140,4 +140,6 @@ Route::post('/reset-password', [ApiLoginController::class, 'resetPassword']);
 Route::post('/booking-client', [BookingHotelController::class, 'storeBooking']);
 //tao token jwt cho khách hàng
 Route::post('/generate-token', [BookingHotelController::class, 'generateToken']);
+//tra ve lich su cho khach hang
+Route::get('/booking-history', [BookingHotelController::class, 'getBookingHistory']);
 

@@ -795,12 +795,12 @@ const submitBooking = async () => {
         check_out_date: checkOut.value,
         total_rooms: Number(bookrooms.value), // Chuyển đổi thành số
         gia_phong: gia_phong, // Giá phòng đã tính toán
-        type_id: selectedHotelBooking.value.id,
+        room_type: selectedHotelBooking.value.id,
         room_services: [], // Danh sách dịch vụ cho từng phòng
         total_price: totalPrice.value,
         phone: phoneNumber.value,
         fullName: fullName.value,
-        paymentMethod: paymentMethod.value,
+        payment_method: paymentMethod.value,
         booking_type: 'online',
         note: orderNotes.value || 'Không có ghi chú',
     };
@@ -818,7 +818,10 @@ const submitBooking = async () => {
             address: '', // Có thể thêm địa chỉ nếu cần
         });
         token = authResponse.data.token;
-        console.log('Token xác thực:', token);
+        localStorage.setItem('BookingAuth', token);
+        console.log(localStorage.getItem('BookingAuth'))
+
+        //console.log('Token xác thực:', token);
     } catch (error) {
         console.error('Lỗi khi xác thực:', error);
         alert('Không thể xác thực, vui lòng kiểm tra thông tin!');

@@ -55,18 +55,18 @@ class BookingHotelController extends Controller
             $bookingDetails = $request->validate([
                 'check_in_date' => 'required|date',
                 'check_out_date' => 'required|date',
-                'type_id' => 'required|integer',
+                'room_type' => 'required',
                 'gia_phong' => 'required|numeric',
                 'total_rooms' => 'required|integer',
                 'room_services' => 'required|array',
                 'total_price' => 'required|numeric',
                 'phone' => 'required',
                 'fullName' => 'required|string',
-                'paymentMethod' => 'required|string',
+                'payment_method' => 'required',
                 'booking_type' => 'required|string',
                 'note' => 'nullable|string',
             ]);
-            // return response()->json(['token' => $bookingDetails]);
+            //return response()->json(['token' => $bookingDetails]);
 
             // Lấy token từ header
             $token = $request->header('Authorization');
@@ -101,6 +101,8 @@ class BookingHotelController extends Controller
             // Lưu thông tin booking chính
             $booking = BookingHotel::create([
                 'customer_id' => $customerId,
+                'room_type' => $bookingDetails['room_type'],
+                'payment_method' => $bookingDetails['payment_method'],
                 'booking_type' => $bookingDetails['booking_type'],
                 'check_in_date' => $bookingDetails['check_in_date'],
                 'check_out_date' => $bookingDetails['check_out_date'],
@@ -142,7 +144,32 @@ class BookingHotelController extends Controller
             return response()->json(['error' => 'An error occurred: ' . $e->getMessage()], 500);
         }
     }
+    // lay thong tin booking tra ve cho client
+    public function getBookingHistory(Request $request)
+    {
+        try {
+            $sub = JWTAuth::parseToken()->getPayload()->get('sub');
 
+            $bookings = BookingHotel::where('customer_id', $sub)
+                ->with('roomTypeInfo') // Tải toàn bộ dữ liệu từ quan hệ roomTypeInfo
+                ->get();
+
+            // Lúc này, mỗi đối tượng booking trong collection $bookings
+            // đã có sẵn một thuộc tính 'roomTypeInfo' chứa đầy đủ thông tin của loại phòng.
+            // Bạn không cần phải 'map' lại để thêm 'room_type_name'
+            // hoặc 'unset' roomTypeInfo nếu muốn giữ lại toàn bộ data.
+
+            return response()->json([
+                'status' => 'success',
+                'data' => $bookings, // Trả về bookings trực tiếp, roomTypeInfo đã có sẵn bên trong
+            ], 200);
+        } catch (\Exception $e) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Không thể lấy dữ liệu booking: ' . $e->getMessage(),
+            ], 500);
+        }
+    }
 
     // public function storeBooking(Request $request)
     // {

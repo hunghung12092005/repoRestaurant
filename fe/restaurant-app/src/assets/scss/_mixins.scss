@@ -1,0 +1,58 @@
+// src/assets/scss/_mixins.scss
+
+@import 'variables'; // Import variables to use them in mixins
+
+// Flexbox utilities
+@mixin flex-center {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+@mixin flex-col-center {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+// Card/Box styling
+@mixin card-style($padding: $spacing-lg, $bg: $bg-light, $radius: $radius-lg) {
+  background-color: $bg;
+  border-radius: $radius;
+  box-shadow: 0 $spacing-xs $spacing-md rgba(0, 0, 0, 0.08); // Initial soft shadow
+  transition: transform $transition-speed $transition-ease, box-shadow $transition-speed $transition-ease;
+
+  &:hover {
+    transform: translateY(-$spacing-xs); // Subtle lift
+    box-shadow: 0 $spacing-lg $spacing-xl rgba(0, 0, 0, 0.15); // Enhanced shadow on hover
+  }
+
+  padding: $padding;
+}
+
+// Status Badge styling
+@mixin status-badge($bg-color, $text-color: $text-white) {
+  padding: $spacing-xs $spacing-md;
+  border-radius: 20px; // More rounded
+  font-weight: $font-weight-bold;
+  font-size: 0.9em;
+  color: $text-color;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  background-color: $bg-color;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1); // Small shadow for depth
+}
+
+// Text emphasis
+@mixin text-emphasis($color: $text-dark, $font-weight: $font-weight-bold) {
+  color: $color;
+  font-weight: $font-weight;
+}
+
+// Responsive utilities
+@mixin media-breakpoint-down($breakpoint) {
+  @media (max-width: $breakpoint) {
+    @content;
+  }
+}
