@@ -805,6 +805,21 @@ const submitBooking = async () => {
         note: orderNotes.value || 'Không có ghi chú',
     };
 
+    // Xác thực và lấy token
+    let token;
+    try {
+        const authResponse = await axios.post(`${apiUrl}/api/generate-token`, {
+            name: fullName.value,
+            phone: phoneNumber.value,
+            address: '', // Có thể thêm địa chỉ nếu cần
+        });
+        token = authResponse.data.token;
+    } catch (error) {
+        console.error('Lỗi khi xác thực:', error);
+        alert('Không thể xác thực, vui lòng kiểm tra thông tin!');
+        return;
+    }
+
     // Duyệt qua từng dịch vụ đã chọn
     for (const serviceId in roomCounts.value) {
         const serviceCount = roomCounts.value[serviceId]; // Số phòng đã chọn cho dịch vụ này
@@ -814,7 +829,7 @@ const submitBooking = async () => {
             const roomService = {
                 room_number: bookingDetails.room_services.length + 1, // Số phòng hiện tại
                 services_id: [serviceId], // ID dịch vụ
-                services_name: [service.service_name], // Tên dịch vụ
+                //services_name: [service.service_name], // Tên dịch vụ
                 gia_dich_vu_1phong: Number(service.price), // Giá dịch vụ
             };
             bookingDetails.room_services.push(roomService);
@@ -839,6 +854,7 @@ const submitBooking = async () => {
         const response = await axios.post(`${apiUrl}/api/booking-client`, bookingDetails, {
             headers: {
                 'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`, // Thêm token vào header
             }
         });
         console.log('Đặt phòng thành công:', response.data);
@@ -857,6 +873,7 @@ const submitBooking = async () => {
 
     console.log('Thông tin đặt phòng:', bookingDetails);
 };
+
 onMounted(() => {
     //lấy mặc định ngày 
     const today = new Date();
