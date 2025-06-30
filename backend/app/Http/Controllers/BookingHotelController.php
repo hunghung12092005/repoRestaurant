@@ -150,8 +150,9 @@ class BookingHotelController extends Controller
         try {
             $sub = JWTAuth::parseToken()->getPayload()->get('sub');
 
-            $bookings = BookingHotel::where('customer_id', $sub)
-                ->with('roomTypeInfo') // Tải toàn bộ dữ liệu từ quan hệ roomTypeInfo
+           $bookings = BookingHotel::where('customer_id', $sub)
+                ->with('roomTypeInfo')
+                ->orderBy('booking_id', 'desc') // Thêm dòng này để sắp xếp giảm dần theo booking_id
                 ->get();
 
             // Lúc này, mỗi đối tượng booking trong collection $bookings

@@ -414,7 +414,7 @@
                                         </div>
 
                                         <p class="total-price">Tổng giá dịch vụ: {{ formatPrice(calculateServiceTotal)
-                                            }}</p>
+                                        }}</p>
                                     </div>
 
                                     <div class="total">
@@ -502,6 +502,11 @@ import Footer from '../Footer.vue';
 import Popup from '../Popup.vue';
 import { auth, RecaptchaVerifier, PhoneAuthProvider } from '../ShopOnline/firebase';
 import { signInWithPhoneNumber, signInWithCredential } from 'firebase/auth';
+import { useRouter } from 'vue-router'; // Dòng này cực kỳ quan trọng!
+
+// Khởi tạo router instance
+var router = useRouter();//su dung router để điều hướng
+
 const showPopup = ref(false);//popup mới vào trang
 const showPopUpMain = () => {
     showPopup.value = true;//popup mới vào trang
@@ -595,7 +600,7 @@ const getRoomPrices = async () => {
             };
         });
 
-        console.log("Updated Hotels:", hotels.value); // In ra mảng hotels đã được cập nhật
+        //  console.log("Updated Hotels:", hotels.value); // In ra mảng hotels đã được cập nhật
 
     } catch (error) {
         console.error("Có lỗi xảy ra khi lấy dữ liệu:", error);
@@ -866,6 +871,7 @@ const submitBooking = async () => {
         // Gửi yêu cầu đặt phòng
         const response = await axiosWithoutHeader.post(`${apiUrl}/api/booking-client`, bookingDetails);
         console.log('Đặt phòng thành công:', response.data);
+
     } catch (error) {
         console.error('Lỗi khi gửi thông tin đặt phòng:', error);
 
@@ -877,9 +883,11 @@ const submitBooking = async () => {
         return;
     } finally {
         isLoading.value = false; // Kết thúc quá trình gửi dữ liệu
-    }
+        router.push('/thanksBooking'); // Ví dụ: về trang chủ
 
+    }
     console.log('Thông tin đặt phòng:', bookingDetails);
+
 };
 
 onMounted(() => {

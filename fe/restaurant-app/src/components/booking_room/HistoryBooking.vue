@@ -89,7 +89,6 @@ const statusMap = {
   'cancelled': 'Đã hủy',
   'completed': 'Hoàn thành',
 };
-
 const getHistoryBooking = async () => {
   let token = localStorage.getItem('BookingAuth') || '';
   const axiosInstance = axios.create({
@@ -125,7 +124,7 @@ const getHistoryBooking = async () => {
     } else if (err.request) {
       error.value = 'Không thể kết nối đến máy chủ. Vui lòng kiểm tra kết nối mạng của bạn.';
     } else {
-      error.value = 'Đã xảy ra lỗi không xác định. Vui lòng thử lại.';
+      error.value = 'Ban chua co don hang nao.';
     }
     bookings.value = [];
   } finally {
