@@ -101,6 +101,20 @@ class LoginController extends Controller
             'qr_code' => $dataUri, // Trả về mã QR dưới dạng URI
         ], 201);
     }
+    //lấy token về
+    public function someProtectedRoute(Request $request)
+    {
+        try {
+            // Xác thực token và lấy thông tin người dùng
+            $user = JWTAuth::parseToken()->authenticate();
+
+            // Xử lý yêu cầu với thông tin người dùng
+            return response()->json(['user' => $user]);
+        } catch (\Exception $e) {
+            // Token không hợp lệ hoặc hết hạn
+            return response()->json(['error' => 'Unauthorized'], 401);
+        }
+    }
     //login bằng mã QR
     public function qrLogin(Request $request)
     {
@@ -135,20 +149,7 @@ class LoginController extends Controller
             return response()->json(['error' => 'Token không hợp lệ.'], 401);
         }
     }
-    //lấy token về
-    public function someProtectedRoute(Request $request)
-    {
-        try {
-            // Xác thực token và lấy thông tin người dùng
-            $user = JWTAuth::parseToken()->authenticate();
-
-            // Xử lý yêu cầu với thông tin người dùng
-            return response()->json(['user' => $user]);
-        } catch (\Exception $e) {
-            // Token không hợp lệ hoặc hết hạn
-            return response()->json(['error' => 'Unauthorized'], 401);
-        }
-    }
+    
     //quên mk
     public function sendOtp(Request $request)
     {

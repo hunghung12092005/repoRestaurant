@@ -1,0 +1,31 @@
+// src/assets/scss/_base.scss
+
+@import 'variables';
+
+body {
+  font-family: $font-family-base;
+  line-height: 1.6;
+  color: $text-dark;
+  background-color: $color-background-light;
+  margin: 0;
+  padding: 0;
+  -webkit-font-smoothing: antialiased; // Better font rendering
+  -moz-osx-font-smoothing: grayscale; // Better font rendering
+}
+
+// Basic resets/overrides
+h1, h2, h3, h4, h5, h6 {
+  margin-top: 0;
+  margin-bottom: $spacing-md;
+  font-weight: $font-weight-bold;
+  color: $text-dark;
+}
+
+p {
+  margin-top: 0;
+  margin-bottom: $spacing-md;
+}
+
+strong {
+  font-weight: $font-weight-semibold;
+}
