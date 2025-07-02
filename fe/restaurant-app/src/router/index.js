@@ -6,8 +6,8 @@ import ContactComponent from '../components/ContactComponent.vue';
 import ReservationComponent from '../components/booking/ReservationComponent.vue';
 import BookRoomComponent from '../components/booking/BookRoomComponent.vue';
 import BlogComponent from '../components/News/BlogComponent.vue';
-import MenuComponent from '../components/menu_item/MenuComponent.vue';
-import MenuListComponent from '../components/menu_item/MenuListComponent.vue';
+// import MenuComponent from '../components/menu_item/MenuComponent.vue';
+// import MenuListComponent from '../components/menu_item/MenuListComponent.vue';
 import LoginComponent from '../components/Login.vue';
 import TestJwtComponent from '../components/testTokenJwt.vue';
 import BlogDetailComponent from '../components/News/BlogDetailComponent.vue';
@@ -15,15 +15,11 @@ import ProductDetailComponent from '../components/ProductDetailComponent.vue';
 
 // import AdminDashboardComponent from '../components/AdminDashboardComponent.vue';
 // import AdminStaffsComponent from '../components/AdminStaffsComponent.vue';
-import AdminTableComponent from '../components/AdminTable/AdminTableComponent.vue';
-import AdminTableTypeComponent from '../components/AdminTable/AdminTableTypeComponent.vue';
 
 // AdmỉnRoom - Phòng
 import AdminRoomTypeComponent from '../components/AdminRoom/AdminRoomTypeComponent.vue';
 import AdminRoomComponent from '../components/AdminRoom/AdminRoomComponent.vue';
 import AdminPriceComponent from '../components/AdminRoom/AdminPriceComponent.vue';
-import AdminMenuCategoryComponent from '../components/AdminMenu/AdminMenuCategoryComponent.vue';
-import AdminMenuComponent from '../components/AdminMenu/AdminMenuComponent.vue';
 
 import AdminOccupancyComponent from '../components/AdminRoom/AdminOccupancy.vue';
 // Admin Amenities and Services - Tiện ích và Dịch vụ
@@ -34,14 +30,6 @@ import AdminServicesComponent from '../components/AdminSeAm/AdminServicesCompone
 
 import AdminDashboardComponent from '../components/admin/AdminDashboardComponent.vue';
 import AdminUsersComponent from '../components/admin/AdminUsersComponent.vue';
-import Shop from '../components/Shop.vue';
-import ghn from '../components/ghn/mainghn.vue';
-import menu_online from '../components/ShopOnline/menu_online.vue';
-import detailMenu from '../components/ShopOnline/detailMenu.vue';
-
-import detailOrderMenu from '../components/menu_item/detailOrderMenu.vue';
-import CategoryShopOnline from '../components/ShopOnline/CategoryShopOnline.vue';
-import buynow from '../components/ShopOnline/BuyNow.vue';
 
 import ChatAdmin from '../components/ChatAdmin.vue';
 import Chat from '../components/Chat.vue';
@@ -86,19 +74,9 @@ const routes = [
     component: BookRoomComponent,
   },
   {
-    path: '/shop',
-    name: 'Shop',
-    component: Shop,
-  },
-  {
     path: '/news', 
     name: 'NewsList',
     component: BlogComponent,
-  },
-  {
-    path: '/menu',
-    name: 'MenuComponent',
-    component: MenuComponent,
   },
   {
     path: '/login',
@@ -120,44 +98,7 @@ const routes = [
     name: 'ProductDetailComponent',
     component: ProductDetailComponent,
   },
-  {
-    path: '/ghn',
-    name: 'ghn',
-    component: ghn,
-  },
-  {
-    path: '/CategoryShopOnline',
-    name: 'CategoryShopOnline',
-    component: CategoryShopOnline,
-  },
-  {
-    path: '/buynow',
-    name: 'buynow',
-    component: buynow,
-  },
-  {
-    path: '/menu_online',
-    name: 'menu_online',
-    component: menu_online,
-  },
-  {
-    path: '/detailMenu/:id',
-    name: 'detailMenu',
-    component: detailMenu,
-    props: true,
-  },
-  {
-    path: '/menu-list',
-    name: 'MenuListComponent',
-    component: MenuListComponent,
-  },
- 
-  {
-    path: '/detailOrderMenu/:ids',
-    name: 'detailOrderMenu',
-    component: detailOrderMenu,
-    props: true,
-  },
+
   {
     path: '/ChatAdmin',
     name: 'ChatAdmin',
@@ -230,31 +171,6 @@ const routes = [
     component: AdminRoomComponent,
     meta: { requiresAdmin: true },
   },
-  {
-    path: '/admin/table-types',
-    name: 'AdminTableType',
-    component: AdminTableTypeComponent,
-    meta: { requiresAdmin: true },
-  },
-  {
-    path: '/admin/tables',
-    name: 'AdminTable',
-    component: AdminTableComponent,
-    meta: { requiresAdmin: true },
-  },
-  {
-    path: '/admin/menu-categories',
-    name: 'AdminMenuCategory',
-    component: AdminMenuCategoryComponent,
-    meta: { requiresAdmin: true },
-  },
-  {
-    path: '/admin/menus',
-    name: 'AdminMenu',
-    component: AdminMenuComponent,
-    meta: { requiresAdmin: true },
-  },
-  
   {
     path: '/admin/services',
     name: 'AdminServices',
