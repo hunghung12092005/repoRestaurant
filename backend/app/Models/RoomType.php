@@ -1,4 +1,5 @@
-<?php
+<?php 
+    
 
 namespace App\Models;
 
@@ -18,6 +19,13 @@ class RoomType extends Model
         'description',
         'bed_count',
         'max_occupancy',
+        'images',
+    ];
+
+    protected $casts = [
+        'images' => 'array', // Tự động chuyển JSON thành mảng
+        'created_at' => 'datetime',
+        'updated_at' => 'datetime',
     ];
 
     /**
@@ -54,3 +62,4 @@ class RoomType extends Model
         return $this->hasMany(Price::class, 'type_id', 'type_id');
     }
 }
+?>

@@ -20,6 +20,7 @@ class RoomTypeController extends Controller
                 'data' => $roomTypes,
             ], 200);
         } catch (\Exception $e) {
+            Log::error('Lỗi lấy danh sách loại phòng: ' . $e->getMessage());
             return response()->json([
                 'status' => false,
                 'message' => 'Lấy danh sách loại phòng thất bại: ' . $e->getMessage(),
@@ -34,6 +35,7 @@ class RoomTypeController extends Controller
             'description' => 'nullable|string',
             'bed_count' => 'required|integer|min:1',
             'max_occupancy' => 'required|integer|min:1',
+            'images.*' => 'nullable|image|mimes:jpeg,png,jpg|max:2048',
             'amenity_ids' => 'nullable|array',
             'amenity_ids.*' => 'exists:amenities,amenity_id',
             'service_ids' => 'nullable|array',
@@ -51,28 +53,32 @@ class RoomTypeController extends Controller
         try {
             DB::beginTransaction();
 
+            $imagePath = null;
+            if ($request->hasFile('images')) {
+                $image = $request->file('images')[0]; // Chỉ lấy ảnh đầu tiên
+                $imageName = time() . '_' . uniqid() . '.' . $image->getClientOriginalExtension();
+                $image->move(public_path('images/room_type'), $imageName);
+                $imagePath = $imageName;
+            }
+
             $roomType = RoomType::create([
                 'type_name' => $request->type_name,
                 'description' => $request->description,
                 'bed_count' => $request->bed_count,
                 'max_occupancy' => $request->max_occupancy,
+                'images' => $imagePath ? json_encode([$imagePath]) : null,
             ]);
 
-            // Đồng bộ tiện ích
             if ($request->has('amenity_ids')) {
                 $roomType->amenities()->sync($request->amenity_ids);
             }
-
-            // Đồng bộ dịch vụ
             if ($request->has('service_ids')) {
                 $roomType->services()->sync($request->service_ids);
             }
 
             DB::commit();
 
-            // Tải lại dữ liệu với mối quan hệ
             $roomType->load(['amenities', 'services']);
-
             return response()->json([
                 'status' => true,
                 'data' => $roomType,
@@ -80,6 +86,7 @@ class RoomTypeController extends Controller
             ], 201);
         } catch (\Exception $e) {
             DB::rollBack();
+            Log::error('Lỗi thêm loại phòng: ' . $e->getMessage());
             return response()->json([
                 'status' => false,
                 'message' => 'Thêm loại phòng thất bại: ' . $e->getMessage(),
@@ -102,6 +109,7 @@ class RoomTypeController extends Controller
             'description' => 'nullable|string',
             'bed_count' => 'required|integer|min:1',
             'max_occupancy' => 'required|integer|min:1',
+            'images.*' => 'nullable|image|mimes:jpeg,png,jpg|max:2048',
             'amenity_ids' => 'nullable|array',
             'amenity_ids.*' => 'exists:amenities,amenity_id',
             'service_ids' => 'nullable|array',
@@ -119,24 +127,40 @@ class RoomTypeController extends Controller
         try {
             DB::beginTransaction();
 
+            $existingImages = $roomType->images ? json_decode($roomType->images, true) : [];
+            if ($request->hasFile('images')) {
+                // Xóa ảnh cũ nếu có ảnh mới
+                if (!empty($existingImages)) {
+                    foreach ($existingImages as $oldImage) {
+                        $filePath = public_path('images/room_type/' . $oldImage);
+                        if (file_exists($filePath)) {
+                            unlink($filePath);
+                        }
+                    }
+                }
+                // Lưu chỉ 1 ảnh mới
+                $image = $request->file('images')[0];
+                $imageName = time() . '_' . uniqid() . '.' . $image->getClientOriginalExtension();
+                $image->move(public_path('images/room_type'), $imageName);
+                $newImages = [$imageName];
+            } else {
+                $newImages = $existingImages; // Giữ ảnh cũ nếu không có ảnh mới
+            }
+
             $roomType->update([
                 'type_name' => $request->type_name,
                 'description' => $request->description,
                 'bed_count' => $request->bed_count,
                 'max_occupancy' => $request->max_occupancy,
+                'images' => !empty($newImages) ? json_encode($newImages) : null,
             ]);
 
-            // Đồng bộ tiện ích
             $roomType->amenities()->sync($request->amenity_ids ?? []);
-
-            // Đồng bộ dịch vụ
             $roomType->services()->sync($request->service_ids ?? []);
 
             DB::commit();
 
-            // Tải lại dữ liệu với mối quan hệ
             $roomType->load(['amenities', 'services']);
-
             return response()->json([
                 'status' => true,
                 'data' => $roomType,
@@ -144,6 +168,7 @@ class RoomTypeController extends Controller
             ], 200);
         } catch (\Exception $e) {
             DB::rollBack();
+            Log::error('Lỗi cập nhật loại phòng: ' . $e->getMessage());
             return response()->json([
                 'status' => false,
                 'message' => 'Cập nhật loại phòng thất bại: ' . $e->getMessage(),
@@ -162,7 +187,16 @@ class RoomTypeController extends Controller
         }
 
         try {
-            // Kiểm tra xem loại phòng có phòng nào đang sử dụng không
+            if ($roomType->images) {
+                $images = json_decode($roomType->images, true);
+                foreach ($images as $image) {
+                    $filePath = public_path('images/room_type/' . $image);
+                    if (file_exists($filePath)) {
+                        unlink($filePath);
+                    }
+                }
+            }
+
             if ($roomType->rooms()->count() > 0) {
                 return response()->json([
                     'status' => false,
@@ -180,6 +214,7 @@ class RoomTypeController extends Controller
             ], 200);
         } catch (\Exception $e) {
             DB::rollBack();
+            Log::error('Lỗi xóa loại phòng: ' . $e->getMessage());
             return response()->json([
                 'status' => false,
                 'message' => 'Xóa loại phòng thất bại: ' . $e->getMessage(),
@@ -187,14 +222,73 @@ class RoomTypeController extends Controller
         }
     }
 
+    public function deleteImage(Request $request, $type_id)
+    {
+        $validator = Validator::make($request->all(), [
+            'image_index' => 'required|integer|min:0',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'status' => false,
+                'message' => 'Dữ liệu không hợp lệ',
+                'errors' => $validator->errors(),
+            ], 422);
+        }
+
+        $roomType = RoomType::find($type_id);
+        if (!$roomType) {
+            return response()->json([
+                'status' => false,
+                'message' => 'Loại phòng không tồn tại',
+            ], 404);
+        }
+
+        try {
+            DB::beginTransaction();
+            $imagePaths = $roomType->images ? json_decode($roomType->images, true) : [];
+            $imageIndex = $request->image_index;
+
+            if (!isset($imagePaths[$imageIndex])) {
+                return response()->json([
+                    'status' => false,
+                    'message' => 'Ảnh không tồn tại',
+                ], 404);
+            }
+
+            $filePath = public_path('images/room_type/' . $imagePaths[$imageIndex]);
+            if (file_exists($filePath)) {
+                unlink($filePath);
+            }
+            unset($imagePaths[$imageIndex]);
+            $imagePaths = array_values($imagePaths);
+            $roomType->update(['images' => !empty($imagePaths) ? json_encode($imagePaths) : null]);
+
+            DB::commit();
+
+            $roomType->load(['amenities', 'services']);
+            return response()->json([
+                'status' => true,
+                'data' => $roomType,
+                'message' => 'Xóa ảnh thành công',
+            ], 200);
+        } catch (\Exception $e) {
+            DB::rollBack();
+            Log::error('Lỗi xóa ảnh: ' . $e->getMessage());
+            return response()->json([
+                'status' => false,
+                'message' => 'Xóa ảnh thất bại: ' . $e->getMessage(),
+            ], 500);
+        }
+    }
+
     public function show($type_id, Request $request)
     {
         try {
-            $checkInDate = $request ? $request->query('check_in', Carbon::now()->toDateString()) : Carbon::now()->toDateString();
+            $checkInDate = $request->query('check_in', Carbon::now()->toDateString());
             $roomType = RoomType::with(['amenities', 'services', 'rooms', 'prices'])
                 ->findOrFail($type_id);
 
-            // Lấy giá phù hợp với ngày check-in
             $price = $roomType->prices()
                 ->where('start_date', '<=', $checkInDate)
                 ->where('end_date', '>=', $checkInDate)
@@ -216,6 +310,7 @@ class RoomTypeController extends Controller
                 'description' => $roomType->description,
                 'bed_count' => $roomType->bed_count,
                 'max_occupancy' => $roomType->max_occupancy,
+                'images' => $roomType->images ?? [],
                 'amenities' => $roomType->amenities,
                 'services' => $roomType->services,
                 'price' => $priceData,

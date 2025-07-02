@@ -2,10 +2,12 @@
   <div class="container mt-5">
     <h1 class="text-3xl font-weight-bold text-primary mb-4">Quản lý Booking Khách Sạn</h1>
     
+    <!-- Thông báo lỗi nếu có -->
     <div v-if="errorMessage" class="alert alert-danger" role="alert">
       {{ errorMessage }}
     </div>
 
+    <!-- Bảng danh sách booking -->
     <div class="table-responsive shadow-sm rounded">
       <table class="table table-striped table-hover">
         <thead class="thead-dark">
@@ -17,7 +19,6 @@
             <th scope="col">Check-in</th>
             <th scope="col">Check-out</th>
             <th scope="col">Tổng phòng</th>
-            <th scope="col">Phòng dịch vụ</th>
             <th scope="col">Tổng giá</th>
             <th scope="col">Trạng thái</th>
             <th scope="col">Hành động</th>
@@ -28,18 +29,18 @@
             <td>{{ booking.booking_id }}</td>
             <td>{{ booking.customer?.customer_name || 'N/A' }}</td>
             <td>{{ booking.customer?.customer_phone || 'N/A' }}</td>
-            <td>{{ booking.booking_type }}</td>
+            <td>{{ booking.booking_type || 'N/A' }}</td>
             <td>{{ formatDate(booking.check_in_date) }}</td>
             <td>{{ formatDate(booking.check_out_date) }}</td>
-            <td>{{ booking.total_rooms }}</td>
-            <td>{{ booking.so_phong_dich_vu || 0 }}</td>
+            <td>{{ booking.total_rooms || '0' }}</td>
             <td>{{ formatPrice(booking.total_price) }}</td>
             <td>
               <span :class="{
-                'badge badge-warning': booking.status === 'pending_confirmation',
-                'badge badge-success': booking.status === 'booked',
-                'badge badge-danger': booking.status === 'cancelled',
-                'badge badge-info': booking.status === 'available'
+                'badge': true,
+                'badge-warning': booking.status === 'pending_confirmation',
+                'badge-success': booking.status === 'booked',
+                'badge-danger': booking.status === 'cancelled',
+                'badge-info': booking.status === 'available'
               }">
                 {{ formatStatus(booking.status) }}
               </span>
@@ -58,6 +59,7 @@
       </table>
     </div>
 
+    <!-- Modal chi tiết booking -->
     <div v-if="showModal" class="modal fade show" style="display: block;" tabindex="-1" role="dialog">
       <div class="modal-dialog modal-lg" role="document">
         <div class="modal-content">
@@ -68,105 +70,114 @@
             </button>
           </div>
           <div class="modal-body">
-            <div class="row mb-4">
+            <!-- Loading state -->
+            <div v-if="loading" class="text-center">
+              <div class="spinner-border text-primary" role="status">
+                <span class="visually-hidden">Loading...</span>
+              </div>
+            </div>
+            <!-- Thông tin chung -->
+            <div v-else-if="selectedBooking.booking_id" class="row mb-4">
               <div class="col-md-6">
                 <p><strong class="text-dark">Khách hàng:</strong> {{ selectedBooking.customer?.customer_name || 'N/A' }}</p>
                 <p><strong class="text-dark">Số điện thoại:</strong> {{ selectedBooking.customer?.customer_phone || 'N/A' }}</p>
                 <p><strong class="text-dark">Email:</strong> {{ selectedBooking.customer?.customer_email || 'Không có' }}</p>
-                <p><strong class="text-dark">Loại Booking:</strong> {{ selectedBooking.booking_type }}</p>
-                <p><strong class="text-dark">Loại giá:</strong> {{ selectedBooking.pricing_type }}</p>
-                <p><strong class="text-dark">Loại phòng:</strong> {{ roomTypeName }}</p>
-                <p><strong class="text-dark">Giá phòng:</strong> {{ formatPrice(roomPrice) }}</p>
+                <p><strong class="text-dark">Loại Booking:</strong> {{ selectedBooking.booking_type || 'N/A' }}</p>
+                <p><strong class="text-dark">Loại giá:</strong> {{ selectedBooking.pricing_type || 'N/A' }}</p>
               </div>
               <div class="col-md-6">
                 <p><strong class="text-dark">Check-in:</strong> {{ formatDate(selectedBooking.check_in_date) }}</p>
                 <p><strong class="text-dark">Check-out:</strong> {{ formatDate(selectedBooking.check_out_date) }}</p>
-                <p><strong class="text-dark">Tổng phòng:</strong> {{ selectedBooking.total_rooms }}</p>
-                <p><strong class="text-dark">Phòng dịch vụ:</strong> {{ selectedBooking.so_phong_dich_vu || 0 }}</p>
+                <p><strong class="text-dark">Tổng phòng:</strong> {{ selectedBooking.total_rooms || '0' }}</p>
                 <p><strong class="text-dark">Tổng giá:</strong> {{ formatPrice(selectedBooking.total_price) }}</p>
                 <p><strong class="text-dark">Phí bổ sung:</strong> {{ formatPrice(selectedBooking.additional_fee || 0) }}</p>
-                <p><strong class="text-dark">Trạng thái thanh toán:</strong> {{ selectedBooking.payment_status }}</p>
+                <p><strong class="text-dark">Trạng thái thanh toán:</strong> {{ selectedBooking.payment_status || 'N/A' }}</p>
                 <p><strong class="text-dark">Ghi chú:</strong> {{ selectedBooking.note || 'Không có' }}</p>
               </div>
             </div>
 
-            <h4 class="text-primary mb-3">Dịch vụ bổ sung</h4>
-            <div class="table-responsive mb-4">
-              <table class="table table-striped" v-if="bookingServices.length > 0">
-                <thead class="thead-dark">
-                  <tr>
-                    <th>ID</th>
-                    <th>Tên dịch vụ</th>
-                    <th>Giá dịch vụ</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  <tr v-for="service in bookingServices" :key="service.service_id">
-                    <td>{{ service.service_id }}</td>
-                    <td>{{ service.service_name || 'Chưa xác định' }}</td>
-                    <td>{{ formatPrice(service.service_price) }}</td>
-                  </tr>
-                </tbody>
-              </table>
-              <p v-else class="text-muted">Không có dịch vụ bổ sung.</p>
-            </div>
-
-            <h4 class="text-primary mb-3">Chi tiết phòng</h4>
-            <div class="table-responsive mb-4">
+            <!-- Danh sách chi tiết phòng -->
+            <h4 v-if="!loading && selectedBooking.booking_id" class="text-primary mb-3">Chi tiết phòng</h4>
+            <div v-if="!loading && selectedBooking.booking_id" class="table-responsive mb-4">
               <table class="table table-striped">
                 <thead class="thead-dark">
                   <tr>
                     <th>ID</th>
                     <th>Loại phòng ban đầu</th>
                     <th>Phòng đã xếp</th>
-                    <th>Giá phòng</th>
+                    <th>Tổng giá</th>
                     <th>Ghi chú</th>
                     <th>Xếp phòng</th>
                   </tr>
                 </thead>
                 <tbody>
-                  <tr v-for="detail in bookingDetails" :key="detail.booking_detail_id">
-                    <td>{{ detail.booking_detail_id }}</td>
-                    <td>{{ detail.initial_room_type }}</td>
-                    <td>{{ detail.room?.room_name || 'Chưa xếp' }}</td>
-                    <td>{{ formatPrice(detail.gia_phong) }}</td>
+                  <tr v-for="detail in validBookingDetails" :key="detail.booking_detail_id || 'no-id'">
+                    <td>{{ detail.booking_detail_id || 'N/A' }}</td>
+                    <td>{{ detail.initial_room_type || 'Chưa xác định' }}</td>
+                    <td>{{ detail.room && detail.room.room_name ? detail.room.room_name : 'Chưa xếp' }}</td>
+                    <td>{{ formatPrice(detail.total_price) || '0' }}</td>
                     <td>{{ detail.note || 'Không có' }}</td>
                     <td>
                       <select
+                        v-if="detail && !detail.room_id && availableRooms.length > 0"
                         v-model="detail.room_id"
                         @change="assignRoom(detail)"
                         class="form-control form-control-sm"
-                        :disabled="detail.room_id !== null"
                       >
                         <option value="">Chọn phòng</option>
                         <option
-                          v-for="room in filteredRooms"
-                          :key="room.id"
+                          v-for="room in availableRooms"
+                          :key="room.id || 'no-id'"
                           :value="room.id"
-                          :disabled="assignedRoomIds.includes(room.id)"
+                          v-if="room.id && !bookedRooms.includes(room.id)"
                         >
-                          {{ room.name }} ({{ room.room_type?.type_name || 'N/A' }} - {{ formatPrice(room.price) }})
+                          {{ room.name }} ({{ room.room_type?.type_name || 'N/A' }})
                         </option>
                       </select>
+                      <span v-else-if="detail.room_id">Đã xếp: {{ detail.room?.room_name || 'Phòng không xác định' }}</span>
+                      <span v-else>Không có phòng trống để xếp</span>
                     </td>
                   </tr>
                 </tbody>
               </table>
             </div>
+
+            <!-- Danh sách dịch vụ -->
+            <h4 v-if="!loading && selectedBooking.booking_id && bookingServices.length > 0" class="text-primary mb-3">Dịch vụ bổ sung</h4>
+            <div v-if="!loading && selectedBooking.booking_id && bookingServices.length > 0" class="table-responsive mb-4">
+              <table class="table table-striped">
+                <thead class="thead-dark">
+                  <tr>
+                    <th>ID</th>
+                    <th>Dịch vụ ID</th>
+                    <th>Giá dịch vụ</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr v-for="service in bookingServices" :key="service.booking_service_id || 'no-id'">
+                    <td>{{ service.booking_service_id || 'N/A' }}</td>
+                    <td>{{ service.service_id || 'N/A' }}</td>
+                    <td>{{ formatPrice(service.service_price) || '0' }}</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+            <p v-else-if="!loading && selectedBooking.booking_id" class="text-muted">Không có dịch vụ bổ sung.</p>
           </div>
-          <div class="modal-footer">
+          <div v-if="!loading && selectedBooking.booking_id" class="modal-footer">
             <button @click="confirmBooking" class="btn btn-success">Xác nhận Booking</button>
             <button @click="closeModal" class="btn btn-secondary" data-dismiss="modal">Đóng</button>
           </div>
         </div>
       </div>
     </div>
+    <!-- Overlay để mô phỏng modal -->
     <div v-if="showModal" class="modal-backdrop fade show"></div>
   </div>
 </template>
 
 <script setup>
-import { ref, onMounted, computed, watch } from 'vue';
+import { ref, onMounted, computed } from 'vue';
 import axios from 'axios';
 
 // State
@@ -176,25 +187,22 @@ const selectedBooking = ref({});
 const bookingDetails = ref([]);
 const bookingServices = ref([]);
 const availableRooms = ref([]);
-const assignedRoomIds = ref([]);
+const bookedRooms = ref([]);
 const errorMessage = ref('');
-const roomTypes = ref({});
-const roomTypeName = ref('Chưa xác định');
-const roomPrice = ref(0);
+const loading = ref(false);
 
-// Computed
-const filteredRooms = computed(() => {
-  return availableRooms.value.filter(room =>
-    selectedBooking.value.type_id && room.type_id === selectedBooking.value.type_id
-  );
+// Computed properties
+const validBookingDetails = computed(() => {
+  return bookingDetails.value.filter(detail => detail && detail.booking_detail_id !== undefined && detail.booking_detail_id !== null);
 });
 
 // Methods
 const fetchBookings = async () => {
   try {
     const response = await axios.get('/api/bookings?status=pending_confirmation');
-    bookings.value = response.data;
+    bookings.value = Array.isArray(response.data) ? response.data : [];
     console.log('Số lượng booking nhận được từ API:', bookings.value.length);
+    console.log('Bookings received:', JSON.stringify(bookings.value, null, 2));
     errorMessage.value = '';
   } catch (error) {
     console.error('Lỗi khi lấy danh sách booking:', error);
@@ -202,86 +210,80 @@ const fetchBookings = async () => {
   }
 };
 
-const getRoomTypeName = async (typeId) => {
-  if (!roomTypes.value[typeId]) {
-    try {
-      const response = await axios.get(`/api/room-types/${typeId}`, {
-        params: {
-          check_in: selectedBooking.value.check_in_date || new Date().toISOString().split('T')[0],
-        },
-      });
-      if (response.data && response.data.type_name) {
-        roomTypes.value[typeId] = response.data.type_name;
-        roomPrice.value = response.data.price.price_per_night || 0;
-      } else {
-        throw new Error('Không có dữ liệu loại phòng');
-      }
-    } catch (error) {
-      console.error('Lỗi khi lấy loại phòng:', error);
-      roomTypes.value[typeId] = `Lỗi: ${error.response?.status || 'Không xác định'}`;
-      roomPrice.value = 0;
-    }
-  }
-  roomTypeName.value = roomTypes.value[typeId] || 'Chưa xác định';
-  console.log('roomTypeName updated to:', roomTypeName.value, 'for typeId:', typeId);
-  return roomTypes.value[typeId] || 'Chưa xác định';
-};
-
 const openDetailModal = async (booking) => {
   selectedBooking.value = booking;
+  loading.value = true;
   try {
-    const detailsResponse = await axios.get(`/api/booking-details/${booking.booking_id}`);
-    bookingDetails.value = detailsResponse.data;
-
-    const servicesResponse = await axios.get(`/api/booking-services/${booking.booking_id}`);
-    bookingServices.value = servicesResponse.data.map(service => ({
-      ...service,
-      service_name: service.service?.name || 'Chưa xác định',
-      service_price: service.price || 0,
-    }));
-
-    const roomsResponse = await axios.get('/api/available-rooms', {
-      params: {
-        check_in: booking.check_in_date,
-        check_out: booking.check_out_date,
-        type_id: booking.type_id,
-      },
-    });
-    availableRooms.value = roomsResponse.data;
-
-    assignedRoomIds.value = bookingDetails.value
-      .filter(detail => detail.room_id)
-      .map(detail => detail.room_id);
-
-    if (booking.type_id) {
-      await getRoomTypeName(booking.type_id);
-      for (const detail of bookingDetails.value) {
-        detail.initial_room_type = roomTypeName.value;
-        detail.gia_phong = roomPrice.value;
-      }
+    console.log('Opening detail modal for booking:', JSON.stringify(booking, null, 2));
+    if (!booking.type_id) {
+      errorMessage.value = 'Booking không có type_id hợp lệ, loại phòng sẽ hiển thị mặc định. Vui lòng kiểm tra dữ liệu.';
+      bookingDetails.value = [];
+      availableRooms.value = [];
     } else {
-      bookingDetails.value.forEach(detail => {
-        detail.initial_room_type = 'Chưa xác định loại phòng';
-        detail.gia_phong = 0;
-      });
-    }
+      // Lấy chi tiết booking
+      const detailsResponse = await axios.get(`/api/booking-details/${booking.booking_id}`);
+      bookingDetails.value = Array.isArray(detailsResponse.data)
+        ? detailsResponse.data.map(d => ({
+            ...d,
+            room: d.room && d.room.room_id !== null
+              ? d.room
+              : { room_id: null, room_name: 'Chưa xếp', type_id: booking.type_id },
+            initial_room_type: d.initial_room_type || (booking.roomType?.type_name || 'Chưa xác định')
+          }))
+        : [];
+      console.log('Booking details received:', JSON.stringify(bookingDetails.value, null, 2));
 
-    errorMessage.value = '';
-    showModal.value = true;
+      // Lấy dịch vụ booking
+      const servicesResponse = await axios.get(`/api/booking-services/${booking.booking_id}`);
+      bookingServices.value = Array.isArray(servicesResponse.data) ? servicesResponse.data : [];
+      console.log('Booking services received:', JSON.stringify(bookingServices.value, null, 2));
+
+      // Lấy danh sách phòng trống
+      const roomsResponse = await axios.get('/api/available-rooms', {
+        params: {
+          check_in: booking.check_in_date,
+          check_out: booking.check_out_date,
+          type_id: booking.type_id,
+        },
+      });
+      availableRooms.value = Array.isArray(roomsResponse.data)
+        ? roomsResponse.data.map(room => ({
+            id: room.id || null,
+            name: room.name || 'Không xác định',
+            room_type: room.room_type || { type_name: 'N/A' }
+          }))
+        : [];
+    }
+    console.log('Available rooms received:', JSON.stringify(availableRooms.value, null, 2));
+
+    bookedRooms.value = bookingDetails.value
+      .filter(d => d?.room_id)
+      .map(d => d.room_id)
+      .filter(id => id !== null);
+
+    errorMessage.value = availableRooms.value.length === 0 && booking.type_id
+      ? 'Không có phòng trống phù hợp với loại phòng và thời gian này.'
+      : '';
   } catch (error) {
     console.error('Lỗi khi lấy chi tiết booking:', error);
     errorMessage.value = `Lỗi khi lấy chi tiết booking: ${error.response?.status || 'Unknown'} - ${error.response?.data?.error || error.message}`;
+  } finally {
+    loading.value = false;
+    showModal.value = true;
   }
 };
 
 const assignRoom = async (detail) => {
+  if (!detail || !detail.booking_detail_id || !detail.room_id) {
+    errorMessage.value = 'Chi tiết booking hoặc phòng không hợp lệ';
+    return;
+  }
   try {
     await axios.post(`/api/assign-room/${detail.booking_detail_id}`, {
       room_id: detail.room_id,
     });
-    assignedRoomIds.value.push(detail.room_id);
-    detail.room = availableRooms.value.find(r => r.id === detail.room_id);
     alert('Xếp phòng thành công!');
+    await openDetailModal(selectedBooking.value);
     errorMessage.value = '';
   } catch (error) {
     console.error('Lỗi khi xếp phòng:', error);
@@ -296,7 +298,7 @@ const confirmBooking = async () => {
     });
     alert('Xác nhận booking thành công!');
     showModal.value = false;
-    fetchBookings();
+    await fetchBookings();
     errorMessage.value = '';
   } catch (error) {
     console.error('Lỗi khi xác nhận booking:', error);
@@ -309,16 +311,17 @@ const closeModal = () => {
   selectedBooking.value = {};
   bookingDetails.value = [];
   bookingServices.value = [];
-  assignedRoomIds.value = [];
+  availableRooms.value = [];
+  bookedRooms.value = [];
   errorMessage.value = '';
 };
 
 const formatDate = (date) => {
-  return new Date(date).toLocaleDateString('vi-VN');
+  return date ? new Date(date).toLocaleDateString('vi-VN') : 'N/A';
 };
 
 const formatPrice = (price) => {
-  return new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(price);
+  return new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(price || 0);
 };
 
 const formatStatus = (status) => {
@@ -326,8 +329,7 @@ const formatStatus = (status) => {
     pending_confirmation: 'Chờ xác nhận',
     booked: 'Đã đặt',
     available: 'Còn trống',
-    cancelled: 'Đã hủy',
-    occupied: 'Đã đặt'
+    cancelled: 'Đã hủy'
   };
   return statusMap[status] || status;
 };
@@ -339,7 +341,6 @@ onMounted(() => {
 </script>
 
 <style scoped>
-/* CSS tùy chỉnh cho modal overlay */
 .modal-backdrop {
   position: fixed;
   top: 0;
@@ -354,12 +355,10 @@ onMounted(() => {
   z-index: 1050;
 }
 
-/* Đảm bảo modal hiển thị đúng */
 .modal-dialog {
   transform: translate(0, 0) !important;
 }
 
-/* Responsive table */
 @media (max-width: 768px) {
   .table-responsive {
     overflow-x: auto;
@@ -370,9 +369,19 @@ onMounted(() => {
   }
 }
 
-/* Style cho option disabled */
-option:disabled {
-  color: #ccc;
-  background-color: #f9f9f9;
+.badge {
+  display: inline-block;
+  padding: 0.25em 0.4em;
+  font-size: 75%;
+  font-weight: 700;
+  line-height: 1;
+  text-align: center;
+  white-space: nowrap;
+  vertical-align: baseline;
+  border-radius: 0.25rem;
 }
+.badge-warning { background-color: #ffc107; color: #212529; }
+.badge-success { background-color: #28a745; color: #fff; }
+.badge-danger { background-color: #dc3545; color: #fff; }
+.badge-info { background-color: #17a2b8; color: #fff; }
 </style>

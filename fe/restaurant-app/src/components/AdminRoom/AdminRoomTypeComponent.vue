@@ -37,6 +37,7 @@
             <th>Mô Tả</th>
             <th>Số Giường</th>
             <th>Sức Chứa</th>
+            <th>Ảnh</th>
             <th>Tiện Ích</th>
             <th>Dịch Vụ</th>
             <th>Hành Động</th>
@@ -48,6 +49,21 @@
             <td><p class="description-text">{{ type.description || 'N/A' }}</p></td>
             <td class="text-center">{{ type.bed_count || 0 }}</td>
             <td class="text-center">{{ type.max_occupancy || 0 }}</td>
+            <td>
+              <div class="image-container">
+                <span v-if="!type.images || !type.images.length" class="tag tag-secondary">Không có ảnh</span>
+                <div v-else class="image-list d-flex justify-content-center">
+                  <div class="image-item">
+                    <img
+                      :src="getImageUrl(type.images)"
+                      alt="Room type image"
+                      class="room-image centered-image"
+                      @error="onImageError"
+                    />
+                  </div>
+                </div>
+              </div>
+            </td>
             <td>
               <div class="tags-container">
                 <span v-if="!(type.amenities && type.amenities.length)" class="tag tag-secondary">Không có</span>
@@ -82,7 +98,7 @@
             </td>
           </tr>
           <tr v-if="displayedTypes.length === 0">
-            <td colspan="7" class="text-center text-muted py-5">
+            <td colspan="8" class="text-center text-muted py-5">
               <i class="bi bi-cloud-drizzle fs-2 mb-2 d-block"></i>
               Không tìm thấy loại phòng nào.
             </td>
@@ -168,10 +184,29 @@
                 <input type="number" v-model.number="newType.max_occupancy" class="form-control" min="1" required />
               </div>
               <div class="col-md-6 mb-4">
+                <label class="form-label d-block mb-3">Ảnh</label>
+                <input
+                  type="file"
+                  accept="image/*"
+                  class="form-control"
+                  @change="handleImageUpload"
+                />
+                <div class="image-list d-flex justify-content-center mt-2">
+                  <div v-if="newType.images" class="image-item">
+                    <img
+                      :src="isFile(newType.images) ? createObjectURL(newType.images) : getImageUrl(newType.images)"
+                      alt="Room type image"
+                      class="room-image centered-image"
+                      @error="onImageError"
+                    />
+                  </div>
+                </div>
+              </div>
+              <div class="col-md-6 mb-4">
                 <label class="form-label d-block mb-3">Tiện Ích</label>
                 <div class="form-check form-check-inline form-switch mb-2">
                   <input
-                    class="form-check-input"
+                    class="form-check-input custom-checkbox"
                     type="checkbox"
                     role="switch"
                     :checked="newType.amenity_ids.length === amenities.length"
@@ -183,8 +218,8 @@
                 <div class="checkbox-list">
                   <div class="form-check" v-for="amenity in amenities" :key="amenity.amenity_id">
                     <input
+                      class="form-check-input custom-checkbox"
                       type="checkbox"
-                      class="form-check-input"
                       :value="amenity.amenity_id"
                       v-model="newType.amenity_ids"
                       :id="'amenity-' + amenity.amenity_id"
@@ -199,7 +234,7 @@
                 <label class="form-label d-block mb-3">Dịch Vụ</label>
                 <div class="form-check form-check-inline form-switch mb-2">
                   <input
-                    class="form-check-input"
+                    class="form-check-input custom-checkbox"
                     type="checkbox"
                     role="switch"
                     :checked="newType.service_ids.length === services.length"
@@ -211,8 +246,8 @@
                 <div class="checkbox-list">
                   <div class="form-check" v-for="service in services" :key="service.service_id">
                     <input
+                      class="form-check-input custom-checkbox"
                       type="checkbox"
-                      class="form-check-input"
                       :value="service.service_id"
                       v-model="newType.service_ids"
                       :id="'service-' + service.service_id"
@@ -253,6 +288,7 @@ const newType = ref({
   description: '',
   bed_count: 1,
   max_occupancy: 1,
+  images: null,
   amenity_ids: [],
   service_ids: [],
 });
@@ -260,15 +296,25 @@ const currentPage = ref(1);
 const itemsPerPage = 10;
 
 // API
-const API_BASE_URL = 'http://127.0.0.1:8000/api';
+const API_BASE_URL = 'http://127.0.0.1:8000';
+
+// Hàm tạo URL cho ảnh
+const createObjectURL = (file) => {
+  return window.URL.createObjectURL(file);
+};
+
+// Hàm kiểm tra xem image có phải là File không
+const isFile = (image) => {
+  return image instanceof File;
+};
 
 // Lấy dữ liệu ban đầu
 const fetchData = async () => {
   try {
     const [roomTypesRes, amenitiesRes, servicesRes] = await Promise.all([
-      axios.get(`${API_BASE_URL}/room-types`),
-      axios.get(`${API_BASE_URL}/amenities`, { params: { per_page: 'all' } }),
-      axios.get(`${API_BASE_URL}/services`, { params: { per_page: 'all' } }),
+      axios.get(`${API_BASE_URL}/api/room-types`),
+      axios.get(`${API_BASE_URL}/api/amenities`, { params: { per_page: 'all' } }),
+      axios.get(`${API_BASE_URL}/api/services`, { params: { per_page: 'all' } }),
     ]);
     roomTypes.value = roomTypesRes.data.data || [];
     amenities.value = amenitiesRes.data.data || [];
@@ -312,6 +358,46 @@ const paginationPages = computed(() => {
   return Array.from({ length: end - start + 1 }, (_, i) => start + i);
 });
 
+// Xử lý ảnh
+const getImageUrl = (image) => {
+  let img = image;
+  if (typeof image === 'string') {
+    try {
+      const parsed = JSON.parse(image);
+      img = Array.isArray(parsed) ? parsed[0] : parsed;
+    } catch (e) {
+      img = image; // Nếu không parse được, dùng nguyên bản
+    }
+  }
+  return img ? `${API_BASE_URL}/images/room_type/${img}` : '';
+};
+
+const handleImageUpload = (event) => {
+  const file = event.target.files[0]; // Chỉ lấy 1 ảnh
+  newType.value.images = file || null;
+};
+
+const removeImage = () => {
+  newType.value.images = null;
+};
+
+const xoaAnh = async (typeId, imageIndex) => {
+  if (confirm('Bạn có chắc chắn muốn xóa ảnh này?')) {
+    try {
+      const response = await axios.delete(`${API_BASE_URL}/api/room-types/${typeId}/image`, {
+        data: { image_index: imageIndex },
+      });
+      const index = roomTypes.value.findIndex(t => t.type_id === typeId);
+      if (index !== -1) {
+        roomTypes.value.splice(index, 1, response.data.data);
+      }
+      alert('Xóa ảnh thành công!');
+    } catch (error) {
+      handleApiError('Xóa ảnh thất bại', error);
+    }
+  }
+};
+
 // Xử lý Modal
 const moModalThem = () => {
   editingType.value = null;
@@ -320,6 +406,7 @@ const moModalThem = () => {
     description: '',
     bed_count: 1,
     max_occupancy: 1,
+    images: null,
     amenity_ids: [],
     service_ids: [],
   };
@@ -329,7 +416,12 @@ const moModalThem = () => {
 const moModalSua = (type) => {
   editingType.value = type;
   newType.value = {
-    ...type,
+    type_id: type.type_id,
+    type_name: type.type_name,
+    description: type.description,
+    bed_count: type.bed_count,
+    max_occupancy: type.max_occupancy,
+    images: type.images ? (typeof type.images === 'string' ? JSON.parse(type.images)[0] : type.images) : null,
     amenity_ids: type.amenities ? type.amenities.map(a => a.amenity_id) : [],
     service_ids: type.services ? type.services.map(s => s.service_id) : [],
   };
@@ -349,7 +441,7 @@ const toggleAllServices = (event) => {
   newType.value.service_ids = event.target.checked ? services.value.map(s => s.service_id) : [];
 };
 
-// Xử lý CRUD (Thêm, Sửa, Xóa)
+// Xử lý CRUD
 const saveType = async () => {
   if (!newType.value.type_name.trim() || newType.value.bed_count < 1 || newType.value.max_occupancy < 1) {
     alert('Vui lòng điền đầy đủ thông tin bắt buộc (Tên, số giường, sức chứa).');
@@ -357,19 +449,28 @@ const saveType = async () => {
   }
 
   try {
+    const formData = new FormData();
+    formData.append('type_name', newType.value.type_name);
+    formData.append('description', newType.value.description || '');
+    formData.append('bed_count', newType.value.bed_count);
+    formData.append('max_occupancy', newType.value.max_occupancy);
+    newType.value.amenity_ids.forEach(id => formData.append('amenity_ids[]', id));
+    newType.value.service_ids.forEach(id => formData.append('service_ids[]', id));
+    if (newType.value.images && isFile(newType.value.images)) {
+      formData.append('images[0]', newType.value.images); // Chỉ gửi 1 ảnh
+    }
+
+    let response;
     if (editingType.value) {
-      const response = await axios.put(`${API_BASE_URL}/room-types/${editingType.value.type_id}`, {
-        ...newType.value,
-        amenities: newType.value.amenity_ids.map(id => amenities.value.find(a => a.amenity_id === id)),
-        services: newType.value.service_ids.map(id => services.value.find(s => s.service_id === id)),
+      formData.append('_method', 'PUT');
+      response = await axios.post(`${API_BASE_URL}/api/room-types/${editingType.value.type_id}`, formData, {
+        headers: { 'Content-Type': 'multipart/form-data' },
       });
       const index = roomTypes.value.findIndex(t => t.type_id === editingType.value.type_id);
       if (index !== -1) roomTypes.value.splice(index, 1, response.data.data);
     } else {
-      const response = await axios.post(`${API_BASE_URL}/room-types`, {
-        ...newType.value,
-        amenities: newType.value.amenity_ids.map(id => amenities.value.find(a => a.amenity_id === id)),
-        services: newType.value.service_ids.map(id => services.value.find(s => s.service_id === id)),
+      response = await axios.post(`${API_BASE_URL}/api/room-types`, formData, {
+        headers: { 'Content-Type': 'multipart/form-data' },
       });
       roomTypes.value.push(response.data.data);
     }
@@ -384,7 +485,7 @@ const saveType = async () => {
 const xoaLoaiPhong = async (id) => {
   if (confirm('Bạn có chắc chắn muốn xóa loại phòng này? Hành động này không thể hoàn tác.')) {
     try {
-      await axios.delete(`${API_BASE_URL}/room-types/${id}`);
+      await axios.delete(`${API_BASE_URL}/api/room-types/${id}`);
       roomTypes.value = roomTypes.value.filter(t => t.type_id !== id);
       if (displayedTypes.value.length === 0 && currentPage.value > 1) currentPage.value--;
       alert('Xóa loại phòng thành công!');
@@ -392,6 +493,12 @@ const xoaLoaiPhong = async (id) => {
       handleApiError('Xóa loại phòng thất bại', error);
     }
   }
+};
+
+// Xử lý lỗi ảnh
+const onImageError = (event) => {
+  event.target.src = '/path/to/placeholder-image.jpg'; // Thay bằng đường dẫn ảnh placeholder
+  console.log('Lỗi tải ảnh:', event.target.src);
 };
 
 // Hàm xử lý lỗi
@@ -422,6 +529,59 @@ const handleApiError = (message, error) => {
   --border-radius-main: 12px;
   --shadow-sm: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
   --shadow-md: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -2px rgb(0 0 0 / 0.1);
+}
+
+.image-container {
+  height: 100px; /* Chiều cao cố định cho khung ảnh */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.image-list {
+  width: 100%;
+}
+
+.image-item {
+  display: flex;
+  justify-content: center;
+}
+
+.room-image {
+  max-width: 100%;
+  max-height: 100px;
+  object-fit: contain;
+}
+
+.centered-image {
+  margin: 0 auto; /* Căn giữa theo chiều ngang */
+}
+
+/* Tùy chỉnh checkbox */
+.custom-checkbox {
+  appearance: none; /* Xóa kiểu mặc định */
+  width: 1.2em;
+  height: 1.2em;
+  border: 2px solid var(--c-aqua); /* Viền xanh */
+  border-radius: 4px;
+  outline: none;
+  cursor: pointer;
+  position: relative;
+  background-color: transparent; /* Không nền khi chưa chọn */
+}
+
+.custom-checkbox:checked {
+  background-color: var(--c-aqua); /* Nền xanh khi được chọn */
+}
+
+.custom-checkbox:checked::after {
+  content: '✔'; /* Dấu tích */
+  color: var(--c-white); /* Màu trắng cho dấu tích */
+  font-size: 0.9em;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
 }
 
 body {
@@ -487,11 +647,12 @@ body {
 
 .table th:nth-child(1) { width: 15%; }
 .table th:nth-child(2) { width: 20%; }
-.table th:nth-child(3) { width: 12%; }
-.table th:nth-child(4) { width: 11%; }
-.table th:nth-child(5) { width: 19%; }
-.table th:nth-child(6) { width: 16%; }
-.table th:nth-child(7) { width: 14%; }
+.table th:nth-child(3) { width: 10%; }
+.table th:nth-child(4) { width: 10%; }
+.table th:nth-child(5) { width: 20%; }
+.table th:nth-child(6) { width: 15%; }
+.table th:nth-child(7) { width: 15%; }
+.table th:nth-child(8) { width: 15%; }
 
 .table td {
   padding: 18px 20px;
@@ -502,7 +663,6 @@ body {
   vertical-align: middle;
   overflow: hidden;
   text-overflow: ellipsis;
-  white-space: nowrap;
 }
 
 .table tbody tr:last-child td {
@@ -549,6 +709,42 @@ body {
 .tag-info { background-color: #e0f2fe; color: #0c4a6e; }
 .tag-success { background-color: #d1fae5; color: #065f46; }
 .tag-secondary { background-color: #f3f4f6; color: #4b5563; }
+
+/* --- IMAGE STYLES --- */
+.image-container {
+  max-height: 100px;
+  overflow-y: auto;
+}
+
+.image-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.image-item {
+  position: relative;
+  width: 80px;
+  height: 80px;
+}
+
+.room-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 8px;
+  border: 1px solid #e5e7eb;
+}
+
+.image-item .btn-danger {
+  width: 24px;
+  height: 24px;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+}
 
 /* --- BUTTONS --- */
 .btn-primary-themed {
@@ -643,7 +839,7 @@ body {
 .modal-content {
   border-radius: 20px;
   border: none;
-  box-shadow: var(--shadow-lg);
+  box-shadow: var(--shadow-md);
   background-color: #f9fafb;
 }
 .modal-header {
@@ -698,7 +894,7 @@ body {
 .form-check-input:checked {
   background-color: var(--c-ocean-blue);
   border-color: var(--c-ocean-blue);
-  background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20'%3e%3cpath fill='none' stroke='%230077b6' stroke-linecap='round' stroke-linejoin='round' stroke-width='3' d='M6 10l3 3 6-6'/%3e%3c/svg%3e");
+  background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20'%3e%3cpath fill='none' stroke='%23ffffff' stroke-linecap='round' stroke-linejoin='round' stroke-width='3' d='M6 10l3 3 6-6'/%3e%3c/svg%3e");
   background-repeat: no-repeat;
   background-position: center;
 }
