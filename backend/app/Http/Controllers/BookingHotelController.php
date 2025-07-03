@@ -7,6 +7,7 @@ use App\Models\BookingHotelDetail;
 use App\Models\BookingHotelService;
 use App\Models\Customer;
 use App\Models\Room;
+use App\Models\RoomType;
 use App\Models\Service;
 use Illuminate\Http\Request;
 use League\OAuth1\Client\Server\Server;
@@ -16,6 +17,20 @@ use Tymon\JWTAuth\Exceptions\JWTException;
 
 class BookingHotelController extends Controller
 {
+    //lay loai phong dua vao so nguoi
+    public function getAvailableRooms(Request $request)
+    {
+        $request->validate([
+            'number_of_guests' => 'required|integer|min:1',
+        ]);
+
+        $numberOfGuests = $request->input('number_of_guests');
+
+        // Truy vấn hạng phòng phù hợp
+        $availableRooms = RoomType::where('max_occupancy', '>=', $numberOfGuests)->get();
+
+        return response()->json($availableRooms);
+    }
     //tao token jwt
     public function generateToken(Request $request)
     {
@@ -150,7 +165,7 @@ class BookingHotelController extends Controller
         try {
             $sub = JWTAuth::parseToken()->getPayload()->get('sub');
 
-           $bookings = BookingHotel::where('customer_id', $sub)
+            $bookings = BookingHotel::where('customer_id', $sub)
                 ->with('roomTypeInfo')
                 ->orderBy('booking_id', 'desc') // Thêm dòng này để sắp xếp giảm dần theo booking_id
                 ->get();
@@ -171,7 +186,7 @@ class BookingHotelController extends Controller
             ], 500);
         }
     }
-
+    //
     // public function storeBooking(Request $request)
     // {
     //     try {

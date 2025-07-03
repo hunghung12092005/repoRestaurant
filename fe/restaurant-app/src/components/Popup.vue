@@ -76,6 +76,9 @@ function closePopup() {
 }
 </script>
 <style scoped>
+.modal{
+    z-index: 1100120;
+}
 @keyframes flower-animation {
     0% {
         transform: translate(0, 0) scale(1);

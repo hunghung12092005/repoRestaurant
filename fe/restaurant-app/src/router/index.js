@@ -49,6 +49,7 @@ import qrCodeCCCD from '../components/qrCodeCCCD.vue';
 //đặt phòng
 import rooms from '../components/booking_room/BookRoomComponent.vue'
 import rooms2 from '../components/booking_room/Booking2.vue'
+import rooms3 from '../components/booking_room/Booking3.vue'
 import HistoryBooking from '../components/booking_room/HistoryBooking.vue';
 import ThanksBooking from '../components/booking_room/ThanksBooking.vue';
 //thông tin user
@@ -185,6 +186,11 @@ const routes = [
     path: '/rooms2',
     name: 'rooms2',
     component: rooms2,
+  },
+  {
+    path: '/rooms3',
+    name: 'rooms3',
+    component: rooms3,
   },
   {
     path: '/HistoryBooking',

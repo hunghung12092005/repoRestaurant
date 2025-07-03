@@ -142,4 +142,5 @@ Route::post('/booking-client', [BookingHotelController::class, 'storeBooking']);
 Route::post('/generate-token', [BookingHotelController::class, 'generateToken']);
 //tra ve lich su cho khach hang
 Route::get('/booking-history', [BookingHotelController::class, 'getBookingHistory']);
-
+//lay hang phong dua vao so nguoi
+Route::post('/available-rooms', [BookingHotelController::class, 'getAvailableRooms']);
