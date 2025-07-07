@@ -144,3 +144,5 @@ Route::post('/generate-token', [BookingHotelController::class, 'generateToken'])
 Route::get('/booking-history', [BookingHotelController::class, 'getBookingHistory']);
 //lay hang phong dua vao so nguoi
 Route::post('/available-rooms', [BookingHotelController::class, 'getAvailableRooms']);
+//thanh toan payOS
+Route::post('/payos/checkout', [BookingHotelController::class, 'payos']);

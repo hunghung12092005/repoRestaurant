@@ -494,7 +494,7 @@
                                                                 <label
                                                                     class="d-flex align-items-center bg-light p-3 rounded-3 border border-light-subtle shadow-sm service-item-hover">
                                                                     <input type="checkbox" v-model="service.selected"
-                                                                        @change="updateRoomTotal(room,service.service_id)"
+                                                                        @change="updateRoomTotal(room, service.service_id)"
                                                                         class="form-check-input me-3 large-checkbox">
                                                                     <span class="flex-grow-1 text-dark fw-medium">{{
                                                                         service.service_name }}</span>
@@ -572,7 +572,7 @@
             </div>
         </div>
         <!-- popup smsotp -->
-         <div v-if="isOtp" class="popup-overlay">
+        <div v-if="isOtp" class="popup-overlay">
             <div class="form-container">
                 <div class="logo-container">
                     Xác thực SMS
@@ -732,6 +732,7 @@ import { signInWithPhoneNumber, signInWithCredential } from 'firebase/auth';
 import { useRouter } from 'vue-router'; // Dòng này cực kỳ quan trọng!
 
 // Khởi tạo router instance
+const apiUrl = inject('apiUrl'); // Lấy apiUrl từ inject
 var router = useRouter();//su dung router để điều hướng
 const selectedRooms = ref([]); // Danh sách các phòng đã chọn
 const showPopup = ref(false);//popup mới vào trang
@@ -761,10 +762,10 @@ const calculateTotalDays = () => {
     if (checkin.value && checkOut.value) {
         const checkinDate = new Date(checkin.value);
         const checkoutDate = new Date(checkOut.value);
-        
+
         // Tính số ngày
-        totalday.value = (checkoutDate - checkinDate) / (1000 * 60 * 60 * 24); 
-       // console.log(totalday.value);
+        totalday.value = (checkoutDate - checkinDate) / (1000 * 60 * 60 * 24);
+        // console.log(totalday.value);
         // Chia cho số mili giây trong một ngày
     } else {
         totalday.value = 0; // Nếu không có ngày, gán giá trị mặc định
@@ -777,8 +778,8 @@ const selectedHotel = ref(null);
 const selectedHotelBooking = ref(null);
 
 const currentDateTime = new Date().toLocaleString();
-const phoneNumber = ref('');
-const fullName = ref('');
+const phoneNumber = ref('325697601');
+const fullName = ref('hunghunghung');
 const orderNotes = ref('');
 const createAccount = ref('true');
 const paymentMethod = ref(''); // Phương thức thanh toán
@@ -871,7 +872,7 @@ const addBooking = (hotel) => {
 
         // Thêm phòng vào danh sách
         selectedRooms.value.push(roomData);
-        
+
         // Cập nhật tổng số phòng
         selectedRooms.totalRooms = selectedRooms.value.length;
 
@@ -884,7 +885,9 @@ const addBooking = (hotel) => {
 const removeRoom = (index) => {
     selectedRooms.value.splice(index, 1); // Xóa phòng tại chỉ số index
     selectedRooms.totalRooms = selectedRooms.value.length; // Giảm tổng số phòng};
-// Hàm xử lý chọn khách
+    // console.log(1);
+
+    // Hàm xử lý chọn khách
 }
 const removeRoomFromModal = (index) => {
     rooms.value.splice(index, 1); // Xóa phòng tại chỉ số index từ danh sách rooms
@@ -896,8 +899,8 @@ const openPopupshowModalBooking = () => {
         return;
     }
     showModalBooking.value = true;
-        console.log(selectedRooms.value);
-        console.log("totalRooms:", selectedRooms.totalRooms);//lay cai nay for booking_details  
+    //console.log(selectedRooms);
+    // console.log("totalRooms:", selectedRooms.totalRooms);//lay cai nay for booking_details  
 };
 const updateRoomTotal = (room, selectedServiceId) => {
     // Kiểm tra và thêm hoặc xóa service id trong serviceChoose
@@ -911,7 +914,6 @@ const updateRoomTotal = (room, selectedServiceId) => {
             room.serviceChoose.splice(index, 1);
         }
     }
-
     // Tính tổng chi phí dịch vụ
     room.totalServiceCost = room.services.reduce((total, service) => {
         return total + (service.selected ? parseFloat(service.price) : 0);
@@ -919,7 +921,7 @@ const updateRoomTotal = (room, selectedServiceId) => {
     //console.log("Tổng số phòng đã chọn:", selectedRooms.totalRooms);
     //console.log("Cập nhật tổng chi phí dịch vụ cho phòng:", room.name, "Tổng chi phí:", room.totalServiceCost);
     //console.log("Dịch vụ đã chọn:", room.serviceChoose);
-    console.log(selectedRooms.value);
+    //console.log(selectedRooms.value);
 };
 //tinh tien dich vu 1 phong
 const calculateRoomTotal = (room) => {
@@ -1009,7 +1011,9 @@ const getRoomPrices = async () => {
         isLoading.value = false; // Kết thúc tải dữ liệu
     }
 }
-// Xử lý gửi OTP SMS
+//boooking
+
+// Xử lý booking
 const confirmBooking = async () => {
     // Kiểm tra thông tin bắt buộc
     if (!fullName.value || !phoneNumber.value) {
@@ -1021,31 +1025,146 @@ const confirmBooking = async () => {
         alert('Vui lòng chọn ít nhất một phòng trước khi đặt.');
         return;
     }
-   
+    selectedRooms.totalPrice = totalCostForAllRooms.value; //gia tong
+    // console.log("totalPrice:", selectedRooms.totalPrice); // Log the updated totalPrice
+    // console.log("selectedRooms:", selectedRooms.value); // Log the selected rooms
+    const roomDetails = computed(() => {
+        return selectedRooms.value.map(room => ({
+            id: room.id,
+            price: room.price,
+            serviceChoose: room.serviceChoose,
+            totalServiceCost: room.totalServiceCost
+        }));
+    });// tao mang moi  
+    // Khởi tạo bookingDetails
+    const bookingDetails = {
+        check_in_date: checkin.value,
+        check_out_date: checkOut.value,
+        total_rooms: selectedRooms.totalRooms,
+        total_price: selectedRooms.totalPrice,
+        roomDetails: roomDetails.value,
+        payment_method: paymentMethod.value,
+        booking_type: 'online',
+        pricing_type: 'nghitly',
+        payment_status: 'pending',
+        status: 'pending_confirmation',
+        note: orderNotes.value || 'Không có ghi chú',
+    };
+    //console.log("Booking Details:", JSON.stringify(bookingDetails, null, 2)); // Log booking details as JSON
+    //return;
+    // Xác thực và lấy token
+    let token;
+    //     const axiosWithoutHeader = axios.create({
+    //    // baseURL: apiUrl, // Đặt base URL nếu cần
+    //     headers: {} // Không thêm header nào
+    // });
+    try {
+        const authResponse = await axios.post(`${apiUrl}/api/generate-token`, {
+            name: fullName.value,
+            phone: phoneNumber.value,
+            address: '', // Có thể thêm địa chỉ nếu cần
+        });
+        token = authResponse.data.token;
+        localStorage.setItem('BookingAuth', token);
+        // console.log(localStorage.getItem('BookingAuth'))
+
+        //console.log('Token xác thực:', token);
+    } catch (error) {
+        console.error('Lỗi khi xác thực:', error);
+        alert('Không thể xác thực, vui lòng kiểm tra thông tin!');
+        return;
+    }
+    //dat phong
+    const axiosWithoutHeader = axios.create({
+        // baseURL: apiUrl, // Đặt base URL nếu cần
+        headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`, // Thêm token vào header
+        }
+    });
+    try {
+        isLoading.value = true; // Bắt đầu quá trình gửi dữ liệu
+        //console.log('Thông tin đặt phòng:', JSON.stringify(bookingDetails, null, 2));
+        // Gửi yêu cầu đặt phòng
+        const response = await axiosWithoutHeader.post(`${apiUrl}/api/booking-client`, bookingDetails);
+        //console.log('Đặt phòng thành công:', response.data);
+
+    } catch (error) {
+        console.error('Lỗi khi gửi thông tin đặt phòng:', error);
+
+        const errorMessage = error.response && error.response.data && error.response.data.error
+            ? error.response.data.error
+            : error.message || 'Đã xảy ra lỗi không xác định';
+
+        alert(`Lỗi khi gửi thông tin đặt phòng: ${errorMessage}`);
+        return;
+    } finally {
+        isLoading.value = false; // Kết thúc quá trình gửi dữ liệu
+        router.push('/thanksBooking'); // Ví dụ: về trang chủ
+
+    }
+
     // Gọi hàm gửi OTP SMS
-    await payQr();
+    //await payQr();
 };
 //payQr
 const payQr = async () => {
     isLoading.value = true; // Bắt đầu quá trình tải
     try {
         // Kiểm tra xem có ít nhất một phòng đã chọn không
+        selectedRooms.totalPrice = totalCostForAllRooms.value;
+        // console.log("selectedRooms.value:", selectedRooms.totalPrice); // lấy giá này 
+        //console.log("Booking Details:", selectedRooms.value, null, 2); // Log booking details as JSON
+
+        const payosItems = selectedRooms.value.map((room, index) => ({
+            name: `Phòng ${index + 1}`, // Tạo tên phòng dựa trên chỉ số
+            price: room.price,
+            totalServiceCost: room.totalServiceCost,
+            quantity: 1 // Đảm bảo quantity là số dương
+        }));
+        // console.log("roomDetails.value:", payosItems); // Log the room details
+
         if (selectedRooms.value.length === 0) {
             alert('Vui lòng chọn ít nhất một phòng trước khi đặt.');
             return;
         }
+
         // Kiểm tra thông tin bắt buộc
         if (!fullName.value || !phoneNumber.value) {
             alert('Vui lòng nhập đầy đủ họ tên và số điện thoại.');
             return;
         }
+
         // Gọi API thanh toán QR
-    }catch (error) {
+        paymentMethod.value = 'thanh_toan_ngay'; // Đặt phương thức thanh toán là QR
+         const axiosWithoutHeaderPayos = axios.create({
+        // baseURL: apiUrl, // Đặt base URL nếu cần
+        headers: {
+            'Content-Type': 'application/json',
+            'Authorization': ``, // Thêm token vào header
+        }
+    });
+        // Gửi yêu cầu thanh toán đến API
+        const response = await axiosWithoutHeaderPayos.post(`${apiUrl}/api/payos/checkout`, {
+            amount: 2000, // Tổng giá trị
+            // amount: selectedRooms.totalPrice, // Tổng giá trị
+            items: payosItems // Danh sách các mặt hàng
+        });
+
+        // Xử lý phản hồi từ API
+        if (response.data && response.data.checkoutUrl) {
+            // Chuyển hướng đến link thanh toán
+            window.location.href = response.data.checkoutUrl;
+        } else {
+            alert('Đã xảy ra lỗi trong quá trình thanh toán.');
+        }
+
+    } catch (error) {
         console.error('Lỗi thanh toán:', error.message || error);
         alert(`Lỗi thanh toán: ${error.message || error}`);
     } finally {
         isLoading.value = false; // Kết thúc quá trình tải
-    }   
+    }
 }
 //sms
 const verificationId = ref(null);
@@ -1102,7 +1221,7 @@ const verifyCode = async () => {
         paymentMethod.value = 'thanh_toan_sau';
         //confirmBooking.value = true; // Đặt trạng thái đơn hàng đã được xác nhận
         // Thực hiện hành động tiếp theo
-          router.push('/thanksBooking'); // Ví dụ: về trang chủ
+        router.push('/thanksBooking'); // Ví dụ: về trang chủ
 
 
     } catch (error) {

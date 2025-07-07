@@ -13,6 +13,8 @@ use Illuminate\Http\Request;
 use League\OAuth1\Client\Server\Server;
 use Tymon\JWTAuth\Facades\JWTAuth;
 use Illuminate\Support\Facades\Auth;
+use PayOS\PayOS;
+use PayOS\Exceptions\PayOSException;
 use Tymon\JWTAuth\Exceptions\JWTException;
 
 class BookingHotelController extends Controller
@@ -62,7 +64,6 @@ class BookingHotelController extends Controller
             ], 500);
         }
     }
-
     public function storeBooking(Request $request)
     {
         try {
@@ -70,22 +71,17 @@ class BookingHotelController extends Controller
             $bookingDetails = $request->validate([
                 'check_in_date' => 'required|date',
                 'check_out_date' => 'required|date',
-                'room_type' => 'required',
-                'gia_phong' => 'required|numeric',
                 'total_rooms' => 'required|integer',
-                'room_services' => 'required|array',
+                'roomDetails' => 'required|array',
                 'total_price' => 'required|numeric',
-                'phone' => 'required',
-                'fullName' => 'required|string',
                 'payment_method' => 'required',
                 'booking_type' => 'required|string',
                 'note' => 'nullable|string',
             ]);
-            //return response()->json(['token' => $bookingDetails]);
 
             // Lấy token từ header
             $token = $request->header('Authorization');
-            //return response()->json(['token' => $token]);
+            // return response()->json(['token' => $token]);
             if (!$token) {
                 return response()->json(['error' => 'Token not provided'], 401);
             }
@@ -106,17 +102,12 @@ class BookingHotelController extends Controller
                 return response()->json(['error' => 'Token is invalid'], 401);
             }
 
-            if (!$user) {
-                return response()->json(['error' => 'User not found'], 404);
-            }
-
             // Lấy customer_id từ user
             $customerId = $user->customer_id;
-
+            // return response()->json(['customerId' => $customerId]);
             // Lưu thông tin booking chính
             $booking = BookingHotel::create([
                 'customer_id' => $customerId,
-                'room_type' => $bookingDetails['room_type'],
                 'payment_method' => $bookingDetails['payment_method'],
                 'booking_type' => $bookingDetails['booking_type'],
                 'check_in_date' => $bookingDetails['check_in_date'],
@@ -127,39 +118,32 @@ class BookingHotelController extends Controller
                 'status' => 'pending_confirmation',
                 'note' => $bookingDetails['note'],
             ]);
-
+            // return response()->json(['booking' => $booking->booking_id]);
             // Lưu thông tin chi tiết cho từng phòng
-            for ($i = 0; $i < $bookingDetails['total_rooms']; $i++) {
-                BookingHotelDetail::create([
+            foreach ($bookingDetails['roomDetails'] as $roomDetail) {
+                $bookingDetail = BookingHotelDetail::create([
                     'booking_id' => $booking->booking_id,
-                    'room_id' => null, // Để trống nếu chưa có thông tin về phòng
-                    'gia_phong' => $bookingDetails['gia_phong'],
-                    'total_price' => $bookingDetails['gia_phong'],
+                    'room_type' => (int)$roomDetail['id'], // ID loại phòng
+                    'gia_phong' => number_format($roomDetail['price'], 2, '.', ''), // Định dạng giá
+                    'gia_dich_vu' => number_format($roomDetail['totalServiceCost'], 2, '.', ''), // Định dạng giá
+                    'total_price' => number_format($roomDetail['totalServiceCost'] + $roomDetail['price'], 2, '.', ''),
                     'note' => $bookingDetails['note'],
                 ]);
-            }
 
-            // Cập nhật số lượng phòng sử dụng dịch vụ
-            $roomsUsingService = [];
-            foreach ($bookingDetails['room_services'] as $service) {
-                foreach ($service['services_id'] as $serviceId) {
-                    if (!isset($roomsUsingService[$serviceId])) {
-                        $roomsUsingService[$serviceId] = 0;
-                    }
-                    $roomsUsingService[$serviceId]++;
+                // Lưu thông tin dịch vụ cho từng phòng
+                foreach ($roomDetail['serviceChoose'] as $serviceId) {
+                    BookingHotelService::create([
+                        'booking_detail_id' => $bookingDetail->id,
+                        'service_id' => $serviceId,
+                    ]);
                 }
             }
-
-            // Lưu thông tin số lượng phòng dùng dịch vụ vào booking
-            $booking->rooms_using_service = json_encode($roomsUsingService);
-            $booking->save();
 
             return response()->json(['message' => 'Booking created successfully!']);
         } catch (\Exception $e) {
             return response()->json(['error' => 'An error occurred: ' . $e->getMessage()], 500);
         }
     }
-    // lay thong tin booking tra ve cho client
     public function getBookingHistory(Request $request)
     {
         try {
@@ -186,6 +170,159 @@ class BookingHotelController extends Controller
             ], 500);
         }
     }
+    //payOS
+   public function payos(Request $request)
+{
+    // Xác thực dữ liệu từ client
+    $request->validate([
+        'amount' => 'required|numeric', // Giá trị tổng
+        'items' => 'required|array', // Chắc chắn 'items' là một mảng
+        'items.*.price' => 'required|numeric', // Giá sản phẩm
+        'items.*.totalServiceCost' => 'required|numeric', // Tổng phí dịch vụ
+    ]);
+
+    $amount = $request->input('amount');
+    $items = $request->input('items');
+
+    // Tạo dữ liệu cho PayOS
+    $data = [
+        "orderCode" => intval(substr(strval(microtime(true) * 10000), -6)), // Mã đơn hàng duy nhất
+        "amount" => $amount, // Tổng số tiền đã được truyền vào
+        "description" => "Đặt hàng với " . count($items) . " sản phẩm", // Mô tả
+        "items" => $items, // Dữ liệu item
+        "returnUrl" => "http://127.0.0.1:5173/ThanksBooking", // URL trở về
+        "cancelUrl" => "http://127.0.0.1:5173/" // URL hủy
+    ];
+
+    try {
+        // Khởi tạo PayOS
+        $payOSClientId = '078daf0e-baed-45f9-b2f9-20b79c89668e';
+        $payOSApiKey = '8841f63c-c976-4b89-bf56-b769b035292b';
+        $payOSChecksumKey = '266e7a5270d2b2b95f9e85c89215c258fa838acb23c3f62916d7e16ea0dcaf2d';
+
+        $payOS = new PayOS($payOSClientId, $payOSApiKey, $payOSChecksumKey);
+
+        // Gọi API PayOS để tạo link thanh toán
+        $response = $payOS->createPaymentLink($data);
+
+        // Kiểm tra phản hồi từ API
+        if (isset($response['checkoutUrl'])) {
+            // Chuyển hướng đến link thanh toán
+            return response()->json(['checkoutUrl' => $response['checkoutUrl']], 200);
+        } else {
+            // Xử lý khi không có checkoutUrl
+            return response()->json(['error' => 'Không thể tạo liên kết thanh toán.'], 500);
+        }
+    } catch (\Exception $e) {
+        // Xử lý lỗi từ PayOS và hiện lỗi ra
+        return response()->json([
+            'error' => 'Lỗi PayOS: ' . $e->getMessage(),
+            'code' => $e->getCode(), // Mã lỗi từ PayOS
+        ], 500);
+    } catch (\Exception $e) {
+        // Xử lý các lỗi khác và hiện lỗi ra
+        return response()->json(['error' => 'Đã xảy ra lỗi: ' . $e->getMessage()], 500);
+    }
+}
+    // public function storeBooking(Request $request)
+    // {
+    //     try {
+    //         // Validate the incoming request data
+    //         $bookingDetails = $request->validate([
+    //             'check_in_date' => 'required|date',
+    //             'check_out_date' => 'required|date',
+    //             'room_type' => 'required',
+    //             'gia_phong' => 'required|numeric',
+    //             'total_rooms' => 'required|integer',
+    //             'room_services' => 'required|array',
+    //             'total_price' => 'required|numeric',
+    //             'phone' => 'required',
+    //             'fullName' => 'required|string',
+    //             'payment_method' => 'required',
+    //             'booking_type' => 'required|string',
+    //             'note' => 'nullable|string',
+    //         ]);
+    //         //return response()->json(['token' => $bookingDetails]);
+
+    //         // Lấy token từ header
+    //         $token = $request->header('Authorization');
+    //         //return response()->json(['token' => $token]);
+    //         if (!$token) {
+    //             return response()->json(['error' => 'Token not provided'], 401);
+    //         }
+
+    //         // Xác thực token và lấy thông tin người dùng
+    //         try {
+    //             $user = JWTAuth::parseToken()->authenticate();
+    //             // Kiểm tra nếu user là null và tìm kiếm trong bảng customers
+    //             if (!$user) {
+    //                 $sub = JWTAuth::parseToken()->getPayload()->get('sub');
+    //                 $user = Customer::find($sub); // Thay đổi đây cho phù hợp với mô hình của bạn
+    //             }
+    //             if (!$user) {
+    //                 return response()->json(['token' => false], 404);
+    //             }
+    //             // return response()->json(['token' => $user]);
+    //         } catch (JWTException $e) {
+    //             return response()->json(['error' => 'Token is invalid'], 401);
+    //         }
+
+    //         if (!$user) {
+    //             return response()->json(['error' => 'User not found'], 404);
+    //         }
+
+    //         // Lấy customer_id từ user
+    //         $customerId = $user->customer_id;
+
+    //         // Lưu thông tin booking chính
+    //         $booking = BookingHotel::create([
+    //             'customer_id' => $customerId,
+    //             'room_type' => $bookingDetails['room_type'],
+    //             'payment_method' => $bookingDetails['payment_method'],
+    //             'booking_type' => $bookingDetails['booking_type'],
+    //             'check_in_date' => $bookingDetails['check_in_date'],
+    //             'check_out_date' => $bookingDetails['check_out_date'],
+    //             'total_rooms' => $bookingDetails['total_rooms'],
+    //             'total_price' => $bookingDetails['total_price'],
+    //             'payment_status' => 'pending',
+    //             'status' => 'pending_confirmation',
+    //             'note' => $bookingDetails['note'],
+    //         ]);
+
+    //         // Lưu thông tin chi tiết cho từng phòng
+    //         for ($i = 0; $i < $bookingDetails['total_rooms']; $i++) {
+    //             BookingHotelDetail::create([
+    //                 'booking_id' => $booking->booking_id,
+    //                 'room_id' => null, // Để trống nếu chưa có thông tin về phòng
+    //                 'gia_phong' => $bookingDetails['gia_phong'],
+    //                 'total_price' => $bookingDetails['gia_phong'],
+    //                 'note' => $bookingDetails['note'],
+    //             ]);
+    //         }
+
+    //         // Cập nhật số lượng phòng sử dụng dịch vụ
+    //         $roomsUsingService = [];
+    //         foreach ($bookingDetails['room_services'] as $service) {
+    //             foreach ($service['services_id'] as $serviceId) {
+    //                 if (!isset($roomsUsingService[$serviceId])) {
+    //                     $roomsUsingService[$serviceId] = 0;
+    //                 }
+    //                 $roomsUsingService[$serviceId]++;
+    //             }
+    //         }
+
+    //         // Lưu thông tin số lượng phòng dùng dịch vụ vào booking
+    //         $booking->rooms_using_service = json_encode($roomsUsingService);
+    //         $booking->save();
+
+    //         return response()->json(['message' => 'Booking created successfully!']);
+    //     } catch (\Exception $e) {
+    //         return response()->json(['error' => 'An error occurred: ' . $e->getMessage()], 500);
+    //     }
+    // }
+    // lay thong tin booking tra ve cho client
+
+
     //
     // public function storeBooking(Request $request)
     // {
