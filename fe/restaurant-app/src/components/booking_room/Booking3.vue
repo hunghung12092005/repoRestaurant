@@ -72,10 +72,10 @@
 
                                         </template>
                                     </div>
-                                    <div class="d-flex align-items-center text-secondary ms-3">
+                                    <!-- <div class="d-flex align-items-center text-secondary ms-3">
                                         <i class="bi bi-door-closed-fill fs-5 me-2"></i>
                                         <span class="fw-bold">{{ totalRooms }}</span> phòng
-                                    </div>
+                                    </div> -->
                                 </div>
                             </div>
 
@@ -85,9 +85,7 @@
                                     <div class="modal-content rounded-4 shadow-lg">
                                         <div class="modal-header  text-white border-bottom-0 pb-3 rounded-top-4">
                                             <h5 class="modal-title fs-5" id="guestSelectionModalLabel">
-                                                <i class="bi bi-person-fill me-2"></i> Chọn Phòng & Khách(1 Phòng tối đa
-                                                3 người lớn , 2 trẻ em dưới
-                                                10tuổi )
+                                                <i class="bi bi-person-fill me-2"></i> Chọn Khách
                                             </h5>
                                             <button type="button" class="btn-close btn-close-white"
                                                 data-bs-dismiss="modal" aria-label="Đóng"></button>
@@ -97,7 +95,7 @@
                                             <div v-for="(room, index) in rooms" :key="index"
                                                 class="mb-4 p-3 border rounded-3 bg-light-subtle d-flex flex-column gap-3">
                                                 <div class="d-flex justify-content-between align-items-center">
-                                                    <h6 class="mb-0 text-primary">Phòng {{ index + 1 }}</h6>
+                                                    <!-- <h6 class="mb-0 text-primary">Phòng {{ index + 1 }}</h6> -->
                                                     <button v-if="rooms.length > 1" type="button"
                                                         class="btn btn-outline-danger btn-sm rounded-pill px-3"
                                                         @click="removeRoomFromModal(index)">
@@ -142,17 +140,12 @@
                                                 </div>
                                             </div>
 
-                                            <div class="text-center mt-4">
-                                                <button class="btn btn-outline-primary btn-sm rounded-pill px-3"
-                                                    @click="addRoom">
-                                                    <i class="bi bi-plus-circle me-2"></i> Thêm Phòng Khác
-                                                </button>
-                                            </div>
+
                                         </div>
 
                                         <div class="modal-footer justify-content-between border-top-0 pt-0 pb-3">
                                             <button type="button" class="btn btn-secondary rounded-pill px-4"
-                                                data-bs-dismiss="modal">Hủy</button>
+                                                data-bs-dismiss="modal" @click="delSelection">Hủy</button>
                                             <button type="button" class="btn btn-primary rounded-pill px-4"
                                                 @click="confirmSelection">Xác Nhận Lựa
                                                 Chọn</button>
@@ -174,7 +167,7 @@
         <!-- Featured Hotels -->
         <section class="container my-5 py-lg-4">
             <h2 class="text-center text-dark fw-bold mb-4 display-5">
-                Lựa chọn hạng phòng <small class="text-muted fs-5">(Quý khách chọn {{ totalRooms }} phòng)</small>
+                Lựa chọn hạng phòng
             </h2>
             <div class="row g-5">
                 <div class="col-lg-8">
@@ -183,16 +176,22 @@
                             <div class="card hotel-room-card mb-3 shadow-lg border-0 rounded-4 overflow-hidden">
                                 <div class="row g-0 flex-md-nowrap">
                                     <div class="col-12 col-md-5"> <!-- Chiều cao 100% -->
-                                         <iframe width="100%" height="100%" src="https://www.youtube.com/embed/frG7fz6umT8?si=cSyPvHyfuiOUHUnH" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
+                                        <iframe width="100%" height="100%"
+                                            src="https://www.youtube.com/embed/frG7fz6umT8?si=cSyPvHyfuiOUHUnH"
+                                            title="YouTube video player" frameborder="0"
+                                            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                                            referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
                                     </div>
-                                  
+
                                     <div class="col-12 col-md-7">
                                         <div class="card-body d-flex flex-column h-100 p-4">
                                             <div class="d-flex align-items-center mb-3">
                                                 <span class="badge bg-primary me-2 fs-6 px-3 py-2 shadow-sm">
-                                                    {{ hotel.rating }} <i class="bi bi-star-fill align-middle ms-1"></i>
+                                                    {{ hotel.name }} <i class="bi bi-star-fill align-middle ms-1"></i>
                                                 </span>
-                                                <span class="text-charcoal fs-6">{{ hotel.name }} </span>
+                                                <span class="text-charcoal fs-6">Suc chua: {{ hotel.max_occupancy }}
+                                                    nguoi lon -
+                                                    2 child </span>
                                             </div>
                                             <div class="room-features mb-3 text-muted-dark small">
                                                 <p class="mb-1"><i
@@ -207,11 +206,11 @@
                                             </div>
                                             <p class="card-text text-charcoal mb-3 flex-grow-1">{{
                                                 hotel.description.substring(0, 150) }}...</p>
-                                                <button
-                                                        class="btn btn-outline-charcoal flex-fill me-2 rounded-pill px-4 py-2  "
-                                                        @click="viewHotelDetails(hotel)">
-                                                        <i class="bi bi-info-circle me-1"></i>Chi Tiết
-                                                    </button>
+                                            <button
+                                                class="btn btn-outline-charcoal flex-fill me-2 rounded-pill px-4 py-2  "
+                                                @click="viewHotelDetails(hotel)">
+                                                <i class="bi bi-info-circle me-1"></i>Chi Tiết
+                                            </button>
                                             <div
                                                 class="mt-auto d-flex flex-column flex-sm-row justify-content-between align-items-sm-end pt-3 border-top border-light-subtle">
                                                 <div class="price-info mb-3 mb-sm-0">
@@ -224,7 +223,7 @@
                                                     </p>
                                                 </div>
                                                 <div class="buttons d-flex w-100 w-sm-auto">
-                                                    
+
                                                     <button
                                                         class="btn btn-gold flex-fill rounded-pill px-4 py-2 border border-dark"
                                                         @click="addBooking(hotel)">
@@ -275,14 +274,15 @@
                             <div class="d-flex justify-content-between mt-4 pt-3 border-top border-gold-light">
                                 <strong class="text-charcoal">{{ totalAdults }} Người lớn, {{ totalChildren }} Trẻ
                                     em</strong>
-                                <strong class="text-charcoal">{{ totalRooms }} Phòng</strong>
-                                
+                                <!-- <strong class="text-charcoal">{{ totalRooms }} Phòng</strong> -->
+
                             </div>
                             <div class="mt-3 text-gold fw-bold">
-    Tổng Giá: {{ formatPrice(totalPrice) }}
-</div>
+                                Tổng Giá(Tạm Tính): {{ formatPrice(totalPrice) }}
+                            </div>
                             <div class="text-center mt-4">
-                                <button class="btn btn-gold w-100 py-3 rounded-pill fw-bold fs-5">
+                                <button @click="openPopupshowModalBooking"
+                                    class="btn btn-gold w-100 py-3 rounded-pill fw-bold fs-5">
                                     Tiến Hành Thanh Toán <i class="bi bi-arrow-right ms-2"></i>
                                 </button>
                             </div>
@@ -405,89 +405,313 @@
                 </div>
             </div>
         </section>
+        <!-- Booking Modal -->
+        <div v-show="showModalBooking" class="modal-backdrop">
+            <div class="modal-dialog modal-lg">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title m-2" id="bookingModalLabel">Thông tin Khách hàng</h5>
+                        <button type="button" class="btn-close m-4" @click="closeModal"></button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="row">
+                            <div class="col-md-4 reservation-section m-2">
+                                <div class="mb-4">
+                                    <label for="fullName" class="form-label">Họ và tên <span
+                                            class="text-muted small">(Bắt
+                                            buộc)</span></label>
+                                    <input type="text" class="form-control" id="fullName" v-model="fullName" required>
+                                    <small class="form-text text-muted">Nhập họ và tên đầy đủ.</small>
+                                </div>
+                                <div class="mb-3">
+                                    <label for="phone" class="form-label">Số điện thoại <span
+                                            class="text-muted small">(Bắt
+                                            buộc)</span></label>
+                                    <input type="number" class="form-control" id="phone" v-model="phoneNumber" required>
+                                </div>
+                                <div class="mb-3">
+                                    <label for="orderNotes" class="form-label">Ghi chú Đặt hàng (Tùy chọn)</label>
+                                    <textarea class="form-control" id="orderNotes" v-model="orderNotes"
+                                        rows="3"></textarea>
+                                </div>
+                                <div class="form-check mb-3">
+                                    <input class="form-check-input" type="checkbox" id="createAccount"
+                                        v-model="createAccount" value="true">
+                                    <label class="form-check-label" for="createAccount">Tôi hoàn toàn đồng ý với quy tắc
+                                        chung
+                                        của khách sạn</label>
+                                </div>
+                            </div>
+                            <div class="col-md-5 payment-section">
+                                <div class="receipt">
+                                    <p class="shop-name">Bill Market</p>
+                                    <p class="info">
+                                        Ho Xuan Huong Hotel, 23/89<br />
+                                        Thanh Mai, Quang Thanh<br />
+                                        Date: {{ currentDateTime }}<br />
+                                    </p>
 
-        <!-- Modal for hotel details -->
-        <div v-if="showModal" class="modal fade show mt-5" style="display: block; background-color: rgba(0, 0, 0, 0.7);">
-    <div class="modal-dialog modal-dialog-centered modal-xl">
-        <div class="modal-content shadow-lg border-0 rounded-4">
-            <div class="modal-header bg-dark text-white border-0 pb-0 pt-4 px-4 rounded-top-4">
-                <h5 class="modal-title fw-bold fs-3 text-uppercase">Chi Tiết Hạng Phòng</h5>
-                <button type="button" class="btn-close btn-close-white" @click="closeModal" aria-label="Close"></button>
-            </div>
-            <div class="modal-body p-0">
-                <div class="position-relative">
-                    <div id="hotelImageCarousel" class="carousel slide" data-bs-ride="carousel" data-bs-interval="5000">
-                        <div class="carousel-inner rounded-top-4 rounded-md-top-0">
-                            <div class="carousel-item active">
-                                <img src="https://pistachiohotel.com/UploadFile/Gallery/Overview/a3.jpg"
-                                     class="d-block w-100 object-fit-cover rounded-top-4" alt="Phòng Khách Sạn 1"
-                                     style="min-height: 450px; max-height: 600px;">
+                                    <div class="total">
+                                        <p>Số Ngày Ở:</p>
+                                        <p>{{ totalday }} Ngày</p>
+                                    </div>
+
+                                    <div class="total">
+                                        <p>Số Phòng Book:</p>
+                                        <p>{{ selectedRooms.length }} Phòng</p>
+                                    </div>
+
+                                    <!-- Displaying selected room details -->
+                                    <div class="room-details container my-5 py-3">
+                                        <h2 class="text-center text-uppercase fw-bold mb-5 position-relative text-dark">
+                                            <span
+                                                class="d-inline-block pb-3 border-bottom border-4 border-primary">Thông
+                                                Tin
+                                                Đặt Phòng</span>
+                                            <span class="position-absolute start-50 translate-middle-x mt-2"
+                                                style="width: 70px; height: 4px; background-color: #ffc107; border-radius: 50%;"></span>
+                                        </h2>
+
+                                        <div class="row g-4 justify-content-center">
+                                            <div v-for="(room, index) in selectedRooms" :key="index" class="col-12">
+                                                <div
+                                                    class="card shadow-lg border-0 rounded-4 overflow-hidden animate__animated animate__fadeInUp">
+                                                    <div
+                                                        class="card-header bg-gradient-primary text-white py-3 px-4 d-flex justify-content-between align-items-center">
+                                                        <h4 class="mb-0 fw-bold">Phòng {{ index + 1 }}: <span
+                                                                class="text-white-50">{{ room.name }}</span></h4>
+                                                        <span class="h4 mb-0 fw-bold text-white">{{
+                                                            formatPrice(room.price)
+                                                            }}</span>
+                                                    </div>
+                                                    <div class="card-body p-4">
+                                                        <p class="fw-semibold text-secondary mb-3 border-bottom pb-2">
+                                                            Các Dịch
+                                                            Vụ Đã Chọn:</p>
+                                                        <ul class="list-unstyled mb-4 row row-cols-1 row-cols-md-2 g-3">
+                                                            <li v-for="(service, serviceIndex) in room.services"
+                                                                :key="serviceIndex" class="col">
+                                                                <label
+                                                                    class="d-flex align-items-center bg-light p-3 rounded-3 border border-light-subtle shadow-sm service-item-hover">
+                                                                    <input type="checkbox" v-model="service.selected"
+                                                                        @change="updateRoomTotal(room,service.service_id)"
+                                                                        class="form-check-input me-3 large-checkbox">
+                                                                    <span class="flex-grow-1 text-dark fw-medium">{{
+                                                                        service.service_name }}</span>
+                                                                    <span class="text-muted small ms-2">{{
+                                                                        formatPrice(service.price) }}</span>
+                                                                </label>
+                                                            </li>
+                                                        </ul>
+                                                        <div class="text-end pt-3 border-top">
+                                                            <p class="mb-0 fw-bold text-dark">
+                                                                Tổng Chi Phí Dịch Vụ Phòng: <br>
+                                                                <span class="h5 text-info fw-bolder">{{
+                                                                    formatPrice(room.totalServiceCost) }}</span>
+                                                            </p>
+                                                            <p class="mb-0 fw-bold text-dark">
+                                                                Tổng Chi Phí Phòng: <br>
+                                                                <span class="h5 text-info fw-bolder">{{
+                                                                    formatPrice(calculateRoomTotal(room))
+                                                                    }}</span>
+                                                            </p>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div
+                                            class="d-flex flex-column flex-md-row justify-content-between align-items-md-center mt-5 p-4 bg-dark text-white rounded-4 shadow-lg animate__animated animate__fadeInUp">
+                                            <h3 class="mb-2 mb-md-0 fw-bold text-uppercase">Tổng Cộng Thanh Toán:</h3>
+                                            <p class="h1 mb-0 text-warning fw-bolder">{{
+                                                formatPrice(totalCostForAllRooms) }}
+                                            </p>
+                                        </div>
+                                    </div>
+                                    <!-- <div class="total">
+                                        <p>PRICE:</p>
+                                        <p>{{ formatPrice(totalPrice) }} </p>
+                                    </div> -->
+                                    <div class="mb-1">
+                                        <div class="radio-input">
+                                            <input value="value-1" name="value-radio" id="value-1" type="radio"
+                                                @click="sendOtpSMS" />
+                                            <label for="value-1">
+                                                <div class="text">
+                                                    <span class="circle"></span>
+                                                    Thanh Toán Sau
+                                                </div>
+                                                <span class="info-pay">SMS OTP</span>
+                                            </label>
+
+                                            <input value="value-2" name="value-radio" id="value-2" type="radio"
+                                                @click="payQr" />
+                                            <label for="value-2">
+                                                <div class="text">
+                                                    <span class="circle"></span>
+                                                    Thanh Toán Ngay
+                                                </div>
+                                                <span class="info-pay">{{
+                                                    formatPrice(totalCostForAllRooms)
+                                                    }}</span>
+                                            </label>
+                                        </div>
+                                    </div>
+                                    <p class="thanks">Thank you for shopping with us!</p>
+                                </div>
                             </div>
-                            <div class="carousel-item">
-                                <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRMFteLbo7EdtFP32wDKvTJxML1CEt9pCdo4ByeKxCZnFX9cBf0ifdq6eCRQZBW_3feWRI&usqp=CAU"
-                                     class="d-block w-100 object-fit-cover rounded-top-4" alt="Phòng Khách Sạn 2"
-                                     style="min-height: 450px; max-height: 600px;">
-                            </div>
-                            <div class="carousel-item">
-                                <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcR7roFS7C9CH67wV7w3WdxLZ8CtW8nuvA2tf3kNJzn6YR5Xczj8AktzixNewUwV_SASOz8&usqp=CAU"
-                                     class="d-block w-100 object-fit-cover rounded-top-4" alt="Phòng Khách Sạn 3"
-                                     style="min-height: 450px; max-height: 600px;">
-                            </div>
-                            
-                        </div>
-                        <button class="carousel-control-prev" type="button" data-bs-target="#hotelImageCarousel" data-bs-slide="prev">
-                            <span class="carousel-control-prev-icon" aria-hidden="true"></span>
-                            <span class="visually-hidden">Previous</span>
-                        </button>
-                        <button class="carousel-control-next" type="button" data-bs-target="#hotelImageCarousel" data-bs-slide="next">
-                            <span class="carousel-control-next-icon" aria-hidden="true"></span>
-                            <span class="visually-hidden">Next</span>
-                        </button>
-                        <div class="position-absolute w-100 h-100 d-flex align-items-end p-4" style="background: linear-gradient(to top, rgba(0, 0, 0, 0.75) 0%, rgba(0, 0, 0, 0) 100%); top: 0; left: 0;">
-                            <h4 class="text-white fw-bolder mb-0 display-4">{{ selectedHotel.name }}</h4>
                         </div>
                     </div>
-                </div>
-
-                <div class="p-5 bg-light rounded-bottom-4">
-                    <div class="row">
-                        <div class="col-lg-6 mb-4 mb-lg-0">
-                            <h5 class="text-dark fw-bold mb-4 border-bottom pb-2">Thông Tin Chung</h5>
-                            <p class="mb-2 fs-6"><strong class="text-secondary">Giá 1 đêm/phòng:</strong> <span class="fw-bold text-warning">{{ formatPrice(selectedHotel.price_per_night) }}</span></p>
-                            <p class="mb-2 fs-6"><strong class="text-secondary">Phụ Thu (dịp lễ/đặc biệt):</strong> <span class="text-danger fw-bold">{{ formatPrice(selectedHotel.surcharges) }}</span></p>
-                            <p class="mb-2 fs-6"><strong class="text-secondary">Số Phòng:</strong> <span class="fw-bold text-dark">{{ selectedHotel.so_phong }}</span></p>
-                            <p class="mb-2 fs-6"><strong class="text-secondary">Số đêm:</strong> <span class="fw-bold text-dark">{{ selectedHotel.total_days }}</span></p>
-                            <p class="mb-4 pt-3"><strong class="text-dark fs-5">Tổng tiền:</strong> <span class="fw-bolder text-warning fs-3">{{ formatPrice(selectedHotel.price) }}</span></p>
-
-                            <h5 class="text-dark fw-bold mb-3 border-bottom pb-2">Mô Tả Hạng Phòng</h5>
-                            <p class="text-muted mb-0">{{ selectedHotel.description }}</p>
-                        </div>
-                        <div class="col-lg-6">
-                            <h5 class="text-dark fw-bold mb-3 border-bottom pb-2">Tiện Nghi Đi Kèm:</h5>
-                            <ul class="list-unstyled mb-4 small">
-                                <li v-if="selectedHotel.amenities.length === 0" class="text-muted fst-italic">Không có tiện nghi đi kèm cho hạng phòng này</li>
-                                <li v-for="amenity in selectedHotel.amenities" :key="amenity.amenity_id" class="mb-2 d-flex align-items-start">
-                                    <i class="bi bi-check-lg me-2 text-success"></i> <span class="flex-grow-1">{{ amenity.amenity_name }}: <span class="text-muted">{{ amenity.description }}</span></span>
-                                </li>
-                            </ul>
-                            <h5 class="text-dark fw-bold mb-3 border-bottom pb-2">Dịch Vụ Đặc Biệt:</h5>
-                            <ul class="list-unstyled small">
-                                <li v-if="selectedHotel.services.length === 0" class="text-muted fst-italic">Không có dịch vụ đi kèm cho hạng phòng này</li>
-                                <li v-for="service in selectedHotel.services" :key="service.service_id" class="mb-2 d-flex align-items-start">
-                                    <i class="bi bi-star-fill me-2 text-info"></i> <span class="flex-grow-1">{{ service.service_name }}: <span class="fw-bold text-dark">{{ formatPrice(service.price) }}</span></span>
-                                </li>
-                            </ul>
-                        </div>
+                    <div class="modal-footer m-4">
+                        <button type="button" class="btn btn-secondary m-2" @click="closeModal">Đóng</button>
+                        <button type="submit" class="btn btn-primary" @click="confirmBooking">Xác nhận Đặt
+                            phòng</button>
                     </div>
                 </div>
-            </div>
-            <div class="modal-footer bg-light border-0 d-flex justify-content-center p-4 rounded-bottom-4">
-                <button type="button" class="btn btn-outline-dark rounded-pill px-5 py-2 fw-medium" @click="closeModal">Đóng</button>
-                <button type="button" class="btn btn-warning text-dark rounded-pill px-5 py-2 fw-bold ms-3">Đặt Ngay Hạng Phòng Này</button>
             </div>
         </div>
-    </div>
-</div>
+        <!-- popup smsotp -->
+         <div v-if="isOtp" class="popup-overlay">
+            <div class="form-container">
+                <div class="logo-container">
+                    Xác thực SMS
+                    <button type="button" class="btn-close m-4" @click="closeModalOtp"></button>
+                </div>
+
+
+                <div class="form-group">
+                    <label for="email">Mã OTP</label>
+                    <input v-model="otpInputs" type="number" placeholder="Nhập OTP" required="">
+                </div>
+
+                <button class="form-submit-btn" type="submit" @click="verifyCode">Xác Nhận</button>
+
+                <p v-if="message">
+                <div class="alert alert-warning alert-dismissible fade show" role="alert">
+                    <!-- <strong>Thông báo!</strong> {{ message }} -->
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+                </p>
+            </div>
+        </div>
+        <div id="recaptcha-container"></div> <!-- ReCAPTCHA -->
+
+        <!-- Modal for hotel details -->
+        <div v-if="showModal" class="modal fade show mt-5"
+            style="display: block; background-color: rgba(0, 0, 0, 0.7);">
+            <div class="modal-dialog modal-dialog-centered modal-xl">
+                <div class="modal-content shadow-lg border-0 rounded-4">
+                    <div class="modal-header bg-dark text-white border-0 pb-0 pt-4 px-4 rounded-top-4">
+                        <h5 class="modal-title fw-bold fs-3 text-uppercase">Chi Tiết Hạng Phòng</h5>
+                        <button type="button" class="btn-close btn-close-white" @click="closeModal"
+                            aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body p-0">
+                        <div class="position-relative">
+                            <div id="hotelImageCarousel" class="carousel slide" data-bs-ride="carousel"
+                                data-bs-interval="5000">
+                                <div class="carousel-inner rounded-top-4 rounded-md-top-0">
+                                    <div class="carousel-item active">
+                                        <img src="https://pistachiohotel.com/UploadFile/Gallery/Overview/a3.jpg"
+                                            class="d-block w-100 object-fit-cover rounded-top-4" alt="Phòng Khách Sạn 1"
+                                            style="min-height: 450px; max-height: 600px;">
+                                    </div>
+                                    <div class="carousel-item">
+                                        <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRMFteLbo7EdtFP32wDKvTJxML1CEt9pCdo4ByeKxCZnFX9cBf0ifdq6eCRQZBW_3feWRI&usqp=CAU"
+                                            class="d-block w-100 object-fit-cover rounded-top-4" alt="Phòng Khách Sạn 2"
+                                            style="min-height: 450px; max-height: 600px;">
+                                    </div>
+                                    <div class="carousel-item">
+                                        <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcR7roFS7C9CH67wV7w3WdxLZ8CtW8nuvA2tf3kNJzn6YR5Xczj8AktzixNewUwV_SASOz8&usqp=CAU"
+                                            class="d-block w-100 object-fit-cover rounded-top-4" alt="Phòng Khách Sạn 3"
+                                            style="min-height: 450px; max-height: 600px;">
+                                    </div>
+
+                                </div>
+                                <button class="carousel-control-prev" type="button" data-bs-target="#hotelImageCarousel"
+                                    data-bs-slide="prev">
+                                    <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+                                    <span class="visually-hidden">Previous</span>
+                                </button>
+                                <button class="carousel-control-next" type="button" data-bs-target="#hotelImageCarousel"
+                                    data-bs-slide="next">
+                                    <span class="carousel-control-next-icon" aria-hidden="true"></span>
+                                    <span class="visually-hidden">Next</span>
+                                </button>
+                                <div class="position-absolute w-100 h-100 d-flex align-items-end p-4"
+                                    style="background: linear-gradient(to top, rgba(0, 0, 0, 0.75) 0%, rgba(0, 0, 0, 0) 100%); top: 0; left: 0;">
+                                    <h4 class="text-white fw-bolder mb-0 display-4">{{ selectedHotel.name }}</h4>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="p-5 bg-light rounded-bottom-4">
+                            <div class="row">
+                                <div class="col-lg-6 mb-4 mb-lg-0">
+                                    <h5 class="text-dark fw-bold mb-4 border-bottom pb-2">Thông Tin Chung</h5>
+                                    <p class="mb-2 fs-6"><strong class="text-secondary">Giá 1 đêm/phòng:</strong> <span
+                                            class="fw-bold text-warning">{{ formatPrice(selectedHotel.price_per_night)
+                                            }}</span>
+                                    </p>
+                                    <p class="mb-2 fs-6"><strong class="text-secondary">Phụ Thu (dịp lễ/đặc
+                                            biệt):</strong>
+                                        <span class="text-danger fw-bold">{{ formatPrice(selectedHotel.surcharges)
+                                        }}</span>
+                                    </p>
+                                    <p class="mb-2 fs-6"><strong class="text-secondary">Số Phòng:</strong> <span
+                                            class="fw-bold text-dark">{{ selectedHotel.so_phong }}</span></p>
+                                    <p class="mb-2 fs-6"><strong class="text-secondary">Số đêm:</strong> <span
+                                            class="fw-bold text-dark">{{ selectedHotel.total_days }}</span></p>
+                                    <p class="mb-4 pt-3"><strong class="text-dark fs-5">Tổng tiền:</strong> <span
+                                            class="fw-bolder text-warning fs-3">{{ formatPrice(selectedHotel.price)
+                                            }}</span>
+                                    </p>
+
+                                    <h5 class="text-dark fw-bold mb-3 border-bottom pb-2">Mô Tả Hạng Phòng</h5>
+                                    <p class="text-muted mb-0">{{ selectedHotel.description }}</p>
+                                </div>
+                                <div class="col-lg-6">
+                                    <h5 class="text-dark fw-bold mb-3 border-bottom pb-2">Tiện Nghi Đi Kèm:</h5>
+                                    <ul class="list-unstyled mb-4 small">
+                                        <li v-if="selectedHotel.amenities.length === 0" class="text-muted fst-italic">
+                                            Không có
+                                            tiện nghi đi kèm cho hạng phòng này</li>
+                                        <li v-for="amenity in selectedHotel.amenities" :key="amenity.amenity_id"
+                                            class="mb-2 d-flex align-items-start">
+                                            <i class="bi bi-check-lg me-2 text-success"></i> <span
+                                                class="flex-grow-1">{{
+                                                    amenity.amenity_name }}: <span class="text-muted">{{ amenity.description
+                                                }}</span></span>
+                                        </li>
+                                    </ul>
+                                    <h5 class="text-dark fw-bold mb-3 border-bottom pb-2">Dịch Vụ Đặc Biệt:</h5>
+                                    <ul class="list-unstyled small">
+                                        <li v-if="selectedHotel.services.length === 0" class="text-muted fst-italic">
+                                            Không có
+                                            dịch vụ đi kèm cho hạng phòng này</li>
+                                        <li v-for="service in selectedHotel.services" :key="service.service_id"
+                                            class="mb-2 d-flex align-items-start">
+                                            <i class="bi bi-star-fill me-2 text-info"></i> <span class="flex-grow-1">{{
+                                                service.service_name }}: <span class="fw-bold text-dark">{{
+                                                    formatPrice(service.price) }}</span></span>
+                                        </li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal-footer bg-light border-0 d-flex justify-content-center p-4 rounded-bottom-4">
+                        <button type="button" class="btn btn-outline-dark rounded-pill px-5 py-2 fw-medium"
+                            @click="closeModal">Đóng</button>
+                        <button type="button" class="btn btn-warning text-dark rounded-pill px-5 py-2 fw-bold ms-3">Đặt
+                            Ngay
+                            Hạng Phòng Này</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
 
 
         <Footer></Footer>
@@ -514,8 +738,8 @@ const showPopup = ref(false);//popup mới vào trang
 const hotels = ref([]);
 const isLoading = ref(false);
 const rooms = ref([{ adults: 1, children: 0 }]); // Mỗi phòng có số người lớn và trẻ emconst MAX_ROOMS = 5; // Giới hạn số lượng phòng tối đa
-const MAX_ADULTS_PER_ROOM = 3; // Giới hạn số người lớn tối đa trong mỗi phòng
-const MAX_CHILD_PER_ROOM = 2; // Giới hạn số tre tối đa trong mỗi phòng
+const MAX_ADULTS_PER_ROOM = 15; // Giới hạn số người lớn tối đa trong mỗi phòng
+const MAX_CHILD_PER_ROOM = 10; // Giới hạn số tre tối đa trong mỗi phòng
 const MAX_ROOMS = 5; // Giới hạn số lượng phòng tối đa
 const totalAdults = computed(() => rooms.value.reduce((sum, room) => sum + room.adults, 0));
 // Tính tổng số trẻ em
@@ -527,10 +751,25 @@ const totalPrice = computed(() => {
     return selectedRooms.value.reduce((total, room) => total + room.price, 0);
 });
 
-const totalRooms = computed(() => rooms.value.length);
+//const totalRooms = computed(() => rooms.value.length);
 const checkin = ref();
 const checkOut = ref();
 const bookrooms = ref();
+const totalday = ref(0);
+// Tính số ngày giữa checkin và checkout
+const calculateTotalDays = () => {
+    if (checkin.value && checkOut.value) {
+        const checkinDate = new Date(checkin.value);
+        const checkoutDate = new Date(checkOut.value);
+        
+        // Tính số ngày
+        totalday.value = (checkoutDate - checkinDate) / (1000 * 60 * 60 * 24); 
+       // console.log(totalday.value);
+        // Chia cho số mili giây trong một ngày
+    } else {
+        totalday.value = 0; // Nếu không có ngày, gán giá trị mặc định
+    }
+};
 
 const showModal = ref(false);
 const showModalBooking = ref(false);
@@ -540,11 +779,19 @@ const selectedHotelBooking = ref(null);
 const currentDateTime = new Date().toLocaleString();
 const phoneNumber = ref('');
 const fullName = ref('');
+const orderNotes = ref('');
+const createAccount = ref('true');
+const paymentMethod = ref(''); // Phương thức thanh toán
+
+//sms
+const isFormOTP = ref(true);
+const isOtp = ref(false);
+const otpInputs = ref();
 
 const showPopUpMain = () => {
     showPopup.value = true;//popup mới vào trang
 }
-
+//format price
 const formatPrice = (value) => {
     return new Intl.NumberFormat('vi-VN', {
         style: 'currency',
@@ -591,44 +838,101 @@ const decreaseChildren = (index) => {
         rooms.value[index].children--;
     }
 };
-// Hàm thêm phòng
-const addRoom = () => {
-    if (rooms.value.length < MAX_ROOMS) {
-        rooms.value.push({ adults: 1, children: 0 }); // Thêm phòng mới với 1 người lớn
+const confirmSelection = () => {
+    // Kiểm tra xem có ít nhất một phòng được chọn không
+    if (rooms.value.length > 0) {
+        getRoomPrices();
+
+    } else {
+        alert('Vui lòng thêm ít nhất một phòng trước khi xác nhận.');
     }
+};
+const delSelection = () => {
+    // Xóa tất cả các phòng đã chọn
+    rooms.value = [{ adults: 1, children: 0 }]; // Reset lại danh sách phòng
+    showModal.value = false; // Đóng modal
+    //console.log("Đã xóa tất cả các phòng đã chọn.");
 };
 //addBooking
 const addBooking = (hotel) => {
     // Kiểm tra xem số phòng đã chọn có nhỏ hơn số tối đa không
-    if (selectedRooms.value.length < totalRooms.value) {
-        console.log("Thêm phòng:", hotel);
-
+    if (selectedRooms.value.length < 5) {
+        // Tạo dữ liệu phòng mới từ đối tượng hotel
         const roomData = {
             ...hotel, // Sao chép tất cả các thuộc tính từ đối tượng hotel
-            total_days: hotel.total_days // Nếu bạn cần thêm hoặc chỉnh sửa thêm thuộc tính
+            total_days: hotel.total_days || 1, // Thiết lập mặc định cho total_days nếu không có
+            services: hotel.services.map(service => ({
+                ...service,
+                selected: false // Thêm thuộc tính selected vào mỗi dịch vụ
+            })),
+            serviceChoose: [], // Khởi tạo serviceChoose là mảng rỗng
+            totalServiceCost: 0 // Khởi tạo totalServiceCost là 0
         };
-        selectedRooms.value.push(roomData); // Thêm phòng vào danh sách
-        console.log("Room Data:", selectedRooms.value);
 
+        // Thêm phòng vào danh sách
+        selectedRooms.value.push(roomData);
+        
+        // Cập nhật tổng số phòng
+        selectedRooms.totalRooms = selectedRooms.value.length;
+
+        //console.log("selectedRooms.value:", selectedRooms.value);
+        //console.log("Tổng số phòng đã chọn:", selectedRooms.totalRooms);
     } else {
-        alert(`Bạn chỉ có thể chọn tối đa ${totalRooms.value} phòng.`);
+        alert(`Bạn chỉ có thể chọn tối đa 5 phòng.`);
     }
 };
 const removeRoom = (index) => {
     selectedRooms.value.splice(index, 1); // Xóa phòng tại chỉ số index
-};
+    selectedRooms.totalRooms = selectedRooms.value.length; // Giảm tổng số phòng};
 // Hàm xử lý chọn khách
-const selectGuests = () => {
-    const totalAdults = rooms.value.reduce((sum, room) => sum + room.adults, 0);
-    const totalRooms = rooms.value.length;
-    //console.log(`Tổng số người lớn: ${totalAdults}, Số phòng: ${totalRooms}`);
-    // Đóng modal sau khi chọn
-    const modal = bootstrap.Modal.getInstance(document.getElementById('guestModal'));
-    modal.hide();
 }
 const removeRoomFromModal = (index) => {
     rooms.value.splice(index, 1); // Xóa phòng tại chỉ số index từ danh sách rooms
 };
+//hien thi popup chon dich vu
+const openPopupshowModalBooking = () => {
+    if (selectedRooms.value.length === 0) {
+        alert('Vui lòng chọn ít nhất một phòng trước khi đặt.');
+        return;
+    }
+    showModalBooking.value = true;
+        console.log(selectedRooms.value);
+        console.log("totalRooms:", selectedRooms.totalRooms);//lay cai nay for booking_details  
+};
+const updateRoomTotal = (room, selectedServiceId) => {
+    // Kiểm tra và thêm hoặc xóa service id trong serviceChoose
+    if (selectedServiceId) {
+        const index = room.serviceChoose.indexOf(selectedServiceId);
+        if (index === -1) {
+            // Nếu chưa có, thêm vào
+            room.serviceChoose.push(selectedServiceId);
+        } else {
+            // Nếu đã có, xóa ra
+            room.serviceChoose.splice(index, 1);
+        }
+    }
+
+    // Tính tổng chi phí dịch vụ
+    room.totalServiceCost = room.services.reduce((total, service) => {
+        return total + (service.selected ? parseFloat(service.price) : 0);
+    }, 0);
+    //console.log("Tổng số phòng đã chọn:", selectedRooms.totalRooms);
+    //console.log("Cập nhật tổng chi phí dịch vụ cho phòng:", room.name, "Tổng chi phí:", room.totalServiceCost);
+    //console.log("Dịch vụ đã chọn:", room.serviceChoose);
+    console.log(selectedRooms.value);
+};
+//tinh tien dich vu 1 phong
+const calculateRoomTotal = (room) => {
+    const roomPrice = parseFloat(room.price) || 0; // Giá phòng
+    const serviceCost = room.totalServiceCost || 0; // Chi phí dịch vụ
+    return roomPrice + serviceCost; // Tổng tiền cho phòng
+};
+// tinh tien dich vu all room
+const totalCostForAllRooms = computed(() => {
+    return selectedRooms.value.reduce((total, room) => {
+        return total + calculateRoomTotal(room); // Cộng tổng tiền từng phòng
+    }, 0);
+});
 //lấy loại phòng
 const getRoomTypes = async () => {
     isLoading.value = true;
@@ -696,14 +1000,120 @@ const getRoomPrices = async () => {
                 gia1h: roomPrice.gia1h
             };
         });
-
-        //  console.log("Updated Hotels:", hotels.value); // In ra mảng hotels đã được cập nhật
-
+        calculateTotalDays();//tinh lai ngay
+        //totalday.value = hotels[0].total_days; 
+        //console.log("Updated Hotels:", hotels.value); // Kiểm tra thông tin phòng đã cập nhật
     } catch (error) {
         console.error("Có lỗi xảy ra khi lấy dữ liệu:", error);
     } finally {
         isLoading.value = false; // Kết thúc tải dữ liệu
     }
+}
+// Xử lý gửi OTP SMS
+const confirmBooking = async () => {
+    // Kiểm tra thông tin bắt buộc
+    if (!fullName.value || !phoneNumber.value) {
+        alert('Vui lòng nhập đầy đủ họ tên và số điện thoại.');
+        return;
+    }
+    // Kiểm tra xem có ít nhất một phòng đã chọn không
+    if (selectedRooms.value.length === 0) {
+        alert('Vui lòng chọn ít nhất một phòng trước khi đặt.');
+        return;
+    }
+   
+    // Gọi hàm gửi OTP SMS
+    await payQr();
+};
+//payQr
+const payQr = async () => {
+    isLoading.value = true; // Bắt đầu quá trình tải
+    try {
+        // Kiểm tra xem có ít nhất một phòng đã chọn không
+        if (selectedRooms.value.length === 0) {
+            alert('Vui lòng chọn ít nhất một phòng trước khi đặt.');
+            return;
+        }
+        // Kiểm tra thông tin bắt buộc
+        if (!fullName.value || !phoneNumber.value) {
+            alert('Vui lòng nhập đầy đủ họ tên và số điện thoại.');
+            return;
+        }
+        // Gọi API thanh toán QR
+    }catch (error) {
+        console.error('Lỗi thanh toán:', error.message || error);
+        alert(`Lỗi thanh toán: ${error.message || error}`);
+    } finally {
+        isLoading.value = false; // Kết thúc quá trình tải
+    }   
+}
+//sms
+const verificationId = ref(null);
+const sendOtpSMS = async () => {
+    isLoading.value = true; // Bắt đầu quá trình tải
+    try {
+        // Kiểm tra xem số điện thoại đã được nhập chưa
+        if (!phoneNumber.value) {
+            alert('Vui lòng nhập số điện thoại!');
+            // Tập trung vào input số điện thoại
+            document.getElementById('phone').focus(); // Đảm bảo ID đúng với input của bạn
+            return; // Ngừng thực hiện hàm nếu không có số điện thoại
+        }
+        // Kiểm tra xem auth có được khởi tạo đúng cách
+        if (!auth) {
+            throw new Error('auth chưa được khởi tạo. Kiểm tra cấu hình Firebase.');
+        }
+
+        // Khởi tạo RecaptchaVerifier
+        const appVerifier = new RecaptchaVerifier(auth, 'recaptcha-container', {
+            size: 'invisible',
+            callback: (response) => {
+                //console.log('ReCAPTCHA đã được xác minh:', response);
+            },
+            'expired-callback': () => {
+                //console.warn('ReCAPTCHA đã hết hạn.');
+            },
+        });
+        // Thêm +84 vào trước số điện thoại
+        const fullPhoneNumber = `+84${phoneNumber.value}`;
+        // console.log(fullPhoneNumber)
+
+        const confirmationResult = await signInWithPhoneNumber(auth, fullPhoneNumber, appVerifier);
+        verificationId.value = confirmationResult.verificationId;
+        //alert('Mã xác nhận đã được gửi thành công! Vui lòng kiểm tra tin nhắn.');
+        isOtp.value = true;
+
+    } catch (error) {
+        console.error('Lỗi gửi mã xác nhận:', error.message || error);
+        alert(`Lỗi gửi mã xác nhận: ${error.message || error}`);
+    } finally {
+        isLoading.value = false; // Kết thúc quá trình tải
+
+    }
+}
+const verifyCode = async () => {
+    isLoading.value = true;
+    try {
+        const credential = PhoneAuthProvider.credential(verificationId.value, otpInputs.value);
+        const result = await signInWithCredential(auth, credential);
+        //alert('Xác nhận thành công!');
+        //closePopup(); // Đóng popup sau khi xác nhận thành công
+        isOtp.value = false; //ẩn form  hiển thị otp
+        paymentMethod.value = 'thanh_toan_sau';
+        //confirmBooking.value = true; // Đặt trạng thái đơn hàng đã được xác nhận
+        // Thực hiện hành động tiếp theo
+          router.push('/thanksBooking'); // Ví dụ: về trang chủ
+
+
+    } catch (error) {
+        console.error('Lỗi xác minh mã:', error.message || error);
+        alert(`Lỗi xác minh mã: ${error.message || error}`);
+    } finally {
+        isLoading.value = false;
+    }
+};
+const closeModalOtp = async () => {
+    isOtp.value = false;
 }
 //xem chi tiết hạng phòng
 function viewHotelDetails(hotel) {
@@ -725,6 +1135,7 @@ onMounted(() => {
     bookrooms.value = 1;
     getRoomTypes();
     getRoomPrices();
+    calculateTotalDays();
 });
 </script>
 
