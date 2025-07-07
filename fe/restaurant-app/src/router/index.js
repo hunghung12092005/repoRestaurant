@@ -1,17 +1,18 @@
 import { createRouter, createWebHistory } from 'vue-router';
 import App from '../App.vue';
 import HomeComponent from '../components/HomeComponent.vue';
+import Home2 from '../components/Home2.vue';
 import AboutComponent from '../components/AboutComponent.vue';
 import ContactComponent from '../components/ContactComponent.vue';
 import ReservationComponent from '../components/booking/ReservationComponent.vue';
 import BookRoomComponent from '../components/booking/BookRoomComponent.vue';
 import BlogComponent from '../components/News/BlogComponent.vue';
-import MenuComponent from '../components/menu_item/MenuComponent.vue';
-import MenuListComponent from '../components/menu_item/MenuListComponent.vue';
+// import MenuComponent from '../components/menu_item/MenuComponent.vue';
+// import MenuListComponent from '../components/menu_item/MenuListComponent.vue';
 import LoginComponent from '../components/Login.vue';
 import TestJwtComponent from '../components/testTokenJwt.vue';
 import BlogDetailComponent from '../components/News/BlogDetailComponent.vue';
-import ProductDetailComponent from '../components/ProductDetailComponent.vue';
+// import ProductDetailComponent from '../components/ProductDetailComponent.vue';
 
 // import AdminDashboardComponent from '../components/AdminDashboardComponent.vue';
 // import AdminStaffsComponent from '../components/AdminStaffsComponent.vue';
@@ -34,12 +35,12 @@ import AdminServicesComponent from '../components/AdminSeAm/AdminServicesCompone
 
 import AdminDashboardComponent from '../components/admin/AdminDashboardComponent.vue';
 import AdminUsersComponent from '../components/admin/AdminUsersComponent.vue';
-import Shop from '../components/Shop.vue';
+// import Shop from '../components/Shop.vue';
 import ghn from '../components/ghn/mainghn.vue';
-import menu_online from '../components/ShopOnline/menu_online.vue';
-import detailMenu from '../components/ShopOnline/detailMenu.vue';
+// import menu_online from '../components/ShopOnline/menu_online.vue';
+// import detailMenu from '../components/ShopOnline/detailMenu.vue';
 
-import detailOrderMenu from '../components/menu_item/detailOrderMenu.vue';
+// import detailOrderMenu from '../components/menu_item/detailOrderMenu.vue';
 import CategoryShopOnline from '../components/ShopOnline/CategoryShopOnline.vue';
 import buynow from '../components/ShopOnline/BuyNow.vue';
 
@@ -57,12 +58,18 @@ import AdminNewsComponent from '../components/admin/news/AdminNewsComponent.vue'
 import AdminNewsCategoryComponent from '../components/admin/news/AdminNewsCategoryComponent.vue';
 import AdminNewsCommentComponent from '../components/admin/news/AdminNewsCommentComponent.vue';
 // AdminBookingComponent
-import AdminBookingComponent from '../components/AdminBooking/AdminBookingComponent.vue'
+// import AdminBookingComponent from '../components/AdminBooking/AdminBookingComponent.vue';
+import RoomTypeDetail from '../components/RoomTypeDetail.vue';
 const routes = [
   {
-    path: '/',
+    path: '/home',
     name: 'HomeComponent',
     component: AboutComponent,
+  },
+  {
+    path: '/',
+    name: 'Home2',
+    component: Home2,
   },
   {
     path: '/about',
@@ -86,19 +93,9 @@ const routes = [
     component: BookRoomComponent,
   },
   {
-    path: '/shop',
-    name: 'Shop',
-    component: Shop,
-  },
-  {
     path: '/news', 
     name: 'NewsList',
     component: BlogComponent,
-  },
-  {
-    path: '/menu',
-    name: 'MenuComponent',
-    component: MenuComponent,
   },
   {
     path: '/login',
@@ -116,11 +113,6 @@ const routes = [
     component: BlogDetailComponent,
   },
   {
-    path: '/product-detail',
-    name: 'ProductDetailComponent',
-    component: ProductDetailComponent,
-  },
-  {
     path: '/ghn',
     name: 'ghn',
     component: ghn,
@@ -135,29 +127,14 @@ const routes = [
     name: 'buynow',
     component: buynow,
   },
-  {
-    path: '/menu_online',
-    name: 'menu_online',
-    component: menu_online,
-  },
-  {
-    path: '/detailMenu/:id',
-    name: 'detailMenu',
-    component: detailMenu,
-    props: true,
-  },
-  {
-    path: '/menu-list',
-    name: 'MenuListComponent',
-    component: MenuListComponent,
-  },
+
  
-  {
-    path: '/detailOrderMenu/:ids',
-    name: 'detailOrderMenu',
-    component: detailOrderMenu,
-    props: true,
-  },
+  // {
+  //   path: '/detailOrderMenu/:ids',
+  //   name: 'detailOrderMenu',
+  //   component: detailOrderMenu,
+  //   props: true,
+  // },
   {
     path: '/ChatAdmin',
     name: 'ChatAdmin',
@@ -183,6 +160,12 @@ const routes = [
     path: '/rooms2',
     name: 'rooms2',
     component: rooms2,
+  },
+  {
+    path: '/room-types/:id',
+    name: 'RoomTypeDetail',
+    component: RoomTypeDetail,
+    props: true
   },
   //quản lý thông tin user
   {

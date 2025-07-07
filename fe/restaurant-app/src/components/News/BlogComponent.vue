@@ -1,6 +1,6 @@
 <template>
   <div class="blog-page-wrapper">
-    <!-- Khu vực Banner với ảnh nền -->
+    <!-- Khu vực Banner -->
     <section class="blog-banner">
       <div class="banner-content-wrapper text-center">
         <h1 class="banner-title">Tin Tức & Blog</h1>
@@ -78,6 +78,7 @@
           <!-- Cột Sidebar -->
           <div class="col-lg-4">
             <div class="blog-sidebar">
+              <!-- Widget Tìm kiếm -->
               <div class="sidebar-widget p-4 rounded mb-4">
                 <h4 class="widget-title mb-3">Tìm Kiếm Tại Đây</h4>
                 <div class="input-group">
@@ -86,6 +87,7 @@
                 </div>
               </div>
 
+              <!-- Widget Danh mục -->
               <div class="sidebar-widget p-4 rounded mb-4">
                 <h4 class="widget-title mb-3">Danh Mục</h4>
                 <ul class="list-unstyled category-list">
@@ -98,7 +100,6 @@
                       <span>Tất cả danh mục</span>
                     </router-link>
                   </li>
-                  <!-- Lặp qua các danh mục -->
                   <li v-for="category in categories" :key="category.id">
                     <router-link 
                       :to="{ path: '/news', query: { category: category.id } }"
@@ -111,6 +112,7 @@
                 </ul>
               </div>
 
+              <!-- Widget Bài viết gần đây -->
               <div class="sidebar-widget p-4 rounded mb-4">
                 <h4 class="widget-title mb-3">Bài Viết Gần Đây</h4>
                 <div v-for="post in recentPosts" :key="post.id" class="recent-post-item d-flex align-items-center mb-3">
@@ -122,6 +124,19 @@
                 </div>
               </div>
               
+              <!-- [THAY ĐỔI] Widget Bài viết nổi bật MỚI -->
+              <div v-if="pinnedPosts.length > 0" class="sidebar-widget p-4 rounded mb-4">
+                <h4 class="widget-title mb-3">Bài Viết Nổi Bật</h4>
+                <div v-for="post in pinnedPosts" :key="post.id" class="recent-post-item d-flex align-items-center mb-3">
+                  <img :src="getThumbnailUrl(post.thumbnail)" :alt="post.title" class="rounded me-3">
+                  <div>
+                    <h6 class="mb-1"><router-link :to="`/news/${post.id}`">{{ post.title }}</router-link></h6>
+                    <small class="text-muted"><i class="bi bi-calendar-event me-1"></i>{{ formatDate(post.publish_date) }}</small>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Widget Thẻ phổ biến -->
               <div class="sidebar-widget p-4 rounded mb-4">
                 <h4 class="widget-title mb-3">Thẻ Phổ Biến</h4>
                 <div class="tag-cloud">
@@ -147,6 +162,7 @@ const router = useRouter();
 const blogPosts = ref([]);
 const categories = ref([]);
 const recentPosts = ref([]);
+const pinnedPosts = ref([]); // State mới cho bài viết ghim
 const pagination = ref({});
 const loading = ref(true);
 const searchQuery = ref('');
@@ -158,13 +174,8 @@ const popularTags = ref([
 
 const apiUrl = inject('apiUrl');
 
-const isAllCategoriesActive = computed(() => {
-  return !route.query.category;
-});
-
-const isCategoryActive = (categoryId) => {
-  return Number(route.query.category) === categoryId;
-};
+const isAllCategoriesActive = computed(() => !route.query.category);
+const isCategoryActive = (categoryId) => Number(route.query.category) === categoryId;
 
 // --- HÀM HỖ TRỢ ---
 const getThumbnailUrl = (thumbnail) => {
@@ -188,12 +199,9 @@ const fetchNews = async (page = 1, query = '', categoryId = null) => {
   loading.value = true;
   try {
     let url = `${apiUrl}/api/news?page=${page}`;
-    if (query) {
-      url += `&q=${query}`;
-    }
-    if (categoryId) {
-      url += `&category_id=${categoryId}`;
-    }
+    if (query) url += `&q=${query}`;
+    if (categoryId) url += `&category_id=${categoryId}`;
+    
     const response = await axios.get(url);
     blogPosts.value = response.data.data;
     pagination.value = {
@@ -202,7 +210,6 @@ const fetchNews = async (page = 1, query = '', categoryId = null) => {
     };
   } catch (error) {
     console.error("Lỗi khi tải tin tức:", error);
-    blogPosts.value = []; // Xóa bài viết cũ nếu có lỗi
   } finally {
     loading.value = false;
   }
@@ -219,12 +226,21 @@ const fetchCategories = async () => {
 
 const fetchRecentPosts = async () => {
     try {
-        // Lấy 3 bài viết gần nhất đang hiển thị
         const response = await axios.get(`${apiUrl}/api/news?per_page=3`);
         recentPosts.value = response.data.data;
     } catch (error) {
         console.error("Lỗi khi tải bài viết gần đây:", error);
     }
+};
+
+// Hàm mới để lấy bài viết được ghim
+const fetchPinnedPosts = async () => {
+  try {
+    const response = await axios.get(`${apiUrl}/api/news/pinned`);
+    pinnedPosts.value = response.data;
+  } catch (error) {
+    console.error("Lỗi khi tải bài viết nổi bật:", error);
+  }
 };
 
 // --- HÀM XỬ LÝ SỰ KIỆN ---
@@ -239,11 +255,8 @@ const changePage = (page) => {
 };
 
 // --- VÒNG ĐỜI COMPONENT ---
-watch(
-  () => route.query,
+watch(() => route.query,
   (newQuery) => {
-    // Cập nhật lại searchQuery trên thanh tìm kiếm nếu query URL thay đổi
-    searchQuery.value = newQuery.q || ''; 
     fetchNews(newQuery.page, newQuery.q, newQuery.category);
   },
   { deep: true, immediate: true }
@@ -252,12 +265,12 @@ watch(
 onMounted(() => {
   fetchCategories();
   fetchRecentPosts();
+  fetchPinnedPosts(); // Gọi hàm mới khi component được mounted
 });
 </script>
 
-
 <style scoped>
-/* Kiểu dáng chung */
+/* CSS giữ nguyên */
 a {
   text-decoration: none;
   color: #343a40;
@@ -281,8 +294,6 @@ h1, h2, h3, h4, h5, h6 {
   display: flex;
   flex-direction: column;
 }
-
-/* Khu vực Banner */
 .blog-banner {
   width: 100%;
   height: 350px;
@@ -312,8 +323,6 @@ h1, h2, h3, h4, h5, h6 {
 .breadcrumb-item.active {
   color: #ffc107;
 }
-
-/* Khu vực Nội dung chính */
 .blog-content-area {
   background-color: #ffffff;
 }
@@ -352,8 +361,6 @@ h1, h2, h3, h4, h5, h6 {
     height: 200px;
     object-fit: cover;
 }
-
-/* Phân trang */
 .pagination .page-item .page-link {
   border: 1px solid #dee2e6;
   background-color: #fff;
@@ -380,8 +387,6 @@ h1, h2, h3, h4, h5, h6 {
 .pagination .page-item.active .page-link:hover {
   background-color: #007bff;
 }
-
-/* Thanh bên (Sidebar) */
 .blog-sidebar .sidebar-widget {
   background-color: #f8f9fa;
   border: 1px solid #dee2e6;
@@ -391,8 +396,6 @@ h1, h2, h3, h4, h5, h6 {
   padding-bottom: 10px;
   border-bottom: 2px solid #dee2e6;
 }
-
-/* Widget Tìm kiếm */
 .sidebar-widget .form-control:focus {
   box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
   border-color: #007bff;
@@ -404,8 +407,6 @@ h1, h2, h3, h4, h5, h6 {
 .sidebar-widget .btn-search:hover {
   background-color: #0056b3;
 }
-
-/* Widget Danh mục & Thẻ */
 .category-list li a, .tag-cloud a {
   background-color: #fff;
   color: #343a40;
@@ -419,7 +420,6 @@ h1, h2, h3, h4, h5, h6 {
   transform: translateY(-2px);
   box-shadow: 0 4px 8px rgba(0,0,0,0.1);
 }
-/* Style cho danh mục đang được chọn */
 .category-list li a.active-category,
 .category-list li a.active-category:hover {
   background-color: #007bff;
@@ -440,8 +440,6 @@ h1, h2, h3, h4, h5, h6 {
   transform: translateY(-2px);
   box-shadow: 0 4px 8px rgba(0,0,0,0.1);
 }
-
-/* Widget Bài viết gần đây */
 .recent-post-item img { 
     width: 70px; 
     height: 70px; 

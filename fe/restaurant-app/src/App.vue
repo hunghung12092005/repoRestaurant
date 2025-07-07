@@ -1,5 +1,6 @@
 <template>
   <div>
+    <!-- Phần Admin Layout (Không đổi) -->
     <div v-if="$route.path.startsWith('/admin')" class="d-flex">
       <div class="sidebar">
         <div class="header text-center p-3 border-bottom">
@@ -126,7 +127,7 @@
       </div>
     </div>
 
-    <!-- Layout cho các route không phải admin hoặc staff -->
+    <!-- Layout cho các route không phải admin hoặc staff (ĐÃ CHỈNH SỬA) -->
     <div v-else>
       <header ref="headerRef">
         <nav class="navbar navbar-expand-lg navbar-light fixed-top" :class="{ 'active': navbarSticky }">
@@ -134,7 +135,7 @@
             <!-- Logo -->
             <a class="navbar-brand" href="/">
               <img src="https://i.postimg.cc/d3pNGXPN/7c6764b8-de90-474c-9b98-05019aef3193.png" alt="Foodie Logo" class="logo-img" />
-              Ho Xuan Huong Eco
+              Hồ Xuân Hương Eco
             </a>
 
             <!-- Toggle Button for Mobile -->
@@ -146,26 +147,27 @@
             <!-- Navbar Links -->
             <div class="collapse navbar-collapse" id="navbarNav" ref="navbarRef" :class="{ 'show': navbarActive }">
               <ul class="navbar-nav ms-auto">
-                <li class="nav-item"><router-link class="nav-link sisf-m-subtitle" to="/">Home</router-link></li>
-
-
-                <li class="nav-item"><router-link class="nav-link sisf-m-subtitle" to="/news">Blog</router-link></li>
+                <li class="nav-item"><router-link class="nav-link sisf-m-subtitle" to="/">Trang chủ</router-link></li>
+                <li class="nav-item"><router-link class="nav-link sisf-m-subtitle" to="/news">Tin tức</router-link></li>
+                
                 <li class="nav-item dropdown">
                   <a class="nav-link dropdown-toggle sisf-m-subtitle" href="#" role="button" data-bs-toggle="dropdown"
                     aria-expanded="false">
-                    Menu
+                    Phòng
                   </a>
                   <ul class="dropdown-menu">
-                    <li><router-link class="dropdown-item" to="/menu-list">Menu Đặt Món</router-link></li>
-                    <li><router-link class="dropdown-item" to="/menu">menu</router-link></li>
-                    <li><router-link class="dropdown-item" to="/product-detail">Chi Tiết Online</router-link></li>
-                    <li><router-link class="dropdown-item" to="/CategoryShopOnline">Menu ShopOnline</router-link></li>
+                    <li v-for="roomType in roomTypes" :key="roomType.type_id">
+                      <router-link 
+                        class="dropdown-item" 
+                        :to="{ name: 'RoomTypeDetail', params: { id: roomType.type_id } }">
+                        {{ roomType.type_name }}
+                      </router-link>
+                    </li>
                   </ul>
                 </li>
-                <li class="nav-item "><router-link class="nav-link sisf-m-subtitle" to="/rooms">Đặt
+                
+                <li class="nav-item "><router-link class="nav-link sisf-m-subtitle" to="/rooms2">Đặt
                     Phòng</router-link></li>
-                <li class="nav-item "><router-link class="nav-link sisf-m-subtitle" to="/reservation">Đặt
-                    Bàn</router-link></li>
                 <li class="nav-item dropdown " v-if="isLogin">
                   <a class="nav-link dropdown-toggle sisf-m-subtitle" href="#" role="button" data-bs-toggle="dropdown"
                     aria-expanded="false">
@@ -190,15 +192,18 @@
       <main>
         <router-view />
       </main>
+
+      <Footer></Footer>
+
     </div>
   </div>
 </template>
 
 <script setup>
-import { ref, onMounted, onUnmounted } from 'vue';
+import { ref, onMounted, onUnmounted, provide } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import axiosConfig from './axiosConfig.js';
-import { provide } from 'vue';
+import Footer from './components/Footer.vue';
 
 const route = useRoute();
 const router = useRouter();
@@ -213,6 +218,19 @@ const apiUrl = 'http://localhost:8000';
 provide('apiUrl', apiUrl);
 
 const lastScrollPosition = ref(0);
+
+const roomTypes = ref([]);
+
+const fetchRoomTypes = async () => {
+  try {
+    const response = await axiosConfig.get(`${apiUrl}/api/room-types`);
+    if (response.data.status) {
+      roomTypes.value = response.data.data;
+    }
+  } catch (error) {
+    console.error('Lỗi khi lấy danh sách loại phòng:', error);
+  }
+};
 
 const toggleMenu = () => {
   navbarActive.value = !navbarActive.value;
@@ -267,7 +285,7 @@ const fetchUserInfo = async () => {
   } catch (error) {
     console.error('Error fetching user info:', error.response ? error.response.data : error.message);
     if (error.response?.status === 401) {
-      logout(); // Xóa token và đăng xuất nếu token không hợp lệ
+      logout();
     }
   }
 };
@@ -285,7 +303,6 @@ const handleUrlParams = () => {
       userInfo.value = parsedUser;
       isLogin.value = true;
       isAdmin.value = parsedUser.role === 'admin';
-      // Xóa query params khỏi URL
       router.replace({ query: {} });
     } catch (e) {
       console.error('Error parsing user from URL:', e);
@@ -310,22 +327,22 @@ const editProfile = () => {
   router.push('/admin/edit-profile');
 };
 
-// Navigation guard để bảo vệ route admin
 router.beforeEach((to, from, next) => {
   const isAuthenticated = !!localStorage.getItem('tokenJwt');
   const isAdminUser = userInfo.value?.role === 'admin';
 
   if (to.path.startsWith('/admin') && (!isAuthenticated || !isAdminUser)) {
-    next('/'); // Chuyển về trang chủ nếu không đăng nhập hoặc không phải admin
+    next('/');
   } else {
     next();
   }
 });
 
 onMounted(() => {
-  restoreUserSession(); // Khôi phục phiên từ localStorage
-  handleUrlParams(); // Xử lý token/user từ URL nếu có
-  fetchUserInfo(); // Lấy thông tin người dùng từ API
+  restoreUserSession();
+  handleUrlParams();
+  fetchUserInfo();
+  fetchRoomTypes();
   window.addEventListener('scroll', handleScroll);
   document.addEventListener('click', handleOutsideClick);
 });
@@ -337,11 +354,13 @@ onUnmounted(() => {
 </script>
 
 <style scoped>
+/* Import Fonts and CSS Libraries */
 @import url('https://fonts.googleapis.com/css2?family=Arial&display=swap');
 @import url('https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css');
 @import url('https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css');
 @import url('https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css');
 
+/* CSS Variables */
 :root {
   --main-color: #16B978;
   --second-color: #081B54;
@@ -350,6 +369,7 @@ onUnmounted(() => {
   --badge-bg: #dc3545;
 }
 
+/* Global Styles */
 * {
   margin: 0;
   padding: 0;
@@ -357,12 +377,21 @@ onUnmounted(() => {
   font-family: 'Arial', sans-serif;
 }
 
-/* Styles cho layout thông thường */
+body {
+  background-color: #f5f7fb;
+  height: 100%;
+  overflow-y: auto;
+}
+
+/* START: CSS ĐÃ ĐƯỢC CHỈNH SỬA CHO LAYOUT NGƯỜI DÙNG */
+
+/* Public Navbar Styling */
 .navbar {
-  transition: background-color 0.3s ease, color 0.3s ease;
+  transition: background-color 0.3s ease, box-shadow 0.3s ease;
   padding: 10px 15px;
-  background-size: cover;
-  background-color: rgb(56, 80, 124);
+  background-color: #ffffff; /* Nền trắng */
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1); /* Thêm bóng đổ để nổi bật */
+  height: 80px;
 }
 
 .navbar-brand {
@@ -370,7 +399,7 @@ onUnmounted(() => {
   align-items: center;
   font-size: 1rem;
   font-weight: 600;
-  color: white;
+  color: #333333; /* Chữ màu tối */
   transition: color 0.3s ease;
 }
 
@@ -380,35 +409,17 @@ onUnmounted(() => {
   line-height: 1.2;
   font-weight: 600;
   padding: 0 20px !important;
-  color: white;
-}
-
-.navbar.active .navbar-brand,
-.navbar.active .nav-link,
-.navbar.active .dropdown-toggle {
-  color: black;
-}
-
-.navbar.active .navbar-toggler-icon {
-  filter: brightness(0) invert(1);
-}
-
-.navbar.active .navbar-toggler-icon {
-  filter: brightness(0) invert(1);
+  color: #333333; /* Chữ menu màu tối */
 }
 
 .logo-img {
-  width: 35px;
-  margin-right: 10px;
-  filter: brightness(100);
-}
-
-.navbar.active .logo-img {
-  filter: brightness(100);
+  width: 50px;
+  /* margin-right: 10px; */
+  /* Bỏ filter vì không cần thiết trên nền trắng */
 }
 
 .nav-link:hover {
-  color: black;
+  color: var(--main-color); /* Màu khi hover */
   border-radius: 4px;
 }
 
@@ -423,6 +434,7 @@ onUnmounted(() => {
 
 .dropdown-item:hover {
   color: #0e45e9 !important;
+  background-color: #f1f1f1;
 }
 
 .logout-link {
@@ -437,6 +449,7 @@ onUnmounted(() => {
 main {
   min-height: calc(100vh - 70px);
   width: 100%;
+  padding-top: 70px; /* Đảm bảo nội dung không bị che bởi navbar */
 }
 
 footer {
@@ -444,12 +457,10 @@ footer {
   color: #fff;
 }
 
-/* Admin và Staff Layout Styles */
-body {
-  background-color: #f5f7fb;
-  height: 100%;
-  overflow-y: auto;
-}
+/* END: CSS ĐÃ ĐƯỢC CHỈNH SỬA */
+
+
+/* --- ADMIN LAYOUT STYLES (Không đổi) --- */
 
 .sidebar {
   height: 100vh;
@@ -602,8 +613,11 @@ body {
   color: #000000;
 }
 
-/* Mobile menu styles */
+
+/* --- RESPONSIVE STYLES --- */
+
 @media (max-width: 991px) {
+  /* Mobile Menu Styles */
   .navbar-collapse {
     position: fixed;
     top: 0;
@@ -624,35 +638,13 @@ body {
 
   .navbar-nav {
     flex-direction: column;
-    background-color: transparent;
     padding: 10px;
-  }
-
-  .navbar.active .navbar-nav {
-    background-color: transparent;
   }
 
   .nav-link,
   .dropdown-toggle {
-    color: #000 !important;
+    color: #000 !important; /* Đảm bảo chữ đen trong menu mobile */
     padding: 15px !important;
-  }
-
-  .navbar.active .nav-link,
-  .navbar.active .dropdown-toggle {
-    color: #000 !important;
-  }
-
-  .navbar.active .navbar-toggler-icon {
-    filter: brightness(0) invert(1);
-  }
-
-  .navbar.active .navbar-toggler-icon {
-    filter: brightness(0) invert(1);
-  }
-
-  .navbar.active .navbar-toggler-icon {
-    filter: brightness(0) invert(1);
   }
 
   .nav-link:hover,
@@ -666,6 +658,7 @@ body {
     margin-left: 10px;
   }
 
+  /* Admin Sidebar on Mobile */
   .sidebar {
     width: 200px;
     transform: translateX(-100%);
@@ -694,14 +687,6 @@ body {
 
   .admin-main {
     padding-top: 70px;
-  }
-}
-
-@media (min-width: 992px) {
-  .navbar.active .navbar-brand,
-  .navbar.active .nav-link,
-  .navbar.active .dropdown-toggle {
-    color: #fff !important;
   }
 }
 </style>

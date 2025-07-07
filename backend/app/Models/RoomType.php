@@ -18,6 +18,9 @@ class RoomType extends Model
         'description',
         'bed_count',
         'max_occupancy',
+        'youtube_link', // Thêm dòng này
+        'rate',         // Thêm dòng này
+        'm2',
     ];
 
     /**

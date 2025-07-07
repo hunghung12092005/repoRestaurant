@@ -269,19 +269,19 @@ class BookingController extends Controller
         try {
             $rooms = Room::with(['roomType', 'season'])->get();
             $tables = Table::all();
-            $menus = Menu::all();
+            // $menus = Menu::all();
 
             Log::info('Form data fetched:', [
                 'rooms_count' => $rooms->count(),
                 'tables_count' => $tables->count(),
-                'menus_count' => $menus->count(),
+                // 'menus_count' => $menus->count(),
             ]);
 
             return response()->json([
                 'data' => [
                     'rooms' => $rooms,
                     'tables' => $tables,
-                    'menus' => $menus,
+                    // 'menus' => $menus,
                 ]
             ], 200);
         } catch (\Exception $e) {

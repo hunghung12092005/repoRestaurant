@@ -113,7 +113,6 @@
               <div class="sidebar-widget p-4 rounded mb-4">
                 <h4 class="widget-title mb-3">Danh Mục</h4>
                 <ul v-if="categories.length" class="list-unstyled category-list">
-                  <!-- [THAY ĐỔI] Thêm lại link "Tất cả" -->
                   <li>
                     <router-link to="/news" class="d-flex justify-content-between align-items-center">
                       <span>Tất cả danh mục</span>
@@ -146,6 +145,23 @@
                     <p class="text-muted">Không có bài viết nào.</p>
                 </div>
               </div>
+
+              <!-- [THAY ĐỔI] Widget Bài viết nổi bật MỚI -->
+              <div v-if="pinnedPosts.length > 0" class="sidebar-widget p-4 rounded mb-4">
+                <h4 class="widget-title mb-3">Bài Viết Nổi Bật</h4>
+                <div v-for="post in pinnedPosts" :key="post.id" class="recent-post-item d-flex align-items-center mb-3">
+                  <img :src="getThumbnailUrl(post.thumbnail)" :alt="post.title" class="rounded me-3">
+                  <div>
+                    <h6 class="mb-1"><router-link :to="`/news/${post.id}`">{{ post.title }}</router-link></h6>
+                    <small class="text-muted"><i class="bi bi-calendar-event me-1"></i>{{ formatDate(post.publish_date) }}</small>
+                  </div>
+                </div>
+              </div>
+
+               <div class="mb-4">
+                 <AdPlaceholder />
+              </div>
+
             </div>
           </div>
         </div>
@@ -158,36 +174,50 @@
 import { ref, onMounted, inject, watch, computed } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import axios from 'axios';
-// Toàn bộ script setup ở đây không cần thay đổi gì cho tính năng này.
-// Nó đã hoàn chỉnh từ trước.
+import AdPlaceholder from '../AdPlaceholder.vue';// Giả định bạn có một component quảng cáo
+
 const route = useRoute();
 const router = useRouter();
 const apiUrl = inject('apiUrl');
+
+// State cho trang chi tiết
 const postDetail = ref(null);
 const newComment = ref({ content: '' });
 const loading = ref(true);
 const isSubmittingComment = ref(false);
+
+// State cho bình luận
 const COMMENTS_INITIAL_LIMIT = 10;
 const allComments = ref([]);
 const isCommentsExpanded = ref(false);
+
+// State cho Sidebar
+const categories = ref([]);
+const recentPosts = ref([]);
+const pinnedPosts = ref([]); // [THAY ĐỔI] State mới cho bài viết ghim
+const searchQuery = ref('');
+
+// Computed Properties
 const visibleComments = computed(() => {
     if (isCommentsExpanded.value) {
         return allComments.value;
     }
     return allComments.value.slice(0, COMMENTS_INITIAL_LIMIT);
 });
+
 const showToggleButton = computed(() => {
     return allComments.value.length > COMMENTS_INITIAL_LIMIT;
 });
+
 const toggleButtonText = computed(() => {
     return isCommentsExpanded.value ? 'Thu gọn bình luận' : 'Tải thêm bình luận';
 });
-const categories = ref([]);
-const recentPosts = ref([]);
-const searchQuery = ref('');
+
+// Helper Functions
 const getThumbnailUrl = (thumbnail) => {
   return thumbnail ? `${apiUrl}/images/news_thumbnails/${thumbnail}` : 'https://via.placeholder.com/400x300.png?text=No+Image';
 };
+
 const formatDate = (dateString) => {
   if (!dateString) return '';
   const date = new Date(dateString);
@@ -196,26 +226,26 @@ const formatDate = (dateString) => {
   const year = date.getFullYear();
   return `${day}/${month}/${year}`;
 };
+
 const formatTimeAgo = (dateString) => {
     if (!dateString) return '';
     const date = new Date(dateString);
     const now = new Date();
     const seconds = Math.round((now - date) / 1000);
-    const minutes = Math.round(seconds / 60);
-    const hours = Math.round(minutes / 60);
-    const days = Math.round(hours / 24);
-    const weeks = Math.round(days / 7);
-    const months = Math.round(days / 30);
-    const years = Math.round(days / 365);
     if (seconds < 60) return "Vài giây trước";
+    const minutes = Math.round(seconds / 60);
     if (minutes < 60) return `${minutes} phút trước`;
+    const hours = Math.round(minutes / 60);
     if (hours < 24) return `${hours} giờ trước`;
-    if (days < 7) return `${days} ngày trước`;
-    if (weeks < 5) return `${weeks} tuần trước`;
+    const days = Math.round(hours / 24);
+    if (days < 30) return `${days} ngày trước`;
+    const months = Math.round(days / 30.44);
     if (months < 12) return `${months} tháng trước`;
-    if (years > 0) return `${years} năm trước`;
-    return formatDate(dateString);
+    const years = Math.round(days / 365);
+    return `${years} năm trước`;
 };
+
+// API Functions
 const fetchNewsDetail = async (id) => {
   loading.value = true;
   postDetail.value = null; 
@@ -232,6 +262,7 @@ const fetchNewsDetail = async (id) => {
     loading.value = false;
   }
 };
+
 const fetchComments = async (id) => {
     try {
         const response = await axios.get(`${apiUrl}/api/news/${id}/comments`);
@@ -240,6 +271,41 @@ const fetchComments = async (id) => {
         console.error("Lỗi khi tải bình luận:", error);
     }
 }
+
+const fetchCategories = async () => {
+  try {
+    const response = await axios.get(`${apiUrl}/api/news-categories`);
+    categories.value = response.data;
+  } catch (error) {
+    console.error("Lỗi khi tải danh mục:", error);
+  }
+};
+
+const fetchRecentPosts = async () => {
+  try {
+    // Lấy 5 bài viết gần nhất
+    const response = await axios.get(`${apiUrl}/api/news?per_page=5`);
+    const currentPostId = parseInt(route.params.id, 10);
+    // Lọc ra bài viết hiện tại khỏi danh sách "gần đây"
+    recentPosts.value = response.data.data.filter(post => post.id !== currentPostId);
+  } catch (error) {
+    console.error("Lỗi khi tải bài viết gần đây:", error);
+  }
+};
+
+// [THAY ĐỔI] Hàm mới để lấy bài viết được ghim
+const fetchPinnedPosts = async () => {
+  try {
+    const response = await axios.get(`${apiUrl}/api/news/pinned`);
+    const currentPostId = parseInt(route.params.id, 10);
+     // Lọc ra bài viết hiện tại khỏi danh sách "nổi bật" (nếu có)
+    pinnedPosts.value = response.data.filter(post => post.id !== currentPostId);
+  } catch (error) {
+    console.error("Lỗi khi tải bài viết nổi bật:", error);
+  }
+};
+
+// Event Handlers
 const submitComment = async () => {
     const trimmedContent = newComment.value.content.trim();
     if (trimmedContent.length < 3) {
@@ -272,61 +338,46 @@ const submitComment = async () => {
         newComment.value.content = ''; 
     } catch (error) {
         console.error("Lỗi khi gửi bình luận:", error.response?.data || error.message);
-        if (error.response?.status === 422 && error.response.data.errors) {
-            const errorMessages = Object.values(error.response.data.errors).flat();
-            if (errorMessages.length > 0) {
-                alert(`Lỗi: ${errorMessages[0]}`);
-            }
-        } else {
-            alert('Đã có lỗi xảy ra khi gửi bình luận. Vui lòng thử lại.');
-        }
+        alert('Đã có lỗi xảy ra khi gửi bình luận. Vui lòng thử lại.');
     } finally {
         isSubmittingComment.value = false;
     }
 }
+
 const toggleCommentsView = () => {
     isCommentsExpanded.value = !isCommentsExpanded.value;
 }
-const fetchCategories = async () => {
-  try {
-    const response = await axios.get(`${apiUrl}/api/news-categories`);
-    categories.value = response.data;
-  } catch (error) {
-    console.error("Lỗi khi tải danh mục:", error);
-  }
-};
-const fetchRecentPosts = async () => {
-  try {
-    const response = await axios.get(`${apiUrl}/api/news?per_page=5`);
-    const currentPostId = parseInt(route.params.id, 10);
-    recentPosts.value = response.data.data.filter(post => post.id !== currentPostId);
-  } catch (error) {
-    console.error("Lỗi khi tải bài viết gần đây:", error);
-  }
-};
+
 const handleSearch = () => {
   if(searchQuery.value.trim()){
     router.push({ path: '/news', query: { q: searchQuery.value } });
   }
 };
+
+// Lifecycle Hooks
 onMounted(() => {
   const newsId = route.params.id;
   if (newsId) {
     fetchNewsDetail(newsId);
+    // Fetch sidebar data
     fetchCategories();
     fetchRecentPosts();
+    fetchPinnedPosts(); // [THAY ĐỔI] Gọi hàm lấy bài viết ghim
   }
 });
+
 watch(() => route.params.id, (newId, oldId) => {
     if (newId && newId !== oldId) {
+        window.scrollTo(0, 0); // Cuộn lên đầu trang khi chuyển bài viết
         fetchNewsDetail(newId);
+        // Cập nhật lại danh sách sidebar để loại trừ bài viết mới
         fetchRecentPosts();
+        fetchPinnedPosts();
     }
 });
 </script>
 
 <style scoped>
-/* Toàn bộ CSS của bạn giữ nguyên */
 /* ----- SAO CHÉP STYLE TỪ TRANG LIST ----- */
 .blog-banner {
   width: 100%; height: 350px; position: relative; display: flex;
