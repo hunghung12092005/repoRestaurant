@@ -126,7 +126,7 @@
                     <li><router-link class="dropdown-item" to="/CategoryShopOnline">Menu ShopOnline</router-link></li>
                   </ul>
                 </li>
-                <li class="nav-item "><router-link class="nav-link sisf-m-subtitle" to="/rooms2">Đặt
+                <li class="nav-item "><router-link class="nav-link sisf-m-subtitle" to="/rooms3">Đặt
                     Phòng</router-link></li>
                 <li class="nav-item "><router-link class="nav-link sisf-m-subtitle" to="/reservation">Đặt
                     Bàn</router-link></li>
