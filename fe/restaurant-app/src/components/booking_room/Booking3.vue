@@ -1100,7 +1100,7 @@ const confirmBooking = async () => {
         return;
     } finally {
         isLoading.value = false; // Kết thúc quá trình gửi dữ liệu
-        router.push('/thanksBooking'); // Ví dụ: về trang chủ
+       // router.push('/thanksBooking'); // Ví dụ: về trang chủ
 
     }
 
@@ -1118,8 +1118,8 @@ const payQr = async () => {
 
         const payosItems = selectedRooms.value.map((room, index) => ({
             name: `Phòng ${index + 1}`, // Tạo tên phòng dựa trên chỉ số
-            price: room.price,
-            totalServiceCost: room.totalServiceCost,
+            price: room.price +  room.totalServiceCost,
+            // totalServiceCost: room.totalServiceCost,
             quantity: 1 // Đảm bảo quantity là số dương
         }));
         // console.log("roomDetails.value:", payosItems); // Log the room details
@@ -1136,18 +1136,17 @@ const payQr = async () => {
         }
 
         // Gọi API thanh toán QR
-        paymentMethod.value = 'thanh_toan_ngay'; // Đặt phương thức thanh toán là QR
+        paymentMethod.value = 'thanh_toan_qr'; // Đặt phương thức thanh toán là QR
          const axiosWithoutHeaderPayos = axios.create({
-        // baseURL: apiUrl, // Đặt base URL nếu cần
         headers: {
             'Content-Type': 'application/json',
-            'Authorization': ``, // Thêm token vào header
+            'Authorization': ``, 
         }
     });
         // Gửi yêu cầu thanh toán đến API
         const response = await axiosWithoutHeaderPayos.post(`${apiUrl}/api/payos/checkout`, {
-            amount: 2000, // Tổng giá trị
-            // amount: selectedRooms.totalPrice, // Tổng giá trị
+            //amount: 2000, // Tổng giá trị
+             amount: selectedRooms.totalPrice, 
             items: payosItems // Danh sách các mặt hàng
         });
 
@@ -1163,6 +1162,7 @@ const payQr = async () => {
         console.error('Lỗi thanh toán:', error.message || error);
         alert(`Lỗi thanh toán: ${error.message || error}`);
     } finally {
+        confirmBooking();
         isLoading.value = false; // Kết thúc quá trình tải
     }
 }

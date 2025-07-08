@@ -178,7 +178,7 @@ class BookingHotelController extends Controller
         'amount' => 'required|numeric', // Giá trị tổng
         'items' => 'required|array', // Chắc chắn 'items' là một mảng
         'items.*.price' => 'required|numeric', // Giá sản phẩm
-        'items.*.totalServiceCost' => 'required|numeric', // Tổng phí dịch vụ
+        // 'items.*.totalServiceCost' => 'required|numeric', // Tổng phí dịch vụ
     ]);
 
     $amount = $request->input('amount');

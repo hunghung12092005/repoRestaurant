@@ -10,7 +10,7 @@ class BookingHotel extends Model
     protected $primaryKey = 'booking_id'; // Sử dụng cột booking_id làm khóa chính
     protected $fillable = [
         'customer_id',
-         'room_type',
+        'room_type',
         'payment_method',
         'booking_type',
         'pricing_type',
