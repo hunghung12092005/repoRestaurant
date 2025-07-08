@@ -466,7 +466,6 @@
                 <div class="logo-container">
                     Xác thực SMS
                     <button type="button" class="btn-close m-4" @click="closeModalOtp"></button>
-
                 </div>
 
 

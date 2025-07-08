@@ -1,4 +1,5 @@
 <template>
+  <isLoading v-if="isisLoading"></isLoading>
   <div class="occupancy-page">
     <div class="header">
       <h1 class="title">Quản lý Phòng</h1>
@@ -36,9 +37,8 @@
       <button @click="clearFilters" class="clear-btn">Xóa lọc</button>
     </div>
 
-    <div v-if="loading" class="loading-state">Đang tải danh sách phòng...</div>
 
-    <div v-else>
+    <div>
       <div v-for="floorGroup in groupedAndSortedRooms" :key="floorGroup.floor" class="floor-section">
 
         <div class="floor-header-container">
@@ -85,7 +85,14 @@
     <div class="modal-content">
       <h2>Đăng ký khách hàng</h2>
       <form @submit.prevent="submitCustomerForm">
+<div class="form-group">
+  <label>Ảnh CCCD</label>
+  <input type="file" @change="onFileChange" accept="image/*" />
+  <button type="button" @click="uploadImage">Tải Ảnh CCCD</button>
+</div>
+
         <div class="form-group">
+          
           <label>Họ tên</label>
           <input v-model="formData.customer_name" required />
         </div>
@@ -94,6 +101,10 @@
           <label>Số điện thoại</label>
           <input v-model="formData.customer_phone" required />
         </div>
+        <div class="form-group">
+  <label>Số CCCD</label>
+  <input v-model="formData.customer_id_number" required />
+</div>
 
         <div class="form-group">
           <label>Email</label>
@@ -179,6 +190,40 @@
       </form>
     </div>
   </div>
+  <!-- Modal Chọn Dịch Vụ Khi Thanh Toán -->
+<div v-if="showServiceModal" class="modal-overlay">
+  <div class="modal-content">
+    <h2>Chọn dịch vụ sử dụng</h2>
+
+    <div v-if="allServices.length === 0">Đang tải dịch vụ...</div>
+
+    <div v-else>
+      <div v-for="service in allServices" :key="service.service_id">
+        <label>
+          <input
+            type="checkbox"
+            :value="service"
+            v-model="selectedServices"
+          />
+          {{ service.service_name }} - {{ Number(service.price).toLocaleString('vi-VN') }} VND
+        </label>
+      </div>
+    </div>
+
+    <p style="margin-top: 10px;">
+      <strong>Tổng dịch vụ:</strong>
+      <span style="color: #e74c3c; font-weight: bold;">
+        {{ serviceTotal.toLocaleString('vi-VN') }} VND
+      </span>
+    </p>
+
+    <div class="form-actions">
+      <button @click="confirmPayment">Xác nhận thanh toán</button>
+      <button @click="showServiceModal = false">Hủy</button>
+    </div>
+  </div>
+</div>
+
 </template>
 
 <script setup>
@@ -186,94 +231,135 @@ import { ref, computed, onMounted, watch } from 'vue';
 import axios from 'axios';
 import { useRouter } from 'vue-router';
 import { inject } from 'vue';
-
+import isLoading from '../loading.vue'
 const apiUrl = inject('apiUrl');
 const allRooms = ref([]);
-const loading = ref(true);
-
+const isisLoading = ref('false');
 // Trạng thái lọc
 const selectedStatus = ref('Tất cả');
 const selectedRoomType = ref('Tất cả');
 const selectedFloor = ref('Tất cả');
 
-// Dữ liệu form thêm khách
+// Form thêm khách
 const showForm = ref(false);
-const totalPricePreview = ref(null); // Xem trước giá
-
+const totalPricePreview = ref(null);
 const formData = ref({
   customer_name: '',
   customer_phone: '',
   customer_email: '',
   address: '',
+  customer_id_number: '',
   room_id: null,
   check_in_date: '',
   check_out_date: '',
-  pricing_type: 'nightly' // mặc định
+  pricing_type: 'nightly'
 });
-const guestInfo = ref({});
-const showGuestModal = ref(false);
 
-const checkoutRoom = async (room_id) => {
-  const confirm = window.confirm("Xác nhận thanh toán và trả phòng?");
-  if (!confirm) return;
-
+// CCCD
+const imageFile = ref(null);
+const onFileChange = (e) => {
+  const file = e.target.files[0];
+  if (file) imageFile.value = file;
+};
+const apiKey = 'XXjjI5g9j7gk4NcZE9Dh9PPLCrvrR6zJ';
+const uploadImage = async () => {
+  if (!imageFile.value) return alert('Chọn ảnh CCCD trước!');
+  isisLoading.value = true;
   try {
-    const response = await axios.post(`${apiUrl}/api/rooms/${room_id}/checkout`);
+    const formDataSend = new FormData();
+    formDataSend.append('image', imageFile.value);
+    const res = await fetch('https://api.fpt.ai/vision/idr/vnm/', {
+      method: 'POST',
+      headers: { api_key: apiKey },
+      body: formDataSend
+    });
+    const data = await res.json();
+    if (data && data.data && data.data.length > 0) {
+      const d = data.data[0];
+      formData.value.customer_name = d.name || '';
+      formData.value.address = d.home || '';
+      formData.value.customer_id_number = d.id || '';
+      alert('Lấy thông tin từ CCCD thành công!');
+    } else alert('Không nhận diện được CCCD!');
+  } catch (e) {
+    console.error('Lỗi gửi CCCD:', e);
+    alert('Đã xảy ra lỗi khi gửi ảnh.');
+  } finally {
+    isisLoading.value = false;
+  }
+};
+
+// Danh sách dịch vụ
+const showServiceModal = ref(false);
+const allServices = ref([]);
+const selectedServices = ref([]);
+const currentRoomId = ref(null);
+const serviceTotal = computed(() =>
+  selectedServices.value.reduce((sum, s) => sum + Number(s.price), 0)
+);
+
+// Thanh toán - mở modal chọn dịch vụ
+const checkoutRoom = async (room_id) => {
+  currentRoomId.value = room_id;
+  try {
+    const res = await axios.get(`${apiUrl}/api/services/indexAllService`);
+    allServices.value = res.data;
+    selectedServices.value = [];
+    showServiceModal.value = true;
+  } catch (error) {
+    console.error("Không thể tải dịch vụ:", error);
+    alert("Không thể tải danh sách dịch vụ.");
+  }
+};
+
+// Xác nhận thanh toán và gửi kèm dịch vụ
+const confirmPayment = async () => {
+  if (!window.confirm("Xác nhận thanh toán và trả phòng?")) return;
+  try {
+    console.log(selectedServices.value.map(s => s.service_id));
+    const response = await axios.post(`${apiUrl}/api/rooms/${currentRoomId.value}/checkout`, {
+      service_ids: selectedServices.value.map(s => s.service_id)
+    });
+
     const data = response.data;
 
     alert(
-      `${data.message}\n\n` +
-      `💰 Tổng tiền thực tế: ${data.actual_total}\n` +
-      (data.note ? `🧾 Ghi chú: ${data.note}` : "")
-    );
+  `${data.message}\n\n` +
+  `🛏️ Tiền phòng: ${Number(data.room_total).toLocaleString('vi-VN')} VND\n` +
+  `🧾 Dịch vụ: ${Number(data.service_total).toLocaleString('vi-VN')} VND\n` +
+  `💰 Tổng tiền: ${Number(data.actual_total).toLocaleString('vi-VN')} VND\n\n` +
+  (data.note || '')
+);
 
-    await fetchRooms(); // Làm mới danh sách phòng
+
+    showServiceModal.value = false;
+    await fetchRooms();
   } catch (error) {
-    console.error("Lỗi khi thanh toán:", error);
+    console.error("Lỗi thanh toán:", error);
     alert("Không thể thanh toán phòng.");
   }
 };
 
 
-// Chuyển trạng thái từ API
-const mapApiStatusToVietnamese = (status) => {
-  if (status === 'available') return 'Còn trống';
-  if (status === 'occupied') return 'Đã đặt';
-  return 'Không xác định';
-};
-
-const mapBedCountToString = (count) => {
-  if (count === 1) return 'Giường đơn';
-  if (count === 2) return 'Giường đôi';
-  if (count === 3) return '3 giường';
-  return `${count} giường`;
-};
-
-// Gọi API lấy danh sách phòng
+// Xử lý dữ liệu phòng
+const mapApiStatusToVietnamese = (s) => s === 'available' ? 'Còn trống' : s === 'occupied' ? 'Đã đặt' : 'Không xác định';
+const mapBedCountToString = (c) => c === 1 ? 'Giường đơn' : c === 2 ? 'Giường đôi' : `${c} giường`;
 const fetchRooms = async () => {
-  loading.value = true;
+  isisLoading.value = true;
   try {
-    const response = await axios.get(`${apiUrl}/api/occupancy/rooms`);
-    const roomsData = response.data;
-
-    if (!Array.isArray(roomsData)) {
-      console.error("Dữ liệu từ API không phải là một mảng!", roomsData);
-      throw new Error("Invalid data format from API.");
-    }
-
-    allRooms.value = roomsData.map(apiRoom => ({
-      room_id: apiRoom.room_id,
-      number: apiRoom.room_name,
-      floor: apiRoom.floor_number,
-      status: mapApiStatusToVietnamese(apiRoom.status),
-      type: apiRoom.type_name,
-      bedSize: mapBedCountToString(apiRoom.bed_count),
+    const res = await axios.get(`${apiUrl}/api/occupancy/rooms`);
+    allRooms.value = res.data.map(r => ({
+      room_id: r.room_id,
+      number: r.room_name,
+      floor: r.floor_number,
+      status: mapApiStatusToVietnamese(r.status),
+      type: r.type_name,
+      bedSize: mapBedCountToString(r.bed_count),
     }));
-
-  } catch (error) {
-    console.error("Lỗi khi tải dữ liệu phòng:", error);
+  } catch (e) {
+    console.error("Lỗi load phòng:", e);
   } finally {
-    loading.value = false;
+    isisLoading.value = false;
   }
 };
 
@@ -284,131 +370,90 @@ const showAddGuest = (room_id) => {
     customer_phone: '',
     customer_email: '',
     address: '',
-    room_id: room_id,
+    customer_id_number: '',
+    room_id,
+    check_in_date: '',
+    check_out_date: '',
     pricing_type: 'nightly'
   };
   showForm.value = true;
-  calculateTotalPricePreview(); // ✅ thêm dòng này
+  calculateTotalPricePreview();
 };
-console.log("Dữ liệu gửi:", formData.value);
 
-// Gửi dữ liệu từ form vào backend Laravel
 const submitCustomerForm = async () => {
-
-
+  if (!window.confirm("Xác nhận lưu khách hàng?")) return;
   try {
-    const confirm = window.confirm("Bạn có chắc muốn lưu thông tin khách hàng?");
-    if (!confirm) return;
-
-    const payload = {
-      customer_name: formData.value.customer_name,
-      customer_phone: formData.value.customer_phone,
-      customer_email: formData.value.customer_email,
-      address: formData.value.address,
-      check_in_date: formData.value.check_in_date,
-      check_out_date: formData.value.check_out_date,
-      pricing_type: formData.value.pricing_type
-    };
-
-    const response = await axios.post(`${apiUrl}/api/rooms/${formData.value.room_id}/add-guest`, payload);
-
-    alert(response.data.message + '\nTổng tiền: ' + (response.data.total_price || 'Không rõ'));
+    const res = await axios.post(`${apiUrl}/api/rooms/${formData.value.room_id}/add-guest`, formData.value);
+    alert(`${res.data.message}\nTổng tiền: ${res.data.total_price}`);
     showForm.value = false;
     await fetchRooms();
-  } catch (error) {
-    console.error("Lỗi khi gửi dữ liệu khách hàng:", error);
-    alert("Không thể lưu thông tin khách hàng.");
+  } catch (e) {
+    console.error("Lỗi gửi dữ liệu:", e);
+    alert("Không thể lưu thông tin khách.");
   }
 };
 
 const calculateTotalPricePreview = async () => {
-  if (!formData.value.room_id) return; // ✅ thêm dòng này vào đầu
+  if (!formData.value.room_id) return;
   try {
-    const response = await axios.post(`${apiUrl}/api/rooms/preview-price`, {
+    const res = await axios.post(`${apiUrl}/api/rooms/preview-price`, {
       room_id: formData.value.room_id,
       check_in_date: formData.value.check_in_date,
       check_out_date: formData.value.check_out_date,
-      pricing_type: formData.value.pricing_type || 'nightly', // nếu bị null
-      is_extend: false // 👈 đặt false nếu là đặt mới (không phải gia hạn)
+      pricing_type: formData.value.pricing_type,
+      is_extend: false
     });
-
-    totalPricePreview.value = response.data.total_price;
-  } catch (error) {
-    totalPricePreview.value = "Không thể tính giá";
+    totalPricePreview.value = res.data.total_price;
+  } catch (e) {
+    totalPricePreview.value = 'Không tính được';
   }
 };
-// Lọc dữ liệu phòng
-const roomTypes = computed(() => {
-  const types = new Set(allRooms.value.map(room => room.type));
-  return ['Tất cả', ...Array.from(types).sort()];
-});
 
-const floors = computed(() => {
-  const floorNumbers = new Set(allRooms.value.map(room => room.floor));
-  const sortedFloors = Array.from(floorNumbers).sort((a, b) => a - b);
-  return ['Tất cả', ...sortedFloors.map(f => `Tầng ${f}`)];
-});
-
-const filteredRooms = computed(() => {
-  return allRooms.value.filter(room => {
-    const statusMatch = selectedStatus.value === 'Tất cả' || room.status === selectedStatus.value;
-    const typeMatch = selectedRoomType.value === 'Tất cả' || room.type === selectedRoomType.value;
-    const floorMatch = selectedFloor.value === 'Tất cả' || `Tầng ${room.floor}` === selectedFloor.value;
-    return statusMatch && typeMatch && floorMatch;
-  });
-});
-
+// Bộ lọc
+const roomTypes = computed(() => ['Tất cả', ...[...new Set(allRooms.value.map(r => r.type))].sort()]);
+const floors = computed(() => ['Tất cả', ...[...new Set(allRooms.value.map(r => r.floor))].sort((a, b) => a - b).map(f => `Tầng ${f}`)]);
+const filteredRooms = computed(() =>
+  allRooms.value.filter(r =>
+    (selectedStatus.value === 'Tất cả' || r.status === selectedStatus.value) &&
+    (selectedRoomType.value === 'Tất cả' || r.type === selectedRoomType.value) &&
+    (selectedFloor.value === 'Tất cả' || `Tầng ${r.floor}` === selectedFloor.value)
+  )
+);
 const groupedAndSortedRooms = computed(() => {
-  const grouped = filteredRooms.value.reduce((acc, room) => {
-    const floor = room.floor;
-    if (!acc[floor]) acc[floor] = [];
-    acc[floor].push(room);
-    return acc;
-  }, {});
-
-  return Object.keys(grouped)
-    .sort((a, b) => Number(a) - Number(b))
-    .map(floorKey => ({
-      floor: floorKey,
-      rooms: grouped[floorKey]
-    }));
+  const groups = {};
+  for (const room of filteredRooms.value) {
+    if (!groups[room.floor]) groups[room.floor] = [];
+    groups[room.floor].push(room);
+  }
+  return Object.keys(groups).sort((a, b) => a - b).map(f => ({ floor: f, rooms: groups[f] }));
 });
-
-// Xoá bộ lọc
 const clearFilters = () => {
   selectedStatus.value = 'Tất cả';
   selectedRoomType.value = 'Tất cả';
   selectedFloor.value = 'Tất cả';
 };
 
-// Tạm thời: hiện thông báo khi bấm “Chi tiết khách”
+// Chi tiết khách
+const showGuestModal = ref(false);
+const guestInfo = ref({});
 const showGuestDetails = async (room) => {
   try {
-    const response = await axios.get(`${apiUrl}/api/rooms/${room.room_id}/customer`);
-    guestInfo.value = {
-  room: response.data.room,
-  customer: response.data.customer,
-  booking: response.data.booking
-};
-
+    const res = await axios.get(`${apiUrl}/api/rooms/${room.room_id}/customer`);
+    guestInfo.value = res.data;
     showGuestModal.value = true;
-  } catch (error) {
-    alert("Không tìm thấy thông tin khách cho phòng này.");
-    console.error(error);
+  } catch (e) {
+    alert("Không tìm thấy thông tin khách.");
+    console.error(e);
   }
 };
-const showExtendModal = ref(false);
-const extendForm = ref({
-  room_id: null,
-  check_out_date: ''
-});
 
+// Gia hạn
+const showExtendModal = ref(false);
+const extendForm = ref({ room_id: null, check_out_date: '' });
 const showExtendForm = (room_id) => {
-  extendForm.value.room_id = room_id;
-  extendForm.value.check_out_date = '';
+  extendForm.value = { room_id, check_out_date: '' };
   showExtendModal.value = true;
 };
-
 const submitExtendForm = async () => {
   try {
     const res = await axios.post(`${apiUrl}/api/rooms/${extendForm.value.room_id}/extend`, {
@@ -417,33 +462,25 @@ const submitExtendForm = async () => {
     alert(res.data.message + '\nTổng tiền mới: ' + res.data.total_price);
     showExtendModal.value = false;
     await fetchRooms();
-  } catch (err) {
-    console.error("Lỗi gia hạn:", err);
+  } catch (e) {
+    console.error("Lỗi gia hạn:", e);
     alert("Không thể gia hạn.");
   }
 };
 
-
-onMounted(() => {
-  fetchRooms();
-});
+// Mounted + Watch
+onMounted(fetchRooms);
 watch(() => [
   formData.value.check_in_date,
   formData.value.check_out_date,
   formData.value.pricing_type
 ], calculateTotalPricePreview);
-
-watch([selectedStatus, selectedRoomType, selectedFloor], (newValues) => {
-  console.log('Bộ lọc đã thay đổi:', newValues);
-});
 watch(() => formData.value.room_id, () => {
   if (formData.value.check_in_date && formData.value.check_out_date) {
     calculateTotalPricePreview();
   }
 });
-
 </script>
-
 
 <style scoped>
 /* CSS giữ nguyên như phiên bản trước */
@@ -534,7 +571,7 @@ watch(() => formData.value.room_id, () => {
   height: 42px;
 }
 
-.loading-state,
+.isLoading-state,
 .no-results {
   text-align: center;
   padding: 50px;

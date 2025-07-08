@@ -43,6 +43,8 @@ Route::delete('/menus/{id}', [MenuController::class, 'destroy']);
 Route::post('/customers', [OccupancyController::class, 'storeCustomer']); //thêm dữ liệu khách vào bảng customer
 Route::get('/rooms/{room_id}/customer', [OccupancyController::class, 'getCustomerByRoom']); //hiển thị thông tin khách
 Route::post('/rooms/{room_id}/checkout', [OccupancyController::class, 'checkoutRoom']); //checkout
+Route::get('/services', [OccupancyController::class, 'getServices']); //hiển thị dịch vụ
+
 
 Route::apiResource('users', UsersController::class);
 
@@ -73,6 +75,7 @@ Route::prefix('amenities')->group(function () {
 
 Route::prefix('services')->group(function () {
     Route::get('/', [ServiceController::class, 'index']);
+    Route::get('/indexAllService', [ServiceController::class, 'indexAllService']);
     Route::post('/', [ServiceController::class, 'store']);
     Route::put('/{service_id}', [ServiceController::class, 'update']);
     Route::delete('/{service_id}', [ServiceController::class, 'destroy']);
@@ -142,4 +145,7 @@ Route::post('/booking-client', [BookingHotelController::class, 'storeBooking']);
 Route::post('/generate-token', [BookingHotelController::class, 'generateToken']);
 //tra ve lich su cho khach hang
 Route::get('/booking-history', [BookingHotelController::class, 'getBookingHistory']);
-
+//lay hang phong dua vao so nguoi
+Route::post('/available-rooms', [BookingHotelController::class, 'getAvailableRooms']);
+//thanh toan payOS
+Route::post('/payos/checkout', [BookingHotelController::class, 'payos']);

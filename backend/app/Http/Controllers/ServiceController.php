@@ -40,6 +40,11 @@ class ServiceController extends Controller
             ], 500);
         }
     }
+    public function indexAllService()
+    {
+        $services = Service::all(); // Lấy tất cả dịch vụ
+        return response()->json($services);
+    }
 
     public function store(Request $request)
     {

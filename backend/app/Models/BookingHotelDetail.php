@@ -14,6 +14,9 @@ class BookingHotelDetail extends Model
     protected $fillable = [
         'booking_id',
         'room_id',
+        'room_type',
+        'gia_dich_vu',
+        'gia_phong',
         'total_price',
         'note',
     ];

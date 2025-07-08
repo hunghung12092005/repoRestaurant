@@ -1,7 +1,7 @@
 <template>
   <div class="confirmation-page mt-5">
     <div class="background-elements">
-      <img src="https://motortrip.vn/wp-content/uploads/2022/03/khach-san-14.jpg" alt="Hotel Background Pattern" class="background-map-pattern">
+      <img src="https://a25hotel.com/files/images/screenshot_1664443543.png" alt="Hotel Background Pattern" class="background-map-pattern">
       <!-- <img src="https://motortrip.vn/wp-content/uploads/2022/03/khach-san-14.jpg" alt="Hotel Aerial View" class="floating-aerial-view-img"> -->
     </div>
 
@@ -101,7 +101,7 @@ const viewBookingHistory = () => {
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
-  opacity: 0.2; /* Độ trong suốt để chìm vào nền */
+  opacity: 0.5; /* Độ trong suốt để chìm vào nền */
 }
 
 .floating-aerial-view-img {
