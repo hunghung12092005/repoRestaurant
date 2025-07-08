@@ -127,64 +127,73 @@
       </div>
     </div>
 
-    <!-- Layout cho các route không phải admin hoặc staff (ĐÃ CHỈNH SỬA) -->
+    <!-- Layout cho các route không phải admin hoặc staff (ĐÃ CHỈNH SỬA THEO YÊU CẦU) -->
     <div v-else>
       <header ref="headerRef">
-        <nav class="navbar navbar-expand-lg navbar-light fixed-top" :class="{ 'active': navbarSticky }">
+        <nav class="navbar navbar-expand-lg navbar-light fixed-top" :class="{ 'scrolled': navbarSticky }">
           <div class="container-fluid">
-            <!-- Logo -->
-            <a class="navbar-brand" href="/">
-              <img src="https://i.postimg.cc/d3pNGXPN/7c6764b8-de90-474c-9b98-05019aef3193.png" alt="Foodie Logo" class="logo-img" />
-              Hồ Xuân Hương Eco
-            </a>
-
-            <!-- Toggle Button for Mobile -->
+            <!-- Mobile Toggler -->
             <button class="navbar-toggler" type="button" @click="toggleMenu" aria-controls="navbarNav"
               aria-expanded="false" aria-label="Toggle navigation">
               <span class="navbar-toggler-icon"></span>
             </button>
 
-            <!-- Navbar Links -->
+            <!-- Collapsible Wrapper -->
             <div class="collapse navbar-collapse" id="navbarNav" ref="navbarRef" :class="{ 'show': navbarActive }">
-              <ul class="navbar-nav ms-auto">
-                <li class="nav-item"><router-link class="nav-link sisf-m-subtitle" to="/">Trang chủ</router-link></li>
-                <li class="nav-item"><router-link class="nav-link sisf-m-subtitle" to="/news">Tin tức</router-link></li>
-                
+              <!-- Left Navigation -->
+              <ul class="navbar-nav navbar-nav-left">
+                <li class="nav-item"><router-link class="nav-link" to="/">Trang chủ</router-link></li>
                 <li class="nav-item dropdown">
-                  <a class="nav-link dropdown-toggle sisf-m-subtitle" href="#" role="button" data-bs-toggle="dropdown"
-                    aria-expanded="false">
+                  <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
                     Phòng
                   </a>
                   <ul class="dropdown-menu">
                     <li v-for="roomType in roomTypes" :key="roomType.type_id">
-                      <router-link 
-                        class="dropdown-item" 
-                        :to="{ name: 'RoomTypeDetail', params: { id: roomType.type_id } }">
+                      <router-link class="dropdown-item" :to="{ name: 'RoomTypeDetail', params: { id: roomType.type_id } }">
                         {{ roomType.type_name }}
                       </router-link>
                     </li>
                   </ul>
                 </li>
-                <li class="nav-item "><router-link class="nav-link sisf-m-subtitle" to="/rooms3">Đặt
-                    Phòng</router-link></li>
-                <li class="nav-item "><router-link class="nav-link sisf-m-subtitle" to="/HistoryBooking">Lịch Sử Đặt Phòng</router-link></li>
-                <li class="nav-item dropdown " v-if="isLogin">
-                  <a class="nav-link dropdown-toggle sisf-m-subtitle" href="#" role="button" data-bs-toggle="dropdown"
-                    aria-expanded="false">
-                    Xin chào, {{ userInfo.name }}!
-                  </a>
-                  <ul class="dropdown-menu dropdown-menu-end">
-                    <li><router-link class="dropdown-item" to="/testJwt">testJwt</router-link></li>
-                    <li><router-link class="dropdown-item" to="/userprofile">Thông Tin User</router-link></li>
-                    <li v-if="isAdmin"><router-link class="dropdown-item" to="/admin">Vào admin</router-link></li>
-                    <li><a class="dropdown-item logout-link" @click.prevent="logout">Đăng Xuất</a></li>
-                  </ul>
-                </li>
-                <li class="nav-item" v-else>
-                  <router-link class="nav-link sisf-m-subtitle" to="/login">Đăng Nhập</router-link>
+                <li class="nav-item"><router-link class="nav-link" to="/news">Tin tức</router-link></li>
+              </ul>
+
+              <!-- Right Navigation -->
+              <ul class="navbar-nav navbar-nav-right align-items-center">
+                <!-- Logged Out State -->
+                <template v-if="!isLogin">
+                  <li class="nav-item">
+                    <!-- THAY ĐỔI: Chỉ còn nút Đăng Nhập -->
+                    <router-link class="btn btn-outline-custom" to="/login">Đăng Nhập</router-link>
+                  </li>
+                </template>
+                <!-- Logged In State -->
+                <template v-if="isLogin">
+                  <li class="nav-item"><router-link class="nav-link" to="/HistoryBooking">Lịch Sử Đặt Phòng</router-link></li>
+                  <li class="nav-item dropdown">
+                    <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                      {{ userInfo.name }}
+                    </a>
+                    <ul class="dropdown-menu dropdown-menu-end">
+                      <li><router-link class="dropdown-item" to="/userprofile">Thông Tin User</router-link></li>
+                      <li v-if="isAdmin"><router-link class="dropdown-item" to="/admin">Vào admin</router-link></li>
+                      <li><a class="dropdown-item logout-link" @click.prevent="logout">Đăng Xuất</a></li>
+                    </ul>
+                  </li>
+                </template>
+                <!-- THAY ĐỔI: "Book Now" -> "Đặt Phòng" -->
+                <li class="nav-item">
+                  <router-link class="btn btn-solid-custom" to="/rooms3">Đặt Phòng</router-link>
                 </li>
               </ul>
             </div>
+            
+            <!-- Center Logo -->
+            <a class="navbar-brand mx-auto" href="/">
+              <!-- THAY ĐỔI: Thêm filter CSS để đổi màu logo -->
+              <img src="https://i.postimg.cc/d3pNGXPN/7c6764b8-de90-474c-9b98-05019aef3193.png" alt="Foodie Logo" class="logo-img" />
+              <span class="d-none d-lg-inline">Hồ Xuân Hương</span>
+            </a>
           </div>
         </nav>
       </header>
@@ -194,7 +203,6 @@
       </main>
 
       <Footer></Footer>
-
     </div>
   </div>
 </template>
@@ -383,73 +391,127 @@ body {
   overflow-y: auto;
 }
 
+
 /* START: CSS ĐÃ ĐƯỢC CHỈNH SỬA CHO LAYOUT NGƯỜI DÙNG */
 
-/* Public Navbar Styling */
 .navbar {
-  transition: background-color 0.3s ease, box-shadow 0.3s ease;
-  padding: 10px 15px;
-  background-color: #ffffff; /* Nền trắng */
-  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1); /* Thêm bóng đổ để nổi bật */
+  background-color: #ffffff;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
   height: 80px;
+  padding: 0 1rem;
+}
+
+.navbar .container-fluid {
+  position: relative;
+  height: 100%;
 }
 
 .navbar-brand {
   display: flex;
   align-items: center;
-  font-size: 1rem;
   font-weight: 600;
-  color: #333333; /* Chữ màu tối */
+  color: #333333;
   transition: color 0.3s ease;
-}
-
-.sisf-m-subtitle {
-  font-family: 'Roboto', sans-serif;
-  font-size: 1rem;
-  line-height: 1.2;
-  font-weight: 600;
-  padding: 0 20px !important;
-  color: #333333; /* Chữ menu màu tối */
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  top: 50%;
+  transform: translate(-50%, -50%);
 }
 
 .logo-img {
-  width: 50px;
-  /* margin-right: 10px; */
-  /* Bỏ filter vì không cần thiết trên nền trắng */
+  height: 40px;
+  margin-right: 10px;
+  /* THAY ĐỔI: Chuyển ảnh logo sang màu đen */
+  filter: brightness(0);
+}
+
+.navbar-toggler {
+  position: absolute;
+  right: 1rem;
+  top: 50%;
+  transform: translateY(-50%);
+}
+
+.navbar-collapse {
+  height: 100%;
+}
+
+.navbar-nav {
+  gap: 0.5rem;
+}
+
+.navbar-nav-left {
+  margin-right: auto;
+}
+
+.navbar-nav-right {
+  margin-left: auto;
+}
+
+.nav-link {
+  color: #555;
+  font-weight: 500;
+  padding: 0.5rem 1rem;
+  transition: color 0.2s ease-in-out;
 }
 
 .nav-link:hover {
-  color: var(--main-color); /* Màu khi hover */
+  color: var(--main-color);
+}
+
+.btn-outline-custom {
+  border: 1px solid #ccc;
+  color: #555;
+  padding: 8px 18px;
   border-radius: 4px;
+  background-color: transparent;
+  text-decoration: none;
+  display: inline-block;
+  transition: all 0.2s ease-in-out;
+}
+
+.btn-outline-custom:hover {
+  background-color: #f8f9fa;
+  color: #333;
+}
+
+/* THAY ĐỔI: Đổi màu nền nút "Đặt Phòng" */
+.btn-solid-custom {
+  background-color: #0d6efd; /* Màu xanh biển */
+  color: white;
+  padding: 9px 20px;
+  border-radius: 4px;
+  border: 1px solid #0d6efd;
+  text-decoration: none;
+  display: inline-block;
+  font-weight: 500;
+  transition: background-color 0.2s ease-in-out, border-color 0.2s ease-in-out;
+}
+
+.btn-solid-custom:hover {
+  background-color: #0b5ed7; /* Màu xanh đậm hơn khi hover */
+  border-color: #0b5ed7;
 }
 
 .dropdown-item {
   cursor: pointer;
-  font-size: 1rem;
+  font-size: 0.95rem;
   font-weight: 500;
-  color: #000;
+  color: #333;
   padding: 8px 15px;
   transition: all 0.3s ease;
 }
 
 .dropdown-item:hover {
-  color: #0e45e9 !important;
+  color: var(--main-color) !important;
   background-color: #f1f1f1;
 }
 
-.logout-link {
-  cursor: pointer;
-  color: #000 !important;
-}
-
-.logout-link:hover {
-  color: #0e45e9 !important;
-}
-
 main {
-  min-height: calc(100vh - 70px);
+  min-height: calc(100vh - 80px);
   width: 100%;
-  padding-top: 70px; /* Đảm bảo nội dung không bị che bởi navbar */
+  padding-top: 80px;
 }
 
 footer {
@@ -618,11 +680,50 @@ footer {
 
 @media (max-width: 991px) {
   /* Mobile Menu Styles */
+  .navbar-brand {
+    position: static;
+    transform: none;
+    margin-right: auto;
+  }
+  
+  .navbar-toggler {
+    position: static;
+    transform: none;
+  }
+
+  .navbar .container-fluid {
+    display: flex;
+    justify-content: space-between;
+    width: 100%;
+  }
+
+  .collapse.show .navbar-nav {
+    flex-direction: column;
+    align-items: flex-start !important;
+    gap: 1rem;
+    padding: 1rem 0;
+  }
+
+  .collapse.show .navbar-nav-left,
+  .collapse.show .navbar-nav-right {
+    margin: 0 !important;
+    width: 100%;
+  }
+
+  .collapse.show .navbar-nav li {
+    width: 100%;
+  }
+  
+  .collapse.show .navbar-nav .btn {
+      width: 100%;
+      text-align: left;
+  }
+  
   .navbar-collapse {
     position: fixed;
-    top: 0;
+    top: 80px; /* Position below navbar */
     right: 0;
-    height: 100vh;
+    height: calc(100vh - 80px);
     width: 250px;
     background-color: #fff;
     transform: translateX(100%);
@@ -636,43 +737,10 @@ footer {
     transform: translateX(0);
   }
 
-  .navbar-nav {
-    flex-direction: column;
-    padding: 10px;
-  }
-
-  .nav-link,
-  .dropdown-toggle {
-    color: #000 !important; /* Đảm bảo chữ đen trong menu mobile */
-    padding: 15px !important;
-  }
-
-  .nav-link:hover,
-  .dropdown-item:hover {
-    background-color: var(--main-color);
-    color: #fff !important;
-  }
-
-  .dropdown-menu {
-    background-color: #f8f9fa;
-    margin-left: 10px;
-  }
-
   /* Admin Sidebar on Mobile */
   .sidebar {
     width: 200px;
     transform: translateX(-100%);
-    transition: transform 0.3s ease-in-out;
-    overflow-y: auto;
-    scrollbar-width: none;
-  }
-
-  .sidebar::-webkit-scrollbar {
-    display: none;
-  }
-
-  .sidebar.show {
-    transform: translateX(0);
   }
 
   .main-content {
@@ -684,9 +752,6 @@ footer {
     left: 0;
     width: 100%;
   }
-
-  .admin-main {
-    padding-top: 70px;
-  }
 }
+
 </style>

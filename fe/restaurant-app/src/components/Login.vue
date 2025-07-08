@@ -6,7 +6,7 @@
         <div id="reader" style="width: 300px; height: 300px; display: none;"></div>
         <p v-if="errorMessageQr">{{ errorMessageQr }}</p>
     </div> -->
-    <div class="main-login mt-5">
+    <div class="main-login">
         <form @submit.prevent="submitForm" class="form">
             <div v-if="errorMessage" class="alert alert-warning alert-dismissible fade show" role="alert">
                 {{ errorMessage }}

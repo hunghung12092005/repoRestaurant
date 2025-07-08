@@ -21,9 +21,9 @@
         <div class="row align-items-center g-5">
           <div class="col-lg-6">
             <p class="section-subtitle text-start">Về Chúng Tôi</p>
-            <h2 class="section-title text-start">Chào Mừng Tới Khách Sạn Hồ Xuân Hương Eco</h2>
+            <h2 class="section-title text-start">Chào Mừng Tới Khách Sạn Hồ Xuân Hương</h2>
             <p class="section-text text-start">
-              Chào mừng đến với Hồ Xuân Hương Eco, nơi sự sang trọng gặp gỡ tiện nghi tại trung tâm Canada. Từ năm 1999, chúng tôi đã cống hiến để mang đến một kỳ nghỉ đặc biệt cho quý khách, kết hợp các tiện nghi hiện đại với sự thanh lịch vượt thời gian. Các phòng và suite được thiết kế đẹp mắt của chúng tôi có tầm nhìn tuyệt đẹp và chỗ ở sang trọng, đảm bảo một nơi nghỉ ngơi thư thái dù bạn ở đây để công tác hay giải trí.
+              Chào mừng đến với Hồ Xuân Hương Ecosystem, nơi sự sang trọng gặp gỡ tiện nghi tại trung tâm Canada. Từ năm 1999, chúng tôi đã cống hiến để mang đến một kỳ nghỉ đặc biệt cho quý khách, kết hợp các tiện nghi hiện đại với sự thanh lịch vượt thời gian. Các phòng và suite được thiết kế đẹp mắt của chúng tôi có tầm nhìn tuyệt đẹp và chỗ ở sang trọng, đảm bảo một nơi nghỉ ngơi thư thái dù bạn ở đây để công tác hay giải trí.
             </p>
             <a href="#" class="btn btn-custom-secondary">Tìm Hiểu Thêm</a>
           </div>
