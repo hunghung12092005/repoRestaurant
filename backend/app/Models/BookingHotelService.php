@@ -14,7 +14,6 @@ class BookingHotelService extends Model
     protected $fillable = [
         'booking_detail_id',
         'service_id',
-        'service_price',
     ];
 
     public function bookingDetail()

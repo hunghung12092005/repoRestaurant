@@ -59,12 +59,17 @@
             <p class="bed-size">{{ room.bedSize }}</p>
 
             <div v-if="room.status === 'Đã đặt'">
-              <a href="#" class="action-link" @click.prevent="showGuestDetails(room)">Chi tiết khách</a>
+              <button class="action-link" @click.prevent="showGuestDetails(room)">
+                Chi tiết
+              </button>
               <br>
-              <a href="#" class="action-link" @click.prevent="checkoutRoom(room.room_id)">Thanh toán</a>
+              <a href="#" class="action-link" @click.prevent="checkoutRoom(room.room_id)"><button>Thanh toán</button></a>
+              <br>
+              <a href="#" class="action-link" @click.prevent="showExtendForm(room.room_id)"><button>Gia hạn</button></a>
+
             </div>
             <a v-else href="#" class="action-link" @click.prevent="showAddGuest(room.room_id)">
-              Thêm khách
+              <button>Thêm khách</button>
             </a>
 
           </div>
@@ -99,8 +104,24 @@
           <label>Địa chỉ</label>
           <input v-model="formData.address" />
         </div>
+        <input type="hidden" v-model="formData.pricing_type" />
 
+        <div class="form-group">
+          <label>Ngày giờ nhận phòng</label>
+          <input type="datetime-local" v-model="formData.check_in_date" required />
+        </div>
+        <div class="form-group">
+          <label>Ngày giờ trả phòng</label>
+          <input type="datetime-local" v-model="formData.check_out_date" required />
+        </div>
         <div class="form-actions">
+          <div v-if="totalPricePreview" class="form-group">
+            <label>Tổng tiền ước tính:</label>
+            <div style="font-weight: bold; color: #2c3e50;">
+              {{ Number(totalPricePreview).toLocaleString('vi-VN') + ' VND' }}
+            </div>
+          </div>
+
           <button type="submit">Lưu</button>
           <button type="button" @click="showForm = false">Hủy</button>
         </div>
@@ -109,15 +130,53 @@
   </div>
   <div v-if="showGuestModal" class="modal-overlay">
     <div class="modal-content">
-      <h2>Thông tin khách hàng</h2>
-      <p><strong>Họ tên:</strong> {{ guestInfo.customer_name }}</p>
-      <p><strong>SĐT:</strong> {{ guestInfo.customer_phone }}</p>
-      <p><strong>Email:</strong> {{ guestInfo.customer_email }}</p>
-      <p><strong>Địa chỉ:</strong> {{ guestInfo.address }}</p>
+      <h2>Chi tiết phòng & khách</h2>
+
+      <!-- Chi tiết Phòng -->
+      <p v-if="guestInfo.room"><strong>Phòng:</strong> {{ guestInfo.room.room_name }} - {{ guestInfo.room.type_name }} (Tầng {{ guestInfo.room.floor_number }})</p>
+<p v-else>Đang tải thông tin phòng...</p>
+
+      <p><strong>Trạng thái:</strong> {{ guestInfo.room?.status }}</p>
+
+      <hr />
+
+      <!-- Chi tiết Khách -->
+      <p v-if="guestInfo.room"><strong>Khách hàng:</strong> {{ guestInfo.customer?.customer_name || 'Chưa có' }}</p>
+      <p v-if="guestInfo.room"><strong>SĐT:</strong> {{ guestInfo.customer?.customer_phone || '...' }}</p>
+      <p v-if="guestInfo.room"><strong>Email:</strong> {{ guestInfo.customer?.customer_email || '...' }}</p>
+      <p v-if="guestInfo.room"><strong>Địa chỉ:</strong> {{ guestInfo.customer?.address || '...' }}</p>
+
+      <hr />
+
+      <!-- Thông tin đặt phòng -->
+      <p v-if="guestInfo.room"><strong>Nhận phòng:</strong> {{ guestInfo.booking?.check_in_date || '...' }}</p>
+      <p v-if="guestInfo.room"><strong>Trả phòng dự kiến:</strong> {{ guestInfo.booking?.check_out_date || '...' }}</p>
+      <p v-if="guestInfo.room"><strong>Trả phòng thực tế:</strong> {{ guestInfo.booking?.actual_check_out_time || 'Chưa trả' }}</p>
+      <p v-if="guestInfo.room"><strong>Loại giá:</strong> {{ guestInfo.booking?.pricing_type || '...' }}</p>
+      <p v-if="guestInfo.room"><strong>Trạng thái:</strong> {{ guestInfo.booking?.status || '...' }}</p>
+      <p v-if="guestInfo.room"><strong>Tổng tiền:</strong> {{ guestInfo.booking?.total_price ?
+        Number(guestInfo.booking.total_price).toLocaleString('vi-VN') + ' VND' : '...' }}</p>
 
       <div class="form-actions">
         <button @click="showGuestModal = false">Đóng</button>
       </div>
+    </div>
+
+
+  </div>
+  <div v-if="showExtendModal" class="modal-overlay">
+    <div class="modal-content">
+      <h2>Gia hạn thuê phòng</h2>
+      <form @submit.prevent="submitExtendForm">
+        <div class="form-group">
+          <label>Ngày giờ trả mới:</label>
+          <input type="datetime-local" v-model="extendForm.check_out_date" required />
+        </div>
+        <div class="form-actions">
+          <button type="submit">Xác nhận</button>
+          <button type="button" @click="showExtendModal = false">Hủy</button>
+        </div>
+      </form>
     </div>
   </div>
 </template>
@@ -139,14 +198,19 @@ const selectedFloor = ref('Tất cả');
 
 // Dữ liệu form thêm khách
 const showForm = ref(false);
+const totalPricePreview = ref(null); // Xem trước giá
+
 const formData = ref({
   customer_name: '',
   customer_phone: '',
   customer_email: '',
   address: '',
-  room_id: null
+  room_id: null,
+  check_in_date: '',
+  check_out_date: '',
+  pricing_type: 'nightly' // mặc định
 });
-const guestInfo = ref(null);
+const guestInfo = ref({});
 const showGuestModal = ref(false);
 
 const checkoutRoom = async (room_id) => {
@@ -155,13 +219,21 @@ const checkoutRoom = async (room_id) => {
 
   try {
     const response = await axios.post(`${apiUrl}/api/rooms/${room_id}/checkout`);
-    alert(response.data.message || "Phòng đã được chuyển về trạng thái trống.");
+    const data = response.data;
+
+    alert(
+      `${data.message}\n\n` +
+      `💰 Tổng tiền thực tế: ${data.actual_total}\n` +
+      (data.note ? `🧾 Ghi chú: ${data.note}` : "")
+    );
+
     await fetchRooms(); // Làm mới danh sách phòng
   } catch (error) {
     console.error("Lỗi khi thanh toán:", error);
     alert("Không thể thanh toán phòng.");
   }
 };
+
 
 // Chuyển trạng thái từ API
 const mapApiStatusToVietnamese = (status) => {
@@ -212,37 +284,59 @@ const showAddGuest = (room_id) => {
     customer_phone: '',
     customer_email: '',
     address: '',
-    room_id: room_id
+    room_id: room_id,
+    pricing_type: 'nightly'
   };
   showForm.value = true;
+  calculateTotalPricePreview(); // ✅ thêm dòng này
 };
 console.log("Dữ liệu gửi:", formData.value);
 
 // Gửi dữ liệu từ form vào backend Laravel
 const submitCustomerForm = async () => {
+
+
   try {
     const confirm = window.confirm("Bạn có chắc muốn lưu thông tin khách hàng?");
     if (!confirm) return;
-    console.log(formData.value);
-    const response = await axios.post(`${apiUrl}/api/customers`, {
+
+    const payload = {
       customer_name: formData.value.customer_name,
       customer_phone: formData.value.customer_phone,
       customer_email: formData.value.customer_email,
-      room_id: formData.value.room_id,
-      address: formData.value.address
-    });
-    // GỌI THÊM API đổi trạng thái phòng
-    await axios.post(`${apiUrl}/api/rooms/${formData.value.room_id}/add-guest`);
+      address: formData.value.address,
+      check_in_date: formData.value.check_in_date,
+      check_out_date: formData.value.check_out_date,
+      pricing_type: formData.value.pricing_type
+    };
 
-    alert(response.data.message || "Đăng ký khách hàng thành công!");
+    const response = await axios.post(`${apiUrl}/api/rooms/${formData.value.room_id}/add-guest`, payload);
+
+    alert(response.data.message + '\nTổng tiền: ' + (response.data.total_price || 'Không rõ'));
     showForm.value = false;
-    await fetchRooms(); // Làm mới danh sách phòng nếu cần
+    await fetchRooms();
   } catch (error) {
     console.error("Lỗi khi gửi dữ liệu khách hàng:", error);
     alert("Không thể lưu thông tin khách hàng.");
   }
 };
 
+const calculateTotalPricePreview = async () => {
+  if (!formData.value.room_id) return; // ✅ thêm dòng này vào đầu
+  try {
+    const response = await axios.post(`${apiUrl}/api/rooms/preview-price`, {
+      room_id: formData.value.room_id,
+      check_in_date: formData.value.check_in_date,
+      check_out_date: formData.value.check_out_date,
+      pricing_type: formData.value.pricing_type || 'nightly', // nếu bị null
+      is_extend: false // 👈 đặt false nếu là đặt mới (không phải gia hạn)
+    });
+
+    totalPricePreview.value = response.data.total_price;
+  } catch (error) {
+    totalPricePreview.value = "Không thể tính giá";
+  }
+};
 // Lọc dữ liệu phòng
 const roomTypes = computed(() => {
   const types = new Set(allRooms.value.map(room => room.type));
@@ -291,11 +385,41 @@ const clearFilters = () => {
 const showGuestDetails = async (room) => {
   try {
     const response = await axios.get(`${apiUrl}/api/rooms/${room.room_id}/customer`);
-    guestInfo.value = response.data.data;
+    guestInfo.value = {
+  room: response.data.room,
+  customer: response.data.customer,
+  booking: response.data.booking
+};
+
     showGuestModal.value = true;
   } catch (error) {
     alert("Không tìm thấy thông tin khách cho phòng này.");
     console.error(error);
+  }
+};
+const showExtendModal = ref(false);
+const extendForm = ref({
+  room_id: null,
+  check_out_date: ''
+});
+
+const showExtendForm = (room_id) => {
+  extendForm.value.room_id = room_id;
+  extendForm.value.check_out_date = '';
+  showExtendModal.value = true;
+};
+
+const submitExtendForm = async () => {
+  try {
+    const res = await axios.post(`${apiUrl}/api/rooms/${extendForm.value.room_id}/extend`, {
+      check_out_date: extendForm.value.check_out_date
+    });
+    alert(res.data.message + '\nTổng tiền mới: ' + res.data.total_price);
+    showExtendModal.value = false;
+    await fetchRooms();
+  } catch (err) {
+    console.error("Lỗi gia hạn:", err);
+    alert("Không thể gia hạn.");
   }
 };
 
@@ -303,10 +427,21 @@ const showGuestDetails = async (room) => {
 onMounted(() => {
   fetchRooms();
 });
+watch(() => [
+  formData.value.check_in_date,
+  formData.value.check_out_date,
+  formData.value.pricing_type
+], calculateTotalPricePreview);
 
 watch([selectedStatus, selectedRoomType, selectedFloor], (newValues) => {
   console.log('Bộ lọc đã thay đổi:', newValues);
 });
+watch(() => formData.value.room_id, () => {
+  if (formData.value.check_in_date && formData.value.check_out_date) {
+    calculateTotalPricePreview();
+  }
+});
+
 </script>
 
 
@@ -510,6 +645,7 @@ watch([selectedStatus, selectedRoomType, selectedFloor], (newValues) => {
 }
 
 .modal-overlay {
+  z-index: 1000;
   position: fixed;
   z-index: 1000;
   top: 0;
@@ -545,4 +681,46 @@ watch([selectedStatus, selectedRoomType, selectedFloor], (newValues) => {
   gap: 12px;
   justify-content: flex-end;
 }
+
+button {
+  padding: 6px 14px;
+  background-color: #4f46e5;
+  /* tím dịu */
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease-in-out;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
+}
+
+button:hover {
+  background-color: #4338ca;
+  /* tím đậm hơn */
+  transform: translateY(-1px);
+}
+
+button:active {
+  transform: scale(0.97);
+}
+
+button:disabled {
+  background-color: #ccc;
+  cursor: not-allowed;
+  box-shadow: none;
+}
+
+button.secondary {
+  background-color: #f3f4f6;
+  /* xám sáng */
+  color: #333;
+}
+
+button.secondary:hover {
+  background-color: #e5e7eb;
+  /* xám hover */
+}
+
 </style>

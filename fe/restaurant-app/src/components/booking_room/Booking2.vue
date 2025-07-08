@@ -387,39 +387,39 @@
                                         <p>Phụ Phí:</p>
                                         <p>{{ formatPrice(selectedHotelBooking.surcharges) }}</p>
                                     </div>
-                                    <div class="service" v-if="serviceRoom != ''">
+                                    <div class="service" v-if="serviceRoom.length">
                                         <p>Lựa chọn dịch vụ</p>
-                                        <div class="room-selector-custom">
-                                            <label for="roomCount">PHÒNG SỬ DỤNG</label>
-                                            <div class="counter-custom">
-                                                <button class="decrement-button" @click="decrement"
-                                                    :disabled="numberOfRooms <= 1">-</button>
-                                                <input type="number" v-model="numberOfRooms" min="1" :max="bookrooms"
-                                                    readonly />
-                                                <button class="increment-button" @click="increment"
-                                                    :disabled="numberOfRooms >= bookrooms">+</button>
-                                            </div>
-                                        </div>
                                         <div v-for="service in serviceRoom" :key="service.service_id">
                                             <label>
-                                                <input type="checkbox" v-model="selectedServices"
-                                                    :value="{ id: service.service_id, price: service.price, name: service.service_name }"
-                                                    @change="updateTotalPrice" />
-                                                Giá: {{ formatPrice(service.price * numberOfRooms) }}/{{ numberOfRooms
-                                                }} Phòng - Miêu tả: {{ service.description }}
+                                                {{ service.service_name }} - Giá: {{ formatPrice(service.price) }} -
+                                                Miêu tả: {{ service.description }}
                                             </label>
+
+                                            <div class="room-selector-custom">
+                                                <label>Số phòng sử dụng cho {{ service.service_name }}</label>
+                                                <div class="counter-custom">
+                                                    <button class="decrement-button"
+                                                        @click="decrementService(service.service_id)"
+                                                        :disabled="getRoomCount(service.service_id) <= 0">-</button>
+                                                    <input type="number" v-model="roomCounts[service.service_id]"
+                                                        min="0" :max="bookrooms" readonly />
+                                                    <button class="increment-button"
+                                                        @click="incrementService(service.service_id)"
+                                                        :disabled="getRoomCount(service.service_id) >= bookrooms">+</button>
+                                                </div>
+                                            </div>
+
+                                            <p class="total-price">Tổng giá dịch vụ cho {{ service.service_name }}:
+                                                {{ formatPrice(getRoomCount(service.service_id) * service.price) }}</p>
                                         </div>
 
-
-
-                                        <!-- Hiển thị tổng giá dịch vụ -->
                                         <p class="total-price">Tổng giá dịch vụ: {{ formatPrice(calculateServiceTotal)
-                                            }}</p>
+                                        }}</p>
                                     </div>
+
                                     <div class="total">
                                         <p>Total: <small>{{ formatPrice(selectedHotelBooking.price) }} Giá Phòng +
-                                                {{ formatPrice(calculateServiceTotal)
-                                                }} Giá Dịch Vụ</small></p>
+                                                {{ formatPrice(calculateServiceTotal) }} Giá Dịch Vụ</small></p>
                                         <p>{{ formatPrice(totalPrice) }}</p>
                                     </div>
                                     <div class="mb-1">
@@ -466,7 +466,6 @@
                 <div class="logo-container">
                     Xác thực SMS
                     <button type="button" class="btn-close m-4" @click="closeModalOtp"></button>
-
                 </div>
 
 
@@ -494,7 +493,7 @@
 
 <script setup>
 
-import { ref, onMounted, computed } from 'vue';
+import { ref, onMounted, computed, inject } from 'vue';
 import axios from 'axios';
 // import Modal from '../Model.vue';
 import loading from '../loading.vue';
@@ -502,6 +501,11 @@ import Footer from '../Footer.vue';
 import Popup from '../Popup.vue';
 import { auth, RecaptchaVerifier, PhoneAuthProvider } from '../ShopOnline/firebase';
 import { signInWithPhoneNumber, signInWithCredential } from 'firebase/auth';
+import { useRouter } from 'vue-router'; // Dòng này cực kỳ quan trọng!
+
+// Khởi tạo router instance
+var router = useRouter();//su dung router để điều hướng
+
 const showPopup = ref(false);//popup mới vào trang
 const showPopUpMain = () => {
     showPopup.value = true;//popup mới vào trang
@@ -595,7 +599,7 @@ const getRoomPrices = async () => {
             };
         });
 
-        console.log("Updated Hotels:", hotels.value); // In ra mảng hotels đã được cập nhật
+        //  console.log("Updated Hotels:", hotels.value); // In ra mảng hotels đã được cập nhật
 
     } catch (error) {
         console.error("Có lỗi xảy ra khi lấy dữ liệu:", error);
@@ -624,53 +628,65 @@ const fullName = ref('');
 
 const serviceRoom = ref([]);
 const selectedServices = ref([]); // Mảng lưu giá các dịch vụ đã chọn
+const roomCounts = ref({}); // Để lưu số phòng cho từng dịch vụ
 //Xử lý khi bấm vào cái hạng phòng đó
 const gia1_phong = ref();
 function bookHotel(hotel) {
     selectedHotelBooking.value = hotel;
-    //console.log(selectedHotelBooking.value);
-    serviceRoom.value = selectedHotelBooking.value.services;
+
+    // Kiểm tra xem services có phải là mảng không
+    if (Array.isArray(selectedHotelBooking.value.services)) {
+        serviceRoom.value = selectedHotelBooking.value.services;
+    } else {
+        console.warn('Dịch vụ không hợp lệ, khởi tạo mảng rỗng.');
+        serviceRoom.value = []; // Khởi tạo mảng rỗng nếu không hợp lệ
+    }
+
     gia1_phong.value = selectedHotelBooking.value.price;
-    //console.log(gia1_phong.value);
     showModalBooking.value = true;
     selectedServices.value = []; // Reset dịch vụ đã chọn
-    numberOfRooms.value = 1;//reset số phòng sử dụng dịch vụ
+    numberOfRooms.value = 1; // Reset số phòng sử dụng dịch vụ
 }
 // Tính toán tổng giá
 const numberOfRooms = ref(1); // Hoặc giá trị mặc định khác
 //Tính tiền dịch vụ
+// Lấy giá dịch vụ từ selectedServices
+const getServicePrice = (serviceId) => {
+    const service = selectedServices.value[serviceId];
+    return service ? service.price : 0;
+};
+
+// Tính tiền dịch vụ
+// Tính tiền dịch vụ
 const calculateServiceTotal = computed(() => {
-    return selectedServices.value.reduce((sum, service) =>
-        sum + (parseFloat(service.price) * numberOfRooms.value), 0
-    );
+    return Object.keys(roomCounts.value).reduce((sum, serviceId) => {
+        const count = roomCounts.value[serviceId] || 0;
+        const service = serviceRoom.value.find(s => s.service_id === Number(serviceId));
+        return sum + (service ? service.price * count : 0);
+    }, 0);
 });
-//tính tổng tiền tiền phòng + tiền dịch vụ
+
+// Tính tổng tiền phòng + tiền dịch vụ
 const totalPrice = computed(() => {
-    const hotelPrice = selectedHotelBooking.value?.price || 0; // Giá phòng
-    const servicesTotal = calculateServiceTotal.value; // Sử dụng giá dịch vụ đã tính
-    return hotelPrice + servicesTotal; // Tổng tiền = tiền phòng + tiền dịch vụ
+    return selectedHotelBooking.value.price + calculateServiceTotal.value; // Tổng tiền
 });
-// Hàm tăng số lượng phòng
-const increment = () => {
-    if (numberOfRooms.value < bookrooms.value) {
-        numberOfRooms.value++;
-        updateTotalPrice();
+
+// Hàm tăng số lượng phòng cho dịch vụ
+const incrementService = (serviceId) => {
+    roomCounts.value[serviceId] = (roomCounts.value[serviceId] || 0) + 1;
+};
+
+// Hàm giảm số lượng phòng cho dịch vụ
+const decrementService = (serviceId) => {
+    if ((roomCounts.value[serviceId] || 0) > 0) {
+        roomCounts.value[serviceId]--;
     }
 };
-// Hàm giảm số lượng phòng
-const decrement = () => {
-    if (numberOfRooms.value > 1) {
-        numberOfRooms.value--;
-        updateTotalPrice();
-    }
+
+// Hàm lấy số phòng cho dịch vụ
+const getRoomCount = (serviceId) => {
+    return roomCounts.value[serviceId] || 0;
 };
-// Cập nhật tổng giá khi checkbox thay đổi
-const phong_dich_vu = ref(0);
-function updateTotalPrice() {
-    phong_dich_vu.value += 1;
-    //console.log(phong_dich_vu.value);
-    // Không cần làm gì ở đây vì totalPrice là computed property
-}
 //xem chi tiết hạng phòng
 function viewHotelDetails(hotel) {
     selectedHotel.value = hotel;
@@ -763,54 +779,114 @@ const verifyCode = async () => {
 const closeModalOtp = async () => {
     isOtp.value = false;
 }
+const apiUrl = inject('apiUrl'); // Lấy URL API từ inject
+
 //xử lý khi nhấn đặt phòng
-const submitBooking = () => {
-    // Xử lý logic đặt phòng ở đây
+const submitBooking = async () => {
+    // Kiểm tra thông tin nhập
     if (!phoneNumber.value) {
         alert('Vui lòng nhập số điện thoại!');
-        document.getElementById('phone').focus(); // Đảm bảo ID đúng với input của bạn
-        return; // 
-    }
-    if (customer.createAccount = false) {
-        alert('Vui lòng xác nhận điều kiện!');
-        document.getElementById('createAccount').focus(); // Đảm bảo ID đúng với input của bạn
+        document.getElementById('phone').focus();
         return;
     }
-    if (!phoneNumber.value) {
-        alert('Vui lòng nhập số điện thoại!');
-        document.getElementById('phone').focus(); 
-        return;
-    }
-    // Lấy thông tin đặt phòng
-    //console.log(selectedServices.value);
+
+    // Tính toán giá phòng
     const gia_phong = gia1_phong.value / bookrooms.value;
-    const gia_dich_vu = calculateServiceTotal.value / numberOfRooms.value;
-    const  gia_phong_dich_vu  = gia_phong +  gia_dich_vu;
+
+    // Khởi tạo bookingDetails
     const bookingDetails = {
         check_in_date: checkin.value,
         check_out_date: checkOut.value,
-        total_rooms: bookrooms.value,
-        //hotel: selectedHotelBooking.value,
-        so_phong_dich_vu: numberOfRooms.value,
-        services_id: selectedServices.value.map(service => service.id), // Lấy service_id
-        services_name: selectedServices.value.map(service => service.name), // Lấy service_name
-        gia_dich_vu_1phong: gia_dich_vu,
-        gia_1phong_dich_vu:gia_phong_dich_vu,
-        gia_1phong: gia_phong,
+        total_rooms: Number(bookrooms.value), // Chuyển đổi thành số
+        gia_phong: gia_phong, // Giá phòng đã tính toán
+        room_type: selectedHotelBooking.value.id,
+        room_services: [], // Danh sách dịch vụ cho từng phòng
         total_price: totalPrice.value,
         phone: phoneNumber.value,
         fullName: fullName.value,
-        paymentMethod: paymentMethod.value,
+        payment_method: paymentMethod.value,
         booking_type: 'online',
-        pricing_type: 'nightly',
-        note: orderNotes.value,
-        //createAccount: customer.createAccount,
+        note: orderNotes.value || 'Không có ghi chú',
     };
 
-    // Xử lý logic đặt phòng ở đây 
+    // Xác thực và lấy token
+    let token;
+    //     const axiosWithoutHeader = axios.create({
+    //    // baseURL: apiUrl, // Đặt base URL nếu cần
+    //     headers: {} // Không thêm header nào
+    // });
+    try {
+        const authResponse = await axios.post(`${apiUrl}/api/generate-token`, {
+            name: fullName.value,
+            phone: phoneNumber.value,
+            address: '', // Có thể thêm địa chỉ nếu cần
+        });
+        token = authResponse.data.token;
+        localStorage.setItem('BookingAuth', token);
+        console.log(localStorage.getItem('BookingAuth'))
+
+        //console.log('Token xác thực:', token);
+    } catch (error) {
+        console.error('Lỗi khi xác thực:', error);
+        alert('Không thể xác thực, vui lòng kiểm tra thông tin!');
+        return;
+    }
+
+    // Duyệt qua từng dịch vụ đã chọn
+    for (const serviceId in roomCounts.value) {
+        const serviceCount = roomCounts.value[serviceId]; // Số phòng đã chọn cho dịch vụ này
+        const service = serviceRoom.value.find(s => s.service_id === Number(serviceId)); // Tìm dịch vụ tương ứng
+
+        for (let j = 0; j < serviceCount; j++) {
+            const roomService = {
+                room_number: bookingDetails.room_services.length + 1, // Số phòng hiện tại
+                services_id: [serviceId], // ID dịch vụ
+                //services_name: [service.service_name], // Tên dịch vụ
+                gia_dich_vu_1phong: Number(service.price), // Giá dịch vụ
+            };
+            bookingDetails.room_services.push(roomService);
+        }
+    }
+
+    // Đảm bảo số phòng không có dịch vụ
+    while (bookingDetails.room_services.length < bookingDetails.total_rooms) {
+        bookingDetails.room_services.push({
+            room_number: bookingDetails.room_services.length + 1,
+            services_id: [],
+            services_name: [],
+            gia_dich_vu_1phong: 0,
+        });
+    }
+    const axiosWithoutHeader = axios.create({
+        // baseURL: apiUrl, // Đặt base URL nếu cần
+        headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`, // Thêm token vào header
+        }
+    });
+    try {
+        isLoading.value = true; // Bắt đầu quá trình gửi dữ liệu
+        console.log('Thông tin đặt phòng:', JSON.stringify(bookingDetails, null, 2));
+        // Gửi yêu cầu đặt phòng
+        const response = await axiosWithoutHeader.post(`${apiUrl}/api/booking-client`, bookingDetails);
+        console.log('Đặt phòng thành công:', response.data);
+
+    } catch (error) {
+        console.error('Lỗi khi gửi thông tin đặt phòng:', error);
+
+        const errorMessage = error.response && error.response.data && error.response.data.error
+            ? error.response.data.error
+            : error.message || 'Đã xảy ra lỗi không xác định';
+
+        alert(`Lỗi khi gửi thông tin đặt phòng: ${errorMessage}`);
+        return;
+    } finally {
+        isLoading.value = false; // Kết thúc quá trình gửi dữ liệu
+        router.push('/thanksBooking'); // Ví dụ: về trang chủ
+
+    }
     console.log('Thông tin đặt phòng:', bookingDetails);
-    //console.log(customer.value);
-    //showModalBooking.value = false; // Đóng modal sau khi xác nhận
+
 };
 
 onMounted(() => {
@@ -870,14 +946,17 @@ onMounted(() => {
 
 /* Media Query */
 @media screen and (max-width: 400px) {
+
     .decrement-button,
     .increment-button {
-        width: 25px; /* Kích thước nút nhỏ hơn trên màn hình nhỏ */
+        width: 25px;
+        /* Kích thước nút nhỏ hơn trên màn hình nhỏ */
         height: 25px;
     }
 
-    
+
 }
+
 .decrement-button:disabled,
 .increment-button:disabled {
     background-color: #ccc;

@@ -165,9 +165,9 @@
                     </li>
                   </ul>
                 </li>
-                
-                <li class="nav-item "><router-link class="nav-link sisf-m-subtitle" to="/rooms2">Đặt
+                <li class="nav-item "><router-link class="nav-link sisf-m-subtitle" to="/rooms3">Đặt
                     Phòng</router-link></li>
+                <li class="nav-item "><router-link class="nav-link sisf-m-subtitle" to="/HistoryBooking">Lịch Sử Đặt Phòng</router-link></li>
                 <li class="nav-item dropdown " v-if="isLogin">
                   <a class="nav-link dropdown-toggle sisf-m-subtitle" href="#" role="button" data-bs-toggle="dropdown"
                     aria-expanded="false">

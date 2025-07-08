@@ -59,6 +59,9 @@ Route::delete('/comments/{comment}', [NewsCommentController::class, 'destroy']);
 
 
 Route::post('/rooms/{room_id}/add-guest', [OccupancyController::class, 'addGuestToRoom']); //khi khách đặt phòng thì đổi trạng thái
+Route::post('/rooms/preview-price', [OccupancyController::class, 'previewPrice']);//xem trước giá
+Route::post('/rooms/{room_id}/extend', [OccupancyController::class, 'extendStay']);//gia hạn phòng
+
 
 
 // Route::get('/room-types', [RoomTypeController::class, 'index']);
@@ -140,4 +143,11 @@ Route::post('/verify-otp', [ApiLoginController::class, 'verifyOtp']);
 Route::post('/reset-password', [ApiLoginController::class, 'resetPassword']);
 //thêm booking từ client
 Route::post('/booking-client', [BookingHotelController::class, 'storeBooking']);
-
+//tao token jwt cho khách hàng
+Route::post('/generate-token', [BookingHotelController::class, 'generateToken']);
+//tra ve lich su cho khach hang
+Route::get('/booking-history', [BookingHotelController::class, 'getBookingHistory']);
+//lay hang phong dua vao so nguoi
+Route::post('/available-rooms', [BookingHotelController::class, 'getAvailableRooms']);
+//thanh toan payOS
+Route::post('/payos/checkout', [BookingHotelController::class, 'payos']);
