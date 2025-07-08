@@ -3,11 +3,11 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
-
+// use Illuminate\Database\Eloquent\Factories\HasFactory;
 
 class BookingHotelDetail extends Model
 {
-    use HasFactory;
+    // use HasFactory;
     
     protected $table = 'booking_hotel_detail';
     protected $primaryKey = 'booking_detail_id';
