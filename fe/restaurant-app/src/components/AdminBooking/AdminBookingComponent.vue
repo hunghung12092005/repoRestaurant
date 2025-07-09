@@ -111,15 +111,15 @@
                   </tr>
                 </thead>
                 <tbody>
-                  <tr v-for="detail in validBookingDetails" :key="detail.booking_detail_id || 'no-id'">
+                  <tr v-for="detail in validBookingDetails" :key="detail.booking_detail_id">
                     <td>{{ detail.booking_detail_id || 'N/A' }}</td>
-                    <td>{{ detail.initial_room_type || 'Chưa xác định' }}</td>
-                    <td>{{ detail.room && detail.room.room_name ? detail.room.room_name : 'Chưa xếp' }}</td>
+                    <td>{{ detail.room_type_name || 'Chưa xác định' }}</td>
+                    <td>{{ detail.room?.room_name || 'Chưa xếp' }}</td>
                     <td>{{ formatPrice(detail.total_price) || '0' }}</td>
                     <td>{{ detail.note || 'Không có' }}</td>
                     <td>
                       <select
-                        v-if="detail && !detail.room_id && availableRooms.length > 0"
+                        v-if="!detail.room_id && availableRooms.length > 0"
                         v-model="detail.room_id"
                         @change="assignRoom(detail)"
                         class="form-control form-control-sm"
@@ -127,9 +127,9 @@
                         <option value="">Chọn phòng</option>
                         <option
                           v-for="room in availableRooms"
-                          :key="room.id || 'no-id'"
+                          :key="room.id"
                           :value="room.id"
-                          v-if="room.id && !bookedRooms.includes(room.id)"
+                          v-if="!bookedRooms.includes(room.id)"
                         >
                           {{ room.name }} ({{ room.room_type?.type_name || 'N/A' }})
                         </option>
@@ -149,14 +149,14 @@
                 <thead class="thead-dark">
                   <tr>
                     <th>ID</th>
-                    <th>Dịch vụ ID</th>
+                    <th>Dịch vụ</th>
                     <th>Giá dịch vụ</th>
                   </tr>
                 </thead>
                 <tbody>
-                  <tr v-for="service in bookingServices" :key="service.booking_service_id || 'no-id'">
+                  <tr v-for="service in bookingServices" :key="service.booking_service_id">
                     <td>{{ service.booking_service_id || 'N/A' }}</td>
-                    <td>{{ service.service_id || 'N/A' }}</td>
+                    <td>{{ service.service?.name || service.service_id || 'N/A' }}</td>
                     <td>{{ formatPrice(service.service_price) || '0' }}</td>
                   </tr>
                 </tbody>
@@ -193,17 +193,17 @@ const loading = ref(false);
 
 // Computed properties
 const validBookingDetails = computed(() => {
-  return bookingDetails.value.filter(detail => detail && detail.booking_detail_id !== undefined && detail.booking_detail_id !== null);
+  return bookingDetails.value.filter(detail => detail && detail.booking_detail_id);
 });
 
 // Methods
 const fetchBookings = async () => {
   try {
-    const response = await axios.get('/api/bookings?status=pending_confirmation');
+    const response = await axios.get('/api/bookings?status=pending_confirmation', {
+      headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
+    });
     bookings.value = Array.isArray(response.data) ? response.data : [];
-    console.log('Số lượng booking nhận được từ API:', bookings.value.length);
-    console.log('Bookings received:', JSON.stringify(bookings.value, null, 2));
-    errorMessage.value = '';
+    errorMessage.value = 'Danh sách booking trống';
   } catch (error) {
     console.error('Lỗi khi lấy danh sách booking:', error);
     errorMessage.value = `Lỗi khi lấy danh sách booking: ${error.response?.status || 'Unknown'} - ${error.response?.data?.error || error.message}`;
@@ -214,37 +214,45 @@ const openDetailModal = async (booking) => {
   selectedBooking.value = booking;
   loading.value = true;
   try {
-    console.log('Opening detail modal for booking:', JSON.stringify(booking, null, 2));
-    if (!booking.type_id) {
-      errorMessage.value = 'Booking không có type_id hợp lệ, loại phòng sẽ hiển thị mặc định. Vui lòng kiểm tra dữ liệu.';
+    // Use room_type instead of type_id to align with BookingHotel model
+    const roomTypeId = booking.room_type;
+
+    if (!roomTypeId) {
+      errorMessage.value = 'Booking không có room_type hợp lệ.';
       bookingDetails.value = [];
       availableRooms.value = [];
     } else {
-      // Lấy chi tiết booking
-      const detailsResponse = await axios.get(`/api/booking-details/${booking.booking_id}`);
+      // Fetch booking details
+      const detailsResponse = await axios.get(`/api/booking-details/${booking.booking_id}`, {
+        headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
+      });
       bookingDetails.value = Array.isArray(detailsResponse.data)
-        ? detailsResponse.data.map(d => ({
-            ...d,
-            room: d.room && d.room.room_id !== null
-              ? d.room
-              : { room_id: null, room_name: 'Chưa xếp', type_id: booking.type_id },
-            initial_room_type: d.initial_room_type || (booking.roomType?.type_name || 'Chưa xác định')
+        ? detailsResponse.data.map(detail => ({
+            ...detail,
+            room: detail.room || { room_id: null, room_name: 'Chưa xếp' },
+            room_type_name: detail.room_type_name || booking.roomTypeInfo?.type_name || 'Chưa xác định'
           }))
         : [];
-      console.log('Booking details received:', JSON.stringify(bookingDetails.value, null, 2));
 
-      // Lấy dịch vụ booking
-      const servicesResponse = await axios.get(`/api/booking-services/${booking.booking_id}`);
-      bookingServices.value = Array.isArray(servicesResponse.data) ? servicesResponse.data : [];
-      console.log('Booking services received:', JSON.stringify(bookingServices.value, null, 2));
+      // Fetch booking services
+      const servicesResponse = await axios.get(`/api/booking-services/${booking.booking_id}`, {
+        headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
+      });
+      bookingServices.value = Array.isArray(servicesResponse.data)
+        ? servicesResponse.data.map(service => ({
+            ...service,
+            service: service.service || { name: 'N/A' }
+          }))
+        : [];
 
-      // Lấy danh sách phòng trống
+      // Fetch available rooms
       const roomsResponse = await axios.get('/api/available-rooms', {
         params: {
           check_in: booking.check_in_date,
           check_out: booking.check_out_date,
-          type_id: booking.type_id,
+          type_id: roomTypeId
         },
+        headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
       });
       availableRooms.value = Array.isArray(roomsResponse.data)
         ? roomsResponse.data.map(room => ({
@@ -253,15 +261,14 @@ const openDetailModal = async (booking) => {
             room_type: room.room_type || { type_name: 'N/A' }
           }))
         : [];
+
+      bookedRooms.value = bookingDetails.value
+        .filter(detail => detail?.room_id)
+        .map(detail => detail.room_id)
+        .filter(id => id !== null);
     }
-    console.log('Available rooms received:', JSON.stringify(availableRooms.value, null, 2));
 
-    bookedRooms.value = bookingDetails.value
-      .filter(d => d?.room_id)
-      .map(d => d.room_id)
-      .filter(id => id !== null);
-
-    errorMessage.value = availableRooms.value.length === 0 && booking.type_id
+    errorMessage.value = availableRooms.value.length === 0 && roomTypeId
       ? 'Không có phòng trống phù hợp với loại phòng và thời gian này.'
       : '';
   } catch (error) {
@@ -280,7 +287,9 @@ const assignRoom = async (detail) => {
   }
   try {
     await axios.post(`/api/assign-room/${detail.booking_detail_id}`, {
-      room_id: detail.room_id,
+      room_id: detail.room_id
+    }, {
+      headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
     });
     alert('Xếp phòng thành công!');
     await openDetailModal(selectedBooking.value);
@@ -294,7 +303,9 @@ const assignRoom = async (detail) => {
 const confirmBooking = async () => {
   try {
     await axios.patch(`/api/bookings/${selectedBooking.value.booking_id}`, {
-      status: 'booked',
+      status: 'booked'
+    }, {
+      headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
     });
     alert('Xác nhận booking thành công!');
     showModal.value = false;
