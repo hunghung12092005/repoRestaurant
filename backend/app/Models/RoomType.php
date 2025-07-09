@@ -20,12 +20,9 @@ class RoomType extends Model
         'bed_count',
         'max_occupancy',
         'images',
-    ];
-
-    protected $casts = [
-        'images' => 'array', // Tự động chuyển JSON thành mảng
-        'created_at' => 'datetime',
-        'updated_at' => 'datetime',
+        'youtube_link', // Thêm dòng này
+        'rate',         // Thêm dòng này
+        'm2',
     ];
 
     /**

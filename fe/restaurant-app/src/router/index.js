@@ -1,6 +1,7 @@
 import { createRouter, createWebHistory } from 'vue-router';
 import App from '../App.vue';
 import HomeComponent from '../components/HomeComponent.vue';
+import Home2 from '../components/Home2.vue';
 import AboutComponent from '../components/AboutComponent.vue';
 import ContactComponent from '../components/ContactComponent.vue';
 import ReservationComponent from '../components/booking/ReservationComponent.vue';
@@ -11,7 +12,7 @@ import BlogComponent from '../components/News/BlogComponent.vue';
 import LoginComponent from '../components/Login.vue';
 import TestJwtComponent from '../components/testTokenJwt.vue';
 import BlogDetailComponent from '../components/News/BlogDetailComponent.vue';
-import ProductDetailComponent from '../components/ProductDetailComponent.vue';
+// import ProductDetailComponent from '../components/ProductDetailComponent.vue';
 
 // import AdminDashboardComponent from '../components/AdminDashboardComponent.vue';
 // import AdminStaffsComponent from '../components/AdminStaffsComponent.vue';
@@ -30,6 +31,14 @@ import AdminServicesComponent from '../components/AdminSeAm/AdminServicesCompone
 
 import AdminDashboardComponent from '../components/admin/AdminDashboardComponent.vue';
 import AdminUsersComponent from '../components/admin/AdminUsersComponent.vue';
+// import Shop from '../components/Shop.vue';
+import ghn from '../components/ghn/mainghn.vue';
+// import menu_online from '../components/ShopOnline/menu_online.vue';
+// import detailMenu from '../components/ShopOnline/detailMenu.vue';
+
+// import detailOrderMenu from '../components/menu_item/detailOrderMenu.vue';
+import CategoryShopOnline from '../components/ShopOnline/CategoryShopOnline.vue';
+import buynow from '../components/ShopOnline/BuyNow.vue';
 
 import ChatAdmin from '../components/ChatAdmin.vue';
 import Chat from '../components/Chat.vue';
@@ -48,12 +57,18 @@ import AdminNewsComponent from '../components/admin/news/AdminNewsComponent.vue'
 import AdminNewsCategoryComponent from '../components/admin/news/AdminNewsCategoryComponent.vue';
 import AdminNewsCommentComponent from '../components/admin/news/AdminNewsCommentComponent.vue';
 // AdminBookingComponent
-import AdminBookingsComponent from '../components/AdminBooking/AdminBookingComponent.vue'
+// import AdminBookingComponent from '../components/AdminBooking/AdminBookingComponent.vue';
+import RoomTypeDetail from '../components/RoomTypeDetail.vue';
 const routes = [
   {
-    path: '/',
+    path: '/home',
     name: 'HomeComponent',
     component: AboutComponent,
+  },
+  {
+    path: '/',
+    name: 'Home2',
+    component: Home2,
   },
   {
     path: '/about',
@@ -97,11 +112,28 @@ const routes = [
     component: BlogDetailComponent,
   },
   {
-    path: '/product-detail',
-    name: 'ProductDetailComponent',
-    component: ProductDetailComponent,
+    path: '/ghn',
+    name: 'ghn',
+    component: ghn,
+  },
+  {
+    path: '/CategoryShopOnline',
+    name: 'CategoryShopOnline',
+    component: CategoryShopOnline,
+  },
+  {
+    path: '/buynow',
+    name: 'buynow',
+    component: buynow,
   },
 
+ 
+  // {
+  //   path: '/detailOrderMenu/:ids',
+  //   name: 'detailOrderMenu',
+  //   component: detailOrderMenu,
+  //   props: true,
+  // },
   {
     path: '/ChatAdmin',
     name: 'ChatAdmin',
@@ -127,6 +159,12 @@ const routes = [
     path: '/rooms2',
     name: 'rooms2',
     component: rooms2,
+  },
+  {
+    path: '/room-types/:id',
+    name: 'RoomTypeDetail',
+    component: RoomTypeDetail,
+    props: true
   },
   {
     path: '/rooms3',

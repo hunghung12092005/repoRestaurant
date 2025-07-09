@@ -6,14 +6,20 @@ use App\Http\Controllers\Controller;
 use App\Models\News;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\File;
-// Bỏ Illuminate\Support\Facades\Auth; vì không dùng nữa
 use Illuminate\Support\Facades\Validator;
 
 class NewsController extends Controller
 {
-    public function index(Request $request)
+     public function index(Request $request)
     {
         $query = News::with(['category', 'author'])->latest('publish_date');
+
+        // Lọc theo trạng thái cho người dùng public.
+        if (!$request->has('from_admin')) {
+            $query->where('status', true);
+        }
+
+        // Lọc theo từ khóa tìm kiếm
         if ($request->has('q') && $request->input('q')) {
             $searchQuery = $request->input('q');
             $query->where('title', 'like', '%' . $searchQuery . '%')
@@ -21,18 +27,25 @@ class NewsController extends Controller
                       $q->where('name', 'like', '%' . $searchQuery . '%');
                   });
         }
-        $news = $query->paginate(10);
+        
+        // Thêm bộ lọc theo danh mục
+        if ($request->has('category_id') && $request->input('category_id')) {
+            $query->where('category_id', $request->input('category_id'));
+        }
+
+        $perPage = $request->input('per_page', 10);
+        $news = $query->paginate($perPage);
+        
         return response()->json($news);
     }
 
     public function store(Request $request)
     {
-        // **THAY ĐỔI: Thêm author_id vào validator**
         $validator = Validator::make($request->all(), [
             'title'       => 'required|string|max:255',
             'content'     => 'required|string',
             'category_id' => 'required|exists:news_categories,id',
-            'author_id'   => 'required|integer|exists:users,id', // Yêu cầu author_id và phải tồn tại trong bảng users
+            'author_id'   => 'required|integer|exists:users,id',
             'thumbnail'   => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
             'summary'     => 'nullable|string',
             'tags'        => 'nullable|string|max:255',
@@ -45,8 +58,6 @@ class NewsController extends Controller
         }
 
         $data = $validator->validated();
-        // **THAY ĐỔI: author_id đã có trong $data, không cần gán từ Auth::id() nữa**
-        // $data['author_id'] = Auth::id(); // Bỏ dòng này
         $data['publish_date'] = now();
 
         if ($request->hasFile('thumbnail')) {
@@ -63,6 +74,10 @@ class NewsController extends Controller
 
     public function show(Request $request,News $news)
     {
+        if (!$news->status && !$request->has('from_admin')) {
+            return response()->json(['message' => 'News not found'], 404);
+        }
+
         if (!$request->has('from_admin')) {
             $news->views += 1;
             $news->save();
@@ -73,7 +88,6 @@ class NewsController extends Controller
 
     public function update(Request $request, News $news)
     {
-        // Validator không cần author_id vì chúng ta không cho phép thay đổi tác giả
         $validator = Validator::make($request->all(), [
             'title'       => 'required|string|max:255',
             'content'     => 'required|string',
@@ -90,8 +104,6 @@ class NewsController extends Controller
         }
 
         $data = $validator->validated();
-        // **THAY ĐỔI: Bỏ dòng gán author_id để giữ nguyên tác giả gốc**
-        // $data['author_id'] = null; // Bỏ dòng này
 
         if ($request->hasFile('thumbnail')) {
             if ($news->thumbnail && File::exists(public_path('images/news_thumbnails/' . $news->thumbnail))) {
@@ -102,10 +114,6 @@ class NewsController extends Controller
             $file->move(public_path('images/news_thumbnails'), $filename);
             $data['thumbnail'] = $filename;
         }
-        // Bỏ else vì nếu không có file mới, ta không cần gán lại thumbnail
-        // else {
-        //     $data['thumbnail'] = $news->thumbnail; 
-        // }
 
         $news->update($data);
         $news->load(['category', 'author']);
@@ -119,5 +127,23 @@ class NewsController extends Controller
         }
         $news->delete();
         return response()->json(null, 204);
+    }
+
+    /**
+     * [PHƯƠNG THỨC MỚI] Lấy các bài viết được ghim.
+     *
+     * @param  \Illuminate\Http\Request  $request
+     * @return \Illuminate\Http\JsonResponse
+     */
+    public function getPinned(Request $request)
+    {
+        $pinnedNews = News::where('is_pinned', true)
+                            ->where('status', true) // Chỉ lấy các bài ghim đang được hiển thị
+                            ->with(['author', 'category'])
+                            ->latest('publish_date')
+                            ->take(5) // Lấy tối đa 5 bài
+                            ->get();
+
+        return response()->json($pinnedNews);
     }
 }

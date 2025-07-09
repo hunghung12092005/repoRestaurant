@@ -1,5 +1,6 @@
 <template>
   <div>
+    <!-- Phần Admin Layout (Không đổi) -->
     <div v-if="$route.path.startsWith('/admin')" class="d-flex">
       <div class="sidebar">
         <div class="header text-center p-3 border-bottom">
@@ -90,63 +91,73 @@
       </div>
     </div>
 
-    <!-- Layout cho các route không phải admin hoặc staff -->
+    <!-- Layout cho các route không phải admin hoặc staff (ĐÃ CHỈNH SỬA THEO YÊU CẦU) -->
     <div v-else>
       <header ref="headerRef">
-        <nav class="navbar navbar-expand-lg navbar-light fixed-top" :class="{ 'active': navbarSticky }">
+        <nav class="navbar navbar-expand-lg navbar-light fixed-top" :class="{ 'scrolled': navbarSticky }">
           <div class="container-fluid">
-            <!-- Logo -->
-            <a class="navbar-brand" href="/">
-              <img src="https://i.postimg.cc/d3pNGXPN/7c6764b8-de90-474c-9b98-05019aef3193.png" alt="Foodie Logo" class="logo-img" />
-              Ho Xuan Huong Eco
-            </a>
-
-            <!-- Toggle Button for Mobile -->
+            <!-- Mobile Toggler -->
             <button class="navbar-toggler" type="button" @click="toggleMenu" aria-controls="navbarNav"
               aria-expanded="false" aria-label="Toggle navigation">
               <span class="navbar-toggler-icon"></span>
             </button>
 
-            <!-- Navbar Links -->
+            <!-- Collapsible Wrapper -->
             <div class="collapse navbar-collapse" id="navbarNav" ref="navbarRef" :class="{ 'show': navbarActive }">
-              <ul class="navbar-nav ms-auto">
-                <li class="nav-item"><router-link class="nav-link sisf-m-subtitle" to="/">Home</router-link></li>
-
-
-                <li class="nav-item"><router-link class="nav-link sisf-m-subtitle" to="/news">Blog</router-link></li>
+              <!-- Left Navigation -->
+              <ul class="navbar-nav navbar-nav-left">
+                <li class="nav-item"><router-link class="nav-link" to="/">Trang chủ</router-link></li>
                 <li class="nav-item dropdown">
-                  <a class="nav-link dropdown-toggle sisf-m-subtitle" href="#" role="button" data-bs-toggle="dropdown"
-                    aria-expanded="false">
-                    Menu
+                  <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                    Phòng
                   </a>
                   <ul class="dropdown-menu">
-                    <li><router-link class="dropdown-item" to="/menu-list">Menu Đặt Món</router-link></li>
-                    <li><router-link class="dropdown-item" to="/menu">menu</router-link></li>
-                    <li><router-link class="dropdown-item" to="/product-detail">Chi Tiết Online</router-link></li>
-                    <li><router-link class="dropdown-item" to="/CategoryShopOnline">Menu ShopOnline</router-link></li>
+                    <li v-for="roomType in roomTypes" :key="roomType.type_id">
+                      <router-link class="dropdown-item" :to="{ name: 'RoomTypeDetail', params: { id: roomType.type_id } }">
+                        {{ roomType.type_name }}
+                      </router-link>
+                    </li>
                   </ul>
                 </li>
-                <li class="nav-item "><router-link class="nav-link sisf-m-subtitle" to="/rooms3">Đặt
-                    Phòng</router-link></li>
-              
-                <li class="nav-item "><router-link class="nav-link sisf-m-subtitle" to="/HistoryBooking">Lịch Sử Đặt Phòng</router-link></li>
-                <li class="nav-item dropdown " v-if="isLogin">
-                  <a class="nav-link dropdown-toggle sisf-m-subtitle" href="#" role="button" data-bs-toggle="dropdown"
-                    aria-expanded="false">
-                    Xin chào, {{ userInfo.name }}!
-                  </a>
-                  <ul class="dropdown-menu dropdown-menu-end">
-                    <li><router-link class="dropdown-item" to="/testJwt">testJwt</router-link></li>
-                    <li><router-link class="dropdown-item" to="/userprofile">Thông Tin User</router-link></li>
-                    <li v-if="isAdmin"><router-link class="dropdown-item" to="/admin">Vào admin</router-link></li>
-                    <li><a class="dropdown-item logout-link" @click.prevent="logout">Đăng Xuất</a></li>
-                  </ul>
-                </li>
-                <li class="nav-item" v-else>
-                  <router-link class="nav-link sisf-m-subtitle" to="/login">Đăng Nhập</router-link>
+                <li class="nav-item"><router-link class="nav-link" to="/news">Tin tức</router-link></li>
+              </ul>
+
+              <!-- Right Navigation -->
+              <ul class="navbar-nav navbar-nav-right align-items-center">
+                <!-- THAY ĐỔI: "Lịch sử đặt phòng" đã được chuyển ra ngoài và luôn hiển thị -->
+                <li class="nav-item"><router-link class="nav-link" to="/HistoryBooking">Lịch Sử Đặt Phòng</router-link></li>
+
+                <!-- Logged Out State -->
+                <template v-if="!isLogin">
+                  <li class="nav-item">
+                    <router-link class="btn btn-outline-custom" to="/login">Đăng Nhập</router-link>
+                  </li>
+                </template>
+                <!-- Logged In State -->
+                <template v-if="isLogin">
+                  <li class="nav-item dropdown">
+                    <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                      {{ userInfo.name }}
+                    </a>
+                    <ul class="dropdown-menu dropdown-menu-end">
+                      <li><router-link class="dropdown-item" to="/userprofile">Thông Tin User</router-link></li>
+                      <li v-if="isAdmin"><router-link class="dropdown-item" to="/admin">Vào admin</router-link></li>
+                      <li><a class="dropdown-item logout-link" @click.prevent="logout">Đăng Xuất</a></li>
+                    </ul>
+                  </li>
+                </template>
+                
+                <li class="nav-item">
+                  <router-link class="btn btn-solid-custom" to="/rooms3">Đặt Phòng</router-link>
                 </li>
               </ul>
             </div>
+            
+            <!-- Center Logo -->
+            <a class="navbar-brand mx-auto" href="/">
+              <img src="https://i.postimg.cc/d3pNGXPN/7c6764b8-de90-474c-9b98-05019aef3193.png" alt="Foodie Logo" class="logo-img" />
+              <span class="d-none d-lg-inline">Hồ Xuân Hương</span>
+            </a>
           </div>
         </nav>
       </header>
@@ -154,15 +165,17 @@
       <main>
         <router-view />
       </main>
+
+      <Footer></Footer>
     </div>
   </div>
 </template>
 
 <script setup>
-import { ref, onMounted, onUnmounted } from 'vue';
+import { ref, onMounted, onUnmounted, provide } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import axiosConfig from './axiosConfig.js';
-import { provide } from 'vue';
+import Footer from './components/Footer.vue';
 
 const route = useRoute();
 const router = useRouter();
@@ -177,6 +190,19 @@ const apiUrl = 'http://localhost:8000';
 provide('apiUrl', apiUrl);
 
 const lastScrollPosition = ref(0);
+
+const roomTypes = ref([]);
+
+const fetchRoomTypes = async () => {
+  try {
+    const response = await axiosConfig.get(`${apiUrl}/api/room-types`);
+    if (response.data.status) {
+      roomTypes.value = response.data.data;
+    }
+  } catch (error) {
+    console.error('Lỗi khi lấy danh sách loại phòng:', error);
+  }
+};
 
 const toggleMenu = () => {
   navbarActive.value = !navbarActive.value;
@@ -231,7 +257,7 @@ const fetchUserInfo = async () => {
   } catch (error) {
     console.error('Error fetching user info:', error.response ? error.response.data : error.message);
     if (error.response?.status === 401) {
-      logout(); // Xóa token và đăng xuất nếu token không hợp lệ
+      logout();
     }
   }
 };
@@ -249,7 +275,6 @@ const handleUrlParams = () => {
       userInfo.value = parsedUser;
       isLogin.value = true;
       isAdmin.value = parsedUser.role === 'admin';
-      // Xóa query params khỏi URL
       router.replace({ query: {} });
     } catch (e) {
       console.error('Error parsing user from URL:', e);
@@ -274,22 +299,22 @@ const editProfile = () => {
   router.push('/admin/edit-profile');
 };
 
-// Navigation guard để bảo vệ route admin
 router.beforeEach((to, from, next) => {
   const isAuthenticated = !!localStorage.getItem('tokenJwt');
   const isAdminUser = userInfo.value?.role === 'admin';
 
   if (to.path.startsWith('/admin') && (!isAuthenticated || !isAdminUser)) {
-    next('/'); // Chuyển về trang chủ nếu không đăng nhập hoặc không phải admin
+    next('/');
   } else {
     next();
   }
 });
 
 onMounted(() => {
-  restoreUserSession(); // Khôi phục phiên từ localStorage
-  handleUrlParams(); // Xử lý token/user từ URL nếu có
-  fetchUserInfo(); // Lấy thông tin người dùng từ API
+  restoreUserSession();
+  handleUrlParams();
+  fetchUserInfo();
+  fetchRoomTypes();
   window.addEventListener('scroll', handleScroll);
   document.addEventListener('click', handleOutsideClick);
 });
@@ -301,11 +326,13 @@ onUnmounted(() => {
 </script>
 
 <style scoped>
+/* Import Fonts and CSS Libraries */
 @import url('https://fonts.googleapis.com/css2?family=Arial&display=swap');
 @import url('https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css');
 @import url('https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css');
 @import url('https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css');
 
+/* CSS Variables */
 :root {
   --main-color: #16B978;
   --second-color: #081B54;
@@ -314,6 +341,7 @@ onUnmounted(() => {
   --badge-bg: #dc3545;
 }
 
+/* Global Styles */
 * {
   margin: 0;
   padding: 0;
@@ -321,86 +349,133 @@ onUnmounted(() => {
   font-family: 'Arial', sans-serif;
 }
 
-/* Styles cho layout thông thường */
+body {
+  background-color: #f5f7fb;
+  height: 100%;
+  overflow-y: auto;
+}
+
+
+/* START: CSS ĐÃ ĐƯỢC CHỈNH SỬA CHO LAYOUT NGƯỜI DÙNG */
+
 .navbar {
-  transition: background-color 0.3s ease, color 0.3s ease;
-  padding: 10px 15px;
-  background-size: cover;
-  background-color: rgb(56, 80, 124);
+  background-color: #ffffff;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+  height: 80px;
+  padding: 0 1rem;
+}
+
+.navbar .container-fluid {
+  position: relative;
+  height: 100%;
 }
 
 .navbar-brand {
   display: flex;
   align-items: center;
-  font-size: 1rem;
   font-weight: 600;
-  color: white;
+  color: #333333;
   transition: color 0.3s ease;
-}
-
-.sisf-m-subtitle {
-  font-family: 'Roboto', sans-serif;
-  font-size: 1rem;
-  line-height: 1.2;
-  font-weight: 600;
-  padding: 0 20px !important;
-  color: white;
-}
-
-.navbar.active .navbar-brand,
-.navbar.active .nav-link,
-.navbar.active .dropdown-toggle {
-  color: black;
-}
-
-.navbar.active .navbar-toggler-icon {
-  filter: brightness(0) invert(1);
-}
-
-.navbar.active .navbar-toggler-icon {
-  filter: brightness(0) invert(1);
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  top: 50%;
+  transform: translate(-50%, -50%);
 }
 
 .logo-img {
-  width: 35px;
-  margin-right: 10px;
-  filter: brightness(100);
+  width: 60px;
+  height: 60px;
+  /* THAY ĐỔI: Chuyển ảnh logo sang màu đen */
+  filter: brightness(0);
 }
 
-.navbar.active .logo-img {
-  filter: brightness(100);
+.navbar-toggler {
+  position: absolute;
+  right: 1rem;
+  top: 50%;
+  transform: translateY(-50%);
+}
+
+.navbar-collapse {
+  height: 100%;
+}
+
+.navbar-nav {
+  gap: 0.5rem;
+}
+
+.navbar-nav-left {
+  margin-right: auto;
+}
+
+.navbar-nav-right {
+  margin-left: auto;
+}
+
+.nav-link {
+  color: #555;
+  font-weight: 500;
+  padding: 0.5rem 1rem;
+  transition: color 0.2s ease-in-out;
 }
 
 .nav-link:hover {
-  color: black;
+  color: var(--main-color);
+}
+
+.btn-outline-custom {
+  border: 1px solid #ccc;
+  color: #555;
+  padding: 8px 18px;
   border-radius: 4px;
+  background-color: transparent;
+  text-decoration: none;
+  display: inline-block;
+  transition: all 0.2s ease-in-out;
+}
+
+.btn-outline-custom:hover {
+  background-color: #f8f9fa;
+  color: #333;
+}
+
+/* THAY ĐỔI: Đổi màu nền nút "Đặt Phòng" */
+.btn-solid-custom {
+  background-color: #0d6efd; /* Màu xanh biển */
+  color: white;
+  padding: 9px 20px;
+  border-radius: 4px;
+  border: 1px solid #0d6efd;
+  text-decoration: none;
+  display: inline-block;
+  font-weight: 500;
+  transition: background-color 0.2s ease-in-out, border-color 0.2s ease-in-out;
+}
+
+.btn-solid-custom:hover {
+  background-color: #0b5ed7; /* Màu xanh đậm hơn khi hover */
+  border-color: #0b5ed7;
 }
 
 .dropdown-item {
   cursor: pointer;
-  font-size: 1rem;
+  font-size: 0.95rem;
   font-weight: 500;
-  color: #000;
+  color: #333;
   padding: 8px 15px;
   transition: all 0.3s ease;
 }
 
 .dropdown-item:hover {
-  color: #0e45e9 !important;
-}
-
-.logout-link {
-  cursor: pointer;
-  color: #000 !important;
-}
-
-.logout-link:hover {
-  color: #0e45e9 !important;
+  color: var(--main-color) !important;
+  background-color: #f1f1f1;
 }
 
 main {
-  min-height: calc(100vh - 70px);
+  min-height: calc(100vh - 80px);
   width: 100%;
+  padding-top: 80px;
 }
 
 footer {
@@ -408,12 +483,10 @@ footer {
   color: #fff;
 }
 
-/* Admin và Staff Layout Styles */
-body {
-  background-color: #f5f7fb;
-  height: 100%;
-  overflow-y: auto;
-}
+/* END: CSS ĐÃ ĐƯỢC CHỈNH SỬA */
+
+
+/* --- ADMIN LAYOUT STYLES (Không đổi) --- */
 
 .sidebar {
   height: 100vh;
@@ -566,13 +639,55 @@ body {
   color: #000000;
 }
 
-/* Mobile menu styles */
+
+/* --- RESPONSIVE STYLES --- */
+
 @media (max-width: 991px) {
+  /* Mobile Menu Styles */
+  .navbar-brand {
+    position: static;
+    transform: none;
+    margin-right: auto;
+  }
+  
+  .navbar-toggler {
+    position: static;
+    transform: none;
+  }
+
+  .navbar .container-fluid {
+    display: flex;
+    justify-content: space-between;
+    width: 100%;
+  }
+
+  .collapse.show .navbar-nav {
+    flex-direction: column;
+    align-items: flex-start !important;
+    gap: 1rem;
+    padding: 1rem 0;
+  }
+
+  .collapse.show .navbar-nav-left,
+  .collapse.show .navbar-nav-right {
+    margin: 0 !important;
+    width: 100%;
+  }
+
+  .collapse.show .navbar-nav li {
+    width: 100%;
+  }
+  
+  .collapse.show .navbar-nav .btn {
+      width: 100%;
+      text-align: left;
+  }
+  
   .navbar-collapse {
     position: fixed;
-    top: 0;
+    top: 80px; /* Position below navbar */
     right: 0;
-    height: 100vh;
+    height: calc(100vh - 80px);
     width: 250px;
     background-color: #fff;
     transform: translateX(100%);
@@ -586,64 +701,10 @@ body {
     transform: translateX(0);
   }
 
-  .navbar-nav {
-    flex-direction: column;
-    background-color: transparent;
-    padding: 10px;
-  }
-
-  .navbar.active .navbar-nav {
-    background-color: transparent;
-  }
-
-  .nav-link,
-  .dropdown-toggle {
-    color: #000 !important;
-    padding: 15px !important;
-  }
-
-  .navbar.active .nav-link,
-  .navbar.active .dropdown-toggle {
-    color: #000 !important;
-  }
-
-  .navbar.active .navbar-toggler-icon {
-    filter: brightness(0) invert(1);
-  }
-
-  .navbar.active .navbar-toggler-icon {
-    filter: brightness(0) invert(1);
-  }
-
-  .navbar.active .navbar-toggler-icon {
-    filter: brightness(0) invert(1);
-  }
-
-  .nav-link:hover,
-  .dropdown-item:hover {
-    background-color: var(--main-color);
-    color: #fff !important;
-  }
-
-  .dropdown-menu {
-    background-color: #f8f9fa;
-    margin-left: 10px;
-  }
-
+  /* Admin Sidebar on Mobile */
   .sidebar {
     width: 200px;
     transform: translateX(-100%);
-    transition: transform 0.3s ease-in-out;
-    overflow-y: auto;
-    scrollbar-width: none;
-  }
-
-  .sidebar::-webkit-scrollbar {
-    display: none;
-  }
-
-  .sidebar.show {
-    transform: translateX(0);
   }
 
   .main-content {
@@ -655,17 +716,6 @@ body {
     left: 0;
     width: 100%;
   }
-
-  .admin-main {
-    padding-top: 70px;
-  }
 }
 
-@media (min-width: 992px) {
-  .navbar.active .navbar-brand,
-  .navbar.active .nav-link,
-  .navbar.active .dropdown-toggle {
-    color: #fff !important;
-  }
-}
 </style>

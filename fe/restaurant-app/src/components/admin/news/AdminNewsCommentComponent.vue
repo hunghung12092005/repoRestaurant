@@ -28,6 +28,7 @@
                 <th scope="col">Nội dung</th>
                 <th scope="col">Người bình luận</th>
                 <th scope="col">Bài viết</th>
+                <th scope="col">Trạng thái</th>
                 <th scope="col">Ngày tạo</th>
                 <th scope="col">Hành động</th>
               </tr>
@@ -37,15 +38,32 @@
                 <td style="white-space: normal; min-width: 300px;">{{ item.content }}</td>
                 <td>{{ item.user?.name || 'N/A' }}</td>
                 <td>{{ item.news?.title || 'N/A' }}</td>
-                <td>{{ formatDate(item.created_at) }}</td>
+                <!-- [THAY ĐỔI] Hiển thị trạng thái bằng badge -->
                 <td>
+                   <span class="badge" :class="item.is_visible ? 'bg-success' : 'bg-secondary'">
+                    {{ item.is_visible ? 'Hiển thị' : 'Đã ẩn' }}
+                  </span>
+                </td>
+                <td>{{ formatDate(item.created_at) }}</td>
+                <!-- [THAY ĐỔI] Thêm nút Ẩn/Hiện -->
+                <td class="d-flex justify-content-center gap-2">
+                  <button 
+                    class="btn btn-sm" 
+                    :class="item.is_visible ? 'btn-outline-warning' : 'btn-outline-success'"
+                    @click="toggleVisibility(item)"
+                    >
+                    <i :class="item.is_visible ? 'bi-eye-slash' : 'bi-eye'"></i>
+                    {{ item.is_visible ? 'Ẩn' : 'Hiện' }}
+                  </button>
+
                   <button class="btn btn-sm btn-outline-danger" @click="deleteItem(item.id)">
                     <i class="bi bi-trash"></i> Xóa
                   </button>
                 </td>
               </tr>
               <tr v-if="!paginatedItems.length">
-                <td colspan="5" class="text-center text-muted">Không tìm thấy bình luận</td>
+                <!-- Cập nhật colspan -->
+                <td colspan="6" class="text-center text-muted">Không tìm thấy bình luận</td>
               </tr>
             </tbody>
           </table>
@@ -63,7 +81,6 @@
         Tiếp
       </button>
     </div>
-
   </div>
 </template>
 
@@ -86,14 +103,19 @@ const apiUrl = inject('apiUrl');
 const axiosInstance = axios.create({ baseURL: apiUrl, headers: { 'Authorization': `Bearer ${localStorage.getItem('tokenJwt') || ''}` } });
 
 // Helpers
-const showNotification = (message, type = 'success') => { /* ... (giữ nguyên) ... */ };
+const showNotification = (message, type = 'success') => {
+  alertMessage.value = message;
+  alertType.value = type === 'success' ? 'alert-success' : 'alert-danger';
+  showAlert.value = true;
+  setTimeout(() => showAlert.value = false, 3000);
+};
 const formatDate = (dateString) => dateString ? new Date(dateString).toLocaleDateString('vi-VN') : 'N/A';
 
 // API Calls
 const fetchData = async () => {
   try {
     const response = await axiosInstance.get('/api/news-comments');
-    items.value = response.data.data; // Assuming pagination from backend
+    items.value = response.data.data;
   } catch (error) {
     showNotification('Không thể tải danh sách bình luận.', 'error');
   }
@@ -104,12 +126,37 @@ const deleteItem = async (id) => {
     try {
       await axiosInstance.delete(`/api/comments/${id}`);
       showNotification('Xóa bình luận thành công!');
-      fetchData(); // Refresh the list
+      // Xóa khỏi danh sách thay vì fetch lại toàn bộ
+      items.value = items.value.filter(item => item.id !== id);
     } catch (error) {
       showNotification('Xóa thất bại.', 'error');
     }
   }
 };
+
+/**
+ * [HÀM MỚI] Thay đổi trạng thái hiển thị của bình luận
+ * @param {object} commentItem - Đối tượng bình luận cần thay đổi
+ */
+const toggleVisibility = async (commentItem) => {
+  try {
+    // Gọi API để thay đổi trạng thái ở backend
+    const response = await axiosInstance.patch(`/api/comments/${commentItem.id}/toggle-visibility`);
+    
+    // Cập nhật trạng thái của item trong danh sách `items`
+    const index = items.value.findIndex(item => item.id === commentItem.id);
+    if (index !== -1) {
+      // Dùng dữ liệu trả về từ server để đảm bảo đồng bộ
+      items.value[index].is_visible = response.data.is_visible; 
+    }
+
+    showNotification('Cập nhật trạng thái thành công!', 'success');
+  } catch (error) {
+    console.error("Lỗi khi cập nhật trạng thái bình luận:", error);
+    showNotification('Cập nhật trạng thái thất bại.', 'error');
+  }
+};
+
 
 // Computed for search and pagination
 const filteredItems = computed(() => {
@@ -135,13 +182,34 @@ watch(searchQuery, () => { currentPage.value = 1; });
 
 <style scoped>
 /* Copy toàn bộ CSS từ component mẫu của bạn vào đây */
+/* Thêm style cho badge nếu cần */
+.badge {
+  padding: 0.5em 0.75em;
+  font-size: 0.8rem;
+  font-weight: 600;
+}
+.btn-outline-warning {
+  color: #ffc107;
+  border-color: #ffc107;
+}
+.btn-outline-warning:hover {
+  background-color: #ffc107;
+  color: #000;
+}
+.btn-outline-success {
+  color: #198754;
+  border-color: #198754;
+}
+.btn-outline-success:hover {
+  background-color: #198754;
+  color: #fff;
+}
 .staff-container { padding: 20px; }
 .header-section .d-flex { gap: 15px; }
 .search-form input { padding-right: 40px; }
 .search-form .search-icon { top: 50%; right: 15px; transform: translateY(-50%); color: #666; }
-.table th { font-weight: 600; white-space: nowrap; }
+.table th { font-weight: 600; white-space: nowrap; vertical-align: middle;}
 .table td { vertical-align: middle; }
-.table td:last-child { text-align: center; }
 .btn-outline-danger { color: #dc3545; border-color: #dc3545; }
 .btn-outline-danger:hover { background-color: #dc3545; color: white; }
 .pagination-controls .btn { padding: 8px 20px; font-size: 0.85rem; }

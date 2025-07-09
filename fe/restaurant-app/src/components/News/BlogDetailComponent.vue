@@ -1,6 +1,6 @@
 <template>
   <div class="blog-page-wrapper">
-    <!-- Khu vực Banner (Giữ nguyên) -->
+    <!-- Khu vực Banner -->
     <section class="blog-banner">
       <div class="banner-content-wrapper text-center">
         <h1 class="banner-title">Tin Tức & Blog</h1>
@@ -44,7 +44,7 @@
 
               <!-- Khu vực Bình luận -->
               <div class="comments-section mt-5">
-                <h3 class="mb-4">Bình luận ({{ comments.length }})</h3>
+                <h3 class="mb-4">Bình luận ({{ allComments.length }})</h3>
                 
                 <!-- Form gửi bình luận -->
                 <div class="comment-form-wrapper mb-5 p-4 bg-light rounded">
@@ -53,10 +53,6 @@
                     <div class="mb-3">
                       <textarea class="form-control" v-model="newComment.content" rows="4" placeholder="Viết bình luận của bạn..." required></textarea>
                     </div>
-                    <!-- Giả sử người dùng chưa đăng nhập, ta có thể yêu cầu tên -->
-                    <!-- <div class="mb-3">
-                      <input type="text" class="form-control" v-model="newComment.name" placeholder="Tên của bạn" required>
-                    </div> -->
                     <button type="submit" class="btn btn-primary" :disabled="isSubmittingComment">
                       <span v-if="isSubmittingComment" class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
                       Gửi bình luận
@@ -65,12 +61,16 @@
                 </div>
                 
                 <!-- Danh sách bình luận -->
-                <ul v-if="comments.length" class="list-unstyled">
-                  <li v-for="comment in comments" :key="comment.id" class="comment-item d-flex mb-4">
+                <ul v-if="visibleComments.length" class="list-unstyled">
+                  <li v-for="comment in visibleComments" :key="comment.id" class="comment-item d-flex mb-4">
                     <img src="https://i.pravatar.cc/60" alt="avatar" class="rounded-circle me-3" style="width: 60px; height: 60px;">
                     <div class="comment-body">
-                      <h6 class="comment-author mb-1">{{ comment.user ? comment.user.name : 'Khách' }}</h6>
-                      <small class="comment-date text-muted">{{ formatDate(comment.created_at) }}</small>
+                      <div class="comment-header">
+                        <h6 class="comment-author">{{ comment.user ? comment.user.name : 'Khách' }}</h6>
+                        <small class="comment-date text-muted" :title="formatDate(comment.created_at)">
+                           {{ formatTimeAgo(comment.created_at) }}
+                        </small>
+                      </div>
                       <p class="comment-text mt-2">{{ comment.content }}</p>
                     </div>
                   </li>
@@ -78,8 +78,15 @@
                 <div v-else class="text-center text-muted">
                   Chưa có bình luận nào. Hãy là người đầu tiên!
                 </div>
-              </div>
 
+                <!-- Nút "Tải thêm / Thu gọn" -->
+                <div v-if="showToggleButton" class="text-center mt-4">
+                    <button @click="toggleCommentsView" class="btn btn-outline-primary">
+                        {{ toggleButtonText }}
+                    </button>
+                </div>
+
+              </div>
             </div>
             
             <!-- Trường hợp không tìm thấy bài viết -->
@@ -90,9 +97,10 @@
             </div>
           </div>
 
-          <!-- Cột Sidebar (Giữ nguyên) -->
+          <!-- Cột Sidebar -->
           <div class="col-lg-4">
             <div class="blog-sidebar">
+              <!-- Widget Tìm kiếm -->
               <div class="sidebar-widget p-4 rounded mb-4">
                 <h4 class="widget-title mb-3">Tìm Kiếm Tại Đây</h4>
                 <div class="input-group">
@@ -101,20 +109,47 @@
                 </div>
               </div>
 
+              <!-- Widget Danh Mục -->
               <div class="sidebar-widget p-4 rounded mb-4">
                 <h4 class="widget-title mb-3">Danh Mục</h4>
-                <ul class="list-unstyled category-list">
+                <ul v-if="categories.length" class="list-unstyled category-list">
+                  <li>
+                    <router-link to="/news" class="d-flex justify-content-between align-items-center">
+                      <span>Tất cả danh mục</span>
+                    </router-link>
+                  </li>
                   <li v-for="category in categories" :key="category.id">
-                    <a href="#" class="d-flex justify-content-between align-items-center">
+                    <router-link :to="{ path: '/news', query: { category: category.id } }" class="d-flex justify-content-between align-items-center">
                       <span>{{ category.name }}</span>
-                    </a>
+                    </router-link>
                   </li>
                 </ul>
+                <div v-else>
+                    <p class="text-muted">Đang tải danh mục...</p>
+                </div>
               </div>
 
+              <!-- Widget Bài viết gần đây -->
               <div class="sidebar-widget p-4 rounded mb-4">
                 <h4 class="widget-title mb-3">Bài Viết Gần Đây</h4>
-                <div v-for="post in recentPosts" :key="post.id" class="recent-post-item d-flex align-items-center mb-3">
+                <div v-if="recentPosts.length">
+                    <div v-for="post in recentPosts" :key="post.id" class="recent-post-item d-flex align-items-center mb-3">
+                    <img :src="getThumbnailUrl(post.thumbnail)" :alt="post.title" class="rounded me-3">
+                    <div>
+                        <h6 class="mb-1"><router-link :to="`/news/${post.id}`">{{ post.title }}</router-link></h6>
+                        <small class="text-muted"><i class="bi bi-calendar-event me-1"></i>{{ formatDate(post.publish_date) }}</small>
+                    </div>
+                    </div>
+                </div>
+                <div v-else>
+                    <p class="text-muted">Không có bài viết nào.</p>
+                </div>
+              </div>
+
+              <!-- [THAY ĐỔI] Widget Bài viết nổi bật MỚI -->
+              <div v-if="pinnedPosts.length > 0" class="sidebar-widget p-4 rounded mb-4">
+                <h4 class="widget-title mb-3">Bài Viết Nổi Bật</h4>
+                <div v-for="post in pinnedPosts" :key="post.id" class="recent-post-item d-flex align-items-center mb-3">
                   <img :src="getThumbnailUrl(post.thumbnail)" :alt="post.title" class="rounded me-3">
                   <div>
                     <h6 class="mb-1"><router-link :to="`/news/${post.id}`">{{ post.title }}</router-link></h6>
@@ -122,6 +157,11 @@
                   </div>
                 </div>
               </div>
+
+               <div class="mb-4">
+                 <AdPlaceholder />
+              </div>
+
             </div>
           </div>
         </div>
@@ -131,27 +171,49 @@
 </template>
 
 <script setup>
-import { ref, onMounted, inject, watch } from 'vue';
+import { ref, onMounted, inject, watch, computed } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import axios from 'axios';
+import AdPlaceholder from '../AdPlaceholder.vue';// Giả định bạn có một component quảng cáo
 
-// --- STATE & ROUTING ---
 const route = useRoute();
 const router = useRouter();
 const apiUrl = inject('apiUrl');
 
+// State cho trang chi tiết
 const postDetail = ref(null);
-const comments = ref([]);
-const newComment = ref({ content: '' }); // Giả sử người dùng đã đăng nhập và có user_id
+const newComment = ref({ content: '' });
 const loading = ref(true);
 const isSubmittingComment = ref(false);
 
-// Sidebar state
+// State cho bình luận
+const COMMENTS_INITIAL_LIMIT = 10;
+const allComments = ref([]);
+const isCommentsExpanded = ref(false);
+
+// State cho Sidebar
 const categories = ref([]);
 const recentPosts = ref([]);
+const pinnedPosts = ref([]); // [THAY ĐỔI] State mới cho bài viết ghim
 const searchQuery = ref('');
 
-// --- HELPER FUNCTIONS ---
+// Computed Properties
+const visibleComments = computed(() => {
+    if (isCommentsExpanded.value) {
+        return allComments.value;
+    }
+    return allComments.value.slice(0, COMMENTS_INITIAL_LIMIT);
+});
+
+const showToggleButton = computed(() => {
+    return allComments.value.length > COMMENTS_INITIAL_LIMIT;
+});
+
+const toggleButtonText = computed(() => {
+    return isCommentsExpanded.value ? 'Thu gọn bình luận' : 'Tải thêm bình luận';
+});
+
+// Helper Functions
 const getThumbnailUrl = (thumbnail) => {
   return thumbnail ? `${apiUrl}/images/news_thumbnails/${thumbnail}` : 'https://via.placeholder.com/400x300.png?text=No+Image';
 };
@@ -165,18 +227,37 @@ const formatDate = (dateString) => {
   return `${day}/${month}/${year}`;
 };
 
-// --- API CALLS ---
+const formatTimeAgo = (dateString) => {
+    if (!dateString) return '';
+    const date = new Date(dateString);
+    const now = new Date();
+    const seconds = Math.round((now - date) / 1000);
+    if (seconds < 60) return "Vài giây trước";
+    const minutes = Math.round(seconds / 60);
+    if (minutes < 60) return `${minutes} phút trước`;
+    const hours = Math.round(minutes / 60);
+    if (hours < 24) return `${hours} giờ trước`;
+    const days = Math.round(hours / 24);
+    if (days < 30) return `${days} ngày trước`;
+    const months = Math.round(days / 30.44);
+    if (months < 12) return `${months} tháng trước`;
+    const years = Math.round(days / 365);
+    return `${years} năm trước`;
+};
+
+// API Functions
 const fetchNewsDetail = async (id) => {
   loading.value = true;
-  postDetail.value = null; // Reset
+  postDetail.value = null; 
+  allComments.value = [];
+  isCommentsExpanded.value = false;
   try {
     const response = await axios.get(`${apiUrl}/api/news/${id}`);
     postDetail.value = response.data;
-    // Lấy bình luận ngay sau khi có chi tiết bài viết
     await fetchComments(id); 
   } catch (error) {
     console.error("Lỗi khi tải chi tiết tin tức:", error);
-    postDetail.value = false; // Dùng `false` để biết là lỗi, khác với `null` là đang tải
+    postDetail.value = false;
   } finally {
     loading.value = false;
   }
@@ -184,55 +265,13 @@ const fetchNewsDetail = async (id) => {
 
 const fetchComments = async (id) => {
     try {
-        // Giả định API trả về bình luận tại endpoint này
-        // Thường API chi tiết tin tức đã bao gồm bình luận, nên có thể bạn không cần gọi riêng
-        if(postDetail.value && postDetail.value.comments) {
-            comments.value = postDetail.value.comments.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
-        }
+        const response = await axios.get(`${apiUrl}/api/news/${id}/comments`);
+        allComments.value = response.data;
     } catch (error) {
         console.error("Lỗi khi tải bình luận:", error);
     }
 }
 
-const submitComment = async () => {
-    if (!newComment.value.content.trim()) {
-        alert("Vui lòng nhập nội dung bình luận.");
-        return;
-    }
-    isSubmittingComment.value = true;
-
-    try {
-        // Giả sử API nhận bình luận tại endpoint này
-        // Bạn cần gửi ID người dùng đã đăng nhập
-        const user = JSON.parse(localStorage.getItem('userInfo')); 
-        if (!user || !user.id) {
-            alert('Bạn cần đăng nhập để bình luận.');
-            router.push('/login');
-            return;
-        }
-
-        const payload = {
-            news_id: postDetail.value.id,
-            user_id: user.id,
-            content: newComment.value.content
-        };
-
-        const response = await axios.post(`${apiUrl}/api/comments`, payload);
-        
-        // Thêm bình luận mới vào đầu danh sách để hiển thị ngay lập tức
-        comments.value.unshift(response.data);
-        newComment.value.content = ''; // Xóa form
-        alert('Gửi bình luận thành công!');
-
-    } catch (error) {
-        console.error("Lỗi khi gửi bình luận:", error);
-        alert('Đã có lỗi xảy ra khi gửi bình luận.');
-    } finally {
-        isSubmittingComment.value = false;
-    }
-}
-
-// Sidebar API Calls
 const fetchCategories = async () => {
   try {
     const response = await axios.get(`${apiUrl}/api/news-categories`);
@@ -244,41 +283,102 @@ const fetchCategories = async () => {
 
 const fetchRecentPosts = async () => {
   try {
-    const response = await axios.get(`${apiUrl}/api/news?per_page=3`);
-    recentPosts.value = response.data.data;
+    // Lấy 5 bài viết gần nhất
+    const response = await axios.get(`${apiUrl}/api/news?per_page=5`);
+    const currentPostId = parseInt(route.params.id, 10);
+    // Lọc ra bài viết hiện tại khỏi danh sách "gần đây"
+    recentPosts.value = response.data.data.filter(post => post.id !== currentPostId);
   } catch (error) {
     console.error("Lỗi khi tải bài viết gần đây:", error);
   }
 };
 
-// --- EVENT HANDLERS ---
+// [THAY ĐỔI] Hàm mới để lấy bài viết được ghim
+const fetchPinnedPosts = async () => {
+  try {
+    const response = await axios.get(`${apiUrl}/api/news/pinned`);
+    const currentPostId = parseInt(route.params.id, 10);
+     // Lọc ra bài viết hiện tại khỏi danh sách "nổi bật" (nếu có)
+    pinnedPosts.value = response.data.filter(post => post.id !== currentPostId);
+  } catch (error) {
+    console.error("Lỗi khi tải bài viết nổi bật:", error);
+  }
+};
+
+// Event Handlers
+const submitComment = async () => {
+    const trimmedContent = newComment.value.content.trim();
+    if (trimmedContent.length < 3) {
+        alert("Nội dung bình luận phải có ít nhất 3 ký tự.");
+        return;
+    }
+    const userInfo = localStorage.getItem('userInfo');
+    if (!userInfo) {
+        alert('Bạn cần đăng nhập để bình luận.');
+        router.push('/login');
+        return;
+    }
+    const user = JSON.parse(userInfo);
+    if (!user || !user.id) {
+         alert('Không tìm thấy thông tin người dùng. Vui lòng đăng nhập lại.');
+         router.push('/login');
+         return;
+    }
+    isSubmittingComment.value = true;
+    try {
+        const payload = {
+            content: trimmedContent,
+            user_id: user.id
+        };
+        const response = await axios.post(
+            `${apiUrl}/api/news/${postDetail.value.id}/comments`, 
+            payload
+        );
+        allComments.value.unshift(response.data);
+        newComment.value.content = ''; 
+    } catch (error) {
+        console.error("Lỗi khi gửi bình luận:", error.response?.data || error.message);
+        alert('Đã có lỗi xảy ra khi gửi bình luận. Vui lòng thử lại.');
+    } finally {
+        isSubmittingComment.value = false;
+    }
+}
+
+const toggleCommentsView = () => {
+    isCommentsExpanded.value = !isCommentsExpanded.value;
+}
+
 const handleSearch = () => {
   if(searchQuery.value.trim()){
     router.push({ path: '/news', query: { q: searchQuery.value } });
   }
 };
 
-// --- LIFECYCLE & WATCHERS ---
+// Lifecycle Hooks
 onMounted(() => {
   const newsId = route.params.id;
-  fetchNewsDetail(newsId);
-  fetchCategories();
-  fetchRecentPosts();
+  if (newsId) {
+    fetchNewsDetail(newsId);
+    // Fetch sidebar data
+    fetchCategories();
+    fetchRecentPosts();
+    fetchPinnedPosts(); // [THAY ĐỔI] Gọi hàm lấy bài viết ghim
+  }
 });
 
-// Nếu người dùng click vào một link bài viết gần đây khác khi đang ở trang chi tiết,
-// component sẽ không `unmount` và `mount` lại, nên `onMounted` không chạy lại.
-// Chúng ta cần `watch` sự thay đổi của route.params.id để tải lại dữ liệu.
-watch(() => route.params.id, (newId) => {
-    if (newId) {
+watch(() => route.params.id, (newId, oldId) => {
+    if (newId && newId !== oldId) {
+        window.scrollTo(0, 0); // Cuộn lên đầu trang khi chuyển bài viết
         fetchNewsDetail(newId);
+        // Cập nhật lại danh sách sidebar để loại trừ bài viết mới
+        fetchRecentPosts();
+        fetchPinnedPosts();
     }
 });
 </script>
 
 <style scoped>
 /* ----- SAO CHÉP STYLE TỪ TRANG LIST ----- */
-/* Kiểu dáng chung, Banner, Sidebar... */
 .blog-banner {
   width: 100%; height: 350px; position: relative; display: flex;
   justify-content: center; align-items: center;
@@ -307,8 +407,6 @@ watch(() => route.params.id, (newId) => {
 .recent-post-item a { text-decoration: none; color: #343a40;}
 .recent-post-item a:hover { color: #007bff;}
 /* ----- END STYLE SAO CHÉP ----- */
-
-
 /* ----- STYLE MỚI CHO TRANG CHI TIẾT ----- */
 .post-detail-title {
   font-size: 2.5rem;
@@ -323,7 +421,6 @@ watch(() => route.params.id, (newId) => {
   gap: 5px;
   align-items: center;
 }
-
 /* Định dạng cho nội dung v-html, giống trang admin */
 .post-detail-content {
     line-height: 1.8;
@@ -362,7 +459,6 @@ watch(() => route.params.id, (newId) => {
     padding-left: 2rem;
     margin-bottom: 1.5rem;
 }
-
 /* Định dạng cho khu vực bình luận */
 .comments-section {
   border-top: 1px solid #dee2e6;
@@ -376,12 +472,27 @@ watch(() => route.params.id, (newId) => {
   border-bottom: none;
   padding-bottom: 0;
 }
+.comment-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 10px;
+}
 .comment-author {
   font-weight: 600;
   color: #343a40;
+  margin-bottom: 0;
+}
+.comment-date {
+  font-size: 0.85rem;
+  flex-shrink: 0;
 }
 .comment-text {
   color: #495057;
   line-height: 1.6;
+}
+.btn-outline-primary {
+    font-weight: 600;
 }
 </style>
