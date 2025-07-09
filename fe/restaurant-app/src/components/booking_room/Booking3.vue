@@ -28,64 +28,54 @@
         </div>
 
         <!-- Search Box -->
-        <section class="container">
-            <div class="search-box p-4 shadow">
+        <section class="container my-5">
+            <div class="search-box p-4 shadow-lg rounded-4 bg-white">
                 <form @submit.prevent="getRoomPrices">
-                    <div class="row g-3">
+                    <div class="row g-4 align-items-end">
 
                         <div class="col-md-3">
-                            <label for="checkIn" class="form-label">Check in</label>
-                            <div class="input-group">
-                                <span class="input-group-text"><i class="bi bi-calendar-event"></i></span>
-                                <input type="date" class="form-control" v-model="checkin" :min="minCheckin"
-                                    @change="validateDates" />
+                            <label for="checkIn" class="form-label text-dark fw-semibold">Ngày Nhận Phòng</label>
+                            <div class="input-group input-group-lg shadow-sm rounded-pill overflow-hidden">
+                                <span class="input-group-text bg-light border-0 ps-4 pe-2"><i
+                                        class="bi bi-calendar-event text-primary fs-5"></i></span>
+                                <input type="date" class="form-control border-0 py-2" v-model="checkin"
+                                    :min="minCheckin" @change="validateDates" id="checkIn"
+                                    aria-label="Ngày nhận phòng" />
                             </div>
                         </div>
                         <div class="col-md-3">
-                            <label for="checkOut" class="form-label">Check out</label>
-                            <div class="input-group">
-                                <span class="input-group-text"><i class="bi bi-calendar-event"></i></span>
-                                <input type="date" class="form-control" v-model="checkOut" :min="checkin"
-                                    @change="validateDates" />
+                            <label for="checkOut" class="form-label text-dark fw-semibold">Ngày Trả Phòng</label>
+                            <div class="input-group input-group-lg shadow-sm rounded-pill overflow-hidden">
+                                <span class="input-group-text bg-light border-0 ps-4 pe-2"><i
+                                        class="bi bi-calendar-event text-primary fs-5"></i></span>
+                                <input type="date" class="form-control border-0 py-2" v-model="checkOut" :min="checkin"
+                                    @change="validateDates" id="checkOut" aria-label="Ngày trả phòng" />
                             </div>
                         </div>
-                        <div v-if="errorMessage" class="alert alert-danger d-flex align-items-center" role="alert">
-                            <svg class="bi flex-shrink-0 me-2" role="img" aria-label="Danger:">
-                                <use xlink:href="#exclamation-triangle-fill" />
-                            </svg>
-                            <div>
-                                {{ errorMessage }}
-                            </div>
-                        </div>
-                        <div class="col-md-3">
-                            <div class="mb-3" data-bs-toggle="modal" data-bs-target="#guestSelectionModal"
-                                style="cursor: pointer;">
-                                <label class="form-label text-muted small mb-1">Khách & Phòng:</label>
-                                <div
-                                    class="card card-body p-2 shadow-sm border-0 d-flex flex-row align-items-center justify-content-between">
-                                    <div class="d-flex align-items-center text-primary">
-                                        <i class="bi bi-person-fill fs-5 me-2"></i>
-                                        <span class="fw-bold">{{ totalAdults }}</span> người lớn
-                                        <span class="mx-1 text-muted">/</span>
-                                        <span class="fw-bold">{{ totalChildren }}</span> trẻ em
-                                        <template v-if="totalChildren > 0">
 
-                                        </template>
+                        <div class="col-md-3">
+                            <label class="form-label text-dark fw-semibold">Khách & Phòng</label>
+                            <div class="card card-body p-3 shadow-sm border-0 rounded-pill cursor-pointer"
+                                data-bs-toggle="modal" data-bs-target="#guestSelectionModal">
+                                <div class="d-flex align-items-center justify-content-between">
+                                    <div class="d-flex align-items-center text-primary fw-bold">
+                                        <i class="bi bi-person-fill fs-4 me-2"></i>
+                                        <span>{{ totalAdults }} Người lớn</span>
+                                        <span class="mx-2 text-muted">/</span>
+                                        <span>{{ totalChildren }} Trẻ em</span>
                                     </div>
-                                    <!-- <div class="d-flex align-items-center text-secondary ms-3">
-                                        <i class="bi bi-door-closed-fill fs-5 me-2"></i>
-                                        <span class="fw-bold">{{ totalRooms }}</span> phòng
-                                    </div> -->
+                                    <i class="bi bi-chevron-right text-muted"></i>
                                 </div>
                             </div>
 
                             <div class="modal fade" id="guestSelectionModal" tabindex="-1"
                                 aria-labelledby="guestSelectionModalLabel" aria-hidden="true">
-                                <div class="modal-dialog">
-                                    <div class="modal-content rounded-4 shadow-lg">
-                                        <div class="modal-header  text-white border-bottom-0 pb-3 rounded-top-4">
-                                            <h5 class="modal-title fs-5" id="guestSelectionModalLabel">
-                                                <i class="bi bi-person-fill me-2"></i> Chọn Khách
+                                <div class="modal-dialog ">
+                                    <div class="modal-content rounded-4 shadow-lg border-0">
+                                        <div
+                                            class="modal-header bg-primary text-white border-bottom-0 pt-4 pb-3 px-4 rounded-top-4">
+                                            <h5 class="modal-title fs-5 fw-bold" id="guestSelectionModalLabel">
+                                                <i class="bi bi-person-fill me-2"></i> Chọn Số Lượng Khách
                                             </h5>
                                             <button type="button" class="btn-close btn-close-white"
                                                 data-bs-dismiss="modal" aria-label="Đóng"></button>
@@ -93,9 +83,8 @@
 
                                         <div class="modal-body p-4">
                                             <div v-for="(room, index) in rooms" :key="index"
-                                                class="mb-4 p-3 border rounded-3 bg-light-subtle d-flex flex-column gap-3">
-                                                <div class="d-flex justify-content-between align-items-center">
-                                                    <!-- <h6 class="mb-0 text-primary">Phòng {{ index + 1 }}</h6> -->
+                                                class="mb-3 p-3 border rounded-3 bg-light-subtle d-flex flex-column gap-3">
+                                                <div class="d-flex justify-content-between align-items-center mb-2">
                                                     <button v-if="rooms.length > 1" type="button"
                                                         class="btn btn-outline-danger btn-sm rounded-pill px-3"
                                                         @click="removeRoomFromModal(index)">
@@ -105,59 +94,63 @@
 
                                                 <div class="d-flex justify-content-between align-items-center">
                                                     <label :for="'adults_' + index"
-                                                        class="form-label mb-0 flex-grow-1 me-3 text-dark">Người
-                                                        lớn:</label>
+                                                        class="form-label mb-0 text-muted">Người lớn:</label>
                                                     <div class="input-group input-group-sm flex-shrink-0"
                                                         style="width: 120px;">
-                                                        <button class="btn btn-outline-secondary" type="button"
+                                                        <button class="btn btn-info" type="button"
                                                             @click="decreaseAdults(index)"
                                                             :disabled="room.adults <= 1">-</button>
                                                         <input type="number" v-model="room.adults"
-                                                            class="form-control text-center bg-white"
+                                                            class="form-control text-center bg-white border-0"
                                                             :id="'adults_' + index" readonly
                                                             aria-label="Số lượng người lớn" />
-                                                        <button class="btn btn-outline-secondary" type="button"
+                                                        <button class="btn btn-info" type="button"
                                                             @click="increaseAdults(index)">+</button>
                                                     </div>
                                                 </div>
 
                                                 <div class="d-flex justify-content-between align-items-center">
                                                     <label :for="'children_' + index"
-                                                        class="form-label mb-0 flex-grow-1 me-3 text-dark">Trẻ
-                                                        em:</label>
+                                                        class="form-label mb-0 text-muted">Trẻ em:</label>
                                                     <div class="input-group input-group-sm flex-shrink-0"
                                                         style="width: 120px;">
-                                                        <button class="btn btn-outline-secondary" type="button"
+                                                        <button class="btn btn-info" type="button"
                                                             @click="decreaseChildren(index)"
                                                             :disabled="room.children <= 0">-</button>
                                                         <input type="number" v-model="room.children"
-                                                            class="form-control text-center bg-white"
+                                                            class="form-control text-center bg-white border-0"
                                                             :id="'children_' + index" readonly
                                                             aria-label="Số lượng trẻ em" />
-                                                        <button class="btn btn-outline-secondary" type="button"
+                                                        <button class="btn btn-info" type="button"
                                                             @click="increaseChildren(index)">+</button>
                                                     </div>
                                                 </div>
                                             </div>
 
-
                                         </div>
 
-                                        <div class="modal-footer justify-content-between border-top-0 pt-0 pb-3">
+                                        <div class="modal-footer justify-content-between border-top-0 pt-0 pb-3 px-4">
                                             <button type="button" class="btn btn-secondary rounded-pill px-4"
                                                 data-bs-dismiss="modal" @click="delSelection">Hủy</button>
                                             <button type="button" class="btn btn-primary rounded-pill px-4"
-                                                @click="confirmSelection">Xác Nhận Lựa
-                                                Chọn</button>
+                                                @click="confirmSelection">Xác Nhận</button>
                                         </div>
                                     </div>
                                 </div>
                             </div>
                         </div>
-                        <div class="col-md-3 d-flex align-items-end">
-                            <button type="submit" class="btn btn-primary w-100 py-3">
-                                <i class="bi bi-search me-2"></i>Check
+
+                        <div class="col-md-3">
+                            <button type="submit" class="btn btn-primary w-100 py-3 rounded-pill shadow">
+                                <i class="bi bi-search me-2"></i>Tìm Kiếm Phòng
                             </button>
+                        </div>
+                    </div>
+                    <div v-if="errorMessage"
+                        class="alert alert-danger d-flex align-items-center mt-3 rounded-3 shadow-sm" role="alert">
+                        <i class="bi bi-exclamation-triangle-fill flex-shrink-0 me-2"></i>
+                        <div>
+                            {{ errorMessage }}
                         </div>
                     </div>
                 </form>
@@ -166,68 +159,86 @@
 
         <!-- Featured Hotels -->
         <section class="container my-5 py-lg-4">
-            <h2 class="text-center text-dark fw-bold mb-4 display-5">
-                Lựa chọn hạng phòng
-            </h2>
+
             <div class="row g-5">
                 <div class="col-lg-8">
-                    <div class="row g-4">
-                        <div class="col-12" v-for="hotel in hotels" :key="hotel.id">
-                            <div class="card hotel-room-card mb-3 shadow-lg border-0 rounded-4 overflow-hidden">
-                                <div class="row g-0 flex-md-nowrap">
-                                    <div class="col-12 col-md-5"> <!-- Chiều cao 100% -->
-                                        <iframe width="100%" height="100%"
-                                            src="https://www.youtube.com/embed/frG7fz6umT8?si=cSyPvHyfuiOUHUnH"
+                    <div class="row row-cols-1 g-4">
+                        <div class="col" v-for="hotel in hotels" :key="hotel.id">
+                            <div
+                                class="card border-0 shadow-sm rounded-4 overflow-hidden h-100 bg-white transition-shadow hover:shadow-xl">
+                                <div class="row g-0">
+                                    <!-- Image/Video Section -->
+                                    <div class="col-12 col-md-5 position-relative">
+                                        <iframe class="w-100 rounded-start-4" style="height: 100%; min-height: 300px;"
+                                            :src="hotel.videoUrl || 'https://www.youtube.com/embed/frG7fz6umT8?si=cSyPvHyfuiOUHUnH'"
                                             title="YouTube video player" frameborder="0"
                                             allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
                                             referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
+
                                     </div>
 
+                                    <!-- Content Section -->
                                     <div class="col-12 col-md-7">
+                                        <span
+                                            class="position-absolute bottom-10 end-0 m-3 badge bg-dark text-white px-4 py-2 rounded-pill fs-6 fw-semibold">Còn 10 phòng
+                                            <i class="bi bi-star-fill ms-2 text-warning"></i>
+                                        </span>
                                         <div class="card-body d-flex flex-column h-100 p-4">
-                                            <div class="d-flex align-items-center mb-3">
-                                                <span class="badge bg-primary me-2 fs-6 px-3 py-2 shadow-sm">
-                                                    {{ hotel.name }} <i class="bi bi-star-fill align-middle ms-1"></i>
-                                                </span>
-                                                <span class="text-charcoal fs-6">Suc chua: {{ hotel.max_occupancy }}
-                                                    nguoi lon -
-                                                    2 child </span>
+                                            <!-- Hotel Info -->
+                                            <div class="d-flex align-items-center justify-content-between mb-3">
+                                                <h3 class="fs-4 fw-bold text-dark mb-0">{{ hotel.name }}</h3>
                                             </div>
-                                            <div class="room-features mb-3 text-muted-dark small">
-                                                <p class="mb-1"><i
-                                                        class="bi bi-arrows-fullscreen me-2 text-gold"></i>Kích
-                                                    thước: {{ hotel.m2 }} m²</p>
-                                                <p class="mb-1"><i class="bi bi-eye me-2 text-gold"></i>View: Quang cảnh
-                                                    thành
-                                                    phố</p>
-                                                <p class="mb-0"><i class="bi bi-aspect-ratio me-2 text-gold"></i>Giường:
-                                                    {{
-                                                        hotel.bed_count }} Giường</p>
+
+                                            <!-- Features -->
+                                            <div class="mb-4 d-flex flex-wrap gap-3 text-dark fs-6">
+                                                <div class="d-flex align-items-center  p-2">
+                                                    <i class="bi bi-arrows-fullscreen me-2 text-primary fs-5"></i>
+                                                    <span>{{ hotel.m2 }} m²</span>
+                                                </div>
+                                                <div class="d-flex align-items-center  p-2">
+                                                    <i class="bi bi-eye me-2 text-primary fs-5"></i>
+                                                    <span>Quang Cảnh Thành Phố</span>
+                                                </div>
+                                                <div class="d-flex align-items-center  p-2">
+                                                    <i class="bi bi-aspect-ratio me-2 text-primary fs-5"></i>
+                                                    <span>{{ hotel.bed_count }} Giường{{ hotel.bed_count > 1 ? 's' : ''
+                                                        }}</span>
+                                                </div>
                                             </div>
-                                            <p class="card-text text-charcoal mb-3 flex-grow-1">{{
-                                                hotel.description.substring(0, 150) }}...</p>
+
+                                            <!-- Description -->
+                                            <p class="text-dark fs-6 mb-4 flex-grow-1"
+                                                style="max-height: 4.5em; overflow: hidden; text-overflow: ellipsis; line-height: 1.5em;">
+                                                {{ hotel.description.substring(0, 16000) }}...
+                                            </p>
+                                            <span class="text-muted fs-6 fw-medium">Max: {{ hotel.max_occupancy }}
+                                                adults, 2 children</span>
+
                                             <button
-                                                class="btn btn-outline-charcoal flex-fill me-2 rounded-pill px-4 py-2  "
+                                                class="btn  rounded-pill px-4 py-2 flex-fill flex-sm-grow-0 fw-semibold"
                                                 @click="viewHotelDetails(hotel)">
-                                                <i class="bi bi-info-circle me-1"></i>Chi Tiết
+                                                <i class="bi bi-info-circle me-2"></i>Details
                                             </button>
+
+                                            <!-- Price and Actions -->
                                             <div
-                                                class="mt-auto d-flex flex-column flex-sm-row justify-content-between align-items-sm-end pt-3 border-top border-light-subtle">
-                                                <div class="price-info mb-3 mb-sm-0">
-                                                    <span class="d-block text-muted-subtle small">Chỉ từ</span>
-                                                    <p class="fs-3 fw-bold text-gold mb-0">
+                                                class="mt-auto pt-4 border-top border-light d-flex flex-column flex-sm-row justify-content-between align-items-sm-center gap-3">
+                                                <div class="price-info">
+                                                    <span class="d-block text-muted fs-6 fw-medium">Chỉ từ</span>
+                                                    <p class="fs-3 fw-bold text-primary mb-0">
                                                         {{ formatPrice(hotel.price) }}
-                                                        <span class="fs-6 fw-normal text-charcoal-light">/ {{
-                                                            hotel.total_days
-                                                        }} Đêm / {{ hotel.so_phong }} Phòng</span>
+                                                        <span class="fs-6 fw-normal text-muted">/ {{ hotel.total_days }}
+                                                            Night{{ hotel.total_days > 1 ? 's' : '' }} / {{
+                                                            hotel.so_phong }} Room{{ hotel.so_phong > 1 ? 's' : ''
+                                                            }}</span>
                                                     </p>
                                                 </div>
-                                                <div class="buttons d-flex w-100 w-sm-auto">
+                                                <div class="d-flex gap-3 w-100 w-sm-auto">
 
                                                     <button
-                                                        class="btn btn-gold flex-fill rounded-pill px-4 py-2 border border-dark"
+                                                        class="btn btn-primary rounded-pill px-4 py-2 flex-fill flex-sm-grow-0 fw-semibold"
                                                         @click="addBooking(hotel)">
-                                                        <i class="bi bi-bookmark-check me-1"></i>Chọn Phòng
+                                                        <i class="bi bi-bookmark-check me-2"></i>Book Now
                                                     </button>
                                                 </div>
                                             </div>
@@ -462,59 +473,27 @@
                                     </div>
 
                                     <!-- Displaying selected room details -->
-                                    <div class="room-details container my-5 py-3">
-                                        <h2 class="text-center text-uppercase fw-bold mb-5 position-relative text-dark">
-                                            <span
-                                                class="d-inline-block pb-3 border-bottom border-4 border-primary">Thông
-                                                Tin
-                                                Đặt Phòng</span>
-                                            <span class="position-absolute start-50 translate-middle-x mt-2"
-                                                style="width: 70px; height: 4px; background-color: #ffc107; border-radius: 50%;"></span>
+                                    <div class="room-details container my-5 py-4">
+                                        <h2 class="text-center fw-bold mb-4 text-dark fs-4">
+                                            <span class="d-inline-block pb-2 border-bottom border-3 border-info">Thông
+                                                Tin Đặt
+                                                Phòng</span>
                                         </h2>
 
-                                        <div class="row g-4 justify-content-center">
-                                            <div v-for="(room, index) in selectedRooms" :key="index" class="col-12">
+                                        <div class="row g-3 justify-content-center">
+                                            <div v-for="(room, index) in selectedRooms" :key="index"
+                                                class="col-12 col-md-8 col-lg-5">
                                                 <div
-                                                    class="card shadow-lg border-0 rounded-4 overflow-hidden animate__animated animate__fadeInUp">
-                                                    <div
-                                                        class="card-header bg-gradient-primary text-white py-3 px-4 d-flex justify-content-between align-items-center">
-                                                        <h4 class="mb-0 fw-bold">Phòng {{ index + 1 }}: <span
-                                                                class="text-white-50">{{ room.name }}</span></h4>
-                                                        <span class="h4 mb-0 fw-bold text-white">{{
-                                                            formatPrice(room.price)
+                                                    class="card border-0 rounded-3 shadow-lg animate__animated animate__fadeInUp">
+                                                    <div class="card-body p-4 bg-light">
+                                                        <div class="d-flex justify-content-between align-items-center">
+                                                            <h6 class="mb-0 fw-bold text-primary">Phòng {{ index + 1 }}:
+                                                                <span class="text-secondary fw-normal">{{ room.name
+                                                                }}</span>
+                                                            </h6>
+                                                            <span class="fw-bold text-success fs-5">{{
+                                                                formatPrice(room.price)
                                                             }}</span>
-                                                    </div>
-                                                    <div class="card-body p-4">
-                                                        <p class="fw-semibold text-secondary mb-3 border-bottom pb-2">
-                                                            Các Dịch
-                                                            Vụ Đã Chọn:</p>
-                                                        <ul class="list-unstyled mb-4 row row-cols-1 row-cols-md-2 g-3">
-                                                            <li v-for="(service, serviceIndex) in room.services"
-                                                                :key="serviceIndex" class="col">
-                                                                <label
-                                                                    class="d-flex align-items-center bg-light p-3 rounded-3 border border-light-subtle shadow-sm service-item-hover">
-                                                                    <input type="checkbox" v-model="service.selected"
-                                                                        @change="updateRoomTotal(room, service.service_id)"
-                                                                        class="form-check-input me-3 large-checkbox">
-                                                                    <span class="flex-grow-1 text-dark fw-medium">{{
-                                                                        service.service_name }}</span>
-                                                                    <span class="text-muted small ms-2">{{
-                                                                        formatPrice(service.price) }}</span>
-                                                                </label>
-                                                            </li>
-                                                        </ul>
-                                                        <div class="text-end pt-3 border-top">
-                                                            <p class="mb-0 fw-bold text-dark">
-                                                                Tổng Chi Phí Dịch Vụ Phòng: <br>
-                                                                <span class="h5 text-info fw-bolder">{{
-                                                                    formatPrice(room.totalServiceCost) }}</span>
-                                                            </p>
-                                                            <p class="mb-0 fw-bold text-dark">
-                                                                Tổng Chi Phí Phòng: <br>
-                                                                <span class="h5 text-info fw-bolder">{{
-                                                                    formatPrice(calculateRoomTotal(room))
-                                                                    }}</span>
-                                                            </p>
                                                         </div>
                                                     </div>
                                                 </div>
@@ -522,9 +501,10 @@
                                         </div>
 
                                         <div
-                                            class="d-flex flex-column flex-md-row justify-content-between align-items-md-center mt-5 p-4 bg-dark text-white rounded-4 shadow-lg animate__animated animate__fadeInUp">
-                                            <h3 class="mb-2 mb-md-0 fw-bold text-uppercase">Tổng Cộng Thanh Toán:</h3>
-                                            <p class="h1 mb-0 text-warning fw-bolder">{{
+                                            class="d-flex flex-column flex-md-row justify-content-between align-items-md-center mt-4 py-4 px-4 bg-info bg-opacity-10 border border-info rounded-3 shadow-lg">
+                                            <h6 class="mb-2 mb-md-0 fw-bold text-uppercase text-info">Tổng Cộng Thanh
+                                                Toán:</h6>
+                                            <p class="h4 mb-0 fw-bolder text-primary">{{
                                                 formatPrice(totalCostForAllRooms) }}
                                             </p>
                                         </div>
@@ -711,7 +691,6 @@
                 </div>
             </div>
         </div>
-
 
 
         <Footer></Footer>
@@ -1100,7 +1079,7 @@ const confirmBooking = async () => {
         return;
     } finally {
         isLoading.value = false; // Kết thúc quá trình gửi dữ liệu
-       // router.push('/thanksBooking'); // Ví dụ: về trang chủ
+        // router.push('/thanksBooking'); // Ví dụ: về trang chủ
 
     }
 
@@ -1118,7 +1097,7 @@ const payQr = async () => {
 
         const payosItems = selectedRooms.value.map((room, index) => ({
             name: `Phòng ${index + 1}`, // Tạo tên phòng dựa trên chỉ số
-            price: room.price +  room.totalServiceCost,
+            price: room.price + room.totalServiceCost,
             // totalServiceCost: room.totalServiceCost,
             quantity: 1 // Đảm bảo quantity là số dương
         }));
@@ -1137,16 +1116,16 @@ const payQr = async () => {
 
         // Gọi API thanh toán QR
         paymentMethod.value = 'thanh_toan_qr'; // Đặt phương thức thanh toán là QR
-         const axiosWithoutHeaderPayos = axios.create({
-        headers: {
-            'Content-Type': 'application/json',
-            'Authorization': ``, 
-        }
-    });
+        const axiosWithoutHeaderPayos = axios.create({
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': ``,
+            }
+        });
         // Gửi yêu cầu thanh toán đến API
         const response = await axiosWithoutHeaderPayos.post(`${apiUrl}/api/payos/checkout`, {
             //amount: 2000, // Tổng giá trị
-             amount: selectedRooms.totalPrice, 
+            amount: selectedRooms.totalPrice,
             items: payosItems // Danh sách các mặt hàng
         });
 
@@ -1268,201 +1247,6 @@ onMounted(() => {
     /* Thêm margin-top nếu cần tạo khoảng cách với phần tử phía trên */
 }
 
-.hotel-room-card {
-    border: none;
-    /* Remove default Bootstrap border */
-    border-radius: 12px;
-    /* More rounded corners */
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
-    /* Softer, more pronounced shadow */
-    transition: transform 0.3s ease, box-shadow 0.3s ease;
-    /* Smooth hover effect */
-}
-
-.hotel-room-card:hover {
-    transform: translateY(-5px);
-    /* Slight lift on hover */
-    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.12);
-    /* Enhanced shadow on hover */
-}
-
-/* Image Styling */
-.hotel-room-card .room-image-wrapper {
-    height: 250px;
-    /* Consistent height for images */
-    overflow: hidden;
-    position: relative;
-    /* For potential overlays */
-}
-
-.hotel-room-card .room-image-wrapper img {
-    object-fit: cover;
-    /* Ensures image fills space without distortion */
-    width: 100%;
-    height: 100%;
-    transition: transform 0.5s ease;
-    /* Smooth zoom effect on hover */
-}
-
-.hotel-room-card:hover .room-image-wrapper img {
-    transform: scale(1.05);
-    /* Gentle zoom on hover */
-}
-
-/* Card Body & Text */
-.hotel-room-card .card-body {
-    padding: 1.5rem;
-    /* More generous padding */
-    display: flex;
-    flex-direction: column;
-}
-
-.hotel-room-card .card-title {
-    font-size: 1.6rem;
-    /* Slightly larger, more prominent title */
-    color: #333;
-    /* Darker, more luxurious text color */
-    margin-bottom: 0.5rem;
-    line-height: 1.2;
-}
-
-/* Rating Badge */
-.hotel-room-card .badge {
-    font-size: 0.95rem;
-    /* Slightly larger badge text */
-    font-weight: 600;
-    padding: 0.5em 1em;
-    /* More padding for a bolder look */
-}
-
-.hotel-room-card .badge .bi-star-fill {
-    color: #fff;
-    /* Ensure star is white on warning background */
-}
-
-/* Room Features Section */
-.hotel-room-card .room-features p {
-    font-size: 0.95rem;
-    color: #666;
-    /* Softer text color for details */
-    margin-bottom: 0.3rem;
-    /* Tighter line spacing */
-}
-
-.hotel-room-card .room-features i {
-    color: #888;
-    /* Icon color */
-    width: 20px;
-    /* Align icons */
-    text-align: center;
-}
-
-/* Description Text */
-.hotel-room-card .card-text.text-secondary {
-    font-size: 0.95rem;
-    line-height: 1.6;
-    color: #555 !important;
-    /* Ensure secondary text color is consistent */
-}
-
-/* Price Information */
-.hotel-room-card .price-info {
-    line-height: 1.2;
-}
-
-.hotel-room-card .price-info .text-muted.small {
-    font-size: 0.85rem;
-    margin-bottom: 0.2rem;
-}
-
-.hotel-room-card .price-info .fs-4 {
-    font-size: 2rem !important;
-    /* Larger price to stand out */
-    font-weight: 700;
-    /* Bolder price */
-    color: #A07F5E;
-    /* A sophisticated brown/gold for primary elements */
-}
-
-.hotel-room-card .price-info .fs-6 {
-    color: #777 !important;
-    /* More subdued for "per night" info */
-}
-
-/* Buttons */
-.hotel-room-card .btn {
-    font-size: 0.95rem;
-    font-weight: 600;
-    padding: 0.65rem 1.5rem;
-    /* More substantial buttons */
-    border-radius: 50px;
-    /* Fully rounded buttons */
-    transition: all 0.3s ease;
-}
-
-.hotel-room-card .btn-outline-dark {
-    border-color: #ccc;
-    color: #555;
-}
-
-.hotel-room-card .btn-outline-dark:hover {
-    background-color: #f8f9fa;
-    color: #333;
-    border-color: #999;
-}
-
-.hotel-room-card .btn-primary {
-    background-color: #A07F5E;
-    /* Sophisticated primary color */
-    border-color: #A07F5E;
-    color: white;
-}
-
-.hotel-room-card .btn-primary:hover {
-    background-color: #8C6A4C;
-    /* Darker on hover */
-    border-color: #8C6A4C;
-}
-
-.hotel-room-card .btn i {
-    font-size: 1rem;
-    /* Adjust icon size in buttons */
-}
-
-/* Horizontal line separator */
-.hotel-room-card .card-body .border-top {
-    border-color: #eee !important;
-    /* Lighter border for separation */
-}
-
-.hotel-card {
-    transition: transform 0.2s;
-}
-
-.hotel-card:hover {
-    transform: scale(1.02);
-}
-
-.room-info span {
-    margin-right: 15px;
-}
-
-.card-body {
-    background-color: #f9f9f9;
-}
-
-.card-footer {
-    background-color: #ffffff;
-    border-top: 1px solid #eaeaea;
-}
-
-.card-title {
-    font-weight: bold;
-}
-
-.text-danger {
-    font-size: 1.2em;
-}
 
 .hero-section {
     background: linear-gradient(rgba(99, 208, 248, 0.6), rgba(0, 0, 0, 0.6)),
@@ -2114,7 +1898,7 @@ input[type="number"] {
 .search-box {
     background-color: rgba(255, 255, 255, 0.9);
     border-radius: 10px;
-    margin-top: -50px;
+    margin-top: -120px;
 }
 
 .hotel-card {
