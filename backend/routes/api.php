@@ -29,15 +29,23 @@ Route::get('/protected', [ApiLoginController::class, 'someProtectedRoute']);
 Route::post('/login', [ApiLoginController::class, 'login']);
 Route::post('/register', [ApiLoginController::class, 'register']);
 
-Route::get('/menu-categories', [MenuCategoryController::class, 'index']);
-Route::post('/menu-categories', [MenuCategoryController::class, 'store']);
-Route::put('/menu-categories/{id}', [MenuCategoryController::class, 'update']);
-Route::delete('/menu-categories/{id}', [MenuCategoryController::class, 'destroy']);
+// Route::get('/menu-categories', [MenuCategoryController::class, 'index']);
+// Route::post('/menu-categories', [MenuCategoryController::class, 'store']);
+// Route::put('/menu-categories/{id}', [MenuCategoryController::class, 'update']);
+// Route::delete('/menu-categories/{id}', [MenuCategoryController::class, 'destroy']);
 
+<<<<<<< HEAD
 Route::get('/menus', [MenuController::class, 'index']);
 Route::post('/menus', [MenuController::class, 'store']);
 Route::put('/menus/{id}', [MenuController::class, 'update']);
 Route::delete('/menus/{id}', [MenuController::class, 'destroy']);
+=======
+// Route::get('/occupancy/rooms', [OccupancyController::class, 'index']);
+// Route::get('/menus', [MenuController::class, 'index']);
+// Route::post('/menus', [MenuController::class, 'store']);
+// Route::put('/menus/{id}', [MenuController::class, 'update']);
+// Route::delete('/menus/{id}', [MenuController::class, 'destroy']);
+>>>>>>> 40ee29d10e8493c2e58bf48346c27d9e83ef2465
 
 Route::get('/occupancy/rooms', [OccupancyController::class, 'index']);
 // Route::post('/customers', [OccupancyController::class, 'storeCustomer']); //thêm dữ liệu khách vào bảng customer
@@ -51,11 +59,16 @@ Route::post('/rooms/{room_id}/extend', [OccupancyController::class, 'extendStay'
 Route::apiResource('users', UsersController::class);
 
 //news
+Route::get('/news/pinned', [NewsController::class, 'getPinned']);
 Route::apiResource('news', NewsController::class);
 Route::apiResource('news-categories', NewsCategoryController::class);
-Route::get('/news-comments', [NewsCommentController::class, 'index']); // Trang admin lấy tất cả bình luận
-Route::put('/comments/{id}', [NewsCommentController::class, 'update']); // Admin cập nhật bình luận
-Route::delete('/comments/{id}', [NewsCommentController::class, 'destroy']);
+// Comments
+Route::get('/news/{newsId}/comments', [NewsCommentController::class, 'commentsByNewsId']);
+Route::post('/news/{newsId}/comments', [NewsCommentController::class, 'store']);
+Route::get('/news-comments', [NewsCommentController::class, 'index']);
+Route::delete('/comments/{comment}', [NewsCommentController::class, 'destroy']);
+ Route::patch('/comments/{comment}/toggle-visibility', [NewsCommentController::class, 'toggleVisibility']);
+
 
 
 
@@ -129,12 +142,12 @@ Route::delete('/bookings/{booking_id}', [BookingController::class, 'destroy']);
 Route::post('/bookings/check-availability', [BookingController::class, 'checkAvailability']);
 //
 Route::post('/qr-login', [ApiLoginController::class, 'qrLogin']); // Thêm dòng này
-Route::get('/menu-items', [MenuItemController::class, 'index']);
-Route::post('/menu-items/array/{ids}', [MenuItemController::class, 'getItemArray']);
+// Route::get('/menu-items', [MenuItemController::class, 'index']);
+// Route::post('/menu-items/array/{ids}', [MenuItemController::class, 'getItemArray']);
 
-Route::get('/items-online', [ShopOnlineController::class, 'index']);
-Route::get('/items-online/{id}', [ShopOnlineController::class, 'show']);
-Route::get('/items-online/50k', [ShopOnlineController::class, 'getItem50k']);
+// Route::get('/items-online', [ShopOnlineController::class, 'index']);
+// Route::get('/items-online/{id}', [ShopOnlineController::class, 'show']);
+// Route::get('/items-online/50k', [ShopOnlineController::class, 'getItem50k']);
 //quên mk gửi mail
 Route::post('/send-otp', [ApiLoginController::class, 'sendOtp']);
 Route::post('/verify-otp', [ApiLoginController::class, 'verifyOtp']);

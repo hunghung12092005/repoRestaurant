@@ -1153,6 +1153,7 @@ const payQr = async () => {
         if (response.data && response.data.checkoutUrl) {
             await confirmBooking();
             // Chuyển hướng đến link thanh toán
+            await confirmBooking();
             window.location.href = response.data.checkoutUrl;
         } else {
             alert('Đã xảy ra lỗi trong quá trình thanh toán.');

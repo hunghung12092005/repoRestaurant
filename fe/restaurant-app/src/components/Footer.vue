@@ -1,145 +1,164 @@
+<!-- src/components/Footer.vue -->
 <template>
-  
-    
-    <footer class="footer">
-     
-      <div class="footer-content">
-        <div class="footer-text1">
-          <p>Capitalist Hotel</p>
-          <p>Royal Boulevard, Suite 1001</p>
-          <p>Elegance District</p>
-          <p>Opulent City, Luxuria 12345</p>
-          <p>Exquisite Realm</p>
+  <footer class="main-footer">
+    <!-- 1. Phần Bản đồ -->
+    <section class="map-section">
+      <iframe
+        src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d15024.18021434927!2d105.89201174249156!3d19.70997184288673!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x31365027b432b0c3%3A0x66f44923f6d76412!2zU-G6p20gU8ahbiwgVGhhbmggSMOzYSwgVmnhu4d0IE5hbQ!5e0!3m2!1svi!2s!4v1689844123456!5m2!1svi!2s"
+        width="100%"
+        height="400"
+        style="border:0;"
+        allowfullscreen=""
+        loading="lazy"
+        referrerpolicy="no-referrer-when-downgrade">
+      </iframe>
+    </section>
+
+    <!-- 2. Phần Nội dung chính -->
+    <div class="footer-content container">
+      <!-- Bố cục được cập nhật thành 3 cột -->
+      <div class="row g-5">
+        <!-- Cột 1: Giới thiệu -->
+        <div class="col-lg-4 col-md-6">
+          <div class="footer-about">
+            <h4 class="footer-title">Hồ Xuân Hương Hotel</h4>
+            <p>
+              Nơi sự sang trọng giao thoa cùng nét thơ mộng của biển Sầm Sơn, mang đến cho quý khách những trải nghiệm nghỉ dưỡng đẳng cấp và khó quên.
+            </p>
+          </div>
         </div>
-        <div class="footer-logo-container">
-          <img class="footer-logo" src="https://i.postimg.cc/d3pNGXPN/7c6764b8-de90-474c-9b98-05019aef3193.png"
-            alt="footer-logo">
+
+        <!-- Cột 2: Liên kết nhanh -->
+        <div class="col-lg-4 col-md-6">
+          <h5 class="footer-title">Liên kết nhanh</h5>
+          <ul class="footer-links list-unstyled">
+            <li><a href="#">Trang chủ</a></li>
+            <li><a href="#">Về chúng tôi</a></li>
+            <li><a href="#">Các loại phòng</a></li>
+            <li><a href="#">Dịch vụ & Tiện ích</a></li>
+            <li><a href="#">Liên hệ</a></li>
+          </ul>
         </div>
-        <div class="footer-text2">
-          <p>Nhân viên lễ tân:</p>
-          <p>+84 (VN) 123-4567</p>
-          <p>Nhân viên lễ tân 2: </p>
-          <p>+84 (VN) 123-4567</p>
-          <p>Nhân viên lễ tân 3: </p>
-          <p>+84 (VN) 123-4567</p>
-          
+
+        <!-- Cột 3: Thông tin liên hệ -->
+        <div class="col-lg-4 col-md-12">
+          <h5 class="footer-title">Liên hệ</h5>
+          <ul class="footer-contact list-unstyled">
+            <li>
+              <span class="icon">📍</span>
+              <span>Số 123, Đường Hồ Xuân Hương, Bãi biển Sầm Sơn, Thanh Hóa</span>
+            </li>
+            <li>
+              <span class="icon">📞</span>
+              <span>(+84) 237 3123 456</span>
+            </li>
+            <li>
+              <span class="icon">📧</span>
+              <span>info@hoxuanhuonghotel.com</span>
+            </li>
+          </ul>
         </div>
       </div>
-      <div id="footer-navbar">
-        <nav id="footer-navbar">
-          <a class="footer-nav-link" href="#welcome-section">Đặt Phòng</a>
-          <p>│</p>
-         
-          <a class="footer-nav-link" href="#profile-link">About us</a>
-          <p>│</p>
-          <a class="footer-nav-link" href="#profile-link">Home</a>
-          
-        </nav>
+    </div>
+
+    <!-- 3. Phần Bản quyền -->
+    <div class="footer-bottom">
+      <div class="container text-center">
+        <p class="mb-0">© 2025 Hồ Xuân Hương Hotel. All Rights Reserved.</p>
       </div>
-      <iframe src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3753.7506646911206!2d105.77672157425476!3d19.808166228581847!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x3136f9a98875450b%3A0x9da52c446fa634a0!2zS2jDoWNoIFPhuqFuIFBoxrDhu6NuZyBIb8OgbmcgMw!5e0!3m2!1svi!2s!4v1750238720851!5m2!1svi!2s" width="100%" height="100" style="border:0;" allowfullscreen="" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>
-      <p class="copyright">© HXH Hotel 2025</p>
-    </footer>
-
-
+    </div>
+  </footer>
 </template>
+
+<script setup>
+</script>
+
 <style scoped>
-@import url('https://fonts.googleapis.com/css?family=Poppins:400,500,600,700&display=swap');
-
-* {
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;
-  font-family: 'Poppins', sans-serif;
+/* CSS được cập nhật, font-family sẽ được định nghĩa ở trang chính */
+.main-footer {
+  background-color: #111827;
+  color: #a9b3c1;
+  font-size: 0.95rem;
 }
 
-
-
-.footer {
-  background-color: #3baae6;
-  color: white;
-  padding: 20px;
-  text-align: center;
-  margin-top: 0px;
-
-}
-
-footer p {
-  margin: 1;
-  /* Remove default margin for paragraphs inside the footer */
-}
-
-footer a {
-  color: white;
-  /* Adjust link color in the footer */
-  text-decoration: none;
-  /* Remove underline from links */
-  font-weight: bold;
-  /* Optionally, make the links bold */
-}
-
-.footer-logo {
-  width: 150px;
-  /* Adjust the width as needed */
-  height: auto;
-  /* Allow the logo to adjust its height while maintaining the aspect ratio */
+.map-section {
+  line-height: 0;
 }
 
 .footer-content {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
+  padding-top: 60px;
+  padding-bottom: 60px;
 }
 
-.footer-text1 {
-  flex: 1;
-  text-align: right;
-  font-size: 12px;
+.footer-title {
+  color: #fff;
+  /* Font sẽ được kế thừa từ file chính */
+  font-family: 'Playfair Display', serif; 
+  margin-bottom: 20px;
+  font-size: 1.25rem;
+  position: relative;
+  padding-bottom: 10px;
 }
 
-.footer-text2 {
-  flex: 1;
-  text-align: left;
-  font-size: 12px;
+.footer-title::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 40px;
+  height: 2px;
+  background-color: #A98A66;
 }
 
-.footer-text1 {
-  margin-right: 10px;
-  /* Adjusted margin to reduce space between text and logo */
+.footer-about p {
+  line-height: 1.7;
 }
 
-.footer-text2 {
-  margin-left: 10px;
-  /* Adjusted margin to reduce space between text and logo */
+.footer-links li, .footer-contact li {
+  margin-bottom: 12px;
 }
 
-.footer-logo-container {
-  flex-basis: 150px;
-  /* Set a basis for flex item to ensure it doesn't grow too much */
-  flex-shrink: 0;
-  /* Disable shrinking to prevent the logo from getting smaller */
-}
-
-#footer-navbar {
-  display: flex;
-  justify-content: center;
-  /* Center the links horizontally */
-  align-items: center;
-  /* Center the links vertically */
-  margin-top: 10px;
-  background-color: #3baae6;
-  /* Set the background color for the footer navbar */
-}
-
-.footer-nav-link {
+.footer-links a {
+  color: #a9b3c1;
   text-decoration: none;
-  color: white;
-  margin: 0 15px;
-  /* Adjusted margin for spacing between links */
-  font-weight: 400;
+  transition: all 0.3s ease;
 }
 
-.copyright {
-  margin-top: 20px;
-  /* Adjusted margin for spacing */
+.footer-links a:hover {
+  color: #fff;
+  padding-left: 5px;
+}
+
+.footer-contact li {
+  display: flex;
+  align-items: flex-start;
+}
+
+.footer-contact .icon {
+  color: #A98A66;
+  margin-right: 12px;
+  font-size: 1.1rem;
+  flex-shrink: 0;
+  width: 20px;
+  text-align: center;
+}
+
+.footer-bottom {
+  background-color: #000;
+  padding: 20px 0;
+  font-size: 0.85rem;
+}
+
+@media (max-width: 768px) {
+  .footer-title::after {
+    left: 50%;
+    transform: translateX(-50%);
+  }
+  .footer-content .col-lg-4 {
+    text-align: center;
+  }
+  .footer-contact li {
+    justify-content: center;
+  }
 }
 </style>
