@@ -49,7 +49,7 @@ Route::apiResource('users', UsersController::class);
 //news
 Route::get('/news/pinned', [NewsController::class, 'getPinned']);
 Route::apiResource('news', NewsController::class);
-// Route::apiResource('news-categories', NewsCategoryController::class);
+Route::apiResource('news-categories', NewsCategoryController::class);
 // Comments
 Route::get('/news/{newsId}/comments', [NewsCommentController::class, 'commentsByNewsId']);
 Route::post('/news/{newsId}/comments', [NewsCommentController::class, 'store']);
