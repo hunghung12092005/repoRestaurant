@@ -420,8 +420,8 @@ body {
 }
 
 .logo-img {
-  height: 40px;
-  margin-right: 10px;
+  width: 60px;
+  height: 60px;
   /* THAY ĐỔI: Chuyển ảnh logo sang màu đen */
   filter: brightness(0);
 }
