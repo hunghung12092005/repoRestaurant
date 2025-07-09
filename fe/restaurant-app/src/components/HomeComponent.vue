@@ -22,7 +22,7 @@
     </section> 
     <sliderComponent />
 
-    <section class="about" id="about">
+    <!-- <section class="about" id="about">
         <h1>Today Deal's</h1>
         <div class="about-container">
             <div class="about-box" v-for="itemTop in topItems" :key="itemTop.id">
@@ -33,7 +33,7 @@
                 <h2> {{ itemTop.Price }}$</h2>
             </div>
         </div>
-    </section>
+    </section> -->
 
     <section class="shop" id="shop">
         <div class="heading">
