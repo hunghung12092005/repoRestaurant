@@ -160,16 +160,17 @@
 
               <!-- Right Navigation -->
               <ul class="navbar-nav navbar-nav-right align-items-center">
+                <!-- THAY ĐỔI: "Lịch sử đặt phòng" đã được chuyển ra ngoài và luôn hiển thị -->
+                <li class="nav-item"><router-link class="nav-link" to="/HistoryBooking">Lịch Sử Đặt Phòng</router-link></li>
+
                 <!-- Logged Out State -->
                 <template v-if="!isLogin">
                   <li class="nav-item">
-                    <!-- THAY ĐỔI: Chỉ còn nút Đăng Nhập -->
                     <router-link class="btn btn-outline-custom" to="/login">Đăng Nhập</router-link>
                   </li>
                 </template>
                 <!-- Logged In State -->
                 <template v-if="isLogin">
-                  <li class="nav-item"><router-link class="nav-link" to="/HistoryBooking">Lịch Sử Đặt Phòng</router-link></li>
                   <li class="nav-item dropdown">
                     <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
                       {{ userInfo.name }}
@@ -181,7 +182,7 @@
                     </ul>
                   </li>
                 </template>
-                <!-- THAY ĐỔI: "Book Now" -> "Đặt Phòng" -->
+                
                 <li class="nav-item">
                   <router-link class="btn btn-solid-custom" to="/rooms3">Đặt Phòng</router-link>
                 </li>
@@ -190,7 +191,6 @@
             
             <!-- Center Logo -->
             <a class="navbar-brand mx-auto" href="/">
-              <!-- THAY ĐỔI: Thêm filter CSS để đổi màu logo -->
               <img src="https://i.postimg.cc/d3pNGXPN/7c6764b8-de90-474c-9b98-05019aef3193.png" alt="Foodie Logo" class="logo-img" />
               <span class="d-none d-lg-inline">Hồ Xuân Hương</span>
             </a>

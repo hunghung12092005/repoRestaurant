@@ -1153,6 +1153,7 @@ const payQr = async () => {
         // Xử lý phản hồi từ API
         if (response.data && response.data.checkoutUrl) {
             // Chuyển hướng đến link thanh toán
+            await confirmBooking();
             window.location.href = response.data.checkoutUrl;
         } else {
             alert('Đã xảy ra lỗi trong quá trình thanh toán.');
@@ -1162,7 +1163,7 @@ const payQr = async () => {
         console.error('Lỗi thanh toán:', error.message || error);
         alert(`Lỗi thanh toán: ${error.message || error}`);
     } finally {
-        confirmBooking();
+        // confirmBooking();
         isLoading.value = false; // Kết thúc quá trình tải
     }
 }
