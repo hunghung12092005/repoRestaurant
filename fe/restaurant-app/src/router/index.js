@@ -64,11 +64,11 @@ import AdminNewsCommentComponent from '../components/admin/news/AdminNewsComment
 // import AdminBookingComponent from '../components/AdminBooking/AdminBookingComponent.vue';
 import RoomTypeDetail from '../components/RoomTypeDetail.vue';
 const routes = [
-  {
-    path: '/home',
-    name: 'HomeComponent',
-    component: HomeComponent,
-  },
+  // {
+  //   path: '/home',
+  //   name: 'HomeComponent',
+  //   component: AboutComponent,
+  // },
   {
     path: '/',
     name: 'Home2',
