@@ -234,7 +234,7 @@ import { inject } from 'vue';
 import isLoading from '../loading.vue'
 const apiUrl = inject('apiUrl');
 const allRooms = ref([]);
-const isisLoading = ref('false');
+const isisLoading = ref(false);
 // Trạng thái lọc
 const selectedStatus = ref('Tất cả');
 const selectedRoomType = ref('Tất cả');
@@ -395,6 +395,7 @@ const submitCustomerForm = async () => {
 
 const calculateTotalPricePreview = async () => {
   if (!formData.value.room_id) return;
+  
   try {
     const res = await axios.post(`${apiUrl}/api/rooms/preview-price`, {
       room_id: formData.value.room_id,

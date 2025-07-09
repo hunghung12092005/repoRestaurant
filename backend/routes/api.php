@@ -1,4 +1,5 @@
 <?php
+
 use App\Http\Controllers\AmenityController;
 use App\Http\Controllers\BookingController;
 use App\Http\Controllers\api\LoginController as ApiLoginController;
@@ -33,18 +34,19 @@ Route::post('/menu-categories', [MenuCategoryController::class, 'store']);
 Route::put('/menu-categories/{id}', [MenuCategoryController::class, 'update']);
 Route::delete('/menu-categories/{id}', [MenuCategoryController::class, 'destroy']);
 
-Route::get('/occupancy/rooms', [OccupancyController::class, 'index']);
 Route::get('/menus', [MenuController::class, 'index']);
 Route::post('/menus', [MenuController::class, 'store']);
 Route::put('/menus/{id}', [MenuController::class, 'update']);
 Route::delete('/menus/{id}', [MenuController::class, 'destroy']);
 
-
-Route::post('/customers', [OccupancyController::class, 'storeCustomer']); //thêm dữ liệu khách vào bảng customer
+Route::get('/occupancy/rooms', [OccupancyController::class, 'index']);
+// Route::post('/customers', [OccupancyController::class, 'storeCustomer']); //thêm dữ liệu khách vào bảng customer
 Route::get('/rooms/{room_id}/customer', [OccupancyController::class, 'getCustomerByRoom']); //hiển thị thông tin khách
 Route::post('/rooms/{room_id}/checkout', [OccupancyController::class, 'checkoutRoom']); //checkout
 Route::get('/services', [OccupancyController::class, 'getServices']); //hiển thị dịch vụ
-
+Route::post('/rooms/{room_id}/add-guest', [OccupancyController::class, 'addGuestToRoom']); //khi khách đặt phòng thì đổi trạng thái
+Route::post('/rooms/preview-price', [OccupancyController::class, 'previewPrice']); //xem trước giá
+Route::post('/rooms/{room_id}/extend', [OccupancyController::class, 'extendStay']); //gia hạn phòng
 
 Route::apiResource('users', UsersController::class);
 
@@ -55,9 +57,7 @@ Route::get('/news-comments', [NewsCommentController::class, 'index']); // Trang 
 Route::put('/comments/{id}', [NewsCommentController::class, 'update']); // Admin cập nhật bình luận
 Route::delete('/comments/{id}', [NewsCommentController::class, 'destroy']);
 
-Route::post('/rooms/{room_id}/add-guest', [OccupancyController::class, 'addGuestToRoom']); //khi khách đặt phòng thì đổi trạng thái
-Route::post('/rooms/preview-price', [OccupancyController::class, 'previewPrice']);//xem trước giá
-Route::post('/rooms/{room_id}/extend', [OccupancyController::class, 'extendStay']);//gia hạn phòng
+
 
 
 

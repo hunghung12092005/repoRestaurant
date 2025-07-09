@@ -989,7 +989,6 @@ const getRoomPrices = async () => {
         // Giả định rằng hotels.value đã được khởi tạo và chứa thông tin phòng
         hotels.value = hotels.value.map(room => {
             const roomPrice = roomPrices.find(price => price.type_id === room.id); // Tìm giá tương ứng với type_id
-
             return {
                 ...room, // Kết hợp thông tin phòng hiện tại
                 price_per_night: roomPrice ? roomPrice.gia_tien1ngay : 0, // Gán giá nếu tìm thấy, nếu không gán 0
@@ -1152,17 +1151,16 @@ const payQr = async () => {
 
         // Xử lý phản hồi từ API
         if (response.data && response.data.checkoutUrl) {
+            await confirmBooking();
             // Chuyển hướng đến link thanh toán
             window.location.href = response.data.checkoutUrl;
         } else {
             alert('Đã xảy ra lỗi trong quá trình thanh toán.');
         }
-
     } catch (error) {
         console.error('Lỗi thanh toán:', error.message || error);
         alert(`Lỗi thanh toán: ${error.message || error}`);
     } finally {
-        confirmBooking();
         isLoading.value = false; // Kết thúc quá trình tải
     }
 }
@@ -1221,9 +1219,8 @@ const verifyCode = async () => {
         paymentMethod.value = 'thanh_toan_sau';
         //confirmBooking.value = true; // Đặt trạng thái đơn hàng đã được xác nhận
         // Thực hiện hành động tiếp theo
+        await confirmBooking();
         router.push('/thanksBooking'); // Ví dụ: về trang chủ
-
-
     } catch (error) {
         console.error('Lỗi xác minh mã:', error.message || error);
         alert(`Lỗi xác minh mã: ${error.message || error}`);

@@ -229,6 +229,11 @@ const routes = [
     name: 'AdminOccupancy',
     component: AdminOccupancyComponent,
     meta: { requiresAdmin: true },
+  },{
+    path: '/admin/bookings',
+    name: 'AdminBookings',
+    component: AdminOccupancyComponent,
+    meta: { requiresAdmin: true },
   },
   {
     path: '/admin/room-types',
@@ -310,6 +315,7 @@ const routes = [
     component: AdminUsersComponent,
     meta: { requiresAdmin: true },
   },
+  
 ];
 
 const router = createRouter({
