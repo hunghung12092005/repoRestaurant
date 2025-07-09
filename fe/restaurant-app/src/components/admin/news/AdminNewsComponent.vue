@@ -195,8 +195,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue';
-import { inject } from 'vue';
+import { ref, onMounted, inject } from 'vue';
 import axios from 'axios';
 import { Modal } from 'bootstrap';
 import { QuillEditor } from '@vueup/vue-quill';
@@ -239,11 +238,10 @@ const axiosInstance = axios.create({
     baseURL: apiUrl,
     headers: {
         'Accept': 'application/json',
-        // 'Content-Type' is set dynamically for FormData
     }
 });
 
-// **THAY ĐỔI: Thêm hàm lấy thông tin người dùng từ localStorage**
+// Thêm hàm lấy thông tin người dùng từ localStorage
 const getLoggedInUser = () => {
     const user = localStorage.getItem('userInfo');
     if (user) {
@@ -296,7 +294,7 @@ const resetForm = () => {
 
 // Validate File Type
 const validateFile = (file) => {
-    if (!file) return true; // No file is valid (optional)
+    if (!file) return true;
     const validTypes = ['image/jpeg', 'image/png', 'image/jpg', 'image/gif'];
     if (!validTypes.includes(file.type)) {
         thumbnailError.value = 'File phải là ảnh (jpeg, png, jpg, gif).';
@@ -314,7 +312,11 @@ const validateFile = (file) => {
 const fetchData = async (page = 1) => {
     try {
         const response = await axiosInstance.get('/api/news', {
-            params: { page: page, q: searchQuery.value }
+            params: { 
+                page: page, 
+                q: searchQuery.value,
+                from_admin: true // [THAY ĐỔI] Gửi tham số để backend biết đây là admin
+            }
         });
         items.value = response.data.data;
         currentPage.value = response.data.current_page;
@@ -363,7 +365,6 @@ const openDetailModal = async (item) => {
     selectedNewsDetail.value = null;
     detailModalInstance.show();
     try {
-        // Lời gọi API MỚI, có thêm tham số 'params'
         const response = await axiosInstance.get(`/api/news/${item.id}`, {
             params: {
                 from_admin: true // Gửi tham số để backend biết đây là admin
@@ -388,7 +389,6 @@ const handleFileChange = (event) => {
     }
 };
 
-// **THAY ĐỔI: Chỉnh sửa handleSubmit để gửi author_id**
 const handleSubmit = async () => {
     if (thumbnailFile.value && !validateFile(thumbnailFile.value)) {
         return;
@@ -397,7 +397,6 @@ const handleSubmit = async () => {
     isSubmitting.value = true;
     const formData = new FormData();
     
-    // Thêm các trường dữ liệu vào formData
     formData.append('title', form.value.title);
     formData.append('content', form.value.content || '');
     formData.append('category_id', form.value.category_id);
@@ -411,16 +410,13 @@ const handleSubmit = async () => {
         formData.append('thumbnail', thumbnailFile.value);
     }
     
-    // Logic gửi request
     try {
         if (isEditMode.value) {
-            // Khi sửa, chúng ta không gửi author_id để không thay đổi tác giả gốc
             formData.append('_method', 'PUT');
             await axiosInstance.post(`/api/news/${form.value.id}`, formData, {
                 headers: { 'Content-Type': 'multipart/form-data' }
             });
         } else {
-            // **Khi tạo mới, lấy user_id từ localStorage và thêm vào form**
             const user = getLoggedInUser();
             if (!user || !user.id) {
                 showNotification('Không tìm thấy thông tin người dùng. Vui lòng đăng nhập lại.', 'error');
