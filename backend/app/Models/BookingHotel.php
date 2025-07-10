@@ -7,10 +7,9 @@ use Illuminate\Database\Eloquent\Model;
 class BookingHotel extends Model
 {
     protected $table = 'booking_hotel';
-    protected $primaryKey = 'booking_id'; // Sử dụng cột booking_id làm khóa chính
+    protected $primaryKey = 'booking_id';
     protected $fillable = [
         'customer_id',
-        'room_type',
         'payment_method',
         'booking_type',
         'pricing_type',
@@ -32,11 +31,5 @@ class BookingHotel extends Model
     public function details()
     {
         return $this->hasMany(BookingHotelDetail::class, 'booking_id', 'booking_id');
-    }
-     public function roomTypeInfo()
-    {
-        // 'room_type' là tên cột khóa ngoại trong bảng booking_hotel
-        // 'id' là tên cột khóa chính trong bảng room_types
-        return $this->belongsTo(RoomType::class, 'room_type', 'type_id');
     }
 }

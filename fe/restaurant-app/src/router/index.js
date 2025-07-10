@@ -28,17 +28,17 @@ import AdminAmenitiesComponent from '../components/AdminSeAm/AdminAmenitiesCompo
 import AdminServicesComponent from '../components/AdminSeAm/AdminServicesComponent.vue';
 
 // AdminBooking - Đặt phòng
+import AdminBookingComponent from '../components/AdminBooking/AdminBookingComponent.vue';
 
 import AdminDashboardComponent from '../components/admin/AdminDashboardComponent.vue';
 import AdminUsersComponent from '../components/admin/AdminUsersComponent.vue';
 // import Shop from '../components/Shop.vue';
-import ghn from '../components/ghn/mainghn.vue';
+// import ghn from '../components/ghn/mainghn.vue';
 // import menu_online from '../components/ShopOnline/menu_online.vue';
 // import detailMenu from '../components/ShopOnline/detailMenu.vue';
 
 // import detailOrderMenu from '../components/menu_item/detailOrderMenu.vue';
-import CategoryShopOnline from '../components/ShopOnline/CategoryShopOnline.vue';
-import buynow from '../components/ShopOnline/BuyNow.vue';
+
 
 import ChatAdmin from '../components/ChatAdmin.vue';
 import Chat from '../components/Chat.vue';
@@ -111,29 +111,6 @@ const routes = [
     name: 'NewsDetail', 
     component: BlogDetailComponent,
   },
-  {
-    path: '/ghn',
-    name: 'ghn',
-    component: ghn,
-  },
-  {
-    path: '/CategoryShopOnline',
-    name: 'CategoryShopOnline',
-    component: CategoryShopOnline,
-  },
-  {
-    path: '/buynow',
-    name: 'buynow',
-    component: buynow,
-  },
-
- 
-  // {
-  //   path: '/detailOrderMenu/:ids',
-  //   name: 'detailOrderMenu',
-  //   component: detailOrderMenu,
-  //   props: true,
-  // },
   {
     path: '/ChatAdmin',
     name: 'ChatAdmin',
@@ -266,8 +243,8 @@ const routes = [
   },
   {
     path: '/admin/bookings',
-    name: 'AdminBookings',
-    component: AdminBookingsComponent,
+    name: 'AdminBookingComponent',
+    component: AdminBookingComponent,
     meta: { requiresAdmin: true },
   },
 ];

@@ -3,12 +3,9 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
-// use Illuminate\Database\Eloquent\Factories\HasFactory;
 
 class BookingHotelDetail extends Model
 {
-    // use HasFactory;
-    
     protected $table = 'booking_hotel_detail';
     protected $primaryKey = 'booking_detail_id';
     public $incrementing = true;
@@ -17,7 +14,9 @@ class BookingHotelDetail extends Model
     protected $casts = [
         'booking_id' => 'integer',
         'room_id' => 'integer',
+        'room_type' => 'integer',
         'gia_phong' => 'decimal:2',
+        'gia_dich_vu' => 'decimal:2',
         'total_price' => 'decimal:2',
         'created_at' => 'datetime',
         'updated_at' => 'datetime',
@@ -27,8 +26,8 @@ class BookingHotelDetail extends Model
         'booking_id',
         'room_id',
         'room_type',
-        'gia_dich_vu',
         'gia_phong',
+        'gia_dich_vu',
         'total_price',
         'note',
     ];
@@ -41,6 +40,11 @@ class BookingHotelDetail extends Model
     public function room()
     {
         return $this->belongsTo(Room::class, 'room_id', 'room_id');
+    }
+
+    public function roomType()
+    {
+        return $this->belongsTo(RoomType::class, 'room_type', 'type_id');
     }
 
     public function services()
