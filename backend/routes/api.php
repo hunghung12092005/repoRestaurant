@@ -116,16 +116,6 @@ Route::put('/rooms/{id}', [RoomController::class, 'update']);
 Route::delete('/rooms/{id}', [RoomController::class, 'destroy']);
 
 
-Route::get('/table-types', [TableTypeController::class, 'index']);
-Route::post('/table-types', [TableTypeController::class, 'store']);
-Route::put('/table-types/{id}', [TableTypeController::class, 'update']);
-Route::delete('/table-types/{id}', [TableTypeController::class, 'destroy']);
-
-Route::get('/tables', [TableController::class, 'index']);
-Route::post('/tables', [TableController::class, 'store']);
-Route::put('/tables/{id}', [TableController::class, 'update']);
-Route::delete('/tables/{id}', [TableController::class, 'destroy']);
-
 // Route::get('/bookings/form-data', [BookingController::class, 'getFormData']);
 // Route::get('/bookings', [BookingController::class, 'index']);
 // Route::get('/bookings/{booking_id}', [BookingController::class, 'show']);
