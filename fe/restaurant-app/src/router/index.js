@@ -246,16 +246,12 @@ const routes = [
     component: AdminUsersComponent,
     meta: { requiresAdmin: true },
   },
-<<<<<<< HEAD
   {
     path: '/admin/bookings',
     name: 'AdminBookingComponent',
     component: AdminBookingComponent,
     meta: { requiresAdmin: true },
   },
-=======
-  
->>>>>>> main
 ];
 
 const router = createRouter({

@@ -34,6 +34,7 @@ class BookingHotelController extends Controller
 
         return response()->json($availableRooms);
     }
+    
     //tao token jwt
     public function generateToken(Request $request)
     {
