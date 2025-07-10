@@ -60,11 +60,11 @@ import AdminNewsCommentComponent from '../components/admin/news/AdminNewsComment
 // import AdminBookingComponent from '../components/AdminBooking/AdminBookingComponent.vue';
 import RoomTypeDetail from '../components/RoomTypeDetail.vue';
 const routes = [
-  {
-    path: '/home',
-    name: 'HomeComponent',
-    component: AboutComponent,
-  },
+  // {
+  //   path: '/home',
+  //   name: 'HomeComponent',
+  //   component: AboutComponent,
+  // },
   {
     path: '/',
     name: 'Home2',
@@ -185,6 +185,11 @@ const routes = [
     name: 'AdminOccupancy',
     component: AdminOccupancyComponent,
     meta: { requiresAdmin: true },
+  },{
+    path: '/admin/bookings',
+    name: 'AdminBookings',
+    component: AdminOccupancyComponent,
+    meta: { requiresAdmin: true },
   },
   {
     path: '/admin/room-types',
@@ -241,12 +246,16 @@ const routes = [
     component: AdminUsersComponent,
     meta: { requiresAdmin: true },
   },
+<<<<<<< HEAD
   {
     path: '/admin/bookings',
     name: 'AdminBookingComponent',
     component: AdminBookingComponent,
     meta: { requiresAdmin: true },
   },
+=======
+  
+>>>>>>> main
 ];
 
 const router = createRouter({
