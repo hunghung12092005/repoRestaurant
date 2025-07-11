@@ -34,18 +34,11 @@ Route::post('/register', [ApiLoginController::class, 'register']);
 // Route::put('/menu-categories/{id}', [MenuCategoryController::class, 'update']);
 // Route::delete('/menu-categories/{id}', [MenuCategoryController::class, 'destroy']);
 
-<<<<<<< HEAD
-Route::get('/menus', [MenuController::class, 'index']);
-Route::post('/menus', [MenuController::class, 'store']);
-Route::put('/menus/{id}', [MenuController::class, 'update']);
-Route::delete('/menus/{id}', [MenuController::class, 'destroy']);
-=======
 // Route::get('/occupancy/rooms', [OccupancyController::class, 'index']);
 // Route::get('/menus', [MenuController::class, 'index']);
 // Route::post('/menus', [MenuController::class, 'store']);
 // Route::put('/menus/{id}', [MenuController::class, 'update']);
 // Route::delete('/menus/{id}', [MenuController::class, 'destroy']);
->>>>>>> 40ee29d10e8493c2e58bf48346c27d9e83ef2465
 
 Route::get('/occupancy/rooms', [OccupancyController::class, 'index']);
 // Route::post('/customers', [OccupancyController::class, 'storeCustomer']); //thêm dữ liệu khách vào bảng customer
