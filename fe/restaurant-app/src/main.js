@@ -11,6 +11,7 @@ import { QuillEditor } from '@vueup/vue-quill';
 import '@vueup/vue-quill/dist/vue-quill.snow.css';
 import 'flatpickr/dist/flatpickr.css';
 createApp(App)
-  .use(router) // Sử dụng router
+  .use(router)
   .component('QuillEditor', QuillEditor)
+  .provide('apiUrl', 'http://localhost:8000/api')
   .mount('#app');

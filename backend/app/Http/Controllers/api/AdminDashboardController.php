@@ -4,7 +4,10 @@ namespace App\Http\Controllers\api;
 
 use App\Http\Controllers\Controller;
 use App\Models\BookingHotel;
+use App\Models\News;
+use App\Models\NewsComment;
 use App\Models\Room;
+use App\Models\RoomType;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Carbon\Carbon;
@@ -12,149 +15,131 @@ use Carbon\Carbon;
 class AdminDashboardController extends Controller
 {
     /**
-     * Lấy tất cả dữ liệu thống kê cho trang dashboard.
+     * Endpoint chính để lấy tất cả dữ liệu tổng quan cho trang dashboard mới.
      */
-    public function getStats()
+    public function getSystemOverview()
     {
         return response()->json([
-            'statsCards' => $this->getStatsCardData(),
-            'roomAvailability' => $this->getRoomAvailabilityData(),
-            'reservationChart' => $this->getReservationChartData(),
+            'statWidgets' => $this->getStatWidgetData(),
+            'bookingsByRoomTypeChart' => $this->getBookingsByRoomTypeChartData(),
+            'contentActivityChart' => $this->getContentActivityChartData(),
+            'latestNews' => $this->getLatestNews(),
+            'latestComments' => $this->getLatestComments(),
+            'recentBookings' => $this->getRecentBookings(),
         ]);
     }
 
     /**
-     * Tính toán phần trăm thay đổi.
-     * @param float $current
-     * @param float $previous
-     * @return float
+     * Dữ liệu cho 4 thẻ thống kê nhanh.
      */
-    private function calculatePercentageChange($current, $previous)
+    private function getStatWidgetData()
     {
-        if ($previous == 0) {
-            // Nếu giá trị trước đó là 0, không thể chia, trả về 100% nếu hiện tại > 0
-            return $current > 0 ? 100.0 : 0.0;
-        }
-        return (($current - $previous) / $previous) * 100;
-    }
+        $totalNews = News::count();
+        $totalComments = NewsComment::count();
+        $totalRoomTypes = RoomType::count();
 
-    /**
-     * Dữ liệu cho các thẻ thống kê.
-     */
-    private function getStatsCardData()
-    {
-        $today = Carbon::today();
-        $yesterday = Carbon::yesterday();
-
-        // 1. New Booking
-        $newBookingsToday = BookingHotel::whereDate('created_at', $today)->count();
-        $newBookingsYesterday = BookingHotel::whereDate('created_at', $yesterday)->count();
-        $newBookingChange = $this->calculatePercentageChange($newBookingsToday, $newBookingsYesterday);
-
-        // 2. Available Rooms
-        $totalRooms = Room::count();
+        $occupiedRooms = Room::where('status', 'occupied')->count();
         $availableRooms = Room::where('status', 'available')->count();
-        // Giả sử "thay đổi" ở đây là tỷ lệ phòng trống trên tổng số phòng
-        $availableRoomsChange = $totalRooms > 0 ? ($availableRooms / $totalRooms) * 100 : 0;
-
-        // 3. Revenue
-        $revenueToday = BookingHotel::whereDate('created_at', $today)
-            ->whereIn('payment_status', ['paid', 'completed']) // Chỉ tính doanh thu đã thanh toán
-            ->sum('total_price');
-        $revenueYesterday = BookingHotel::whereDate('created_at', $yesterday)
-            ->whereIn('payment_status', ['paid', 'completed'])
-            ->sum('total_price');
-        $revenueChange = $this->calculatePercentageChange($revenueToday, $revenueYesterday);
-
-        // 4. Checkout
-        $checkoutsToday = BookingHotel::whereDate('check_out_date', $today)
-             ->where('status', '!=', 'cancelled') // Loại bỏ các booking đã hủy
-             ->count();
-        $checkoutsYesterday = BookingHotel::whereDate('check_out_date', $yesterday)
-             ->where('status', '!=', 'cancelled')
-             ->count();
-        $checkOutChange = $this->calculatePercentageChange($checkoutsToday, $checkoutsYesterday);
+        $totalRooms = Room::count();
 
         return [
-            'newBooking' => ['value' => $newBookingsToday, 'change' => round($newBookingChange, 1)],
-            'availableRooms' => ['value' => $availableRooms, 'change' => round($availableRoomsChange, 1)],
-            'revenue' => ['value' => $revenueToday, 'change' => round($revenueChange, 1)],
-            'checkOut' => ['value' => $checkoutsToday, 'change' => round($checkOutChange, 1)],
-        ];
-    }
-
-    /**
-     * Dữ liệu cho biểu đồ tròn Room Availability.
-     */
-    private function getRoomAvailabilityData()
-    {
-        $stats = Room::select('status', DB::raw('count(*) as count'))
-            ->groupBy('status')
-            ->pluck('count', 'status')
-            ->all();
-
-        // Mặc định các giá trị để đảm bảo chúng luôn tồn tại
-        $defaults = ['occupied' => 0, 'reserved' => 0, 'available' => 0, 'maintenance' => 0, 'cleaning' => 0];
-        $stats = array_merge($defaults, $stats);
-        
-        // Nhóm các trạng thái "Không sẵn sàng"
-        $notReadyCount = ($stats['maintenance'] ?? 0) + ($stats['cleaning'] ?? 0);
-
-        return [
-            'labels' => ['Occupied', 'Reserved', 'Available', 'Not Ready'],
-            'data' => [
-                $stats['occupied'],
-                $stats['reserved'],
-                $stats['available'],
-                $notReadyCount
+            'news' => ['value' => $totalNews],
+            'comments' => ['value' => $totalComments],
+            'roomTypes' => ['value' => $totalRoomTypes],
+            'roomStatus' => [
+                'occupied' => $occupiedRooms,
+                'available' => $availableRooms,
+                'total' => $totalRooms,
             ]
         ];
     }
 
     /**
-     * Dữ liệu cho biểu đồ cột Reservation.
+     * Dữ liệu cho biểu đồ tròn: Số lượng phòng đang có khách theo từng loại phòng.
      */
-    private function getReservationChartData()
+    private function getBookingsByRoomTypeChartData()
+    {
+        $data = Room::where('status', 'occupied')
+            ->join('room_types', 'rooms.type_id', '=', 'room_types.type_id')
+            ->select('room_types.type_name', DB::raw('count(rooms.room_id) as count'))
+            ->groupBy('room_types.type_name')
+            ->pluck('count', 'type_name')
+            ->all();
+
+        return [
+            'labels' => array_keys($data),
+            'data' => array_values($data),
+        ];
+    }
+
+    /**
+     * Dữ liệu cho biểu đồ đường: Số lượng tin tức và bình luận theo tháng (6 tháng gần nhất).
+     */
+    private function getContentActivityChartData()
     {
         $labels = [];
-        $bookedData = [];
-        $canceledData = [];
-        $endDate = Carbon::today();
+        $newsData = [];
+        $commentsData = [];
 
-        for ($i = 7; $i >= 0; $i--) {
-            $date = Carbon::today()->subDays($i);
-            $labels[] = $date->format('d M');
+        for ($i = 5; $i >= 0; $i--) {
+            $date = Carbon::now()->subMonths($i);
+            $labels[] = $date->format('M Y'); // VD: "Jan 2023"
 
-            // Số lượng đặt phòng được TẠO vào ngày này
-            $bookedData[] = BookingHotel::whereDate('created_at', $date)->count();
-            
-            // Số lượng đặt phòng được HỦY vào ngày này
-            // Giả sử khi hủy, status đổi thành 'cancelled' và updated_at được cập nhật
-            $canceledData[] = BookingHotel::where('status', 'cancelled')
-                ->whereDate('updated_at', $date)
-                ->count();
+            $newsData[] = News::whereYear('publish_date', $date->year)
+                              ->whereMonth('publish_date', $date->month)
+                              ->count();
+
+            $commentsData[] = NewsComment::whereYear('created_at', $date->year)
+                                         ->whereMonth('created_at', $date->month)
+                                         ->count();
         }
 
         return [
             'labels' => $labels,
             'datasets' => [
-                [
-                    'label' => 'Booked',
-                    'data' => $bookedData,
-                    'backgroundColor' => '#6a0dad',
-                    'borderRadius' => 8,
-                    'barThickness' => 25,
-                    'stack' => 'Stack 0'
-                ],
-                [
-                    'label' => 'Canceled',
-                    'data' => $canceledData,
-                    'backgroundColor' => '#f4a261',
-                    'borderRadius' => 8,
-                    'barThickness' => 25,
-                    'stack' => 'Stack 0'
-                ]
+                ['label' => 'Tin tức mới', 'data' => $newsData],
+                ['label' => 'Bình luận mới', 'data' => $commentsData],
             ]
         ];
     }
+
+    /**
+     * Dữ liệu cho bảng: 5 tin tức mới nhất.
+     */
+    private function getLatestNews()
+    {
+        return News::with('author') // Giả sử model News có quan hệ 'author' đến User
+            ->latest('publish_date')
+            ->take(5)
+            ->get(['id', 'title', 'publish_date', 'author_id', 'status']);
+    }
+
+    /**
+     * Dữ liệu cho bảng: 5 bình luận mới nhất.
+     */
+    private function getLatestComments()
+    {
+        // Giả sử model NewsComment có quan hệ 'user' và 'news'
+        return NewsComment::with(['user', 'news:id,title'])
+            ->latest()
+            ->take(5)
+            ->get(['id', 'user_id', 'news_id', 'content', 'created_at']);
+    }
+
+    /**
+     * Dữ liệu cho bảng: 5 lượt đặt phòng gần đây.
+     */
+    /**
+ * Dữ liệu cho bảng: 5 lượt đặt phòng gần đây.
+ */
+/**
+ * Dữ liệu cho bảng: 5 lượt đặt phòng gần đây.
+ */
+private function getRecentBookings()
+{
+    return BookingHotel::with(['customer', 'details.roomType']) // Sử dụng 'roomType' thay vì 'roomTypeInfo'
+        ->latest('created_at')
+        ->take(5)
+        ->get(['booking_id', 'customer_id', 'check_in_date', 'check_out_date', 'status']);
+}
 }

@@ -1,73 +1,168 @@
 <template>
   <div class="position-relative">
-    <!-- Loading overlay: Chỉ hiển thị khi đang tải dữ liệu -->
-    <div v-if="loading" class="loading-overlay">
-      <div class="spinner-border text-primary" style="width: 3rem; height: 3rem;" role="status">
-        <span class="visually-hidden">Loading...</span>
-      </div>
+    <!-- Loading Overlay -->
+    <div v-if="isLoading" class="loading-overlay">
+      <div class="spinner-border text-primary" style="width: 3rem; height: 3rem;" role="status"></div>
+      <p class="mt-3 text-muted">Đang tải dữ liệu tổng quan...</p>
     </div>
 
-    <!-- Main Content: Được render với dữ liệu mặc định ban đầu, nhưng bị che bởi overlay -->
-    <div :class="{ 'content-loading': loading }">
-      <!-- Stats Cards -->
-      <div class="row row-cols-1 row-cols-md-4 g-4" id="statsCards">
-        <div class="col">
-          <div class="card h-100 bg-white shadow-sm border-0 rounded-4 p-3 text-center">
-            <h3 class="fw-bold text-dark">New Booking</h3>
-            <!-- Dữ liệu được truy cập an toàn nhờ giá trị khởi tạo của statsCards -->
-            <p class="text-muted mb-1 fs-4 fw-bold">{{ statsCards.newBooking.value }}</p>
-            <p class="mb-0" :class="statsCards.newBooking.change >= 0 ? 'text-success' : 'text-danger'">
-              <i class="bi" :class="statsCards.newBooking.change >= 0 ? 'bi-arrow-up' : 'bi-arrow-down'"></i>
-              {{ Math.abs(statsCards.newBooking.change) }}%
-            </p>
-          </div>
-        </div>
-        <div class="col">
-          <div class="card h-100 bg-white shadow-sm border-0 rounded-4 p-3 text-center">
-            <h3 class="fw-bold text-dark">Available Rooms</h3>
-            <p class="text-muted mb-1 fs-4 fw-bold">{{ statsCards.availableRooms.value }}</p>
-            <p class="text-info mb-0">
-              {{ statsCards.availableRooms.change }}% of total
-            </p>
-          </div>
-        </div>
-        <div class="col">
-          <div class="card h-100 bg-white shadow-sm border-0 rounded-4 p-3 text-center">
-            <h3 class="fw-bold text-dark">Revenue</h3>
-            <p class="text-muted mb-1 fs-4 fw-bold">${{ statsCards.revenue.value.toLocaleString() }}</p>
-            <p class="mb-0" :class="statsCards.revenue.change >= 0 ? 'text-success' : 'text-danger'">
-              <i class="bi" :class="statsCards.revenue.change >= 0 ? 'bi-arrow-up' : 'bi-arrow-down'"></i>
-              {{ Math.abs(statsCards.revenue.change) }}%
-            </p>
-          </div>
-        </div>
-        <div class="col">
-          <div class="card h-100 bg-white shadow-sm border-0 rounded-4 p-3 text-center">
-            <h3 class="fw-bold text-dark">Checkout</h3>
-            <p class="text-muted mb-1 fs-4 fw-bold">{{ statsCards.checkOut.value }}</p>
-            <p class="mb-0" :class="statsCards.checkOut.change >= 0 ? 'text-success' : 'text-danger'">
-              <i class="bi" :class="statsCards.checkOut.change >= 0 ? 'bi-arrow-up' : 'bi-arrow-down'"></i>
-              {{ Math.abs(statsCards.checkOut.change) }}%
-            </p>
-          </div>
-        </div>
-      </div>
-
-      <!-- Room Availability and Reservation -->
-      <div class="row mt-4">
-        <div class="col-lg-5">
-          <div class="card p-3 shadow-sm rounded-3 h-100 d-flex flex-column">
-            <h5 class="fw-bold">Room Availability</h5>
-            <div class="flex-grow-1" style="min-height: 300px;">
-              <canvas ref="roomAvailabilityChart"></canvas>
+    <div v-show="!isLoading">
+      <!-- 1. STATS WIDGETS -->
+      <div class="row">
+        <!-- News Widget -->
+        <div class="col-lg-3 col-md-6 mb-4">
+          <div class="card h-100 border-left-primary shadow-sm py-2">
+            <div class="card-body">
+              <div class="row no-gutters align-items-center">
+                <div class="col mr-2">
+                  <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">Tin tức</div>
+                  <div class="h5 mb-0 font-weight-bold text-gray-800">{{ overviewData.statWidgets?.news?.value || 0 }} bài viết</div>
+                </div>
+                <div class="col-auto">
+                  <i class="fas fa-newspaper fa-2x text-gray-300"></i>
+                </div>
+              </div>
             </div>
           </div>
         </div>
+        <!-- Comments Widget -->
+        <div class="col-lg-3 col-md-6 mb-4">
+          <div class="card h-100 border-left-success shadow-sm py-2">
+            <div class="card-body">
+              <div class="row no-gutters align-items-center">
+                <div class="col mr-2">
+                  <div class="text-xs font-weight-bold text-success text-uppercase mb-1">Bình luận</div>
+                  <div class="h5 mb-0 font-weight-bold text-gray-800">{{ overviewData.statWidgets?.comments?.value || 0 }} bình luận</div>
+                </div>
+                <div class="col-auto">
+                  <i class="fas fa-comments fa-2x text-gray-300"></i>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <!-- Room Types Widget -->
+        <div class="col-lg-3 col-md-6 mb-4">
+          <div class="card h-100 border-left-info shadow-sm py-2">
+            <div class="card-body">
+              <div class="row no-gutters align-items-center">
+                <div class="col mr-2">
+                  <div class="text-xs font-weight-bold text-info text-uppercase mb-1">Loại phòng</div>
+                  <div class="h5 mb-0 font-weight-bold text-gray-800">{{ overviewData.statWidgets?.roomTypes?.value || 0 }} loại</div>
+                </div>
+                <div class="col-auto">
+                  <i class="fas fa-hotel fa-2x text-gray-300"></i>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <!-- Room Status Widget -->
+        <div class="col-lg-3 col-md-6 mb-4">
+          <div class="card h-100 border-left-warning shadow-sm py-2">
+            <div class="card-body">
+              <div class="row no-gutters align-items-center">
+                <div class="col mr-2">
+                  <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">Tình trạng phòng</div>
+                  <div class="mb-0 font-weight-bold text-gray-800">
+                    <span class="text-danger">Đã đặt: {{ overviewData.statWidgets?.roomStatus?.occupied || 0 }}</span>
+                    /
+                    <span class="text-success">Trống: {{ overviewData.statWidgets?.roomStatus?.available || 0 }}</span>
+                    <div class="small">Tổng: {{ overviewData.statWidgets?.roomStatus?.total || 0 }} phòng</div>
+                  </div>
+                </div>
+                <div class="col-auto">
+                  <i class="fas fa-bed fa-2x text-gray-300"></i>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 2. CHARTS -->
+      <div class="row">
         <div class="col-lg-7">
-          <div class="card p-3 shadow-sm rounded-3 h-100 d-flex flex-column">
-            <h5 class="fw-bold">Reservation Statistics (Last 8 Days)</h5>
-            <div class="flex-grow-1" style="min-height: 300px;">
-              <canvas ref="reservationChart"></canvas>
+          <div class="card shadow-sm mb-4">
+            <div class="card-header py-3">
+              <h6 class="m-0 font-weight-bold text-primary">Hoạt động nội dung (6 tháng qua)</h6>
+            </div>
+            <div class="card-body">
+              <div class="chart-area">
+                <canvas ref="contentActivityChartRef"></canvas>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="col-lg-5">
+          <div class="card shadow-sm mb-4">
+            <div class="card-header py-3">
+              <h6 class="m-0 font-weight-bold text-primary">Phòng đã đặt theo loại</h6>
+            </div>
+            <div class="card-body">
+              <div class="chart-pie pt-4">
+                <canvas ref="bookingsByRoomTypeChartRef"></canvas>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 3. QUICK TABLES -->
+      <div class="row">
+        <!-- Latest News -->
+        <div class="col-lg-6 mb-4">
+          <div class="card shadow-sm h-100">
+            <div class="card-header py-3">
+              <h6 class="m-0 font-weight-bold text-primary">Tin tức mới nhất</h6>
+            </div>
+            <div class="card-body p-0">
+              <div class="table-responsive">
+                <table class="table table-hover table-sm mb-0">
+                  <thead>
+                    <tr>
+                      <th>Tiêu đề</th>
+                      <th>Ngày đăng</th>
+                      <th>Tác giả</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr v-for="news in overviewData.latestNews" :key="news.id">
+                      <td>{{ news.title.substring(0, 30) }}...</td>
+                      <td>{{ formatDate(news.publish_date) }}</td>
+                      <td>{{ news.author?.name || 'N/A' }}</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </div>
+        <!-- Latest Comments -->
+        <div class="col-lg-6 mb-4">
+          <div class="card shadow-sm h-100">
+            <div class="card-header py-3">
+              <h6 class="m-0 font-weight-bold text-primary">Bình luận mới nhất</h6>
+            </div>
+            <div class="card-body p-0">
+              <div class="table-responsive">
+                <table class="table table-hover table-sm mb-0">
+                  <thead>
+                    <tr>
+                      <th>Người dùng</th>
+                      <th>Bình luận</th>
+                      <th>Thời gian</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr v-for="comment in overviewData.latestComments" :key="comment.id">
+                      <td>{{ comment.user?.name || 'N/A' }}</td>
+                      <td>{{ comment.content.substring(0, 30) }}...</td>
+                      <td>{{ formatTimeAgo(comment.created_at) }}</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
             </div>
           </div>
         </div>
@@ -77,170 +172,180 @@
 </template>
 
 <script setup>
-import { onMounted, onBeforeUnmount, ref } from 'vue';
+import { ref, onMounted, onBeforeUnmount, inject } from 'vue';
+import axios from 'axios';
 import Chart from 'chart.js/auto';
-import ChartDataLabels from 'chartjs-plugin-datalabels';
-import axios from 'axios'; // Đảm bảo đường dẫn này đúng
 
-Chart.register(ChartDataLabels);
+// State Variables
+const isLoading = ref(true);
+const overviewData = ref({});
+const contentActivityChartRef = ref(null);
+const bookingsByRoomTypeChartRef = ref(null);
+let contentActivityChartInstance = null;
+let bookingsByRoomTypeChartInstance = null;
 
-const roomAvailabilityChart = ref(null);
-const reservationChart = ref(null);
-let roomChartInstance = null;
-let reservationChartInstance = null;
+const apiUrl = inject('apiUrl');
 
-// Khởi tạo trạng thái loading là true
-const loading = ref(true);
-
-// DỮ LIỆU MẶC ĐỊNH: Rất quan trọng để tránh lỗi render ban đầu
-const statsCards = ref({
-  newBooking: { value: 0, change: 0 },
-  availableRooms: { value: 0, change: 0 },
-  revenue: { value: 0, change: 0 },
-  checkOut: { value: 0, change: 0 }
+// Axios Instance with interceptor for auth
+const axiosInstance = axios.create({ baseURL: apiUrl });
+axiosInstance.interceptors.request.use(config => {
+  const token = localStorage.getItem('tokenJwt');
+  if (token) config.headers.Authorization = `Bearer ${token}`;
+  return config;
 });
 
-const createRoomAvailabilityChart = (data) => {
-  if (roomChartInstance) {
-    roomChartInstance.destroy();
-  }
-  const ctx = roomAvailabilityChart.value.getContext('2d');
-  roomChartInstance = new Chart(ctx, {
-    type: 'pie',
+// Helper Functions
+const formatDate = (dateString) => dateString ? new Date(dateString).toLocaleDateString('vi-VN') : 'N/A';
+const formatTimeAgo = (dateString) => {
+  if (!dateString) return 'N/A';
+  const seconds = Math.floor((new Date() - new Date(dateString)) / 1000);
+  let interval = seconds / 31536000;
+  if (interval > 1) return Math.floor(interval) + " năm trước";
+  interval = seconds / 2592000;
+  if (interval > 1) return Math.floor(interval) + " tháng trước";
+  interval = seconds / 86400;
+  if (interval > 1) return Math.floor(interval) + " ngày trước";
+  interval = seconds / 3600;
+  if (interval > 1) return Math.floor(interval) + " giờ trước";
+  interval = seconds / 60;
+  if (interval > 1) return Math.floor(interval) + " phút trước";
+  return Math.floor(seconds) + " giây trước";
+};
+
+// Chart Creation Functions
+const createContentActivityChart = (chartData) => {
+  if (!contentActivityChartRef.value) return;
+  if (contentActivityChartInstance) contentActivityChartInstance.destroy();
+  const ctx = contentActivityChartRef.value.getContext('2d');
+  contentActivityChartInstance = new Chart(ctx, {
+    type: 'line',
     data: {
-      labels: data.labels,
+      labels: chartData.labels,
       datasets: [{
-        data: data.data,
-        backgroundColor: ['#f4a261', '#e9c46a', '#a8d5ba', '#d3d3d3'],
-        borderWidth: 2,
-        borderColor: '#fff'
+        label: chartData.datasets[0].label,
+        data: chartData.datasets[0].data,
+        borderColor: 'rgba(78, 115, 223, 1)',
+        backgroundColor: 'rgba(78, 115, 223, 0.05)',
+        fill: true,
+        tension: 0.3
+      }, {
+        label: chartData.datasets[1].label,
+        data: chartData.datasets[1].data,
+        borderColor: 'rgba(28, 200, 138, 1)',
+        backgroundColor: 'rgba(28, 200, 138, 0.05)',
+        fill: true,
+        tension: 0.3
       }]
     },
-    options: {
-      responsive: true,
-      maintainAspectRatio: false,
-      plugins: {
-        legend: {
-          position: 'right',
-          labels: { boxWidth: 12, padding: 15, font: { size: 14 } }
-        },
-        datalabels: {
-          color: '#fff',
-          font: { weight: 'bold', size: 14 },
-          formatter: (value) => value > 0 ? value : '',
-          anchor: 'center',
-          align: 'center'
-        }
-      }
-    }
+    options: { responsive: true, maintainAspectRatio: false }
   });
 };
 
-const createReservationChart = (data) => {
-  if (reservationChartInstance) {
-    reservationChartInstance.destroy();
-  }
-  const ctx = reservationChart.value.getContext('2d');
-  reservationChartInstance = new Chart(ctx, {
-    type: 'bar',
-    data: data,
-    options: {
-      responsive: true,
-      maintainAspectRatio: false,
-      scales: {
-        x: { stacked: true, grid: { display: false } },
-        y: { stacked: true, beginAtZero: true, ticks: { stepSize: 20 } }
-      },
-      plugins: {
-        legend: {
-          position: 'top',
-          align: 'end',
-          labels: { boxWidth: 10, padding: 10 }
-        },
-        datalabels: {
-          color: '#fff',
-          font: { weight: 'bold', size: 12 },
-          formatter: (value) => value > 0 ? value : '',
-          anchor: 'center',
-          align: 'center'
-        }
-      }
-    }
+const createBookingsByRoomTypeChart = (chartData) => {
+  if (!bookingsByRoomTypeChartRef.value) return;
+  if (bookingsByRoomTypeChartInstance) bookingsByRoomTypeChartInstance.destroy();
+  const ctx = bookingsByRoomTypeChartRef.value.getContext('2d');
+  bookingsByRoomTypeChartInstance = new Chart(ctx, {
+    type: 'doughnut',
+    data: {
+      labels: chartData.labels,
+      datasets: [{
+        data: chartData.data,
+        backgroundColor: ['#4e73df', '#1cc88a', '#36b9cc', '#f6c23e', '#e74a3b'],
+      }],
+    },
+    options: { responsive: true, maintainAspectRatio: false, cutout: '80%' }
   });
 };
 
-const fetchDashboardData = async () => {
-  // Không cần set loading = true ở đây nữa, vì nó đã được khởi tạo là true
+// API Call
+const fetchOverviewData = async () => {
   try {
-    const response = await axios.get('/admin/dashboard/stats');
-    const data = response.data;
-    
-    // **FIX LỖI QUAN TRỌNG**: Kiểm tra xem dữ liệu có tồn tại trước khi gán
-    if (data && data.statsCards) {
-      statsCards.value = data.statsCards;
-    }
-    
-    // Tạo lại biểu đồ với dữ liệu mới
-    if (data && data.roomAvailability) {
-      createRoomAvailabilityChart(data.roomAvailability);
-    }
-    if (data && data.reservationChart) {
-      createReservationChart(data.reservationChart);
+    const response = await axiosInstance.get('/api/admin/dashboard/overview');
+    overviewData.value = response.data || {};
+    console.log('Fetched data:', overviewData.value);
+
+    // Khởi tạo biểu đồ contentActivityChart
+    if (contentActivityChartRef.value) {
+      if (contentActivityChartInstance) contentActivityChartInstance.destroy();
+      const ctx = contentActivityChartRef.value.getContext('2d');
+      const chartData = overviewData.value.contentActivityChart || { labels: [], datasets: [{ label: 'Tin tức mới', data: [] }, { label: 'Bình luận mới', data: [] }] };
+      contentActivityChartInstance = new Chart(ctx, {
+        type: 'line',
+        data: {
+          labels: chartData.labels || [],
+          datasets: chartData.datasets || [{ label: 'Tin tức mới', data: [], borderColor: 'rgba(78, 115, 223, 1)', backgroundColor: 'rgba(78, 115, 223, 0.05)', fill: true, tension: 0.3 }, { label: 'Bình luận mới', data: [], borderColor: 'rgba(28, 200, 138, 1)', backgroundColor: 'rgba(28, 200, 138, 0.05)', fill: true, tension: 0.3 }]
+        },
+        options: { responsive: true, maintainAspectRatio: false }
+      });
     }
 
+    // Khởi tạo biểu đồ bookingsByRoomTypeChart
+    if (bookingsByRoomTypeChartRef.value) {
+      if (bookingsByRoomTypeChartInstance) bookingsByRoomTypeChartInstance.destroy();
+      const ctx = bookingsByRoomTypeChartRef.value.getContext('2d');
+      const chartData = overviewData.value.bookingsByRoomTypeChart || { labels: [], data: [] };
+      bookingsByRoomTypeChartInstance = new Chart(ctx, {
+        type: 'doughnut',
+        data: {
+          labels: chartData.labels || [],
+          datasets: [{ data: chartData.data || [], backgroundColor: ['#4e73df', '#1cc88a', '#36b9cc', '#f6c23e', '#e74a3b'] }]
+        },
+        options: { responsive: true, maintainAspectRatio: false, cutout: '80%' }
+      });
+    }
   } catch (error) {
-    console.error("Error fetching dashboard data:", error);
-    // Hiển thị thông báo lỗi cho người dùng (ví dụ: dùng thư viện toast)
-    alert('Failed to load dashboard data. Please check the console for more details.');
+    console.error("Lỗi khi lấy dữ liệu tổng quan:", error.response || error);
+    overviewData.value = {};
+    alert('Không thể tải dữ liệu tổng quan. Vui lòng kiểm tra kết nối hoặc liên hệ admin. Chi tiết: ' + (error.response?.statusText || 'Không xác định'));
   } finally {
-    // Luôn tắt loading spinner sau khi API hoàn thành (dù thành công hay thất bại)
-    loading.value = false;
+    isLoading.value = false;
   }
 };
 
+// Lifecycle Hooks
 onMounted(() => {
-  fetchDashboardData();
+  fetchOverviewData();
 });
 
 onBeforeUnmount(() => {
-    if(roomChartInstance) roomChartInstance.destroy();
-    if(reservationChartInstance) reservationChartInstance.destroy();
+  if (contentActivityChartInstance) contentActivityChartInstance.destroy();
+  if (bookingsByRoomTypeChartInstance) bookingsByRoomTypeChartInstance.destroy();
 });
 </script>
 
 <style scoped>
-.card {
-  transition: all 0.3s ease;
+/* Giữ nguyên CSS như trước */
+.card.border-left-primary { border-left: .25rem solid #4e73df !important; }
+.text-primary { color: #4e73df !important; }
+
+.card.border-left-success { border-left: .25rem solid #1cc88a !important; }
+.text-success { color: #1cc88a !important; }
+
+.card.border-left-info { border-left: .25rem solid #36b9cc !important; }
+.text-info { color: #36b9cc !important; }
+
+.card.border-left-warning { border-left: .25rem solid #f6c23e !important; }
+.text-warning { color: #f6c23e !important; }
+
+.text-xs { font-size: .7rem; }
+.text-gray-300 { color: #dddfeb !important; }
+.text-gray-800 { color: #5a5c69 !important; }
+.font-weight-bold { font-weight: 700 !important; }
+
+.chart-area, .chart-pie {
+  position: relative;
+  height: 20rem;
 }
 
-.card:hover {
-  transform: translateY(-5px);
-  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1) !important;
-}
-
-.row-cols-1.row-cols-md-4 .card h3 {
-  font-size: 1.1rem;
-}
-
-/* Thêm style cho loading overlay */
 .loading-overlay {
   position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background-color: rgba(255, 255, 255, 0.8);
+  top: 0; left: 0; right: 0; bottom: 0;
+  background-color: rgba(255, 255, 255, 0.9);
   display: flex;
+  flex-direction: column;
   justify-content: center;
   align-items: center;
   z-index: 10;
-  border-radius: 0.5rem;
-  backdrop-filter: blur(2px);
-}
-
-.content-loading {
-  /* Làm mờ nội dung phía sau khi đang tải */
-  filter: blur(4px);
-  transition: filter 0.3s ease-in-out;
 }
 </style>

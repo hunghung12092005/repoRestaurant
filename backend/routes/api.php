@@ -101,7 +101,7 @@ Route::prefix('prices')->group(function () {
     Route::delete('/{id}', [PriceController::class, 'destroy']);
 });
 
-Route::get('/dashboard/stats', [AdminDashboardController::class, 'getStats']);
+Route::get('/admin/dashboard/overview', [AdminDashboardController::class, 'getSystemOverview']);
 
 
 
