@@ -8,33 +8,19 @@ class BookingHotelDetail extends Model
 {
     protected $table = 'booking_hotel_detail';
     protected $primaryKey = 'booking_detail_id';
-    public $incrementing = true;
-    public $timestamps = true;
-
-    protected $casts = [
-        'booking_id' => 'integer',
-        'room_id' => 'integer',
-        'room_type' => 'integer',
-        'gia_phong' => 'decimal:2',
-        'gia_dich_vu' => 'decimal:2',
-        'total_price' => 'decimal:2',
-        'created_at' => 'datetime',
-        'updated_at' => 'datetime',
-    ];
-
     protected $fillable = [
         'booking_id',
-        'room_id',
         'room_type',
         'gia_phong',
         'gia_dich_vu',
         'total_price',
+        'room_id',
         'note',
     ];
 
-    public function booking()
+    public function roomType()
     {
-        return $this->belongsTo(BookingHotel::class, 'booking_id', 'booking_id');
+        return $this->belongsTo(RoomType::class, 'room_type', 'type_id');
     }
 
     public function room()
@@ -42,9 +28,9 @@ class BookingHotelDetail extends Model
         return $this->belongsTo(Room::class, 'room_id', 'room_id');
     }
 
-    public function roomType()
+    public function booking()
     {
-        return $this->belongsTo(RoomType::class, 'room_type', 'type_id');
+        return $this->belongsTo(BookingHotel::class, 'booking_id', 'booking_id');
     }
 
     public function services()

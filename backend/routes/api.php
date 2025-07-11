@@ -60,12 +60,7 @@ Route::get('/news/{newsId}/comments', [NewsCommentController::class, 'commentsBy
 Route::post('/news/{newsId}/comments', [NewsCommentController::class, 'store']);
 Route::get('/news-comments', [NewsCommentController::class, 'index']);
 Route::delete('/comments/{comment}', [NewsCommentController::class, 'destroy']);
- Route::patch('/comments/{comment}/toggle-visibility', [NewsCommentController::class, 'toggleVisibility']);
-
-
-
-
-
+Route::patch('/comments/{comment}/toggle-visibility', [NewsCommentController::class, 'toggleVisibility']);
 
 // Route::get('/room-types', [RoomTypeController::class, 'index']);
 // Route::post('/room-types', [RoomTypeController::class, 'store']);
@@ -124,7 +119,6 @@ Route::delete('/rooms/{id}', [RoomController::class, 'destroy']);
 // Route::patch('/bookings/{booking_id}/confirm', [BookingController::class, 'confirm'])->name('bookings.confirm');
 // Route::delete('/bookings/{booking_id}', [BookingController::class, 'destroy']);
 // Route::post('/bookings/check-availability', [BookingController::class, 'checkAvailability']);
-
 
 Route::post('/bookings', [BookingHotelController::class, 'storeBooking']);
 Route::get('/bookings', [BookingHotelController::class, 'getBookings']);

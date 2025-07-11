@@ -58,5 +58,10 @@ class RoomType extends Model
     {
         return $this->hasMany(Price::class, 'type_id', 'type_id');
     }
+
+    public function bookingDetail()
+    {
+        return $this->belongsTo(BookingHotelDetail::class, 'booking_detail_id', 'booking_detail_id');
+    }
 }
 ?>

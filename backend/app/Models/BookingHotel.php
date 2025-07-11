@@ -12,12 +12,10 @@ class BookingHotel extends Model
         'customer_id',
         'payment_method',
         'booking_type',
-        'pricing_type',
         'check_in_date',
         'check_out_date',
         'total_rooms',
         'total_price',
-        'additional_fee',
         'payment_status',
         'status',
         'note',
@@ -31,5 +29,12 @@ class BookingHotel extends Model
     public function details()
     {
         return $this->hasMany(BookingHotelDetail::class, 'booking_id', 'booking_id');
+    }
+
+     public function roomTypeInfo()
+    {
+        // 'room_type' là tên cột khóa ngoại trong bảng booking_hotel
+        // 'id' là tên cột khóa chính trong bảng room_types
+        return $this->belongsTo(RoomType::class, 'room_type', 'type_id');
     }
 }
