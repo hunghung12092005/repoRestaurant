@@ -21,6 +21,7 @@ use App\Http\Controllers\api\NewsController;
 use App\Http\Controllers\api\NewsCategoryController;
 use App\Http\Controllers\api\NewsCommentController;
 use App\Http\Controllers\BookingHotelController;
+use App\Http\Controllers\api\AdminDashboardController;
 
 Route::get('/seasonal-pricing/current/{typeId}', [RoomController::class, 'getCurrentPricing']);
 
@@ -99,6 +100,9 @@ Route::prefix('prices')->group(function () {
     Route::put('/{id}', [PriceController::class, 'update']);
     Route::delete('/{id}', [PriceController::class, 'destroy']);
 });
+
+Route::get('/dashboard/stats', [AdminDashboardController::class, 'getStats']);
+
 
 
 // Route::post('/rooms', [RoomController::class, 'store']);
