@@ -32,9 +32,6 @@
           <option value="">Tất cả trạng thái</option>
           <option value="Trống">Trống</option>
           <option value="Đã đặt">Đã đặt</option>
-          <option value="Chờ xác nhận">Chờ xác nhận</option>
-          <option value="Bảo trì">Bảo trì</option>
-          <option value="Đang dọn dẹp">Đang dọn dẹp</option>
         </select>
       </div>
     </div>
@@ -62,13 +59,10 @@
               <span
                 :class="{
                   'badge bg-success': room.status === 'available',
-                  'badge bg-danger': room.status === 'booked',
-                  'badge bg-warning': room.status === 'pending_confirmation',
-                  'badge bg-info': room.status === 'maintenance',
-                  'badge bg-secondary': room.status === 'cleaning'
+                  'badge bg-danger': room.status === 'occupied'
                 }"
               >
-                {{ room.status === 'available' ? 'Trống' : room.status === 'booked' ? 'Đã đặt' : room.status === 'pending_confirmation' ? 'Chờ xác nhận' : room.status === 'maintenance' ? 'Bảo trì' : room.status === 'cleaning' ? 'Đang dọn dẹp' : room.status }}
+                {{ room.status === 'available' ? 'Trống' : room.status === 'occupied' ? 'Đã đặt' : room.status }}
               </span>
             </td>
             <td>
@@ -202,9 +196,6 @@
                   <option value="">-- Chọn trạng thái --</option>
                   <option value="Trống">Trống</option>
                   <option value="Đã đặt">Đã đặt</option>
-                  <option value="Chờ xác nhận">Chờ xác nhận</option>
-                  <option value="Bảo trì">Bảo trì</option>
-                  <option value="Đang dọn dẹp">Đang dọn dẹp</option>
                 </select>
                 <div v-if="errors.status" class="invalid-feedback">{{ errors.status }}</div>
               </div>
@@ -347,10 +338,7 @@ const filteredRooms = computed(() => {
     const matchesRoomType = !filterRoomType.value || room.type_id === parseInt(filterRoomType.value);
     const statusMapping = {
       'available': 'Trống',
-      'booked': 'Đã đặt',
-      'pending_confirmation': 'Chờ xác nhận',
-      'maintenance': 'Bảo trì',
-      'cleaning': 'Đang dọn dẹp'
+      'occupied': 'Đã đặt'
     };
     const displayStatus = statusMapping[room.status] || room.status;
     const matchesStatus = !filterStatus.value || displayStatus === filterStatus.value;
@@ -400,10 +388,7 @@ const openEditModal = (room) => {
   }
   const statusMapping = {
     'available': 'Trống',
-    'booked': 'Đã đặt',
-    'pending_confirmation': 'Chờ xác nhận',
-    'maintenance': 'Bảo trì',
-    'cleaning': 'Đang dọn dẹp'
+    'occupied': 'Đã đặt'
   };
   form.value = {
     room_name: String(room.room_name || ''),
@@ -472,7 +457,7 @@ const validateForm = () => {
     errors.value.floor_number = 'Tầng phải lớn hơn 0';
     isValid = false;
   }
-  if (!['Trống', 'Đã đặt', 'Chờ xác nhận', 'Bảo trì', 'Đang dọn dẹp'].includes(form.value.status)) {
+  if (!['Trống', 'Đã đặt'].includes(form.value.status)) {
     errors.value.status = 'Vui lòng chọn trạng thái hợp lệ';
     isValid = false;
   }
@@ -493,10 +478,7 @@ const saveRoom = async () => {
   modalErrorMessage.value = '';
   const statusMapping = {
     'Trống': 'available',
-    'Đã đặt': 'booked',
-    'Chờ xác nhận': 'pending_confirmation',
-    'Bảo trì': 'maintenance',
-    'Đang dọn dẹp': 'cleaning'
+    'Đã đặt': 'occupied'
   };
   const payload = {
     room_name: form.value.room_name.trim(),

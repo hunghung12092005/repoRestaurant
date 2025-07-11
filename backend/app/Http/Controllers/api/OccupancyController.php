@@ -371,7 +371,7 @@ class OccupancyController extends Controller
             DB::table('booking_hotel')->where('booking_id', $booking->booking_id)->update([
                 'total_price' => $newTotal,
                 'status' => 'completed',
-                'payment_status' => 'paid',
+                'payment_status' => 'failed',
                 'note' => $note,
                 'updated_at' => now()
             ]);
