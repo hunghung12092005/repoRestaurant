@@ -97,19 +97,19 @@
           <input v-model="formData.customer_name" required />
         </div>
 
-        <div class="form-group">
-          <label>Số điện thoại</label>
-          <input v-model="formData.customer_phone" required />
-        </div>
-        <div class="form-group">
-  <label>Số CCCD</label>
-  <input v-model="formData.customer_id_number" required />
-</div>
+          <div class="form-group">
+            <label>Số điện thoại</label>
+            <input v-model="formData.customer_phone" required />
+          </div>
+          <div class="form-group">
+    <label>Số CCCD</label>
+    <input v-model="formData.customer_id_number" required />
+  </div>
 
-        <div class="form-group">
-          <label>Email</label>
-          <input v-model="formData.customer_email" type="email" required />
-        </div>
+          <div class="form-group">
+            <label>Email</label>
+            <input v-model="formData.customer_email" type="email" required />
+          </div>
 
         <div class="form-group">
           <label>Địa chỉ</label>
@@ -168,9 +168,11 @@
       <p v-if="guestInfo.room"><strong>Tổng tiền:</strong> {{ guestInfo.booking?.total_price ?
         Number(guestInfo.booking.total_price).toLocaleString('vi-VN') + ' VND' : '...' }}</p>
 
-      <div class="form-actions">
-        <button @click="showGuestModal = false">Đóng</button>
-      </div>
+      <!-- Nút sửa -->
+<div class="form-actions">
+  <button @click="editCustomerInfo(guestInfo.customer)">Sửa thông tin</button>
+  <button @click="showGuestModal = false">Đóng</button>
+</div>
     </div>
 
 
@@ -224,6 +226,35 @@
   </div>
 </div>
 
+<!-- Modal sửa thông tin -->
+<div v-if="showEditForm" class="modal-overlay">
+  <div class="modal-content">
+    <h2>Sửa thông tin khách</h2>
+    <form @submit.prevent="submitEditForm">
+      <div class="form-group">
+        <label>Họ tên:</label>
+        <input v-model="editFormData.customer_name" required />
+      </div>
+      <div class="form-group">
+        <label>SĐT:</label>
+        <input v-model="editFormData.customer_phone" />
+      </div>
+      <div class="form-group">
+        <label>Email:</label>
+        <input v-model="editFormData.customer_email" />
+      </div>
+      <div class="form-group">
+        <label>Địa chỉ:</label>
+        <input v-model="editFormData.address" />
+      </div>
+      <div class="form-actions">
+        <button type="submit">Lưu</button>
+        <button type="button" @click="showEditForm = false">Hủy</button>
+      </div>
+    </form>
+  </div>
+</div>
+
 </template>
 
 <script setup>
@@ -254,6 +285,51 @@ const formData = ref({
   check_out_date: '',
   pricing_type: 'nightly'
 });
+
+const showEditForm = ref(false);
+const editFormData = ref({
+  customer_id: null,
+  customer_name: '',
+  customer_phone: '',
+  customer_email: '',
+  address: '',
+});
+
+const editCustomerInfo = (customer) => {
+  if (!customer) return;
+  editFormData.value = {
+    customer_id: customer.customer_id,
+    customer_name: customer.customer_name,
+    customer_phone: customer.customer_phone,
+    customer_email: customer.customer_email,
+    address: customer.address,
+  };
+  showEditForm.value = true;
+};
+
+const submitEditForm = async () => {
+  try {
+    const res = await axios.post(`${apiUrl}/api/customers/${editFormData.value.customer_id}/update-name`, {
+      customer_name: editFormData.value.customer_name,
+      customer_phone: editFormData.value.customer_phone,
+      customer_email: editFormData.value.customer_email,
+      address: editFormData.value.address,
+    });
+
+    alert(res.data.message || 'Cập nhật thành công.');
+
+    // ✅ Cập nhật dữ liệu hiển thị
+    guestInfo.value.customer.customer_name = editFormData.value.customer_name;
+    guestInfo.value.customer.customer_phone = editFormData.value.customer_phone;
+    guestInfo.value.customer.customer_email = editFormData.value.customer_email;
+    guestInfo.value.customer.address = editFormData.value.address;
+
+    showEditForm.value = false;
+  } catch (e) {
+    alert("Không thể cập nhật.");
+    console.error(e);
+  }
+};
 
 // CCCD
 const imageFile = ref(null);
@@ -325,11 +401,13 @@ const confirmPayment = async () => {
 
     alert(
   `${data.message}\n\n` +
+  `💳 Đã thanh toán trước: ${Number(data.paid_total).toLocaleString('vi-VN')} VND\n` +
   `🛏️ Tiền phòng: ${Number(data.room_total).toLocaleString('vi-VN')} VND\n` +
   `🧾 Dịch vụ: ${Number(data.service_total).toLocaleString('vi-VN')} VND\n` +
-  `💰 Tổng tiền: ${Number(data.actual_total).toLocaleString('vi-VN')} VND\n\n` +
+  `💰 Tổng phải trả: ${Number(data.actual_total).toLocaleString('vi-VN')} VND\n\n` +
   (data.note || '')
 );
+
 
 
     showServiceModal.value = false;
