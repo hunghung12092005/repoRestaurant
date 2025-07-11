@@ -87,7 +87,7 @@
         <main class="admin-main">
           <RouterView></RouterView>
         </main>
-        <footer class="admin-footer text-center py-3">Admin Footer - Sea Foodie</footer>
+        <footer class="admin-footer text-center py-3">Admin Ho Xuan Huong Hotel</footer>
       </div>
     </div>
 
