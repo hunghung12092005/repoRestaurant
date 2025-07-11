@@ -1,4 +1,5 @@
-<?php
+<?php 
+    
 
 namespace App\Models;
 
@@ -18,6 +19,7 @@ class RoomType extends Model
         'description',
         'bed_count',
         'max_occupancy',
+        'images',
         'youtube_link', // Thêm dòng này
         'rate',         // Thêm dòng này
         'm2',
@@ -48,4 +50,18 @@ class RoomType extends Model
     {
         return $this->hasMany(Room::class, 'type_id', 'type_id');
     }
+
+    /**
+     * Mối quan hệ một-nhiều với Prices
+     */
+    public function prices()
+    {
+        return $this->hasMany(Price::class, 'type_id', 'type_id');
+    }
+
+    public function bookingDetail()
+    {
+        return $this->belongsTo(BookingHotelDetail::class, 'booking_detail_id', 'booking_detail_id');
+    }
 }
+?>

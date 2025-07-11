@@ -46,6 +46,8 @@
   
       const data = await response.json();
       result.value = data;
+      
+      
     } catch (error) {
       console.error('Lỗi:', error);
     }finally{
