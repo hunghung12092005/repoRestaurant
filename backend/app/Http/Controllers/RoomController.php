@@ -48,8 +48,8 @@ class RoomController extends Controller
             'room_name' => 'required|string|max:255|unique:rooms,room_name',
             'type_id' => 'required|exists:room_types,type_id',
             'floor_number' => 'required|integer|min:1',
-            'status' => 'required|in:available,booked,pending_confirmation,maintenance,cleaning',
-            'description' => 'nullable|string',
+            'status' => 'required|in:available,occupied',
+            'description' => 'required|string',
         ]);
 
         if ($validator->fails()) {
@@ -90,8 +90,8 @@ class RoomController extends Controller
             'room_name' => 'required|string|max:255|unique:rooms,room_name,' . $room_id . ',room_id',
             'type_id' => 'required|exists:room_types,type_id',
             'floor_number' => 'required|integer|min:1',
-            'status' => 'required|in:available,booked,pending_confirmation,maintenance,cleaning',
-            'description' => 'nullable|string',
+            'status' => 'required|in:available,occupied',
+            'description' => 'required|string',
         ]);
 
         if ($validator->fails()) {
