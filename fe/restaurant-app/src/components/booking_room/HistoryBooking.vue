@@ -2,10 +2,8 @@
   <div class="booking-history-container">
     <h2>Lịch sử Đặt phòng</h2>
 
-    <div v-if="isLoading" class="loading-overlay">
-      <Loading />
-      <p class="loading-text">Đang tải dữ liệu lịch sử đặt phòng của bạn...</p>
-    </div>
+    <Loading v-if="isLoading" >
+    </Loading>
 
     <p v-else-if="error" class="error-message">
       {{ error }}
@@ -76,7 +74,7 @@ const bookings = ref([]);
 const error = ref(null);
 
 const paymentMethodsMap = {
-  'pay_qr': 'Thanh toán QR',
+  'thanh toan qr': 'Thanh toán QR',
   'cash': 'Tiền mặt',
   'credit_card': 'Thẻ tín dụng',
   'bank_transfer': 'Chuyển khoản ngân hàng',
@@ -117,9 +115,9 @@ const getHistoryBooking = async () => {
       if (err.response.status === 401) {
         error.value = 'Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.';
       } else if (err.response.data && err.response.data.message) {
-        error.value = `Lỗi từ máy chủ: ${err.response.data.message}`;
+      error.value = 'Ban chua co don hang nao.';
       } else {
-        error.value = `Lỗi kết nối máy chủ (${err.response.status}). Vui lòng thử lại.`;
+      error.value = 'Ban chua co don hang nao.';
       }
     } else if (err.request) {
       error.value = 'Không thể kết nối đến máy chủ. Vui lòng kiểm tra kết nối mạng của bạn.';

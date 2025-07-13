@@ -1,10 +1,7 @@
 <template>
     <loading v-if="isLoading"></loading>
     <div>
-        <div>
-            <button @click="showPopup = true">Xem Nguyên Tắc Chung</button>
-            <Popup v-if="showPopup" :isVisible="showPopup" @close="showPopup = false" />
-        </div>
+
         <!-- Hero Section -->
         <header class="hero-section d-flex align-items-center">
             <div class="container text-center">
@@ -12,7 +9,8 @@
                 <p class="lead">Hồ Xuân Hương Hotel </p>
             </div>
         </header>
-        <!-- <div class="btn btn-info" @click="showPopUpMain">Xem nguyên tắc chung</div> -->
+        <Popup v-if="showPopup" :isVisible="showPopup" @close="showPopup = false"></Popup>
+
         <div class="tooltip-container">
             <div class="icon" @click="showPopUpMain">
                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="50" height="50">
@@ -32,7 +30,6 @@
             <div class="search-box p-4 shadow-lg rounded-4 bg-white">
                 <form @submit.prevent="getRoomPrices">
                     <div class="row g-4 align-items-end">
-
                         <div class="col-md-3">
                             <label for="checkIn" class="form-label text-dark fw-semibold">Ngày Nhận Phòng</label>
                             <div class="input-group input-group-lg shadow-sm rounded-pill overflow-hidden">
@@ -174,13 +171,13 @@
                                             title="YouTube video player" frameborder="0"
                                             allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
                                             referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
-
                                     </div>
 
                                     <!-- Content Section -->
                                     <div class="col-12 col-md-7">
                                         <span
-                                            class="position-absolute bottom-10 end-0 m-3 badge bg-dark text-white px-4 py-2 rounded-pill fs-6 fw-semibold">Còn 10 phòng
+                                            class="position-absolute bottom-10 end-0 m-3 badge bg-dark text-white px-4 py-2 rounded-pill fs-6 fw-semibold">Còn
+                                            10 phòng
                                             <i class="bi bi-star-fill ms-2 text-warning"></i>
                                         </span>
                                         <div class="card-body d-flex flex-column h-100 p-4">
@@ -211,8 +208,12 @@
                                                 style="max-height: 4.5em; overflow: hidden; text-overflow: ellipsis; line-height: 1.5em;">
                                                 {{ hotel.description.substring(0, 16000) }}...
                                             </p>
+                                            <p v-if="hotel.surcharges > 0" class="text-info fs-6 mb-4 flex-grow-1"
+                                                style="max-height: 4.5em; overflow: hidden; text-overflow: ellipsis; line-height: 1.5em;">
+                                                Phụ Thu: {{ formatPrice(hotel.surcharges) }}
+                                            </p>
                                             <span class="text-muted fs-6 fw-medium">Max: {{ hotel.max_occupancy }}
-                                                adults, 2 children</span>
+                                                Người lớn, 2 Trẻ em</span>
 
                                             <button
                                                 class="btn  rounded-pill px-4 py-2 flex-fill flex-sm-grow-0 fw-semibold"
@@ -229,7 +230,7 @@
                                                         {{ formatPrice(hotel.price) }}
                                                         <span class="fs-6 fw-normal text-muted">/ {{ hotel.total_days }}
                                                             Night{{ hotel.total_days > 1 ? 's' : '' }} / {{
-                                                            hotel.so_phong }} Room{{ hotel.so_phong > 1 ? 's' : ''
+                                                                hotel.so_phong }} Room{{ hotel.so_phong > 1 ? 's' : ''
                                                             }}</span>
                                                     </p>
                                                 </div>
@@ -417,8 +418,8 @@
             </div>
         </section>
         <!-- Booking Modal -->
-        <div v-show="showModalBooking" class="modal-backdrop">
-            <div class="modal-dialog modal-lg">
+        <div v-show="showModalBooking" class="modal-backdrop" @click="closeModal">
+            <div class="modal-dialog modal-lg" @click.stop>
                 <div class="modal-content">
                     <div class="modal-header">
                         <h5 class="modal-title m-2" id="bookingModalLabel">Thông tin Khách hàng</h5>
@@ -429,15 +430,13 @@
                             <div class="col-md-4 reservation-section m-2">
                                 <div class="mb-4">
                                     <label for="fullName" class="form-label">Họ và tên <span
-                                            class="text-muted small">(Bắt
-                                            buộc)</span></label>
+                                            class="text-muted small">(Bắt buộc)</span></label>
                                     <input type="text" class="form-control" id="fullName" v-model="fullName" required>
                                     <small class="form-text text-muted">Nhập họ và tên đầy đủ.</small>
                                 </div>
                                 <div class="mb-3">
                                     <label for="phone" class="form-label">Số điện thoại <span
-                                            class="text-muted small">(Bắt
-                                            buộc)</span></label>
+                                            class="text-muted small">(Bắt buộc)</span></label>
                                     <input type="number" class="form-control" id="phone" v-model="phoneNumber" required>
                                 </div>
                                 <div class="mb-3">
@@ -449,8 +448,7 @@
                                     <input class="form-check-input" type="checkbox" id="createAccount"
                                         v-model="createAccount" value="true">
                                     <label class="form-check-label" for="createAccount">Tôi hoàn toàn đồng ý với quy tắc
-                                        chung
-                                        của khách sạn</label>
+                                        chung của khách sạn</label>
                                 </div>
                             </div>
                             <div class="col-md-5 payment-section">
@@ -461,58 +459,47 @@
                                         Thanh Mai, Quang Thanh<br />
                                         Date: {{ currentDateTime }}<br />
                                     </p>
-
                                     <div class="total">
                                         <p>Số Ngày Ở:</p>
                                         <p>{{ totalday }} Ngày</p>
                                     </div>
-
                                     <div class="total">
                                         <p>Số Phòng Book:</p>
                                         <p>{{ selectedRooms.length }} Phòng</p>
                                     </div>
 
                                     <!-- Displaying selected room details -->
-                                    <div class="room-details container my-5 py-4">
+                                    <div class="container my-5 py-4">
                                         <h2 class="text-center fw-bold mb-4 text-dark fs-4">
                                             <span class="d-inline-block pb-2 border-bottom border-3 border-info">Thông
-                                                Tin Đặt
-                                                Phòng</span>
+                                                Tin Đặt Phòng</span>
                                         </h2>
 
                                         <div class="row g-3 justify-content-center">
                                             <div v-for="(room, index) in selectedRooms" :key="index"
-                                                class="col-12 col-md-8 col-lg-5">
-                                                <div
-                                                    class="card border-0 rounded-3 shadow-lg animate__animated animate__fadeInUp">
+                                                class="col-12 col-md-6 col-lg-4">
+                                                <div class="card shadow-sm border-0 rounded-3">
                                                     <div class="card-body p-4 bg-light">
-                                                        <div class="d-flex justify-content-between align-items-center">
-                                                            <h6 class="mb-0 fw-bold text-primary">Phòng {{ index + 1 }}:
-                                                                <span class="text-secondary fw-normal">{{ room.name
+                                                        <h6 class="mb-0 fw-bold text-primary">Phòng {{ index + 1 }}:
+                                                            <span class="text-secondary fw-normal">{{ room.name
                                                                 }}</span>
-                                                            </h6>
-                                                            <span class="fw-bold text-success fs-5">{{
-                                                                formatPrice(room.price)
-                                                            }}</span>
-                                                        </div>
+                                                        </h6>
+                                                        <span class="fw-bold text-success fs-5">{{
+                                                            formatPrice(room.price) }}</span>
                                                     </div>
                                                 </div>
                                             </div>
                                         </div>
 
                                         <div
-                                            class="d-flex flex-column flex-md-row justify-content-between align-items-md-center mt-4 py-4 px-4 bg-info bg-opacity-10 border border-info rounded-3 shadow-lg">
-                                            <h6 class="mb-2 mb-md-0 fw-bold text-uppercase text-info">Tổng Cộng Thanh
+                                            class="d-flex flex-column flex-md-row justify-content-between align-items-md-center mt-4 py-4 px-4 border border-info rounded-3 shadow-lg">
+                                            <h6 class="mb-2 mb-md-0 fw-bold text-uppercase text-dark">Tổng Cộng Thanh
                                                 Toán:</h6>
                                             <p class="h4 mb-0 fw-bolder text-primary">{{
-                                                formatPrice(totalCostForAllRooms) }}
-                                            </p>
+                                                formatPrice(totalCostForAllRooms) }}</p>
                                         </div>
                                     </div>
-                                    <!-- <div class="total">
-                                        <p>PRICE:</p>
-                                        <p>{{ formatPrice(totalPrice) }} </p>
-                                    </div> -->
+
                                     <div class="mb-1">
                                         <div class="radio-input">
                                             <input value="value-1" name="value-radio" id="value-1" type="radio"
@@ -532,9 +519,7 @@
                                                     <span class="circle"></span>
                                                     Thanh Toán Ngay
                                                 </div>
-                                                <span class="info-pay">{{
-                                                    formatPrice(totalCostForAllRooms)
-                                                    }}</span>
+                                                <span class="info-pay">{{ formatPrice(totalCostForAllRooms) }}</span>
                                             </label>
                                         </div>
                                     </div>
@@ -545,8 +530,7 @@
                     </div>
                     <div class="modal-footer m-4">
                         <button type="button" class="btn btn-secondary m-2" @click="closeModal">Đóng</button>
-                        <button type="submit" class="btn btn-primary" @click="confirmBooking">Xác nhận Đặt
-                            phòng</button>
+                        <!-- <button type="submit" class="btn btn-primary" @click="confirmBooking">Xác nhận Đặt phòng</button> -->
                     </div>
                 </div>
             </div>
@@ -691,10 +675,7 @@
                 </div>
             </div>
         </div>
-
-
         <Footer></Footer>
-
     </div>
 </template>
 
@@ -822,10 +803,10 @@ const confirmSelection = () => {
     // Kiểm tra xem có ít nhất một phòng được chọn không
     if (rooms.value.length > 0) {
         getRoomPrices();
-
     } else {
         alert('Vui lòng thêm ít nhất một phòng trước khi xác nhận.');
     }
+    showModal.value = false; // Đóng modal
 };
 const delSelection = () => {
     // Xóa tất cả các phòng đã chọn
@@ -961,7 +942,7 @@ const getRoomPrices = async () => {
         };
 
         // Gọi API lấy giá phòng
-        const roomPricesResponse = await axios.post('http://127.0.0.1:8000/api/prices/prices_client', requestData);
+        const roomPricesResponse = await axios.post(`${apiUrl}/api/prices/prices_client`, requestData);
         const roomPrices = roomPricesResponse.data || []; // Đảm bảo roomPrices là một mảng
         //console.log("Room Prices:", roomPrices); // Kiểm tra giá phòng
 
@@ -1079,7 +1060,6 @@ const confirmBooking = async () => {
     } finally {
         isLoading.value = false; // Kết thúc quá trình gửi dữ liệu
         // router.push('/thanksBooking'); // Ví dụ: về trang chủ
-
     }
 
     // Gọi hàm gửi OTP SMS
@@ -1130,7 +1110,6 @@ const payQr = async () => {
 
         // Xử lý phản hồi từ API
         if (response.data && response.data.checkoutUrl) {
-            await confirmBooking();
             // Chuyển hướng đến link thanh toán
             await confirmBooking();
             window.location.href = response.data.checkoutUrl;
@@ -1179,13 +1158,12 @@ const sendOtpSMS = async () => {
         verificationId.value = confirmationResult.verificationId;
         //alert('Mã xác nhận đã được gửi thành công! Vui lòng kiểm tra tin nhắn.');
         isOtp.value = true;
-
     } catch (error) {
         console.error('Lỗi gửi mã xác nhận:', error.message || error);
-        alert(`Lỗi gửi mã xác nhận: ${error.message || error}`);
+        alert(`Lỗi gửi mã xác nhận: SDT không hợp lệ hoặc đã được đăng ký trước đó. Vui lòng thử lại.`);
+        location.reload();
     } finally {
         isLoading.value = false; // Kết thúc quá trình tải
-
     }
 }
 const verifyCode = async () => {
@@ -1200,7 +1178,7 @@ const verifyCode = async () => {
         //confirmBooking.value = true; // Đặt trạng thái đơn hàng đã được xác nhận
         // Thực hiện hành động tiếp theo
         await confirmBooking();
-        router.push('/thanksBooking'); // Ví dụ: về trang chủ
+        router.push('/thanksBooking');
     } catch (error) {
         console.error('Lỗi xác minh mã:', error.message || error);
         alert(`Lỗi xác minh mã: ${error.message || error}`);

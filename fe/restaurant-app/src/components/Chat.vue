@@ -121,7 +121,7 @@
 
     <script setup>
     import { ref, onMounted, onUnmounted } from 'vue';
-    import socket from '../socket'; // Import socket từ file chung
+    //import socket from '../socket'; // Import socket từ file chung
 
     const message = ref('');
     const messageSend = ref([]);
