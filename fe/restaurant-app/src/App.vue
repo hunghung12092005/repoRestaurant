@@ -107,6 +107,7 @@
               <!-- Left Navigation -->
               <ul class="navbar-nav navbar-nav-left">
                 <li class="nav-item"><router-link class="nav-link" to="/">Trang chủ</router-link></li>
+                <li class="nav-item"><router-link class="nav-link" to="/about">Giới thiệu</router-link></li>
                 <li class="nav-item dropdown">
                   <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
                     Phòng
@@ -120,6 +121,7 @@
                   </ul>
                 </li>
                 <li class="nav-item"><router-link class="nav-link" to="/news">Tin tức</router-link></li>
+                <li class="nav-item"><router-link class="nav-link" to="/contact">Liên hệ</router-link></li>
               </ul>
 
               <!-- Right Navigation -->
