@@ -32,6 +32,7 @@ import AdminBookingComponent from '../components/AdminBooking/AdminBookingCompon
 
 import AdminDashboardComponent from '../components/admin/AdminDashboardComponent.vue';
 import AdminUsersComponent from '../components/admin/AdminUsersComponent.vue';
+import AdminContacts from '../components/admin/AdminContacts.vue';
 // import Shop from '../components/Shop.vue';
 // import ghn from '../components/ghn/mainghn.vue';
 // import menu_online from '../components/ShopOnline/menu_online.vue';
@@ -178,13 +179,13 @@ const routes = [
     path: '/admin/dashboard',
     name: 'AdminDashboard',
     component: AdminDashboardComponent,
-    meta: { requiresAdmin: true },
+     meta: { requiresAuth: true, roles: ['admin', 'staff'] },
   },
   {
     path: '/admin/occupancy',
     name: 'AdminOccupancy',
     component: AdminOccupancyComponent,
-    meta: { requiresAdmin: true },
+    meta: { requiresAuth: true, roles: ['admin', 'staff'] },
   },
   {
     path: '/admin/room-types',
@@ -208,13 +209,13 @@ const routes = [
     path: '/admin/services',
     name: 'AdminServices',
     component: AdminServicesComponent,
-    meta: { requiresAdmin: true },
+    meta: { requiresAuth: true, roles: ['admin', 'staff'] },
   },
   {
     path: '/admin/amenities',
     name: 'AdminAmenities',
     component: AdminAmenitiesComponent,
-    meta: { requiresAdmin: true },
+    meta: { requiresAuth: true, roles: ['admin', 'staff'] },
   },
   {
     path: '/admin/news',
@@ -242,10 +243,16 @@ const routes = [
     meta: { requiresAdmin: true },
   },
   {
+    path: '/admin/contacts',
+    name: 'AdminContacts',
+    component: AdminContacts,
+    meta: { requiresAdmin: true },
+  },
+  {
     path: '/admin/bookings',
     name: 'AdminBookingComponent',
     component: AdminBookingComponent,
-    meta: { requiresAdmin: true },
+    meta: { requiresAuth: true, roles: ['admin', 'staff'] },
   },
 ];
 

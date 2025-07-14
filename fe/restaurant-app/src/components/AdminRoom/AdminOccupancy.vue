@@ -98,16 +98,6 @@
           <input v-model="formData.customer_name" required />
         </div>
 
-<<<<<<< HEAD
-        <div class="form-group">
-          <label>Số điện thoại</label>
-          <input v-model="formData.customer_phone" required />
-        </div>
-        <div class="form-group">
-          <label>Số CCCD</label>
-          <input v-model="formData.customer_id_number" required />
-        </div>
-=======
           <div class="form-group">
             <label>Số điện thoại</label>
             <input v-model="formData.customer_phone" required />
@@ -116,7 +106,6 @@
     <label>Số CCCD</label>
     <input v-model="formData.customer_id_number" required />
   </div>
->>>>>>> 7c6bff07eb52276df381a5f6152e132d44ad4722
 
           <div class="form-group">
             <label>Email</label>

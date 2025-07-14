@@ -1,6 +1,6 @@
 <template>
   <div class="contact-us-page">
-    <!-- Section 1: Hero Banner -->
+    <!-- Section 1: Hero Banner (Giữ nguyên) -->
     <section class="hero-section d-flex align-items-center justify-content-center text-center text-white">
       <div class="hero-content">
         <h1 class="display-3 fw-bold">Liên Hệ</h1>
@@ -8,7 +8,7 @@
       </div>
     </section>
 
-    <!-- Section 2: Contact Form & Image -->
+    <!-- Section 2: Contact Form & Image (Đã được cập nhật để xử lý dữ liệu) -->
     <section class="contact-form-section py-5">
       <div class="container">
         <div class="row align-items-center">
@@ -16,42 +16,51 @@
             <div class="text-center text-lg-start mb-4">
                 <h2 class="display-5 serif-font">Chúng tôi luôn sẵn sàng lắng nghe!</h2>
             </div>
-            <form>
+            
+            <!-- THÔNG BÁO THÀNH CÔNG/LỖI -->
+            <div v-if="successMessage" class="alert alert-success mt-4">{{ successMessage }}</div>
+            <div v-if="errorMessage" class="alert alert-danger mt-4">{{ errorMessage }}</div>
+
+            <!-- FORM ĐÃ ĐƯỢC NỐI LOGIC -->
+            <form @submit.prevent="submitForm" novalidate>
               <div class="mb-3">
                 <label for="contactName" class="form-label">Tên của bạn</label>
                 <div class="input-group">
                     <span class="input-group-text"><i class="bi bi-person"></i></span>
-                    <input type="text" class="form-control" id="contactName" placeholder="Nhập tên của bạn">
+                    <input v-model="form.name" type="text" class="form-control" id="contactName" placeholder="Nhập tên của bạn" required>
                 </div>
               </div>
               <div class="mb-3">
                 <label for="contactEmail" class="form-label">Email của bạn</label>
                 <div class="input-group">
                     <span class="input-group-text"><i class="bi bi-envelope"></i></span>
-                    <input type="email" class="form-control" id="contactEmail" placeholder="Nhập email của bạn">
+                    <input v-model="form.email" type="email" class="form-control" id="contactEmail" placeholder="Nhập email của bạn" required>
                 </div>
               </div>
               <div class="mb-4">
                 <label for="contactMessage" class="form-label">Lời nhắn của bạn</label>
                 <div class="input-group">
                     <span class="input-group-text"><i class="bi bi-chat-left-text"></i></span>
-                    <textarea class="form-control" id="contactMessage" rows="5" placeholder="Nội dung lời nhắn..."></textarea>
+                    <textarea v-model="form.message" class="form-control" id="contactMessage" rows="5" placeholder="Nội dung lời nhắn..." required></textarea>
                 </div>
               </div>
               <div class="d-grid">
-                <button type="submit" class="btn btn-primary btn-lg">Gửi Tin Nhắn</button>
+                <button type="submit" class="btn btn-primary btn-lg" :disabled="isLoading">
+                  <span v-if="isLoading" class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+                  {{ isLoading ? 'Đang gửi...' : 'Gửi Tin Nhắn' }}
+                </button>
               </div>
             </form>
           </div>
           <div class="col-lg-6">
-            <!-- Thay thế bằng ảnh thực tế của phòng khách sạn -->
+            <!-- Ảnh giữ nguyên -->
             <img src="https://html.themewant.com/moonlit/assets/images/pages/contact.webp" class="img-fluid rounded shadow-sm" alt="Phòng khách sạn Hồ Xuân Hương">
           </div>
         </div>
       </div>
     </section>
 
-    <!-- Section 3: Map & Hotel Info -->
+    <!-- Section 3: Map & Hotel Info (Giữ nguyên) -->
     <section class="map-info-section py-5 bg-light">
       <div class="container">
         <div class="row">
@@ -102,10 +111,61 @@
   </div>
 </template>
 
+<!-- PHẦN SCRIPT ĐÃ ĐƯỢC CẬP NHẬT -->
 <script setup>
-// Không cần script gì đặc biệt cho trang này
+import { ref, inject } from 'vue';
+import axiosConfig from '../axiosConfig.js'; // Đảm bảo đường dẫn này đúng
+
+// Inject apiUrl đã được provide trong App.vue
+const apiUrl = inject('apiUrl');
+
+const form = ref({
+  name: '',
+  email: '',
+  message: ''
+});
+
+const isLoading = ref(false);
+const successMessage = ref('');
+const errorMessage = ref('');
+
+const submitForm = async () => {
+  // Xóa thông báo cũ
+  successMessage.value = '';
+  errorMessage.value = '';
+
+  // Kiểm tra dữ liệu
+  if (!form.value.name || !form.value.email || !form.value.message) {
+      errorMessage.value = 'Vui lòng điền đầy đủ thông tin.';
+      return;
+  }
+
+  isLoading.value = true;
+  try {
+    const response = await axiosConfig.post(`${apiUrl}/api/contacts`, form.value);
+    if (response.data.status) {
+      successMessage.value = response.data.message;
+      // Reset form sau khi gửi thành công
+      form.value.name = '';
+      form.value.email = '';
+      form.value.message = '';
+    }
+  } catch (error) {
+    if (error.response && error.response.data && error.response.data.errors) {
+      const errors = error.response.data.errors;
+      const firstError = Object.values(errors)[0][0];
+      errorMessage.value = firstError;
+    } else {
+      errorMessage.value = 'Đã có lỗi xảy ra. Vui lòng thử lại sau.';
+    }
+    console.error('Lỗi khi gửi liên hệ:', error);
+  } finally {
+    isLoading.value = false;
+  }
+};
 </script>
 
+<!-- PHẦN STYLE GIỮ NGUYÊN -->
 <style scoped>
 /* Import font chữ serif đẹp cho tiêu đề */
 @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&family=Roboto:wght@400&display=swap');
