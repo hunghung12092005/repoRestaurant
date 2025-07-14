@@ -88,22 +88,29 @@ class OccupancyController extends Controller
 
             $totalHours = $checkIn->floatDiffInHours($checkOut);
 
-            if ($totalHours <= 6) {
-                // Thuê dưới hoặc bằng 6h → tính theo giờ
+            if ($totalHours <= 2) {
+                $total_price = 2 * $price->hourly_price;
+            } elseif ($totalHours <= 6) {
                 $hours = ceil($totalHours);
                 $total_price = $hours * $price->hourly_price;
+            } elseif ($totalHours < 24) {
+                $total_price = $price->price_per_night;
             } else {
-                // Tính ngày + giờ
                 $fullDays = floor($totalHours / 24);
                 $remainingHours = $totalHours - ($fullDays * 24);
 
                 if ($remainingHours > 6) {
-                    $fullDays += 1; // Nếu phần dư > 6h → thêm 1 ngày
-                    $remainingHours = 0;
+                    $fullDays += 1;
+                    $total_price = $fullDays * $price->price_per_night;
+                } elseif ($remainingHours > 0) {
+                    $extraHours = ceil($remainingHours);
+                    $extraFee = max(2, $extraHours) * $price->hourly_price;
+                    $total_price = ($fullDays * $price->price_per_night) + $extraFee;
+                } else {
+                    $total_price = $fullDays * $price->price_per_night;
                 }
-
-                $total_price = ($fullDays * $price->price_per_night) + (ceil($remainingHours) * $price->hourly_price);
             }
+
 
 
             // Thêm khách hàng
@@ -130,8 +137,8 @@ class OccupancyController extends Controller
                 'total_rooms' => 1,
                 'total_price' => $total_price,
                 'additional_fee' => 0,
-                'payment_status' => 'pending',
-                'status' => 'confirmed',
+                'payment_status' => 'completed',
+                'status' => 'completed',
                 'note' => null,
                 'created_at' => now(),
                 'updated_at' => now(),
@@ -251,6 +258,7 @@ class OccupancyController extends Controller
             $booking = DB::table('booking_hotel')
                 ->where('booking_id', $bookingDetail->booking_id)
                 ->first();
+            $paidTotal = $booking->total_price; // số tiền đã thanh toán trước
 
             if (!$booking) {
                 return response()->json([
@@ -260,8 +268,15 @@ class OccupancyController extends Controller
             }
 
             $actualCheckout = now();
-            $checkIn = \Carbon\Carbon::parse($booking->check_in_date);
-
+            $checkIn = $bookingDetail->created_at
+            ? \Carbon\Carbon::parse($bookingDetail->created_at)
+            : \Carbon\Carbon::parse($booking->check_in_date)->startOfDay();
+                        if ($actualCheckout <= $checkIn) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Giờ checkout không hợp lệ (phải sau giờ nhận phòng).'
+                ], 422);
+            }
             $now = now();
             $price = DB::table('prices')
                 ->where('type_id', $room->type_id)
@@ -276,53 +291,52 @@ class OccupancyController extends Controller
 
             $totalHours = $checkIn->floatDiffInHours($actualCheckout);
             $newTotal = 0;
+            $note = '';
 
             if ($totalHours <= 2) {
                 $newTotal = 2 * $price->hourly_price;
+                $note = "Ở dưới hoặc bằng 2 giờ, tính tối thiểu 2 giờ.";
             } elseif ($totalHours <= 6) {
                 $hours = ceil($totalHours);
                 $newTotal = $hours * $price->hourly_price;
+                $note = "Ở trên 2 và dưới hoặc bằng 6 giờ, tính theo giờ: {$hours} giờ.";
+            } elseif ($totalHours < 24) {
+                $newTotal = $price->price_per_night;
+                $note = "Ở trên 6 giờ và dưới 1 ngày, tính 1 ngày.";
             } else {
                 $fullDays = floor($totalHours / 24);
                 $remainingHours = $totalHours - ($fullDays * 24);
 
+                $extraFee = 0;
+
                 if ($remainingHours > 6) {
                     $fullDays += 1;
-                    $remainingHours = 0;
+                    $note = "Ở {$fullDays} ngày (bao gồm dư > 6 giờ, tính thêm 1 ngày).";
+                } elseif ($remainingHours > 0) {
+                    $extraHours = ceil($remainingHours);
+                    $extraFee = max(2, $extraHours) * $price->hourly_price;
+                    $note = "Ở {$fullDays} ngày + thêm {$extraHours} giờ (≤ 6 giờ), tính theo giờ.";
+                } else {
+                    $note = "Ở tròn {$fullDays} ngày.";
                 }
 
-                $newTotal = ($fullDays * $price->price_per_night) + (ceil($remainingHours) * $price->hourly_price);
+                $newTotal = ($fullDays * $price->price_per_night) + $extraFee;
             }
 
-            // Tính chênh lệch dự kiến
-            $expectedCheckout = \Carbon\Carbon::parse($booking->check_out_date);
-            $expectedHours = $checkIn->floatDiffInHours($expectedCheckout);
-            $expectedTotal = 0;
 
-            if ($expectedHours <= 6) {
-                $expectedTotal = ceil($expectedHours) * $price->hourly_price;
+            $difference = round($paidTotal - $newTotal);
+
+            
+
+
+            if ($difference > 0) {
+                $note .= " Khách trả sớm, hoàn lại " . number_format($difference, 0, ',', '.') . " VND.";
+            } elseif ($difference < 0) {
+                $note .= " Khách ở quá giờ, phụ thu thêm " . number_format(abs($difference), 0, ',', '.') . " VND.";
             } else {
-                $fullDays = floor($expectedHours / 24);
-                $remainingHours = $expectedHours - ($fullDays * 24);
-                if ($remainingHours > 6) {
-                    $fullDays += 1;
-                    $remainingHours = 0;
-                }
-                $expectedTotal = ($fullDays * $price->price_per_night) + (ceil($remainingHours) * $price->hourly_price);
+                $note .= " Thanh toán đúng như dự kiến.";
             }
 
-            $difference = $expectedTotal - $newTotal;
-
-            if ($totalHours <= 2) {
-                $newTotal = 2 * $price->hourly_price;
-                $note = "Khách trả trong 2 giờ đầu. Tính phí cố định 2 giờ.";
-            } else {
-                $note = $difference > 0
-                    ? "Khách trả sớm, hoàn lại " . number_format($difference, 0, ',', '.') . " VND"
-                    : ($difference < 0
-                        ? "Khách ở quá giờ, phụ thu thêm " . number_format(abs($difference), 0, ',', '.') . " VND"
-                        : "Thanh toán đúng như dự kiến.");
-            }
 
             $newTotal += $additionalFee;
 
@@ -369,7 +383,6 @@ class OccupancyController extends Controller
 
             // Cập nhật lại booking
             DB::table('booking_hotel')->where('booking_id', $booking->booking_id)->update([
-                'total_price' => $newTotal,
                 'status' => 'completed',
                 'payment_status' => 'failed',
                 'note' => $note,
@@ -385,6 +398,7 @@ class OccupancyController extends Controller
                 'room' => $room,
                 'actual_total' => $newTotal + $totalServiceFee,
                 'room_total' => $newTotal,
+                'paid_total' => $paidTotal,
                 'service_total' => $totalServiceFee,
                 'note' => $note
             ]);
@@ -531,19 +545,29 @@ class OccupancyController extends Controller
             $totalHours = $checkIn->floatDiffInHours($newCheckOut);
             $newTotal = 0;
 
-            if ($totalHours <= 6) {
-                $newTotal = ceil($totalHours) * $price->hourly_price;
+            if ($totalHours <= 2) {
+                $newTotal = 2 * $price->hourly_price;
+            } elseif ($totalHours <= 6) {
+                $hours = ceil($totalHours);
+                $newTotal = $hours * $price->hourly_price;
+            } elseif ($totalHours < 24) {
+                $newTotal = $price->price_per_night;
             } else {
                 $fullDays = floor($totalHours / 24);
                 $remainingHours = $totalHours - ($fullDays * 24);
 
                 if ($remainingHours > 6) {
                     $fullDays += 1;
-                    $remainingHours = 0;
+                    $newTotal = $fullDays * $price->price_per_night;
+                } elseif ($remainingHours > 0) {
+                    $extraHours = ceil($remainingHours);
+                    $extraFee = max(2, $extraHours) * $price->hourly_price;
+                    $newTotal = ($fullDays * $price->price_per_night) + $extraFee;
+                } else {
+                    $newTotal = $fullDays * $price->price_per_night;
                 }
-
-                $newTotal = ($fullDays * $price->price_per_night) + (ceil($remainingHours) * $price->hourly_price);
             }
+
 
 
             // Cập nhật lại DB
@@ -581,6 +605,35 @@ class OccupancyController extends Controller
                 'message' => 'Lỗi khi lấy danh sách dịch vụ',
                 'error' => $e->getMessage()
             ], 500);
+        }
+    }
+    public function updateCustomerName(Request $request, $customer_id)
+    {
+        $request->validate([
+            'customer_name' => 'required|string|max:255',
+            'customer_phone' => 'nullable|string|max:20',
+            'customer_email' => 'nullable|email|max:255',
+            'address' => 'nullable|string|max:255',
+        ]);
+
+        try {
+            $updated = DB::table('customers')
+                ->where('customer_id', $customer_id)
+                ->update([
+                    'customer_name' => $request->customer_name,
+                    'customer_phone' => $request->customer_phone,
+                    'customer_email' => $request->customer_email,
+                    'address' => $request->address,
+                    'updated_at' => now(),
+                ]);
+
+            if ($updated) {
+                return response()->json(['message' => 'Cập nhật thông tin khách thành công.']);
+            } else {
+                return response()->json(['message' => 'Không tìm thấy khách hoặc không có thay đổi.'], 404);
+            }
+        } catch (\Exception $e) {
+            return response()->json(['message' => 'Lỗi cập nhật.', 'error' => $e->getMessage()], 500);
         }
     }
 }

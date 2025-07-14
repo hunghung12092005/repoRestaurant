@@ -64,43 +64,7 @@
               </li>
             </ul>
           </li>
-          <li class="nav-item dropdown">
-            <a class="nav-link dropdown-toggle" href="#" id="tablesDropdown" role="button" data-bs-toggle="dropdown"
-              aria-expanded="false">
-              <i class="bi bi-table"></i> Quản lý bàn
-            </a>
-            <ul class="dropdown-menu" aria-labelledby="tablesDropdown">
-              <li>
-                <router-link class="dropdown-item" to="/admin/table-types">
-                  <i class="bi bi-list-ul me-2"></i> Danh mục bàn
-                </router-link>
-              </li>
-              <li>
-                <router-link class="dropdown-item" to="/admin/tables">
-                  <i class="bi bi-table me-2"></i> Quản lý bàn
-                </router-link>
-              </li>
-            </ul>
-          </li>
-          <li class="nav-item dropdown">
-            <a class="nav-link dropdown-toggle" href="#" id="menuDropdown" role="button" data-bs-toggle="dropdown"
-              aria-expanded="false">
-              <i class="bi bi-menu"></i> Quản lý thực đơn
-            </a>
-            <ul class="dropdown-menu" aria-labelledby="menuDropdown">
-              <li>
-                <router-link class="dropdown-item" to="/admin/menu-categories">
-                  <i class="bi bi-list-ul me-2"></i> Danh mục thực đơn
-                </router-link>
-              </li>
-              <li>
-                <router-link class="dropdown-item" to="/admin/menus">
-                  <i class="bi bi-menu me-2"></i> Quản lý thực đơn
-                </router-link>
-              </li>
-            </ul>
-          </li>
-         <li class="nav-item"><router-link class="nav-link" to="/admin/users"><i class="bi bi-people"></i>Quản lý tài khoản</router-link></li>
+          <li class="nav-item"><router-link class="nav-link" to="/admin/users"><i class="bi bi-people"></i>Quản lý tài khoản</router-link></li>
           <li class="nav-item"><router-link class="nav-link" to="/admin/news"><i class="bi bi-newspaper"></i>Tin tức</router-link></li>
           <li class="nav-item"><router-link class="nav-link" to="/admin/news-categories"><i class="bi bi-tags"></i>Danh mục Tin tức</router-link></li>
           <li class="nav-item"><router-link class="nav-link" to="/admin/news-comments"><i class="bi bi-chat"></i>Bình luận</router-link></li>
@@ -143,9 +107,10 @@
               <!-- Left Navigation -->
               <ul class="navbar-nav navbar-nav-left">
                 <li class="nav-item"><router-link class="nav-link" to="/">Trang chủ</router-link></li>
-                <li class="nav-item"><router-link class="nav-link" to="/about">Giới thiệu</router-link></li>
                 <li class="nav-item dropdown">
-                  <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">Phòng</a>
+                  <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                    Phòng
+                  </a>
                   <ul class="dropdown-menu">
                     <li v-for="roomType in roomTypes" :key="roomType.type_id">
                       <router-link class="dropdown-item" :to="{ name: 'RoomTypeDetail', params: { id: roomType.type_id } }">
@@ -155,8 +120,6 @@
                   </ul>
                 </li>
                 <li class="nav-item"><router-link class="nav-link" to="/news">Tin tức</router-link></li>
-                <li class="nav-item"><router-link class="nav-link" to="/contact">Liên hệ</router-link></li>
-
               </ul>
 
               <!-- Right Navigation -->
@@ -542,6 +505,7 @@ footer {
 }
 
 .sidebar .header {
+  text-align: center;
   padding: 20px;
   border-bottom: 1px solid var(--border-color);
 }
