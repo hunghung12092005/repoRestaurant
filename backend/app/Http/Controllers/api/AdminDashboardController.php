@@ -80,18 +80,24 @@ class AdminDashboardController extends Controller
         $labels = [];
         $newsData = [];
         $commentsData = [];
+        $bookingsData = [];
 
         for ($i = 5; $i >= 0; $i--) {
             $date = Carbon::now()->subMonths($i);
-            $labels[] = $date->format('M Y'); // VD: "Jan 2023"
+            $monthYear = $date->format('m/Y'); // Lấy tháng/năm (VD: 07/2025)
+            $labels[] = $this->convertMonthToVietnamese($date->format('m'), $date->format('Y')); // Chuyển sang tiếng Việt
 
             $newsData[] = News::whereYear('publish_date', $date->year)
-                              ->whereMonth('publish_date', $date->month)
-                              ->count();
+                ->whereMonth('publish_date', $date->month)
+                ->count();
 
             $commentsData[] = NewsComment::whereYear('created_at', $date->year)
-                                         ->whereMonth('created_at', $date->month)
-                                         ->count();
+                ->whereMonth('created_at', $date->month)
+                ->count();
+
+            $bookingsData[] = BookingHotel::whereYear('created_at', $date->year)
+                ->whereMonth('created_at', $date->month)
+                ->count();
         }
 
         return [
@@ -99,8 +105,28 @@ class AdminDashboardController extends Controller
             'datasets' => [
                 ['label' => 'Tin tức mới', 'data' => $newsData],
                 ['label' => 'Bình luận mới', 'data' => $commentsData],
+                ['label' => 'Đặt phòng mới', 'data' => $bookingsData], // Thêm dữ liệu đặt phòng
             ]
         ];
+    }
+
+    private function convertMonthToVietnamese($month, $year)
+    {
+        $months = [
+            '01' => 'Tháng 1',
+            '02' => 'Tháng 2',
+            '03' => 'Tháng 3',
+            '04' => 'Tháng 4',
+            '05' => 'Tháng 5',
+            '06' => 'Tháng 6',
+            '07' => 'Tháng 7',
+            '08' => 'Tháng 8',
+            '09' => 'Tháng 9',
+            '10' => 'Tháng 10',
+            '11' => 'Tháng 11',
+            '12' => 'Tháng 12',
+        ];
+        return $months[$month] . ' ' . $year;
     }
 
     /**
@@ -130,16 +156,16 @@ class AdminDashboardController extends Controller
      * Dữ liệu cho bảng: 5 lượt đặt phòng gần đây.
      */
     /**
- * Dữ liệu cho bảng: 5 lượt đặt phòng gần đây.
- */
-/**
- * Dữ liệu cho bảng: 5 lượt đặt phòng gần đây.
- */
-private function getRecentBookings()
-{
-    return BookingHotel::with(['customer', 'details.roomType']) // Sử dụng 'roomType' thay vì 'roomTypeInfo'
-        ->latest('created_at')
-        ->take(5)
-        ->get(['booking_id', 'customer_id', 'check_in_date', 'check_out_date', 'status']);
-}
+     * Dữ liệu cho bảng: 5 lượt đặt phòng gần đây.
+     */
+    /**
+     * Dữ liệu cho bảng: 5 lượt đặt phòng gần đây.
+     */
+    private function getRecentBookings()
+    {
+        return BookingHotel::with(['customer', 'details.roomType']) // Sử dụng 'roomType' thay vì 'roomTypeInfo'
+            ->latest('created_at')
+            ->take(5)
+            ->get(['booking_id', 'customer_id', 'check_in_date', 'check_out_date', 'status']);
+    }
 }
