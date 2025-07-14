@@ -18,6 +18,39 @@ use Carbon\Carbon;
 
 class BookingHotelController extends Controller
 {
+    public function checkAvailability(Request $request)
+    {
+        $checkInDate = $request->input('check_in_date');
+        $checkOutDate = $request->input('check_out_date');
+
+        // Lấy tất cả các loại phòng
+        $roomTypes = RoomType::all();
+        $availability = [];
+
+        foreach ($roomTypes as $roomType) {
+            // Lấy tất cả các phòng thuộc loại này
+            $rooms = Room::where('type_id', $roomType->type_id)->get();
+            //return response()->json(['rooms' => $rooms, 'roomType' => $roomType]);
+            // Lấy các room_id đã được đặt trong khoảng thời gian này
+            $bookedRoomIds = BookingHotelDetail::whereHas('booking', function ($query) use ($checkInDate, $checkOutDate) {
+                $query->where('status', 'confirmed')
+                    ->where(function ($query) use ($checkInDate, $checkOutDate) {
+                        $query->whereBetween('check_in_date', [$checkInDate, $checkOutDate])
+                            ->orWhereBetween('check_out_date', [$checkInDate, $checkOutDate]);
+                    });
+            })->pluck('room_id');
+
+            // Tính số lượng phòng còn trống
+            $availableRoomsCount = $rooms->whereNotIn('room_id', $bookedRoomIds)->count();
+
+            $availability[] = [
+                'room_type' => $roomType->type_id,
+                'available_rooms' => $availableRoomsCount
+            ];
+        }
+
+        return response()->json($availability);
+    }
     /**
      * Lấy danh sách phòng trống dựa trên room_type
      */
@@ -239,7 +272,7 @@ class BookingHotelController extends Controller
         $data = [
             "orderCode" => intval(substr(strval(microtime(true) * 10000), -6)),
             "amount" => $amount,
-            "description" => "Booking ID: " . ($bookingId ? $bookingId : 'Không có'),
+            "description" => " booking HXH",
             "items" => $items,
             "returnUrl" => "http://127.0.0.1:5173/ThanksBooking",
             "cancelUrl" => "http://127.0.0.1:5173/"

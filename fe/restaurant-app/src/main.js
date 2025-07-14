@@ -11,6 +11,8 @@ import { QuillEditor } from '@vueup/vue-quill';
 import '@vueup/vue-quill/dist/vue-quill.snow.css';
 // Flatpickr
 import 'flatpickr/dist/flatpickr.css';
+import * as bootstrap from 'bootstrap'
+window.bootstrap = bootstrap
 
 const app = createApp(App);
 

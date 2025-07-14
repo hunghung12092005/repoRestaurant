@@ -23,6 +23,7 @@ use App\Http\Controllers\api\NewsCategoryController;
 use App\Http\Controllers\api\NewsCommentController;
 use App\Http\Controllers\BookingHotelController;
 use App\Http\Controllers\api\AdminDashboardController;
+use App\Http\Controllers\WebhookController;
 
 Route::get('/seasonal-pricing/current/{typeId}', [RoomController::class, 'getCurrentPricing']);
 
@@ -157,4 +158,6 @@ Route::post('/available-rooms', [BookingHotelController::class, 'getAvailableRoo
 //thanh toan payOS
 Route::post('/payos/checkout', [BookingHotelController::class, 'payos']);
 //api webhook
-Route::get('/webhook', [\App\Http\Controllers\WebhookController::class, 'handleWebhook']);
+Route::get('/webhook', [WebhookController::class, 'handleWebhook']);
+//check xem có phòng trống hay không
+Route::get('/check-availability', [BookingHotelController::class, 'checkAvailability']);
