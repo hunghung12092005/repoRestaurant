@@ -19,6 +19,7 @@ class BookingHotel extends Model
         'payment_status',
         'status',
         'note',
+        'orderCode',
     ];
 
     public function customer()

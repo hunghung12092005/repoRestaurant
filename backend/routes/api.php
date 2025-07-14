@@ -152,3 +152,5 @@ Route::get('/booking-history', [BookingHotelController::class, 'getBookingHistor
 Route::post('/available-rooms', [BookingHotelController::class, 'getAvailableRooms']);
 //thanh toan payOS
 Route::post('/payos/checkout', [BookingHotelController::class, 'payos']);
+//api webhook
+Route::get('/webhook', [\App\Http\Controllers\WebhookController::class, 'handleWebhook']);

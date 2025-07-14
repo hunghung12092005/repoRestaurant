@@ -104,7 +104,7 @@ const getHistoryBooking = async () => {
 
     if (response.data && response.data.status === 'success') {
       bookings.value = response.data.data;
-      console.log('Fetched booking history:', bookings.value);
+     // console.log('Fetched booking history:', bookings.value);
     } else {
       error.value = response.data.message || 'Không thể tải dữ liệu lịch sử đặt phòng.';
       bookings.value = [];
