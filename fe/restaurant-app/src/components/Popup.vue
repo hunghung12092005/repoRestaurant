@@ -253,4 +253,4 @@ function closePopup() {
 /*
 @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=Roboto:wght@400;500;700&display=swap');
 */
-</style>
+</style>>

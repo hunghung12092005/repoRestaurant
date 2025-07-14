@@ -49,6 +49,9 @@ Route::get('/services', [OccupancyController::class, 'getServices']); //hiển t
 Route::post('/rooms/{room_id}/add-guest', [OccupancyController::class, 'addGuestToRoom']); //khi khách đặt phòng thì đổi trạng thái
 Route::post('/rooms/preview-price', [OccupancyController::class, 'previewPrice']); //xem trước giá
 Route::post('/rooms/{room_id}/extend', [OccupancyController::class, 'extendStay']); //gia hạn phòng
+Route::post('/customers/{id}/update-name', [OccupancyController::class, 'updateCustomerName']);
+ // Cập nhật thông tin khách hàng
+
 
 Route::apiResource('users', UsersController::class);
 

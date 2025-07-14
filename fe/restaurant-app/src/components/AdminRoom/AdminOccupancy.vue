@@ -63,7 +63,8 @@
                 Chi tiết
               </button>
               <br>
-              <a href="#" class="action-link" @click.prevent="checkoutRoom(room.room_id)"><button>Thanh toán</button></a>
+              <a href="#" class="action-link" @click.prevent="checkoutRoom(room.room_id)"><button>Thanh
+                  toán</button></a>
               <br>
               <a href="#" class="action-link" @click.prevent="showExtendForm(room.room_id)"><button>Gia hạn</button></a>
 
@@ -85,31 +86,42 @@
     <div class="modal-content">
       <h2>Đăng ký khách hàng</h2>
       <form @submit.prevent="submitCustomerForm">
-<div class="form-group">
-  <label>Ảnh CCCD</label>
-  <input type="file" @change="onFileChange" accept="image/*" />
-  <button type="button" @click="uploadImage">Tải Ảnh CCCD</button>
-</div>
+        <div class="form-group">
+          <label>Ảnh CCCD</label>
+          <input type="file" @change="onFileChange" accept="image/*" />
+          <button type="button" @click="uploadImage">Tải Ảnh CCCD</button>
+        </div>
 
         <div class="form-group">
-          
+
           <label>Họ tên</label>
           <input v-model="formData.customer_name" required />
         </div>
 
+<<<<<<< HEAD
         <div class="form-group">
           <label>Số điện thoại</label>
           <input v-model="formData.customer_phone" required />
         </div>
         <div class="form-group">
-  <label>Số CCCD</label>
-  <input v-model="formData.customer_id_number" required />
-</div>
-
-        <div class="form-group">
-          <label>Email</label>
-          <input v-model="formData.customer_email" type="email" required />
+          <label>Số CCCD</label>
+          <input v-model="formData.customer_id_number" required />
         </div>
+=======
+          <div class="form-group">
+            <label>Số điện thoại</label>
+            <input v-model="formData.customer_phone" required />
+          </div>
+          <div class="form-group">
+    <label>Số CCCD</label>
+    <input v-model="formData.customer_id_number" required />
+  </div>
+>>>>>>> 7c6bff07eb52276df381a5f6152e132d44ad4722
+
+          <div class="form-group">
+            <label>Email</label>
+            <input v-model="formData.customer_email" type="email" required />
+          </div>
 
         <div class="form-group">
           <label>Địa chỉ</label>
@@ -144,8 +156,9 @@
       <h2>Chi tiết phòng & khách</h2>
 
       <!-- Chi tiết Phòng -->
-      <p v-if="guestInfo.room"><strong>Phòng:</strong> {{ guestInfo.room.room_name }} - {{ guestInfo.room.type_name }} (Tầng {{ guestInfo.room.floor_number }})</p>
-<p v-else>Đang tải thông tin phòng...</p>
+      <p v-if="guestInfo.room"><strong>Phòng:</strong> {{ guestInfo.room.room_name }} - {{ guestInfo.room.type_name }}
+        (Tầng {{ guestInfo.room.floor_number }})</p>
+      <p v-else>Đang tải thông tin phòng...</p>
 
       <p><strong>Trạng thái:</strong> {{ guestInfo.room?.status }}</p>
 
@@ -162,15 +175,17 @@
       <!-- Thông tin đặt phòng -->
       <p v-if="guestInfo.room"><strong>Nhận phòng:</strong> {{ guestInfo.booking?.check_in_date || '...' }}</p>
       <p v-if="guestInfo.room"><strong>Trả phòng dự kiến:</strong> {{ guestInfo.booking?.check_out_date || '...' }}</p>
-      <p v-if="guestInfo.room"><strong>Trả phòng thực tế:</strong> {{ guestInfo.booking?.actual_check_out_time || 'Chưa trả' }}</p>
+      <p v-if="guestInfo.room"><strong>Trả phòng thực tế:</strong> {{ getActualCheckout(guestInfo.booking) }} </p>
       <p v-if="guestInfo.room"><strong>Loại giá:</strong> {{ guestInfo.booking?.pricing_type || '...' }}</p>
       <p v-if="guestInfo.room"><strong>Trạng thái:</strong> {{ guestInfo.booking?.status || '...' }}</p>
       <p v-if="guestInfo.room"><strong>Tổng tiền:</strong> {{ guestInfo.booking?.total_price ?
         Number(guestInfo.booking.total_price).toLocaleString('vi-VN') + ' VND' : '...' }}</p>
 
-      <div class="form-actions">
-        <button @click="showGuestModal = false">Đóng</button>
-      </div>
+      <!-- Nút sửa -->
+<div class="form-actions">
+  <button @click="editCustomerInfo(guestInfo.customer)">Sửa thông tin</button>
+  <button @click="showGuestModal = false">Đóng</button>
+</div>
     </div>
 
 
@@ -191,36 +206,61 @@
     </div>
   </div>
   <!-- Modal Chọn Dịch Vụ Khi Thanh Toán -->
-<div v-if="showServiceModal" class="modal-overlay">
-  <div class="modal-content">
-    <h2>Chọn dịch vụ sử dụng</h2>
+  <div v-if="showServiceModal" class="modal-overlay">
+    <div class="modal-content">
+      <h2>Chọn dịch vụ sử dụng</h2>
 
-    <div v-if="allServices.length === 0">Đang tải dịch vụ...</div>
+      <div v-if="allServices.length === 0">Đang tải dịch vụ...</div>
 
-    <div v-else>
-      <div v-for="service in allServices" :key="service.service_id">
-        <label>
-          <input
-            type="checkbox"
-            :value="service"
-            v-model="selectedServices"
-          />
-          {{ service.service_name }} - {{ Number(service.price).toLocaleString('vi-VN') }} VND
-        </label>
+      <div v-else>
+        <div v-for="service in allServices" :key="service.service_id">
+          <label>
+            <input type="checkbox" :value="service" v-model="selectedServices" />
+            {{ service.service_name }} - {{ Number(service.price).toLocaleString('vi-VN') }} VND
+          </label>
+        </div>
+      </div>
+
+      <p style="margin-top: 10px;">
+        <strong>Tổng dịch vụ:</strong>
+        <span style="color: #e74c3c; font-weight: bold;">
+          {{ serviceTotal.toLocaleString('vi-VN') }} VND
+        </span>
+      </p>
+
+      <div class="form-actions">
+        <button @click="confirmPayment">Xác nhận thanh toán</button>
+        <button @click="showServiceModal = false">Hủy</button>
       </div>
     </div>
+  </div>
 
-    <p style="margin-top: 10px;">
-      <strong>Tổng dịch vụ:</strong>
-      <span style="color: #e74c3c; font-weight: bold;">
-        {{ serviceTotal.toLocaleString('vi-VN') }} VND
-      </span>
-    </p>
-
-    <div class="form-actions">
-      <button @click="confirmPayment">Xác nhận thanh toán</button>
-      <button @click="showServiceModal = false">Hủy</button>
-    </div>
+<!-- Modal sửa thông tin -->
+<div v-if="showEditForm" class="modal-overlay">
+  <div class="modal-content">
+    <h2>Sửa thông tin khách</h2>
+    <form @submit.prevent="submitEditForm">
+      <div class="form-group">
+        <label>Họ tên:</label>
+        <input v-model="editFormData.customer_name" required />
+      </div>
+      <div class="form-group">
+        <label>SĐT:</label>
+        <input v-model="editFormData.customer_phone" />
+      </div>
+      <div class="form-group">
+        <label>Email:</label>
+        <input v-model="editFormData.customer_email" />
+      </div>
+      <div class="form-group">
+        <label>Địa chỉ:</label>
+        <input v-model="editFormData.address" />
+      </div>
+      <div class="form-actions">
+        <button type="submit">Lưu</button>
+        <button type="button" @click="showEditForm = false">Hủy</button>
+      </div>
+    </form>
   </div>
 </div>
 
@@ -254,6 +294,51 @@ const formData = ref({
   check_out_date: '',
   pricing_type: 'nightly'
 });
+
+const showEditForm = ref(false);
+const editFormData = ref({
+  customer_id: null,
+  customer_name: '',
+  customer_phone: '',
+  customer_email: '',
+  address: '',
+});
+
+const editCustomerInfo = (customer) => {
+  if (!customer) return;
+  editFormData.value = {
+    customer_id: customer.customer_id,
+    customer_name: customer.customer_name,
+    customer_phone: customer.customer_phone,
+    customer_email: customer.customer_email,
+    address: customer.address,
+  };
+  showEditForm.value = true;
+};
+
+const submitEditForm = async () => {
+  try {
+    const res = await axios.post(`${apiUrl}/api/customers/${editFormData.value.customer_id}/update-name`, {
+      customer_name: editFormData.value.customer_name,
+      customer_phone: editFormData.value.customer_phone,
+      customer_email: editFormData.value.customer_email,
+      address: editFormData.value.address,
+    });
+
+    alert(res.data.message || 'Cập nhật thành công.');
+
+    // ✅ Cập nhật dữ liệu hiển thị
+    guestInfo.value.customer.customer_name = editFormData.value.customer_name;
+    guestInfo.value.customer.customer_phone = editFormData.value.customer_phone;
+    guestInfo.value.customer.customer_email = editFormData.value.customer_email;
+    guestInfo.value.customer.address = editFormData.value.address;
+
+    showEditForm.value = false;
+  } catch (e) {
+    alert("Không thể cập nhật.");
+    console.error(e);
+  }
+};
 
 // CCCD
 const imageFile = ref(null);
@@ -316,20 +401,22 @@ const checkoutRoom = async (room_id) => {
 const confirmPayment = async () => {
   if (!window.confirm("Xác nhận thanh toán và trả phòng?")) return;
   try {
-    console.log(selectedServices.value.map(s => s.service_id));
+    //console.log(selectedServices.value.map(s => s.service_id));
     const response = await axios.post(`${apiUrl}/api/rooms/${currentRoomId.value}/checkout`, {
       service_ids: selectedServices.value.map(s => s.service_id)
     });
 
     const data = response.data;
-
+    console.log("Thanh toán thành công:", data);
     alert(
   `${data.message}\n\n` +
+  `💳 Đã thanh toán trước: ${Number(data.paid_total).toLocaleString('vi-VN')} VND\n` +
   `🛏️ Tiền phòng: ${Number(data.room_total).toLocaleString('vi-VN')} VND\n` +
   `🧾 Dịch vụ: ${Number(data.service_total).toLocaleString('vi-VN')} VND\n` +
-  `💰 Tổng tiền: ${Number(data.actual_total).toLocaleString('vi-VN')} VND\n\n` +
+  `💰 Tổng phải trả: ${Number(data.actual_total).toLocaleString('vi-VN')} VND\n\n` +
   (data.note || '')
 );
+
 
 
     showServiceModal.value = false;
@@ -395,7 +482,7 @@ const submitCustomerForm = async () => {
 
 const calculateTotalPricePreview = async () => {
   if (!formData.value.room_id) return;
-  
+
   try {
     const res = await axios.post(`${apiUrl}/api/rooms/preview-price`, {
       room_id: formData.value.room_id,
@@ -481,6 +568,10 @@ watch(() => formData.value.room_id, () => {
     calculateTotalPricePreview();
   }
 });
+const getActualCheckout = (booking) => {
+  if (!booking || !booking.actual_check_out_time) return 'Chưa trả';
+  return booking.actual_check_out_time;
+};
 </script>
 
 <style scoped>
@@ -760,5 +851,4 @@ button.secondary:hover {
   background-color: #e5e7eb;
   /* xám hover */
 }
-
 </style>

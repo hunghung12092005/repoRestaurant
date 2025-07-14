@@ -23,18 +23,24 @@ const io = new Server(server, {
 });
 
 // Cấu hình Redis
+
 const redisClient = createClient({
-    //url: 'redis://YOUR_REDIS_HOST:YOUR_REDIS_PORT', 
-    //password: 'YOUR_REDIS_PASSWORD' 
-});
-redisClient.on('error', (err) => {
-    console.error('Redis Client Error', err);
+    // url: 'redis://localhost:6379',
+    // password: '12092005a' // Thay thế bằng mật khẩu bạn đã cấu hình
 });
 
-redisClient.connect().catch(console.error);
 
 // Kết nối adapter Redis cho Socket.IO
 io.adapter(createAdapter(redisClient));
+
+redisClient.connect()
+    .then(() => {
+        console.log('Connected to Redis');
+    })
+    .catch((err) => {
+        console.error('Redis connection error:', err);
+    });
+
 const socketIds = {}; // Đối tượng để lưu socketId của người dùng
 import fs from 'fs';
 import path from 'path';
@@ -49,13 +55,18 @@ if (!fs.existsSync(uploadDir)) {
 }
 // Hàm lưu file
 const saveFile = (dataUrl) => {
-    const base64Data = dataUrl.split(',')[1]; // Tách base64
-    const buffer = Buffer.from(base64Data, 'base64'); // Chuyển đổi base64 thành buffer
-    const fileName = `image-${Date.now()}.png`; // Tạo tên file duy nhất
-    const filePath = path.join(uploadDir, fileName); // Đường dẫn đầy đủ
+    try {
+        const base64Data = dataUrl.split(',')[1]; // Tách base64
+        const buffer = Buffer.from(base64Data, 'base64'); // Chuyển đổi base64 thành buffer
+        const fileName = `image-${Date.now()}.png`; // Tạo tên file duy nhất
+        const filePath = path.join(uploadDir, fileName); // Đường dẫn đầy đủ
 
-    fs.writeFileSync(filePath, buffer); // Lưu file
-    return filePath; // Trả về đường dẫn file đã lưu
+        fs.writeFileSync(filePath, buffer); // Lưu file
+        return filePath; // Trả về đường dẫn file đã lưu
+    } catch (error) {
+        console.error('Error saving file:', error);
+        throw error; // Ném lỗi ra ngoài để xử lý ở nơi gọi
+    }
 };
 io.on('connection', (socket) => {
     console.log(`Client connected: ${socket.id}`);
@@ -72,11 +83,12 @@ io.on('connection', (socket) => {
     // Xử lý nhận tin nhắn và lưu vào Redis
     socket.on('chat message', (data) => {
         // Kiểm tra xem có file không
+        //console.log('Received message:', data);
         if (data.file) {
+            //console.log('Received file:');
             const filePath = saveFile(data.file); // Lưu file và lấy đường dẫn
             data.file = `http://localhost:6001/uploads/${path.basename(filePath)}`; // Cập nhật đường dẫn HTTP
         }
-    
         // Gửi lại thông điệp cho client
         io.to(data.socketId).emit('chat messageSend', {
             user: data.user,

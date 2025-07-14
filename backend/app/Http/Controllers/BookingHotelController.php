@@ -95,7 +95,6 @@ class BookingHotelController extends Controller
 
             // Tạo token cho khách hàng
             $token = JWTAuth::fromUser($customer);
-
             return response()->json(['token' => $token]);
         } catch (JWTException $e) {
             return response()->json([

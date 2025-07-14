@@ -1,98 +1,103 @@
 <template>
-    <div v-if="latestNotice" class="mt-5">
-        <div class="alert alert-primary" role="alert">
-            <strong>{{ latestNotice.user }}</strong>: {{ latestNotice.message }} <em>({{ latestNotice.time }})</em>
-        </div>
-    </div>
-    <div id="frame">
-        <div id="sidepanel">
-            <div id="profile">
-                <div class="wrap">
-                    <img id="profile-img"
-                        src="https://thumbs.dreamstime.com/b/red-admin-sign-pc-laptop-vector-illustration-administrator-icon-screen-controller-man-system-box-88756468.jpg"
-                        class="online" alt="" />
-                    <p>Admin Chat Dashboard</p>
+    <div class="container-fluid py-4 mt-3">
+        <div class="card shadow rounded-4 border-0 position-relative"
+            style="max-width: 1200px; margin: 0 auto; height: 85vh;">
+            <!-- Circular Badge in Top-Right Corner -->
+            <span
+                class="position-absolute top-0 end-0 m-3 bg-primary text-white rounded-circle d-flex align-items-center justify-content-center fw-semibold"
+                style="width: 50px; height: 50px; font-size: 0.9rem;">
+                Admin
+            </span>
 
-                </div>
+            <!-- Latest Notice -->
+            <div v-if="latestNotice" class="alert alert-primary mx-3 mt-3 mb-0 rounded-3" role="alert">
+                <strong>{{ latestNotice.user }}</strong>: {{ latestNotice.message }} <em>({{ latestNotice.time }})</em>
             </div>
-            <div id="search">
-                <label for=""><i class="fa fa-search" aria-hidden="true"></i></label>
-                <input type="text" placeholder="Search contacts..." />
-            </div>
-            <div id="contacts">
-                <ul>
-                    <li class="contact" v-for="user in users" :key="user.userId">
-                        <div class="wrap" @click="selectUser(user.userId)">
-                            <span class="contact-status online"></span>
-                            <img src="https://cdn-icons-png.flaticon.com/512/5894/5894085.png" alt="" />
-                            <div class="meta">
-                                <p class="name">{{ user.userId }}</p>
+
+            <div class="d-flex h-100">
+                <!-- Sidebar -->
+                <div class="bg-light border-end p-3" style="width: 300px; overflow-y: auto;">
+                    <!-- Profile Section -->
+                    <div class="d-flex align-items-center mb-4 p-2 rounded-3 bg-white shadow-sm">
+                        <img src="https://thumbs.dreamstime.com/b/red-admin-sign-pc-laptop-vector-illustration-administrator-icon-screen-controller-man-system-box-88756468.jpg"
+                            alt="Admin" class="rounded-circle me-2" style="width: 40px; height: 40px;" />
+                        <h5 class="mb-0 fw-semibold text-dark">Admin Dashboard</h5>
+                    </div>
+
+                    <!-- Search Bar -->
+                    <div class="input-group mb-3">
+                        <span class="input-group-text bg-white border-end-0"><i class="fa fa-search"></i></span>
+                        <input type="text" class="form-control border-start-0" placeholder="Search" />
+                    </div>
+
+                    <!-- User List -->
+                    <ul class="list-unstyled">
+                        <li class="contact p-2 mb-2 rounded-3 bg-white shadow-sm cursor-pointer" v-for="user in users"
+                            :key="user.userId" @click="selectUser(user.userId)"
+                            :class="{ 'bg-primary bg-opacity-10': selectedUserId === user.userId }">
+                            <div class="d-flex align-items-center">
+                                <span class="contact-status bg-success rounded-circle me-2"
+                                    style="width: 10px; height: 10px;"></span>
+                                <img src="https://cdn-icons-png.flaticon.com/512/5894/5894085.png" alt="User"
+                                    class="rounded-circle me-2" style="width: 32px; height: 32px;" />
+                                <div class="meta">
+                                    <p class="mb-0 fw-medium text-dark">{{ user.userId }}</p>
+                                </div>
                             </div>
-                        </div>
-                    </li>
-                </ul>
-            </div>
-        </div>
-        <div class="content">
-            <div class="contact-profile">
-                <img src="https://cdn-icons-png.flaticon.com/512/5894/5894085.png" alt="" />
-                <p>{{ selectedUserId }}</p>
-                <div class="social-media">
-                    <i class="fa fa-facebook" aria-hidden="true"></i>
-                    <i class="fa fa-twitter" aria-hidden="true"></i>
-                    <i class="fa fa-instagram" aria-hidden="true"></i>
+                        </li>
+                    </ul>
                 </div>
-            </div>
-            <div class="messages">
-                <ul v-if="selectedMessages.length">
 
-                    <li class="sent" v-for="(msg, index) in selectedMessages" :key="index">
+                <!-- Chat Content -->
+                <div class="flex-grow-1 d-flex flex-column">
+                    <!-- Contact Profile -->
+                    <div class="d-flex align-items-center p-3 border-bottom bg-white">
+                        <img src="https://cdn-icons-png.flaticon.com/512/5894/5894085.png" alt="User"
+                            class="rounded-circle me-2" style="width: 36px; height: 36px;" />
+                        <p class="mb-0 fw-semibold text-dark">{{ selectedUserId || 'Select a user' }}</p>
+                        <div class="ms-auto">
+                            <i class="fa fa-facebook mx-2 text-primary" aria-hidden="true"></i>
+                            <i class="fa fa-twitter mx-2 text-primary" aria-hidden="true"></i>
+                            <i class="fa fa-instagram mx-2 text-primary" aria-hidden="true"></i>
+                        </div>
+                    </div>
 
-                        <img src="https://cdn-icons-png.freepik.com/512/5962/5962463.png" alt="" />
-                        <p><span>{{ msg.user }}: </span>{{ msg.message }}
-                        </p>
-                        <img v-if="msg.file" :src="msg.file" alt="Image" style="width: 190px;"/>
-                    </li>
-                    <!-- <li class="replies" v-for="(msgReceive, index) in selectedMessagesReceive" :key="index">
-                        <img src="http://emilcarlsson.se/assets/harveyspecter.png" alt="" />
-                        <p>{{ msgReceive.message }}
-                        </p>
-                    </li> -->
+                    <!-- Messages -->
+                    <div class="flex-grow-1 p-4 overflow-auto" style="background: #f8f9fa;">
+                        <ul class="list-unstyled" v-if="selectedMessages.length">
+                            <li class="mb-3 d-flex" v-for="(msg, index) in selectedMessages" :key="index"
+                                :class="{ 'justify-content-end': msg.user === 'Admin', 'justify-content-start': msg.user !== 'Admin' }">
+                                <div class="p-3 rounded-3 shadow-sm"
+                                    :class="{ 'bg-primary text-white': msg.user === 'Admin', 'bg-light text-dark': msg.user !== 'Admin' }"
+                                    style="max-width: 70%;">
+                                    <p class="mb-0"><strong>{{ msg.user }}:</strong> {{ msg.message }}</p>
+                                    <img v-if="msg.file" :src="msg.file" alt="Image" class="mt-2 rounded"
+                                        style="max-width: 190px;" />
+                                </div>
+                            </li>
+                        </ul>
+                        <div v-else class="text-center text-muted mt-5">
+                            <p>Select a user to view messages</p>
+                        </div>
+                    </div>
 
-                </ul>
-
-            </div>
-            <div class="message-input">
-                <div class="wrap">
-                    <input @keyup.enter="sendMessageToUser" v-model="messageContent" type="text"
-                        placeholder="Write your message..." />
-                    <i class="fa fa-paperclip attachment" aria-hidden="true"></i>
-                    <button class="submit"><i class="fa fa-paper-plane" aria-hidden="true"></i></button>
+                    <!-- Message Input -->
+                    <div class="p-3 bg-light border-top">
+                        <div class="input-group">
+                            <input v-model="messageContent" @keyup.enter="sendMessageToUser" type="text"
+                                class="form-control rounded-pill" placeholder="Write your message..." />
+                            <span class="input-group-text bg-white border-0">
+                                <i class="fa fa-paperclip text-muted" aria-hidden="true"></i>
+                            </span>
+                            <button class="btn btn-primary rounded-pill px-4">
+                                <i class="fa fa-paper-plane" aria-hidden="true"></i>
+                            </button>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
-
-    <!-- <div class="adminChat">
-        <h2>Danh sách người dùng</h2>
-        <ul>
-            <li v-for="user in users" :key="user.userId">
-                <button @click="getUserMessages(user.userId)">
-                    User {{ user.userId }}
-                </button>
-            </li>
-        </ul>
-
-        <div v-if="selectedMessages.length">
-            <h3>Tin nhắn của User {{ selectedUserId }}</h3>
-            <div class="chat__conversation-board">
-                <div v-for="(msg, index) in selectedMessages" :key="index"
-                    class="chat__conversation-board__message__bubble">
-                    <span>{{ msg.message }}</span>
-                </div>
-            </div>
-        </div>
-    </div> -->
 </template>
 <script setup>
 import { ref, onMounted, watch } from 'vue';
