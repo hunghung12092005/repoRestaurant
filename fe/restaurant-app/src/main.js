@@ -18,4 +18,5 @@ app
   .use(router) // Sử dụng router
   .use(Antd)   // Sử dụng Ant Design Vue
   .component('QuillEditor', QuillEditor) // Đăng ký component QuillEditor
+  .provide('apiUrl', 'http://localhost:8000/api')
   .mount('#app');
