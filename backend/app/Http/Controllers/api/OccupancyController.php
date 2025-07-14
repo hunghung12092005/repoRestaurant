@@ -269,9 +269,9 @@ class OccupancyController extends Controller
 
             $actualCheckout = now();
             $checkIn = $bookingDetail->created_at
-            ? \Carbon\Carbon::parse($bookingDetail->created_at)
-            : \Carbon\Carbon::parse($booking->check_in_date)->startOfDay();
-                        if ($actualCheckout <= $checkIn) {
+                ? \Carbon\Carbon::parse($bookingDetail->created_at)
+                : \Carbon\Carbon::parse($booking->check_in_date)->startOfDay();
+            if ($actualCheckout <= $checkIn) {
                 return response()->json([
                     'success' => false,
                     'message' => 'Giờ checkout không hợp lệ (phải sau giờ nhận phòng).'
@@ -326,7 +326,7 @@ class OccupancyController extends Controller
 
             $difference = round($paidTotal - $newTotal);
 
-            
+
 
 
             if ($difference > 0) {
@@ -383,14 +383,19 @@ class OccupancyController extends Controller
 
             // Cập nhật lại booking
             DB::table('booking_hotel')->where('booking_id', $booking->booking_id)->update([
+                'check_out_date' => now(),
                 'status' => 'completed',
                 'payment_status' => 'failed',
                 'note' => $note,
                 'updated_at' => now()
             ]);
 
-            $room->status = 'available';
-            $room->save();
+            // Cập nhật trạng thái phòng về 'available'
+            DB::table('rooms')->where('room_id', $room_id)->update([
+                'status' => 'available',
+                'updated_at' => now() // chỉ dùng nếu bảng có cột updated_at
+            ]);
+
 
             return response()->json([
                 'success' => true,
@@ -637,43 +642,42 @@ class OccupancyController extends Controller
         }
     }
     public function getRoomsByDate(Request $request)
-{
-    $date = $request->input('date') ?? now()->toDateString(); // Mặc định là hôm nay
+    {
+        $date = $request->input('date') ?? now()->toDateString(); // Mặc định là hôm nay
 
-    try {
-        $rooms = DB::table('rooms')
-            ->join('room_types', 'rooms.type_id', '=', 'room_types.type_id')
-            ->select(
-                'rooms.room_id',
-                'rooms.room_name',
-                'rooms.floor_number',
-                'room_types.type_name',
-                'room_types.bed_count',
-                'rooms.type_id'
-            )
-            ->orderBy('rooms.floor_number')
-            ->orderBy('rooms.room_name')
-            ->get();
+        try {
+            $rooms = DB::table('rooms')
+                ->join('room_types', 'rooms.type_id', '=', 'room_types.type_id')
+                ->select(
+                    'rooms.room_id',
+                    'rooms.room_name',
+                    'rooms.floor_number',
+                    'room_types.type_name',
+                    'room_types.bed_count',
+                    'rooms.type_id'
+                )
+                ->orderBy('rooms.floor_number')
+                ->orderBy('rooms.room_name')
+                ->get();
 
-        foreach ($rooms as $room) {
-            // Kiểm tra xem có booking nào trong ngày được chọn không
-            $isBooked = DB::table('booking_hotel_detail as bkd')
-                ->join('booking_hotel as bk', 'bk.booking_id', '=', 'bkd.booking_id')
-                ->where('bkd.room_id', $room->room_id)
-                ->whereDate('bk.check_in_date', '<=', $date)
-                ->whereDate('bk.check_out_date', '>', $date)
-                ->exists();
+            foreach ($rooms as $room) {
+                // Kiểm tra xem có booking nào trong ngày được chọn không
+                $isBooked = DB::table('booking_hotel_detail as bkd')
+                    ->join('booking_hotel as bk', 'bk.booking_id', '=', 'bkd.booking_id')
+                    ->where('bkd.room_id', $room->room_id)
+                    ->whereDate('bk.check_in_date', '<=', $date)
+                    ->whereDate('bk.check_out_date', '>', $date)
+                    ->exists();
 
-            $room->status = $isBooked ? 'occupied' : 'available';
+                $room->status = $isBooked ? 'occupied' : 'available';
+            }
+
+            return response()->json($rooms);
+        } catch (\Exception $e) {
+            return response()->json([
+                'message' => 'Lỗi khi lấy danh sách phòng theo ngày.',
+                'error' => $e->getMessage()
+            ], 500);
         }
-
-        return response()->json($rooms);
-    } catch (\Exception $e) {
-        return response()->json([
-            'message' => 'Lỗi khi lấy danh sách phòng theo ngày.',
-            'error' => $e->getMessage()
-        ], 500);
     }
-}
-
 }
