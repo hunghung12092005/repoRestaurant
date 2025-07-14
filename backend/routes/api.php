@@ -44,6 +44,7 @@ Route::post('/register', [ApiLoginController::class, 'register']);
 
 Route::get('/occupancy/rooms', [OccupancyController::class, 'index']);
 // Route::post('/customers', [OccupancyController::class, 'storeCustomer']); //thêm dữ liệu khách vào bảng customer
+Route::get('/occupancy/by-date', [OccupancyController::class, 'getRoomsByDate']); //lọc theo ngày
 Route::get('/rooms/{room_id}/customer', [OccupancyController::class, 'getCustomerByRoom']); //hiển thị thông tin khách
 Route::post('/rooms/{room_id}/checkout', [OccupancyController::class, 'checkoutRoom']); //checkout
 Route::get('/services', [OccupancyController::class, 'getServices']); //hiển thị dịch vụ

@@ -1,49 +1,101 @@
 <template>
   <div class="container mt-5">
     <!-- Tiêu đề trang -->
-    <h1 class="text-heading-md font-semibold text-primary mb-4">Quản lý Booking Khách Sạn</h1>
+    <h1 class="text-heading-md font-semibold text-primary mb-4">Quản Lý Đặt Phòng Khách Sạn</h1>
 
-    <!-- Hiển thị thông báo lỗi nếu có -->
-    <div v-if="errorMessage" class="alert alert-danger" role="alert">
-      {{ errorMessage }}
+    <!-- Bộ lọc và tìm kiếm -->
+    <div class="card mb-4">
+      <div class="card-body">
+        <div class="row">
+          <div class="col-md-3">
+            <div class="form-group">
+              <label>Tìm kiếm</label>
+              <input 
+                v-model="tuKhoaTimKiem" 
+                type="text" 
+                class="form-control" 
+                placeholder="Mã đặt phòng, tên KH..."
+                @input="timKiemDatPhong"
+              >
+            </div>
+          </div>
+          <div class="col-md-3">
+            <div class="form-group">
+              <label>Trạng thái</label>
+              <select v-model="locTrangThai" class="form-control" @change="locDanhSach">
+                <option value="">Tất cả</option>
+                <option value="pending_confirmation">Chờ xác nhận</option>
+                <option value="confirmed">Đã xác nhận</option>
+                <option value="completed">Hoàn thành</option>
+                <option value="cancelled">Đã hủy</option>
+              </select>
+            </div>
+          </div>
+          <div class="col-md-3">
+            <div class="form-group">
+              <label>Từ ngày</label>
+              <input v-model="tuNgay" type="date" class="form-control" @change="locDanhSach">
+            </div>
+          </div>
+          <div class="col-md-3">
+            <div class="form-group">
+              <label>Đến ngày</label>
+              <input v-model="denNgay" type="date" class="form-control" @change="locDanhSach">
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
 
-    <!-- Bảng danh sách booking -->
-    <div class="table-responsive shadow-sm rounded">
-      <table class="table table-striped table-hover" v-if="bookings.length > 0">
+    <!-- Hiển thị thông báo lỗi nếu có -->
+    <div v-if="thongBaoLoi" class="alert alert-danger" role="alert">
+      {{ thongBaoLoi }}
+    </div>
+
+    <!-- Bảng danh sách đặt phòng -->
+    <div class="bang-du-lieu shadow-sm rounded">
+      <table class="table table-striped table-hover" v-if="danhSachHienThi.length > 0">
         <thead class="bg-gray-50">
           <tr>
-            <th scope="col">ID</th>
-            <th scope="col">Khách hàng</th>
-            <th scope="col">Số điện thoại</th>
-            <th scope="col">Loại Booking</th>
-            <th scope="col">Check-in</th>
-            <th scope="col">Check-out</th>
-            <th scope="col">Tổng phòng</th>
-            <th scope="col">Tổng giá</th>
-            <th scope="col">Trạng thái</th>
-            <th scope="col">Hành động</th>
+            <th scope="col" @click="sapXep('booking_id')">
+              Mã Đặt Phòng 
+              <i v-if="sapXepCot === 'booking_id'" :class="sapXepGiam ? 'fas fa-sort-down' : 'fas fa-sort-up'"></i>
+            </th>
+            <th scope="col">Khách Hàng</th>
+            <th scope="col">Số Điện Thoại</th>
+            <th scope="col">Loại Đặt Phòng</th>
+            <th scope="col" @click="sapXep('check_in_date')">
+              Nhận Phòng
+              <i v-if="sapXepCot === 'check_in_date'" :class="sapXepGiam ? 'fas fa-sort-down' : 'fas fa-sort-up'"></i>
+            </th>
+            <th scope="col" @click="sapXep('check_out_date')">
+              Trả Phòng
+              <i v-if="sapXepCot === 'check_out_date'" :class="sapXepGiam ? 'fas fa-sort-down' : 'fas fa-sort-up'"></i>
+            </th>
+            <th scope="col">Tổng Phòng</th>
+            <th scope="col">Tổng Giá</th>
+            <th scope="col">Trạng Thái</th>
+            <th scope="col">Hành Động</th>
           </tr>
         </thead>
         <tbody>
-          <tr v-for="booking in bookings" :key="booking.booking_id" class="table-row">
-            <td>{{ booking.booking_id }}</td>
-            <td>{{ booking.customer?.customer_name || 'N/A' }}</td>
-            <td>{{ booking.customer?.customer_phone || 'N/A' }}</td>
-            <td>{{ booking.booking_type || 'N/A' }}</td>
-            <td>{{ formatDate(booking.check_in_date) }}</td>
-            <td>{{ formatDate(booking.check_out_date) }}</td>
-            <td>{{ booking.total_rooms || '0' }}</td>
-            <td>{{ formatPrice(booking.total_price) }}</td>
+          <tr v-for="datPhong in danhSachHienThi" :key="datPhong.booking_id" class="table-row">
+            <td>{{ datPhong.booking_id }}</td>
+            <td>{{ datPhong.customer?.customer_name || 'Không xác định' }}</td>
+            <td>{{ datPhong.customer?.customer_phone || 'Không xác định' }}</td>
+            <td>{{ dinhDangLoaiDatPhong(datPhong.booking_type) }}</td>
+            <td>{{ dinhDangNgay(datPhong.check_in_date) }}</td>
+            <td>{{ dinhDangNgay(datPhong.check_out_date) }}</td>
+            <td>{{ datPhong.total_rooms || '0' }}</td>
+            <td>{{ dinhDangTien(datPhong.total_price) }}</td>
             <td>
-              <span :class="getStatusClass(booking.status)">
-                {{ formatStatus(booking.status) }}
+              <span :class="layLopTrangThai(datPhong.status)">
+                {{ dinhDangTrangThai(datPhong.status) }}
               </span>
             </td>
             <td>
-              <!-- Nút xem chi tiết cho tất cả trạng thái -->
               <button
-                @click="openDetailModal(booking)"
+                @click="moModalChiTiet(datPhong)"
                 class="btn btn-primary btn-sm"
               >
                 Xem chi tiết
@@ -53,115 +105,145 @@
         </tbody>
       </table>
       <div v-else class="alert alert-info text-center" role="alert">
-        Chưa có booking
+        {{ thongBaoKhongTimThay }}
       </div>
     </div>
 
-    <!-- Modal chi tiết booking -->
-    <div v-if="showModal" class="modal fade show" style="display: block;" tabindex="-1" role="dialog">
+    <!-- Phân trang -->
+    <div class="row mt-3" v-if="tongSoTrang > 1">
+      <div class="col-md-12">
+        <nav aria-label="Page navigation">
+          <ul class="pagination justify-content-center">
+            <li class="page-item" :class="{ disabled: trangHienTai === 1 }">
+              <a class="page-link" href="#" @click.prevent="chuyenTrang(1)">Đầu</a>
+            </li>
+            <li class="page-item" :class="{ disabled: trangHienTai === 1 }">
+              <a class="page-link" href="#" @click.prevent="chuyenTrang(trangHienTai - 1)">Trước</a>
+            </li>
+            <li class="page-item" v-for="trang in danhSachTrang" :key="trang" 
+                :class="{ active: trang === trangHienTai }">
+              <a class="page-link" href="#" @click.prevent="chuyenTrang(trang)">{{ trang }}</a>
+            </li>
+            <li class="page-item" :class="{ disabled: trangHienTai === tongSoTrang }">
+              <a class="page-link" href="#" @click.prevent="chuyenTrang(trangHienTai + 1)">Sau</a>
+            </li>
+            <li class="page-item" :class="{ disabled: trangHienTai === tongSoTrang }">
+              <a class="page-link" href="#" @click.prevent="chuyenTrang(tongSoTrang)">Cuối</a>
+            </li>
+          </ul>
+        </nav>
+      </div>
+    </div>
+
+    <!-- Modal chi tiết đặt phòng -->
+    <div v-if="hienModal" class="modal fade show" style="display: block;" tabindex="-1" role="dialog">
       <div class="modal-dialog modal-lg" role="document">
         <div class="modal-content">
           <div class="modal-header">
-            <h5 class="modal-title text-primary">Chi tiết Booking #{{ selectedBooking.booking_id }}</h5>
-            <button type="button" @click="closeModal" class="btn-close" data-dismiss="modal" aria-label="Close">
+            <h5 class="modal-title text-primary">Chi Tiết Đặt Phòng #{{ datPhongDuocChon.booking_id }}</h5>
+            <button type="button" @click="dongModal" class="btn-close" data-dismiss="modal" aria-label="Close">
               <span aria-hidden="true"></span>
             </button>
           </div>
           <div class="modal-body">
             <!-- Hiển thị loading khi đang tải dữ liệu -->
-            <div v-if="loading" class="text-center">
+            <div v-if="dangTai" class="text-center">
               <div class="spinner-border text-primary" role="status">
-                <span class="visually-hidden">Loading...</span>
+                <span class="visually-hidden">Đang tải...</span>
               </div>
             </div>
-            <!-- Hiển thị thông tin chi tiết booking -->
-            <div v-else-if="selectedBooking.booking_id" class="row mb-4">
+            <!-- Hiển thị thông tin chi tiết đặt phòng -->
+            <div v-else-if="datPhongDuocChon.booking_id" class="row mb-4">
               <div class="col-md-6">
-                <p><strong class="text-dark">Khách hàng:</strong> {{ selectedBooking.customer?.customer_name || 'N/A' }}</p>
-                <p><strong class="text-dark">Số điện thoại:</strong> {{ selectedBooking.customer?.customer_phone || 'N/A' }}</p>
-                <p><strong class="text-dark">Email:</strong> {{ selectedBooking.customer?.customer_email || 'Không có' }}</p>
-                <p><strong class="text-dark">Loại Booking:</strong> {{ selectedBooking.booking_type || 'N/A' }}</p>
+                <p><strong class="text-dark">Khách Hàng:</strong> {{ datPhongDuocChon.customer?.customer_name || 'Không xác định' }}</p>
+                <p><strong class="text-dark">Số Điện Thoại:</strong> {{ datPhongDuocChon.customer?.customer_phone || 'Không xác định' }}</p>
+                <p><strong class="text-dark">Email:</strong> {{ datPhongDuocChon.customer?.customer_email || 'Không có' }}</p>
+                <p><strong class="text-dark">Loại Đặt Phòng:</strong> {{ dinhDangLoaiDatPhong(datPhongDuocChon.booking_type) }}</p>
               </div>
               <div class="col-md-6">
-                <p><strong class="text-dark">Check-in:</strong> {{ formatDate(selectedBooking.check_in_date) }}</p>
-                <p><strong class="text-dark">Check-out:</strong> {{ formatDate(selectedBooking.check_out_date) }}</p>
-                <p><strong class="text-dark">Tổng phòng:</strong> {{ selectedBooking.total_rooms || '0' }}</p>
-                <p><strong class="text-dark">Tổng giá:</strong> {{ formatPrice(selectedBooking.total_price) }}</p>
-                <p><strong class="text-dark">Ghi chú:</strong> {{ selectedBooking.note || 'Không có' }}</p>
-                <p><strong class="text-dark">Trạng thái:</strong>
-                  <span :class="getStatusClass(selectedBooking.status)">
-                    {{ formatStatus(selectedBooking.status) }}
+                <p><strong class="text-dark">Nhận Phòng:</strong> {{ dinhDangNgay(datPhongDuocChon.check_in_date) }}</p>
+                <p><strong class="text-dark">Trả Phòng:</strong> {{ dinhDangNgay(datPhongDuocChon.check_out_date) }}</p>
+                <p><strong class="text-dark">Tổng Phòng:</strong> {{ datPhongDuocChon.total_rooms || '0' }}</p>
+                <p><strong class="text-dark">Tổng Giá:</strong> {{ dinhDangTien(datPhongDuocChon.total_price) }}</p>
+                <p><strong class="text-dark">Trạng Thái Thanh Toán:</strong>
+                  <span :class="layLopTrangThaiThanhToan(datPhongDuocChon.payment_status)">
+                    {{ datPhongDuocChon.payment_status_display || dinhDangTrangThaiThanhToan(datPhongDuocChon.payment_status) }}
                   </span>
                 </p>
+                <p><strong class="text-dark">Trạng Thái:</strong>
+                  <span :class="layLopTrangThai(datPhongDuocChon.status)">
+                    {{ dinhDangTrangThai(datPhongDuocChon.status) }}
+                  </span>
+                </p>
+                <p><strong class="text-dark">Ghi Chú:</strong> {{ datPhongDuocChon.note || 'Không có' }}</p>
               </div>
             </div>
 
             <!-- Bảng chi tiết phòng -->
-            <h4 v-if="!loading && selectedBooking.booking_id" class="text-primary mb-3">Chi tiết phòng</h4>
-            <div v-if="!loading && selectedBooking.booking_id" class="table-responsive mb-4">
+            <h4 v-if="!dangTai && datPhongDuocChon.booking_id" class="text-primary mb-3">Chi Tiết Phòng</h4>
+            <div v-if="!dangTai && datPhongDuocChon.booking_id" class="bang-du-lieu mb-4">
               <table class="table table-striped">
                 <thead class="thead-dark">
                   <tr>
-                    <th>ID</th>
-                    <th>Loại phòng đã đặt</th>
-                    <th>Phòng đã xếp</th>
-                    <th>Tổng giá</th>
-                    <th>Xếp phòng</th>
+                    <th>Mã Chi Tiết</th>
+                    <th>Loại Phòng Đã Đặt</th>
+                    <th>Phòng Đã Xếp</th>
+                    <th>Tổng Giá</th>
+                    <th>Xếp Phòng</th>
                   </tr>
                 </thead>
                 <tbody>
-                  <tr v-for="detail in validBookingDetails" :key="detail.booking_detail_id">
-                    <td>{{ detail.booking_detail_id }}</td>
-                    <td>{{ detail.type_name || 'Loại phòng không xác định' }}</td>
-                    <td>{{ detail.room?.room_name || 'Chưa xếp' }}</td>
-                    <td>{{ formatPrice(detail.total_price) || '0' }}</td>
+                  <tr v-for="chiTiet in chiTietDatPhongHopLe" :key="chiTiet.booking_detail_id">
+                    <td>{{ chiTiet.booking_detail_id }}</td>
+                    <td>{{ chiTiet.type_name || 'Loại phòng không xác định' }}</td>
+                    <td>{{ chiTiet.room?.room_name || 'Chưa xếp' }}</td>
+                    <td>{{ dinhDangTien(chiTiet.total_price) }}</td>
                     <td>
-                      <!-- Dropdown chọn phòng nếu chưa gán và booking là pending_confirmation -->
                       <select
-                        v-if="!detail.room_id && availableRooms[detail.booking_detail_id]?.length > 0 && selectedBooking.status === 'pending_confirmation'"
-                        v-model="detail.room_id"
-                        @change="assignRoom(detail)"
+                        v-if="!chiTiet.room_id && phongTrong[chiTiet.booking_detail_id]?.length > 0 && datPhongDuocChon.status === 'pending_confirmation'"
+                        v-model="chiTiet.room_id"
+                        @change="xepPhong(chiTiet)"
                         class="form-control form-control-sm"
-                        :disabled="detail.room_id"
+                        :disabled="chiTiet.room_id"
                       >
                         <option value="">Chọn phòng</option>
                         <option
-                          v-for="room in availableRooms[detail.booking_detail_id]"
-                          :key="room.room_id"
-                          :value="room.room_id"
-                          :disabled="room.status === 'occupied'"
+                          v-for="phong in phongTrong[chiTiet.booking_detail_id]"
+                          :key="phong.room_id"
+                          :value="phong.room_id"
+                          :disabled="phong.status === 'occupied'"
                         >
-                          {{ room.room_name }} ({{ room.type_name || 'N/A' }})
+                          {{ phong.room_name }} ({{ phong.type_name || 'Không xác định' }})
                         </option>
                       </select>
-                      <span v-else-if="detail.room_id">Đã xếp: {{ detail.room?.room_name || 'Phòng không xác định' }}</span>
-                      <span v-else-if="!detail.room_id && (selectedBooking.status === 'confirmed' || selectedBooking.status === 'completed')">Chưa xếp (Booking {{ formatStatus(selectedBooking.status) }})</span>
+                      <span v-else-if="chiTiet.room_id">Đã xếp: {{ chiTiet.room?.room_name || 'Phòng không xác định' }}</span>
+                      <span v-else-if="!chiTiet.room_id && (datPhongDuocChon.status === 'confirmed' || datPhongDuocChon.status === 'completed')">Chưa xếp (Đặt phòng {{ dinhDangTrangThai(datPhongDuocChon.status) }})</span>
                       <span v-else>Không có phòng trống</span>
                     </td>
                   </tr>
                 </tbody>
               </table>
             </div>
-            <div v-if="!loading && selectedBooking.booking_id && !validBookingDetails.length" class="alert alert-warning text-center">
+            <div v-if="!dangTai && datPhongDuocChon.booking_id && !chiTietDatPhongHopLe.length" class="alert alert-warning text-center">
               Không có chi tiết phòng để hiển thị.
             </div>
           </div>
           <!-- Nút xác nhận và đóng modal -->
-          <div v-if="!loading && selectedBooking.booking_id" class="modal-footer">
+          <div v-if="!dangTai && datPhongDuocChon.booking_id" class="modal-footer">
             <button
-              v-if="selectedBooking.status === 'pending_confirmation'"
-              @click="confirmBooking"
+              v-if="datPhongDuocChon.status === 'pending_confirmation'"
+              @click="xacNhanDatPhong"
               class="btn btn-success"
-              :disabled="hasUnassignedRooms"
+              :disabled="coPhongChuaXep"
             >
-              Xác nhận Booking
+              Xác Nhận Đặt Phòng
             </button>
-            <button @click="closeModal" class="btn btn-secondary" data-dismiss="modal">Đóng</button>
+            <button @click="dongModal" class="btn btn-secondary" data-dismiss="modal">Đóng</button>
           </div>
         </div>
       </div>
     </div>
-    <div v-if="showModal" class="modal-backdrop fade show"></div>
+    <div v-if="hienModal" class="modal-backdrop fade show"></div>
   </div>
 </template>
 
@@ -170,185 +252,403 @@ import { ref, onMounted, computed } from 'vue';
 import axios from 'axios';
 
 // Trạng thái (state)
-const bookings = ref([]); // Danh sách booking
-const showModal = ref(false); // Hiển thị modal
-const selectedBooking = ref({}); // Booking được chọn
-const bookingDetails = ref([]); // Chi tiết booking
-const availableRooms = ref({}); // Danh sách phòng trống
-const errorMessage = ref(''); // Thông báo lỗi
-const loading = ref(false); // Trạng thái tải dữ liệu
+const danhSachDatPhong = ref([]); // Danh sách đặt phòng gốc
+const hienModal = ref(false); // Hiển thị modal
+const datPhongDuocChon = ref({}); // Đặt phòng được chọn
+const chiTietDatPhong = ref([]); // Chi tiết đặt phòng
+const phongTrong = ref({}); // Danh sách phòng trống
+const thongBaoLoi = ref(''); // Thông báo lỗi
+const dangTai = ref(false); // Trạng thái tải dữ liệu
 
-// Tính toán danh sách chi tiết booking hợp lệ
-const validBookingDetails = computed(() => {
-  return bookingDetails.value.filter(detail => detail && detail.booking_detail_id);
+// Phân trang và lọc
+const tuKhoaTimKiem = ref(''); // Từ khóa tìm kiếm
+const locTrangThai = ref(''); // Lọc theo trạng thái
+const tuNgay = ref(''); // Lọc từ ngày
+const denNgay = ref(''); // Lọc đến ngày
+const trangHienTai = ref(1); // Trang hiện tại
+const soBanGhiTrenTrang = ref(10); // Số bản ghi trên trang
+const sapXepCot = ref('booking_id'); // Cột sắp xếp mặc định là booking_id
+const sapXepGiam = ref(true); // Sắp xếp giảm dần (mới nhất đầu tiên)
+
+// Thông báo khi không tìm thấy
+const thongBaoKhongTimThay = computed(() => {
+  if (danhSachDatPhong.value.length === 0) {
+    return 'Không có dữ liệu đặt phòng. Vui lòng kiểm tra kết nối hoặc thêm đặt phòng mới.';
+  } else if (tuKhoaTimKiem.value || locTrangThai.value || tuNgay.value || denNgay.value) {
+    return 'Không tìm thấy đặt phòng phù hợp với bộ lọc. Vui lòng điều chỉnh bộ lọc.';
+  }
+  return 'Không tìm thấy đặt phòng nào phù hợp.';
+});
+
+// Tính toán danh sách đã lọc
+const danhSachLoc = computed(() => {
+  let ketQua = [...danhSachDatPhong.value];
+  
+  // Lọc theo từ khóa
+  if (tuKhoaTimKiem.value) {
+    const tuKhoa = tuKhoaTimKiem.value.toLowerCase();
+    ketQua = ketQua.filter(item => 
+      (item.booking_id && item.booking_id.toString().includes(tuKhoa)) ||
+      (item.customer?.customer_name && item.customer.customer_name.toLowerCase().includes(tuKhoa)) ||
+      (item.customer?.customer_phone && item.customer.customer_phone.includes(tuKhoa))
+    );
+  }
+  
+  // Lọc theo trạng thái
+  if (locTrangThai.value) {
+    ketQua = ketQua.filter(item => item.status === locTrangThai.value);
+  }
+  
+  // Lọc theo ngày
+  if (tuNgay.value) {
+    const ngayBatDau = new Date(tuNgay.value);
+    ketQua = ketQua.filter(item => {
+      const ngayDatPhong = new Date(item.check_in_date);
+      return ngayDatPhong >= ngayBatDau;
+    });
+  }
+  
+  if (denNgay.value) {
+    const ngayKetThuc = new Date(denNgay.value);
+    ketQua = ketQua.filter(item => {
+      const ngayDatPhong = new Date(item.check_in_date);
+      return ngayDatPhong <= ngayKetThuc;
+    });
+  }
+  
+  // Sắp xếp
+  ketQua.sort((a, b) => {
+    const giaTriA = a[sapXepCot.value];
+    const giaTriB = b[sapXepCot.value];
+    
+    if (sapXepCot.value === 'booking_id') {
+      // So sánh số cho booking_id
+      return sapXepGiam.value ? giaTriB - giaTriA : giaTriA - giaTriB;
+    } else if (sapXepCot.value === 'check_in_date' || sapXepCot.value === 'check_out_date') {
+      // So sánh ngày
+      const dateA = new Date(giaTriA);
+      const dateB = new Date(giaTriB);
+      return sapXepGiam.value ? dateB - dateA : dateA - dateB;
+    }
+    
+    return 0;
+  });
+  
+  return ketQua;
+});
+
+// Tính toán phân trang
+const tongSoBanGhi = computed(() => danhSachLoc.value.length);
+const tongSoTrang = computed(() => Math.ceil(tongSoBanGhi.value / soBanGhiTrenTrang.value));
+const danhSachTrang = computed(() => {
+  const maxPagesToShow = 5; // Số trang tối đa hiển thị
+  const halfPages = Math.floor(maxPagesToShow / 2);
+  let trangBatDau = Math.max(1, trangHienTai.value - halfPages);
+  let trangKetThuc = Math.min(tongSoTrang.value, trangBatDau + maxPagesToShow - 1);
+  
+  if (trangKetThuc - trangBatDau + 1 < maxPagesToShow) {
+    trangBatDau = Math.max(1, trangKetThuc - maxPagesToShow + 1);
+  }
+  
+  const danhSach = [];
+  for (let i = trangBatDau; i <= trangKetThuc; i++) {
+    danhSach.push(i);
+  }
+  return danhSach;
+});
+
+// Tính toán danh sách hiển thị trên trang hiện tại
+const danhSachHienThi = computed(() => {
+  const batDau = (trangHienTai.value - 1) * soBanGhiTrenTrang.value;
+  const ketThuc = batDau + soBanGhiTrenTrang.value;
+  return danhSachLoc.value.slice(batDau, ketThuc);
+});
+
+// Tính toán danh sách chi tiết đặt phòng hợp lệ
+const chiTietDatPhongHopLe = computed(() => {
+  return chiTietDatPhong.value.filter(chiTiet => chiTiet && chiTiet.booking_detail_id);
 });
 
 // Kiểm tra xem có phòng nào chưa được gán hay không
-const hasUnassignedRooms = computed(() => {
-  return bookingDetails.value.some(detail => !detail.room_id);
+const coPhongChuaXep = computed(() => {
+  return chiTietDatPhong.value.some(chiTiet => !chiTiet.room_id);
 });
 
-// Lấy danh sách booking từ API
-const fetchBookings = async () => {
+// Lấy danh sách đặt phòng từ API
+const layDanhSachDatPhong = async () => {
   try {
-    // Lấy booking pending_confirmation, confirmed và completed
-    const response = await axios.get('/api/bookings?status[]=pending_confirmation&status[]=confirmed&status[]=completed');
-    bookings.value = Array.isArray(response.data) ? response.data : [];
-    errorMessage.value = '';
-    console.log('Bookings fetched:', bookings.value);
-  } catch (error) {
-    console.error('Lỗi khi lấy danh sách booking:', error);
-    errorMessage.value = `Lỗi khi lấy danh sách booking: ${error.response?.data?.error || error.message}`;
+    const phanHoi = await axios.get('/api/bookings?status[]=pending_confirmation&status[]=confirmed&status[]=completed', {
+      headers: { 'Accept': 'application/json' }
+    });
+    danhSachDatPhong.value = Array.isArray(phanHoi.data) ? phanHoi.data : [];
+    trangHienTai.value = 1; // Đặt lại trang về 1 khi tải dữ liệu mới
+    thongBaoLoi.value = danhSachDatPhong.value.length === 0 ? 'Không có dữ liệu đặt phòng từ server.' : '';
+    console.log('Danh sách đặt phòng:', danhSachDatPhong.value);
+  } catch (loi) {
+    console.error('Lỗi khi lấy danh sách đặt phòng:', loi);
+    thongBaoLoi.value = loi.response?.data?.error 
+      ? `Lỗi server: ${loi.response.data.error} (Mã: ${loi.response.status})`
+      : `Lỗi khi lấy danh sách đặt phòng: ${loi.message}`;
   }
 };
 
-// Mở modal chi tiết booking
-const openDetailModal = async (booking) => {
-  selectedBooking.value = booking;
-  loading.value = true;
+// Mở modal chi tiết đặt phòng
+const moModalChiTiet = async (datPhong) => {
+  datPhongDuocChon.value = datPhong;
+  dangTai.value = true;
   try {
-    // Lấy chi tiết booking từ API
-    const detailsResponse = await axios.get(`/api/booking-details/${booking.booking_id}`);
-    bookingDetails.value = Array.isArray(detailsResponse.data)
-      ? detailsResponse.data.map(detail => ({
-          ...detail,
-          room: detail.room || { room_id: null, room_name: 'Chưa xếp', status: 'N/A' },
-          type_name: detail.roomType?.type_name || 'Loại phòng không xác định', // Lấy tên loại phòng từ roomType
-          room_type: detail.room_type // Đảm bảo room_type là type_id (số nguyên)
+    const phanHoiChiTiet = await axios.get(`/api/booking-details/${datPhong.booking_id}`, {
+      headers: { 'Accept': 'application/json' }
+    });
+    chiTietDatPhong.value = Array.isArray(phanHoiChiTiet.data)
+      ? phanHoiChiTiet.data.map(chiTiet => ({
+          ...chiTiet,
+          room: chiTiet.room || { room_id: null, room_name: 'Chưa xếp', status: 'Không xác định' },
+          type_name: chiTiet.roomType?.type_name || 'Loại phòng không xác định',
+          room_type: chiTiet.room_type
         }))
       : [];
-    console.log('Booking details fetched:', bookingDetails.value);
+    console.log('Chi tiết đặt phòng:', chiTietDatPhong.value);
 
-    // Lấy danh sách phòng trống cho booking pending_confirmation
-    if (booking.status === 'pending_confirmation') {
+    if (datPhong.status === 'pending_confirmation') {
       await Promise.all(
-        bookingDetails.value.map(async (detail) => {
-          if (!detail.room_id && detail.room_type) {
+        chiTietDatPhong.value.map(async (chiTiet) => {
+          if (!chiTiet.room_id && chiTiet.room_type) {
             try {
-              // Chuyển room_type thành số nguyên
-              const roomTypeId = Number(detail.room_type);
-              console.log('room_type:', detail.room_type, 'Converted to:', roomTypeId); // Debug
-              if (isNaN(roomTypeId) || roomTypeId <= 0) {
-                throw new Error(`room_type không hợp lệ: ${detail.room_type}`);
+              const maLoaiPhong = Number(chiTiet.room_type);
+              if (isNaN(maLoaiPhong) || maLoaiPhong <= 0) {
+                throw new Error(`Mã loại phòng không hợp lệ: ${chiTiet.room_type}`);
               }
-              // Gửi yêu cầu lấy phòng trống
-              const roomsResponse = await axios.post('/api/available-rooms', {
-                room_type: roomTypeId
+              const phanHoiPhong = await axios.post('/api/available-rooms', {
+                room_type: maLoaiPhong
               }, {
-                headers: { 'Content-Type': 'application/json' }
+                headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' }
               });
-              availableRooms.value[detail.booking_detail_id] = Array.isArray(roomsResponse.data)
-                ? roomsResponse.data
+              phongTrong.value[chiTiet.booking_detail_id] = Array.isArray(phanHoiPhong.data)
+                ? phanHoiPhong.data
                 : [];
-              console.log(`Available rooms for booking_detail_id ${detail.booking_detail_id}:`, availableRooms.value[detail.booking_detail_id]);
-            } catch (error) {
-              console.error(`Lỗi khi lấy phòng trống cho room_type ${detail.room_type}:`, error.response?.data || error.message);
-              availableRooms.value[detail.booking_detail_id] = [];
-              errorMessage.value = `Lỗi khi lấy phòng trống: ${error.response?.data?.message || error.message}`;
+              console.log(`Phòng trống cho mã chi tiết ${chiTiet.booking_detail_id}:`, phongTrong.value[chiTiet.booking_detail_id]);
+            } catch (loi) {
+              console.error(`Lỗi khi lấy phòng trống cho mã loại phòng ${chiTiet.room_type}:`, loi);
+              phongTrong.value[chiTiet.booking_detail_id] = [];
+              thongBaoLoi.value = `Lỗi khi lấy phòng trống: ${loi.response?.data?.message || loi.message}`;
             }
           }
         })
       );
     }
 
-    // Kiểm tra nếu không có phòng trống
-    errorMessage.value = Object.values(availableRooms.value).every(arr => arr.length === 0) && booking.status === 'pending_confirmation'
+    thongBaoLoi.value = Object.values(phongTrong.value).every(arr => arr.length === 0) && datPhong.status === 'pending_confirmation'
       ? 'Không có phòng trống phù hợp với loại phòng.'
       : '';
-  } catch (error) {
-    console.error('Lỗi khi lấy chi tiết booking:', error);
-    errorMessage.value = `Lỗi khi lấy chi tiết booking: ${error.response?.data?.error || error.message}`;
+  } catch (loi) {
+    console.error('Lỗi khi lấy chi tiết đặt phòng:', loi);
+    thongBaoLoi.value = loi.response?.data?.error 
+      ? `Lỗi server: ${loi.response.data.error} (Mã: ${loi.response.status})`
+      : `Lỗi khi lấy chi tiết đặt phòng: ${loi.message}`;
   } finally {
-    loading.value = false;
-    showModal.value = true;
+    dangTai.value = false;
+    hienModal.value = true;
   }
 };
 
-// Gán phòng cho chi tiết booking
-const assignRoom = async (detail) => {
-  if (!detail || !detail.booking_detail_id || !detail.room_id) {
-    errorMessage.value = 'Chi tiết booking hoặc phòng không hợp lệ';
+// Gán phòng cho chi tiết đặt phòng
+const xepPhong = async (chiTiet) => {
+  if (!chiTiet || !chiTiet.booking_detail_id || !chiTiet.room_id) {
+    thongBaoLoi.value = 'Chi tiết đặt phòng hoặc phòng không hợp lệ';
     return;
   }
   try {
-    await axios.post(`/api/assign-room/${detail.booking_detail_id}`, {
-      room_id: detail.room_id
+    await axios.post(`/api/assign-room/${chiTiet.booking_detail_id}`, {
+      room_id: chiTiet.room_id
+    }, {
+      headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' }
     });
     alert('Xếp phòng thành công!');
-    // Kiểm tra nếu tất cả phòng đã được gán, tự động xác nhận booking
-    await openDetailModal(selectedBooking.value); // Tải lại chi tiết booking
-    if (!hasUnassignedRooms.value) {
-      await confirmBooking(); // Tự động xác nhận nếu không còn phòng chưa gán
+    await moModalChiTiet(datPhongDuocChon.value);
+    if (!coPhongChuaXep.value) {
+      await xacNhanDatPhong();
     }
-    errorMessage.value = '';
-  } catch (error) {
-    console.error('Lỗi khi xếp phòng:', error);
-    errorMessage.value = `Lỗi khi xếp phòng: ${error.response?.data?.error || error.message}`;
+    thongBaoLoi.value = '';
+  } catch (loi) {
+    console.error('Lỗi khi xếp phòng:', loi);
+    thongBaoLoi.value = loi.response?.data?.error 
+      ? `Lỗi server: ${loi.response.data.error} (Mã: ${loi.response.status})`
+      : `Lỗi khi xếp phòng: ${loi.message}`;
   }
 };
 
-// Xác nhận booking
-const confirmBooking = async () => {
+// Xác nhận đặt phòng
+const xacNhanDatPhong = async () => {
   try {
-    await axios.patch(`/api/bookings/${selectedBooking.value.booking_id}`, {});
-    alert('Xác nhận booking thành công!');
-    showModal.value = false;
-    await fetchBookings(); // Tải lại danh sách booking
-    errorMessage.value = '';
-  } catch (error) {
-    console.error('Lỗi khi xác nhận booking:', error);
-    errorMessage.value = `Lỗi khi xác nhận booking: ${error.response?.data?.error || error.message}`;
+    await axios.patch(`/api/bookings/${datPhongDuocChon.value.booking_id}`, {}, {
+      headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' }
+    });
+    alert('Xác nhận đặt phòng thành công!');
+    hienModal.value = false;
+    await layDanhSachDatPhong();
+    thongBaoLoi.value = '';
+  } catch (loi) {
+    console.error('Lỗi khi xác nhận đặt phòng:', loi);
+    thongBaoLoi.value = loi.response?.data?.error 
+      ? `Lỗi server: ${loi.response.data.error} (Mã: ${loi.response.status})`
+      : `Lỗi khi xác nhận đặt phòng: ${loi.message}`;
   }
 };
 
 // Đóng modal
-const closeModal = () => {
-  showModal.value = false;
-  selectedBooking.value = {};
-  bookingDetails.value = [];
-  availableRooms.value = {};
-  errorMessage.value = '';
+const dongModal = () => {
+  hienModal.value = false;
+  datPhongDuocChon.value = {};
+  chiTietDatPhong.value = [];
+  phongTrong.value = {};
+  thongBaoLoi.value = '';
+};
+
+// Chuyển trang
+const chuyenTrang = (trang) => {
+  if (trang >= 1 && trang <= tongSoTrang.value) {
+    trangHienTai.value = trang;
+  }
+};
+
+// Tìm kiếm đặt phòng
+const timKiemDatPhong = () => {
+  trangHienTai.value = 1; // Reset về trang đầu khi tìm kiếm
+};
+
+// Lọc danh sách
+const locDanhSach = () => {
+  trangHienTai.value = 1; // Reset về trang đầu khi lọc
+};
+
+// Sắp xếp
+const sapXep = (cot) => {
+  if (sapXepCot.value === cot) {
+    sapXepGiam.value = !sapXepGiam.value;
+  } else {
+    sapXepCot.value = cot;
+    sapXepGiam.value = cot === 'booking_id' ? true : false; // Mặc định giảm dần cho booking_id
+  }
+  trangHienTai.value = 1; // Reset về trang đầu khi sắp xếp
 };
 
 // Định dạng ngày
-const formatDate = (date) => {
-  return date ? new Date(date).toLocaleDateString('vi-VN') : 'N/A';
+const dinhDangNgay = (ngay) => {
+  return ngay ? new Date(ngay).toLocaleDateString('vi-VN') : 'Không xác định';
 };
 
 // Định dạng giá tiền
-const formatPrice = (price) => {
-  return new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(price || 0);
+const dinhDangTien = (gia) => {
+  return new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(gia || 0);
+};
+
+// Định dạng loại đặt phòng
+const dinhDangLoaiDatPhong = (loai) => {
+  const bangLoai = {
+    online: 'Trực tuyến',
+    offline: 'Tại chỗ'
+  };
+  return bangLoai[loai] || loai || 'Không xác định';
 };
 
 // Định dạng trạng thái
-const formatStatus = (status) => {
-  const statusMap = {
+const dinhDangTrangThai = (trangThai) => {
+  const bangTrangThai = {
     pending_confirmation: 'Chờ xác nhận',
     confirmed: 'Đã xác nhận',
     completed: 'Hoàn thành',
     cancelled: 'Đã hủy'
   };
-  return statusMap[status] || status;
+  return bangTrangThai[trangThai] || trangThai || 'Không xác định';
+};
+
+// Định dạng trạng thái thanh toán
+const dinhDangTrangThaiThanhToan = (trangThai) => {
+  const bangTrangThaiThanhToan = {
+    PENDING: 'Chờ thanh toán',
+    PAID: 'Đã thanh toán',
+    CANCELLED: 'Đã hủy',
+    REFUNDED: 'Đã hoàn tiền',
+    ERROR: 'Lỗi thanh toán',
+    UNKNOWN: 'Không xác định'
+  };
+  return bangTrangThaiThanhToan[trangThai] || trangThai || 'Không xác định';
 };
 
 // Lấy lớp CSS cho trạng thái
-const getStatusClass = (status) => {
+const layLopTrangThai = (trangThai) => {
   return {
     'badge': true,
-    'badge-warning': status === 'pending_confirmation',
-    'badge-success': status === 'confirmed',
-    'badge-info': status === 'completed',
-    'badge-danger': status === 'cancelled'
+    'badge-warning': trangThai === 'pending_confirmation',
+    'badge-success': trangThai === 'confirmed',
+    'badge-info': trangThai === 'completed',
+    'badge-danger': trangThai === 'cancelled'
   };
 };
 
-// Gọi fetchBookings khi component được mount
+// Lấy lớp CSS cho trạng thái thanh toán
+const layLopTrangThaiThanhToan = (trangThai) => {
+  return {
+    'badge': true,
+    'badge-warning': trangThai === 'PENDING' || trangThai === 'pending',
+    'badge-success': trangThai === 'PAID' || trangThai === 'paid',
+    'badge-danger': trangThai === 'CANCELLED' || trangThai === 'cancelled' || trangThai === 'ERROR',
+    'badge-secondary': trangThai === 'REFUNDED' || trangThai === 'refunded',
+    'badge-light': trangThai === 'UNKNOWN'
+  };
+};
+
+// Gọi layDanhSachDatPhong khi component được mount
 onMounted(() => {
-  fetchBookings();
+  layDanhSachDatPhong();
 });
 </script>
 
 <style scoped>
+.thong-bao-loi {
+  color: #721c24;
+  background-color: #f8d7da;
+  border-color: #f5c6cb;
+  padding: 10px;
+  margin-bottom: 20px;
+  border-radius: 4px;
+}
+.thong-bao-thong-tin {
+  color: #0c5460;
+  background-color: #d1ecf1;
+  border-color: #bee5eb;
+  padding: 10px;
+  margin-bottom: 20px;
+  border-radius: 4px;
+}
+.thong-bao-canh-bao {
+  color: #856404;
+  background-color: #fff3cd;
+  border-color: #ffeeba;
+  padding: 10px;
+  margin-bottom: 20px;
+  border-radius: 4px;
+}
+.bang-du-lieu {
+  overflow-x: auto;
+}
+.bang-du-lieu table {
+  width: 100%;
+  border-collapse: collapse;
+}
+.bang-du-lieu th, .bang-du-lieu td {
+  border: 1px solid #ddd;
+  padding: 8px;
+  text-align: left;
+}
+.bang-du-lieu th {
+  background-color: #f2f2f2;
+  cursor: pointer;
+}
+.bang-du-lieu th:hover {
+  background-color: #e9e9e9;
+}
 .modal-backdrop {
   position: fixed;
   top: 0;
@@ -358,25 +658,12 @@ onMounted(() => {
   background-color: rgba(0, 0, 0, 0.5);
   z-index: 1040;
 }
-
 .modal.fade.show {
   z-index: 1050;
 }
-
 .modal-dialog {
   transform: translate(0, 0) !important;
 }
-
-@media (max-width: 768px) {
-  .table-responsive {
-    overflow-x: auto;
-  }
-  .btn-sm {
-    padding: 0.25rem 0.5rem;
-    font-size: 0.875rem;
-  }
-}
-
 .badge {
   display: inline-block;
   padding: 0.25em 0.4em;
@@ -388,8 +675,32 @@ onMounted(() => {
   vertical-align: baseline;
   border-radius: 0.25rem;
 }
-.badge-warning { background-color: #ffc107; color: #212529; }
-.badge-success { background-color: #28a745; color: #fff; }
-.badge-info { background-color: #17a2b8; color: #fff; }
-.badge-danger { background-color: #dc3545; color: #fff; }
+
+/* Màu cho trạng thái đặt phòng */
+.badge-warning { background-color: #ffc107; color: black; }   /* Chờ xác nhận */
+.badge-success { background-color: #28a745; color: white; }  /* Đã xác nhận */
+.badge-info    { background-color: #17a2b8; color: white; }  /* Hoàn thành */
+.badge-danger  { background-color: #dc3545; color: white; }  /* Đã hủy */
+
+/* Màu cho trạng thái thanh toán */
+.badge-secondary { background-color: #6c757d; color: white; } /* Đã hoàn tiền */
+.badge-light     { background-color: #f8f9fa; color: black; } /* Không xác định */
+
+.page-item.active .page-link {
+  background-color: #007bff;
+  border-color: #007bff;
+}
+.page-link {
+  color: #007bff;
+}
+
+@media (max-width: 768px) {
+  .bang-du-lieu {
+    overflow-x: auto;
+  }
+  .btn-sm {
+    padding: 0.25rem 0.5rem;
+    font-size: 0.875rem;
+  }
+}
 </style>

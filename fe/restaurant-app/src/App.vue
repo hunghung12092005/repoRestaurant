@@ -20,11 +20,11 @@
         </div>
         <ul class="nav flex-column">
           <li class="nav-item"><router-link class="nav-link" to="/admin/dashboard"><i class="bi bi-grid"></i>
-              Dashboard</router-link></li>
+              Trang thống kê</router-link></li>
           <li class="nav-item"><router-link class="nav-link" to="/admin/occupancy"><i class="bi bi-house-door"></i>
-              Occupancy <span class="badge bg-danger">5</span></router-link></li>
+              QL tình trạng phòng <span class="badge bg-danger">5</span></router-link></li>
           <li class="nav-item"><router-link class="nav-link" to="/admin/bookings"><i class="bi bi-book"></i>
-              Bookings</router-link></li>
+              Quản lý đặt phòng</router-link></li>
           <li class="nav-item dropdown">
             <a class="nav-link dropdown-toggle" href="#" id="roomsDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
               <i class='bx  bx-bed'></i> Dịch vụ và tiện nghi
@@ -87,7 +87,7 @@
         <main class="admin-main">
           <RouterView></RouterView>
         </main>
-        <footer class="admin-footer text-center py-3">Admin Footer - Sea Foodie</footer>
+        <footer class="admin-footer text-center py-3">Trang quản trị khách sạn Hồ Xuân Hương</footer>
       </div>
     </div>
 

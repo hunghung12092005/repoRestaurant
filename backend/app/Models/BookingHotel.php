@@ -11,15 +11,17 @@ class BookingHotel extends Model
     protected $fillable = [
         'customer_id',
         'payment_method',
+        'orderCode',
         'booking_type',
+        'pricing_type',
         'check_in_date',
         'check_out_date',
         'total_rooms',
         'total_price',
+        'additional_fee',
         'payment_status',
         'status',
-        'note',
-        'orderCode',
+        'note'
     ];
 
     public function customer()
