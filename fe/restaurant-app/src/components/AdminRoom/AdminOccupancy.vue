@@ -33,9 +33,14 @@
         <select id="floor" v-model="selectedFloor">
           <option v-for="floor in floors" :key="floor" :value="floor">{{ floor }}</option>
         </select>
-      </div>
-      <button @click="clearFilters" class="clear-btn">Xóa lọc</button>
+        </div>
+          <div class="filter-group">
+      <label for="filter-date">Ngày:</label>
+      <input type="date" id="filter-date" v-model="selectedDate" @change="fetchRooms" />
     </div>
+
+        <button @click="clearFilters" class="clear-btn">Xóa lọc</button>
+      </div>
 
 
     <div>
@@ -268,6 +273,7 @@ const isisLoading = ref(false);
 const selectedStatus = ref('Tất cả');
 const selectedRoomType = ref('Tất cả');
 const selectedFloor = ref('Tất cả');
+const selectedDate = ref(new Date().toISOString().substr(0, 10)); // Ngày mặc định: hôm nay
 
 // Form thêm khách
 const showForm = ref(false);
@@ -423,7 +429,10 @@ const mapBedCountToString = (c) => c === 1 ? 'Giường đơn' : c === 2 ? 'Giư
 const fetchRooms = async () => {
   isisLoading.value = true;
   try {
-    const res = await axios.get(`${apiUrl}/api/occupancy/rooms`);
+    const res = await axios.get(`${apiUrl}/api/occupancy/by-date`, {
+  params: { date: selectedDate.value }
+});
+
     allRooms.value = res.data.map(r => ({
       room_id: r.room_id,
       number: r.room_name,
@@ -556,6 +565,7 @@ watch(() => formData.value.room_id, () => {
   if (formData.value.check_in_date && formData.value.check_out_date) {
     calculateTotalPricePreview();
   }
+  
 });
 const getActualCheckout = (booking) => {
   if (!booking || !booking.actual_check_out_time) return 'Chưa trả';
@@ -564,6 +574,7 @@ const getActualCheckout = (booking) => {
 </script>
 
 <style scoped>
+
 /* CSS giữ nguyên như phiên bản trước */
 .occupancy-page {
   font-family: 'Be Vietnam Pro', sans-serif;

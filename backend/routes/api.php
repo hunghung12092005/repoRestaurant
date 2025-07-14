@@ -44,6 +44,7 @@ Route::post('/register', [ApiLoginController::class, 'register']);
 
 Route::get('/occupancy/rooms', [OccupancyController::class, 'index']);
 // Route::post('/customers', [OccupancyController::class, 'storeCustomer']); //thêm dữ liệu khách vào bảng customer
+Route::get('/occupancy/by-date', [OccupancyController::class, 'getRoomsByDate']); //lọc theo ngày
 Route::get('/rooms/{room_id}/customer', [OccupancyController::class, 'getCustomerByRoom']); //hiển thị thông tin khách
 Route::post('/rooms/{room_id}/checkout', [OccupancyController::class, 'checkoutRoom']); //checkout
 Route::get('/services', [OccupancyController::class, 'getServices']); //hiển thị dịch vụ
@@ -163,3 +164,5 @@ Route::get('/booking-history', [BookingHotelController::class, 'getBookingHistor
 Route::post('/available-rooms', [BookingHotelController::class, 'getAvailableRooms']);
 //thanh toan payOS
 Route::post('/payos/checkout', [BookingHotelController::class, 'payos']);
+//api webhook
+Route::get('/webhook', [\App\Http\Controllers\WebhookController::class, 'handleWebhook']);

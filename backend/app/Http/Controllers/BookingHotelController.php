@@ -15,6 +15,8 @@ use Tymon\JWTAuth\Exceptions\JWTException;
 use PayOS\PayOS;
 use Illuminate\Support\Facades\DB;
 use Carbon\Carbon;
+use GuzzleHttp\Client; // === THÊM MÃ === Thêm import để sử dụng Guzzle
+use GuzzleHttp\Exception\RequestException; // === THÊM MÃ === Thêm import để xử lý lỗi Guzzle
 
 class BookingHotelController extends Controller
 {
@@ -120,6 +122,7 @@ class BookingHotelController extends Controller
                 'payment_method' => 'required',
                 'booking_type' => 'required|string',
                 'note' => 'nullable|string',
+                'orderCode' => 'nullable',
             ]);
 
             // Lấy token từ header
@@ -150,6 +153,7 @@ class BookingHotelController extends Controller
                 'customer_id' => $customerId,
                 'payment_method' => $bookingDetails['payment_method'],
                 'booking_type' => $bookingDetails['booking_type'],
+                'orderCode' => $bookingDetails['orderCode'],
                 'check_in_date' => $bookingDetails['check_in_date'],
                 'check_out_date' => $bookingDetails['check_out_date'],
                 'total_rooms' => $bookingDetails['total_rooms'],
@@ -223,16 +227,25 @@ class BookingHotelController extends Controller
 
         $amount = $request->input('amount');
         $items = $request->input('items');
+        // Lấy booking_id mới nhất với payment_method là 'thanh_toan_qr'
+        $latestBooking = BookingHotel::where('payment_method', 'thanh_toan_qr')
+            ->orderBy('created_at', 'desc') // Sắp xếp theo ngày tạo
+            ->first(); // Lấy bản ghi đầu tiên (mới nhất)
+        if ($latestBooking) {
+            $bookingId = $latestBooking->booking_id; // Hoặc trường booking_id nếu bạn có trường này
+            // return response()->json(['checkoutUrl' => $latestBooking->booking_id], 200);
+        } else {
+            $bookingId = null; // Nếu không có bản ghi nào
+        }
 
         $data = [
             "orderCode" => intval(substr(strval(microtime(true) * 10000), -6)),
             "amount" => $amount,
-            "description" => "Đặt hàng với " . count($items) . " sản phẩm",
+            "description" => "Booking ID: " . ($bookingId ? $bookingId : 'Không có'),
             "items" => $items,
             "returnUrl" => "http://127.0.0.1:5173/ThanksBooking",
             "cancelUrl" => "http://127.0.0.1:5173/"
         ];
-
         try {
             $payOSClientId = '078daf0e-baed-45f9-b2f9-20b79c89668e';
             $payOSApiKey = '8841f63c-c976-4b89-bf56-b769b035292b';
@@ -242,7 +255,10 @@ class BookingHotelController extends Controller
             $response = $payOS->createPaymentLink($data);
 
             if (isset($response['checkoutUrl'])) {
-                return response()->json(['checkoutUrl' => $response['checkoutUrl']], 200);
+                return response()->json([
+                    'checkoutUrl' => $response['checkoutUrl'],
+                    'orderCode' => $response['orderCode']
+                ], 200);
             } else {
                 return response()->json(['error' => 'Không thể tạo liên kết thanh toán.'], 500);
             }
@@ -270,6 +286,34 @@ class BookingHotelController extends Controller
                     $booking->details->each(function ($detail) {
                         $detail->type_name = $detail->roomType ? $detail->roomType->type_name : 'Loại phòng không xác định';
                     });
+
+                    // === THÊM MÃ === Lấy trạng thái thanh toán từ PayOS và định dạng tiếng Việt
+                    $paymentStatusDisplay = 'Chưa xác định';
+                    if ($booking->payment_method === 'thanh_toan_qr' && !empty($booking->orderCode)) {
+                        try {
+                            $client = new Client();
+                            $response = $client->get("https://api-merchant.payos.vn/v2/payment-requests/{$booking->orderCode}", [
+                                'headers' => [
+                                    'x-client-id' => env('PAYOS_CLIENT_ID'),
+                                    'x-api-key' => env('PAYOS_API_KEY'),
+                                ]
+                            ]);
+                            $paymentInfo = json_decode($response->getBody()->getContents(), true);
+                            $status = isset($paymentInfo['data']['status']) ? strtoupper($paymentInfo['data']['status']) : 'UNKNOWN';
+                            $paymentStatusDisplay = $this->formatPaymentStatus($status);
+                        } catch (RequestException $e) {
+                            Log::warning('Lỗi khi kiểm tra trạng thái thanh toán PayOS: ' . $e->getMessage(), [
+                                'orderCode' => $booking->orderCode,
+                                'booking_id' => $booking->booking_id
+                            ]);
+                            $paymentStatusDisplay = 'Lỗi kiểm tra thanh toán';
+                        }
+                    } else if ($booking->payment_method !== 'thanh_toan_qr') {
+                        $paymentStatusDisplay = 'Thanh toán trực tiếp';
+                    }
+                    $booking->payment_status_display = $paymentStatusDisplay;
+                    // === KẾT THÚC MÃ THÊM ===
+
                     return $booking;
                 });
 
@@ -288,6 +332,22 @@ class BookingHotelController extends Controller
                 'details' => $e->getMessage()
             ], 500);
         }
+    }
+
+    /**
+     * Hàm định dạng trạng thái thanh toán thành tiếng Việt (THÊM MỚI)
+     */
+    private function formatPaymentStatus($status)
+    {
+        $statusMap = [
+            'PENDING' => 'Chờ thanh toán',
+            'PAID' => 'Đã thanh toán',
+            'CANCELLED' => 'Đã hủy',
+            'REFUNDED' => 'Đã hoàn tiền',
+            'UNKNOWN' => 'Chưa xác định',
+            'ERROR' => 'Lỗi kiểm tra thanh toán'
+        ];
+        return $statusMap[$status] ?? 'Trạng thái không xác định';
     }
 
     /**

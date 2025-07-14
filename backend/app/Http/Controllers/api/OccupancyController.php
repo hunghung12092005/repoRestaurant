@@ -636,4 +636,44 @@ class OccupancyController extends Controller
             return response()->json(['message' => 'Lỗi cập nhật.', 'error' => $e->getMessage()], 500);
         }
     }
+    public function getRoomsByDate(Request $request)
+{
+    $date = $request->input('date') ?? now()->toDateString(); // Mặc định là hôm nay
+
+    try {
+        $rooms = DB::table('rooms')
+            ->join('room_types', 'rooms.type_id', '=', 'room_types.type_id')
+            ->select(
+                'rooms.room_id',
+                'rooms.room_name',
+                'rooms.floor_number',
+                'room_types.type_name',
+                'room_types.bed_count',
+                'rooms.type_id'
+            )
+            ->orderBy('rooms.floor_number')
+            ->orderBy('rooms.room_name')
+            ->get();
+
+        foreach ($rooms as $room) {
+            // Kiểm tra xem có booking nào trong ngày được chọn không
+            $isBooked = DB::table('booking_hotel_detail as bkd')
+                ->join('booking_hotel as bk', 'bk.booking_id', '=', 'bkd.booking_id')
+                ->where('bkd.room_id', $room->room_id)
+                ->whereDate('bk.check_in_date', '<=', $date)
+                ->whereDate('bk.check_out_date', '>', $date)
+                ->exists();
+
+            $room->status = $isBooked ? 'occupied' : 'available';
+        }
+
+        return response()->json($rooms);
+    } catch (\Exception $e) {
+        return response()->json([
+            'message' => 'Lỗi khi lấy danh sách phòng theo ngày.',
+            'error' => $e->getMessage()
+        ], 500);
+    }
+}
+
 }

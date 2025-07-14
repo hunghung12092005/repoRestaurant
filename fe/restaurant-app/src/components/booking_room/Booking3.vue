@@ -199,7 +199,7 @@
                                                 <div class="d-flex align-items-center  p-2">
                                                     <i class="bi bi-aspect-ratio me-2 text-primary fs-5"></i>
                                                     <span>{{ hotel.bed_count }} Giường{{ hotel.bed_count > 1 ? 's' : ''
-                                                        }}</span>
+                                                    }}</span>
                                                 </div>
                                             </div>
 
@@ -268,7 +268,7 @@
                                         <div>
                                             <h6 class="mb-1 text-charcoal fw-bold">{{ room.name }}</h6>
                                             <p class="mb-1 text-muted-dark small">{{ room.description.substring(0, 50)
-                                            }}...</p>
+                                                }}...</p>
                                             <p class="mb-0 text-gold fw-bold">
                                                 {{ formatPrice(room.price) }} <span class="small text-charcoal-light">/
                                                     {{
@@ -482,7 +482,7 @@
                                                     <div class="card-body p-4 bg-light">
                                                         <h6 class="mb-0 fw-bold text-primary">Phòng {{ index + 1 }}:
                                                             <span class="text-secondary fw-normal">{{ room.name
-                                                                }}</span>
+                                                            }}</span>
                                                         </h6>
                                                         <span class="fw-bold text-success fs-5">{{
                                                             formatPrice(room.price) }}</span>
@@ -621,7 +621,7 @@
                                     <p class="mb-2 fs-6"><strong class="text-secondary">Phụ Thu (dịp lễ/đặc
                                             biệt):</strong>
                                         <span class="text-danger fw-bold">{{ formatPrice(selectedHotel.surcharges)
-                                        }}</span>
+                                            }}</span>
                                     </p>
                                     <p class="mb-2 fs-6"><strong class="text-secondary">Số Phòng:</strong> <span
                                             class="fw-bold text-dark">{{ selectedHotel.so_phong }}</span></p>
@@ -646,7 +646,7 @@
                                             <i class="bi bi-check-lg me-2 text-success"></i> <span
                                                 class="flex-grow-1">{{
                                                     amenity.amenity_name }}: <span class="text-muted">{{ amenity.description
-                                                }}</span></span>
+                                                    }}</span></span>
                                         </li>
                                     </ul>
                                     <h5 class="text-dark fw-bold mb-3 border-bottom pb-2">Dịch Vụ Đặc Biệt:</h5>
@@ -743,7 +743,7 @@ const fullName = ref('hunghunghung');
 const orderNotes = ref('');
 const createAccount = ref('true');
 const paymentMethod = ref(''); // Phương thức thanh toán
-
+const orderCode = ref(''); // Mã đơn hàng
 //sms
 const isFormOTP = ref(true);
 const isOtp = ref(false);
@@ -1004,6 +1004,7 @@ const confirmBooking = async () => {
         total_price: selectedRooms.totalPrice,
         roomDetails: roomDetails.value,
         payment_method: paymentMethod.value,
+        orderCode: orderCode.value || '', // Mã đơn hàng nếu có
         booking_type: 'online',
         pricing_type: 'nghitly',
         payment_status: 'pending',
@@ -1093,7 +1094,7 @@ const payQr = async () => {
             alert('Vui lòng nhập đầy đủ họ tên và số điện thoại.');
             return;
         }
-
+        
         // Gọi API thanh toán QR
         paymentMethod.value = 'thanh_toan_qr'; // Đặt phương thức thanh toán là QR
         const axiosWithoutHeaderPayos = axios.create({
@@ -1102,14 +1103,16 @@ const payQr = async () => {
                 'Authorization': ``,
             }
         });
+        //await confirmBooking();
         // Gửi yêu cầu thanh toán đến API
         const response = await axiosWithoutHeaderPayos.post(`${apiUrl}/api/payos/checkout`, {
             //amount: 2000, // Tổng giá trị
             amount: selectedRooms.totalPrice,
             items: payosItems // Danh sách các mặt hàng
         });
-
-        // Xử lý phản hồi từ API
+        //console.log('Phản hồi từ API thanh toán:', response.data.orderCode);
+        orderCode.value = response.data.orderCode;
+        //Xử lý phản hồi từ API
         if (response.data && response.data.checkoutUrl) {
             // Chuyển hướng đến link thanh toán
             await confirmBooking();
@@ -1122,7 +1125,6 @@ const payQr = async () => {
         console.error('Lỗi thanh toán:', error.message || error);
         alert(`Lỗi thanh toán: ${error.message || error}`);
     } finally {
-        confirmBooking();
         isLoading.value = false; // Kết thúc quá trình tải
     }
 }
