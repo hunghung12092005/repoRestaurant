@@ -1,6 +1,6 @@
 <template>
   <div class="contact-us-page">
-    <!-- Section 1: Hero Banner (Giữ nguyên) -->
+    <!-- Section 1: Hero Banner -->
     <section class="hero-section d-flex align-items-center justify-content-center text-center text-white">
       <div class="hero-content">
         <h1 class="display-3 fw-bold">Liên Hệ</h1>
@@ -8,7 +8,7 @@
       </div>
     </section>
 
-    <!-- Section 2: Contact Form & Image (Đã được cập nhật để xử lý dữ liệu) -->
+    <!-- Section 2: Contact Form & Image -->
     <section class="contact-form-section py-5">
       <div class="container">
         <div class="row align-items-center">
@@ -17,11 +17,9 @@
                 <h2 class="display-5 serif-font">Chúng tôi luôn sẵn sàng lắng nghe!</h2>
             </div>
             
-            <!-- THÔNG BÁO THÀNH CÔNG/LỖI -->
             <div v-if="successMessage" class="alert alert-success mt-4">{{ successMessage }}</div>
             <div v-if="errorMessage" class="alert alert-danger mt-4">{{ errorMessage }}</div>
 
-            <!-- FORM ĐÃ ĐƯỢC NỐI LOGIC -->
             <form @submit.prevent="submitForm" novalidate>
               <div class="mb-3">
                 <label for="contactName" class="form-label">Tên của bạn</label>
@@ -30,6 +28,7 @@
                     <input v-model="form.name" type="text" class="form-control" id="contactName" placeholder="Nhập tên của bạn" required>
                 </div>
               </div>
+
               <div class="mb-3">
                 <label for="contactEmail" class="form-label">Email của bạn</label>
                 <div class="input-group">
@@ -37,6 +36,17 @@
                     <input v-model="form.email" type="email" class="form-control" id="contactEmail" placeholder="Nhập email của bạn" required>
                 </div>
               </div>
+              
+              <!-- ===== TRƯỜNG SỐ ĐIỆN THOẠI MỚI ===== -->
+              <div class="mb-3">
+                <label for="contactPhone" class="form-label">Số điện thoại (Không bắt buộc)</label>
+                <div class="input-group">
+                    <span class="input-group-text"><i class="bi bi-telephone"></i></span>
+                    <input v-model="form.phone" type="tel" class="form-control" id="contactPhone" placeholder="Nhập số điện thoại của bạn">
+                </div>
+              </div>
+              <!-- ======================================= -->
+
               <div class="mb-4">
                 <label for="contactMessage" class="form-label">Lời nhắn của bạn</label>
                 <div class="input-group">
@@ -53,18 +63,16 @@
             </form>
           </div>
           <div class="col-lg-6">
-            <!-- Ảnh giữ nguyên -->
             <img src="https://html.themewant.com/moonlit/assets/images/pages/contact.webp" class="img-fluid rounded shadow-sm" alt="Phòng khách sạn Hồ Xuân Hương">
           </div>
         </div>
       </div>
     </section>
 
-    <!-- Section 3: Map & Hotel Info (Giữ nguyên) -->
+    <!-- Section 3: Map & Hotel Info -->
     <section class="map-info-section py-5 bg-light">
       <div class="container">
         <div class="row">
-          <!-- Google Map -->
           <div class="col-lg-7 mb-4 mb-lg-0">
             <div class="ratio ratio-16x9 rounded overflow-hidden shadow-sm">
               <iframe 
@@ -76,7 +84,6 @@
               </iframe>
             </div>
           </div>
-          <!-- Hotel Info -->
           <div class="col-lg-5">
             <div class="p-4 bg-white rounded shadow-sm h-100">
               <h3 class="serif-font mb-4">Thông Tin Khách Sạn</h3>
@@ -111,17 +118,16 @@
   </div>
 </template>
 
-<!-- PHẦN SCRIPT ĐÃ ĐƯỢC CẬP NHẬT -->
 <script setup>
 import { ref, inject } from 'vue';
-import axiosConfig from '../axiosConfig.js'; // Đảm bảo đường dẫn này đúng
+import axiosConfig from '../axiosConfig.js';
 
-// Inject apiUrl đã được provide trong App.vue
 const apiUrl = inject('apiUrl');
 
 const form = ref({
   name: '',
   email: '',
+  phone: '', // Thêm trường phone
   message: ''
 });
 
@@ -130,13 +136,11 @@ const successMessage = ref('');
 const errorMessage = ref('');
 
 const submitForm = async () => {
-  // Xóa thông báo cũ
   successMessage.value = '';
   errorMessage.value = '';
 
-  // Kiểm tra dữ liệu
   if (!form.value.name || !form.value.email || !form.value.message) {
-      errorMessage.value = 'Vui lòng điền đầy đủ thông tin.';
+      errorMessage.value = 'Vui lòng điền đầy đủ các trường bắt buộc.';
       return;
   }
 
@@ -148,6 +152,7 @@ const submitForm = async () => {
       // Reset form sau khi gửi thành công
       form.value.name = '';
       form.value.email = '';
+      form.value.phone = ''; // Reset cả phone
       form.value.message = '';
     }
   } catch (error) {
@@ -165,86 +170,47 @@ const submitForm = async () => {
 };
 </script>
 
-<!-- PHẦN STYLE GIỮ NGUYÊN -->
 <style scoped>
-/* Import font chữ serif đẹp cho tiêu đề */
 @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&family=Roboto:wght@400&display=swap');
 
-.serif-font {
-  font-family: 'Playfair Display', serif;
-}
+.serif-font { font-family: 'Playfair Display', serif; }
+.contact-us-page { font-family: 'Roboto', sans-serif; color: #333; }
 
-.contact-us-page {
-  font-family: 'Roboto', sans-serif;
-  color: #333;
-}
-
-/* Hero Section */
 .hero-section {
   position: relative;
   height: 60vh;
-  /* Thay thế bằng ảnh nền phù hợp */
   background: url('https://images.unsplash.com/photo-1564501049412-61c2a3083791?q=80&w=1932') no-repeat center center;
   background-size: cover;
 }
-
 .hero-section::before {
   content: '';
   position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
+  top: 0; left: 0; right: 0; bottom: 0;
   background: rgba(0, 0, 0, 0.5);
 }
+.hero-content { position: relative; z-index: 1; }
 
-.hero-content {
-  position: relative;
-  z-index: 1;
-}
-
-/* Form Section */
-.form-control {
-    padding: 0.75rem 1rem;
-    border-left: 0;
-}
-.input-group-text {
-    background-color: #fff;
-    border-right: 0;
-}
-.form-control:focus {
-    box-shadow: none;
-    border-color: #a07d5a;
-}
+.form-control { padding: 0.75rem 1rem; border-left: 0; }
+.input-group-text { background-color: #fff; border-right: 0; }
+.form-control:focus { box-shadow: none; border-color: #a07d5a; }
 .input-group:focus-within {
-    border-color: #a07d5a;
-    box-shadow: 0 0 0 0.25rem rgba(160, 125, 90, 0.25);
+  border-color: #a07d5a;
+  box-shadow: 0 0 0 0.25rem rgba(160, 125, 90, 0.25);
 }
 .input-group {
-    border: 1px solid #ced4da;
-    border-radius: 0.375rem;
-    transition: border-color .15s ease-in-out,box-shadow .15s ease-in-out;
+  border: 1px solid #ced4da;
+  border-radius: 0.375rem;
+  transition: border-color .15s ease-in-out,box-shadow .15s ease-in-out;
 }
-textarea.form-control {
-    height: auto;
-}
+textarea.form-control { height: auto; }
 
-/* Custom Colors and Buttons */
-.text-primary {
-  color: #a07d5a !important;
-}
+.text-primary { color: #a07d5a !important; }
 .btn-primary {
   background-color: #a07d5a;
   border-color: #a07d5a;
   padding: 0.75rem;
 }
-.btn-primary:hover {
-  background-color: #866849;
-  border-color: #866849;
-}
+.btn-primary:hover { background-color: #866849; border-color: #866849; }
 
-/* Map Info Section */
-.bg-light {
-    background-color: #fdfaf6 !important;
-}
+.bg-light { background-color: #fdfaf6 !important; }
 </style>

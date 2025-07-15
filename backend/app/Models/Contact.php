@@ -17,6 +17,7 @@ class Contact extends Model
     protected $fillable = [
         'name',
         'email',
+        'phone',
         'message',
         'status', // Thêm cả status nếu bạn muốn cập nhật nó sau này
     ];

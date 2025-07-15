@@ -18,8 +18,7 @@
             <thead class="table-light">
               <tr>
                 <th scope="col">#</th>
-                <th scope="col">Tên</th>
-                <th scope="col">Email</th>
+                <th scope="col">Khách hàng</th>
                 <th scope="col">Lời nhắn</th>
                 <th scope="col">Ngày gửi</th>
                 <th scope="col">Trạng thái</th>
@@ -28,12 +27,18 @@
             </thead>
             <tbody>
               <tr v-if="contacts.length === 0">
-                <td colspan="7" class="text-center text-muted py-4">Không có liên hệ nào.</td>
+                <td colspan="6" class="text-center text-muted py-4">Không có liên hệ nào.</td>
               </tr>
               <tr v-for="(contact, index) in contacts" :key="contact.id">
                 <td>{{ index + 1 }}</td>
-                <td>{{ contact.name }}</td>
-                <td>{{ contact.email }}</td>
+                <td>
+                  <div class="fw-bold">{{ contact.name }}</div>
+                  <div class="small text-muted">{{ contact.email }}</div>
+                  <!-- Hiển thị SĐT nếu có -->
+                  <div v-if="contact.phone" class="small text-primary mt-1">
+                    <i class="bi bi-telephone-fill me-1"></i>{{ contact.phone }}
+                  </div>
+                </td>
                 <td class="message-cell" :title="contact.message">{{ contact.message }}</td>
                 <td>{{ formatDateTime(contact.created_at) }}</td>
                 <td>
@@ -63,7 +68,11 @@
       <div class="modal-dialog modal-lg">
         <div class="modal-content" v-if="selectedContact">
           <div class="modal-header">
-            <h5 class="modal-title" id="replyModalLabel">Phản hồi tới: {{ selectedContact.name }} ({{ selectedContact.email }})</h5>
+            <h5 class="modal-title" id="replyModalLabel">
+              Phản hồi tới: {{ selectedContact.name }}
+              <!-- Hiển thị email và SĐT trong modal title -->
+              <small class="text-muted d-block">{{ selectedContact.email }} <span v-if="selectedContact.phone">| {{ selectedContact.phone }}</span></small>
+            </h5>
             <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
           </div>
           <div class="modal-body">
@@ -91,8 +100,8 @@
 
 <script setup>
 import { ref, onMounted, onUnmounted, inject } from 'vue';
-import { Modal } from 'bootstrap'; // Import Modal từ bootstrap
-import axiosConfig from '../../axiosConfig.js'; // Đảm bảo đường dẫn đúng
+import { Modal } from 'bootstrap';
+import axiosConfig from '../../axiosConfig.js';
 import Swal from 'sweetalert2';
 
 const apiUrl = inject('apiUrl');
@@ -100,12 +109,11 @@ const contacts = ref([]);
 const loading = ref(true);
 const error = ref(null);
 
-// State cho modal phản hồi
 const selectedContact = ref(null);
 const replyMessage = ref('');
 const isReplying = ref(false);
-const modalRef = ref(null); // Ref cho DOM element của modal
-let modalInstance = null;   // Biến giữ instance của Bootstrap modal
+const modalRef = ref(null);
+let modalInstance = null;
 
 const fetchContacts = async () => {
   try {
@@ -138,34 +146,23 @@ const deleteContact = async (id) => {
   if (result.isConfirmed) {
     try {
       await axiosConfig.delete(`${apiUrl}/api/admin/contacts/${id}`);
-      Swal.fire(
-        'Đã xóa!',
-        'Liên hệ đã được xóa thành công.',
-        'success'
-      );
-      // Tải lại danh sách sau khi xóa
+      Swal.fire('Đã xóa!', 'Liên hệ đã được xóa thành công.', 'success');
       fetchContacts();
     } catch (err) {
-      Swal.fire(
-        'Lỗi!',
-        'Không thể xóa liên hệ. Vui lòng thử lại.',
-        'error'
-      );
+      Swal.fire('Lỗi!', 'Không thể xóa liên hệ. Vui lòng thử lại.', 'error');
       console.error(err);
     }
   }
 };
 
-// Hàm mở modal
 const openReplyModal = (contact) => {
   selectedContact.value = contact;
-  replyMessage.value = ''; // Reset nội dung
+  replyMessage.value = '';
   if (modalInstance) {
     modalInstance.show();
   }
 };
 
-// Hàm gửi phản hồi
 const sendReply = async () => {
   if (!replyMessage.value.trim()) {
     Swal.fire('Lỗi', 'Vui lòng nhập nội dung phản hồi.', 'error');
@@ -180,7 +177,7 @@ const sendReply = async () => {
     if (response.data.status) {
       Swal.fire('Thành công!', response.data.message, 'success');
       modalInstance.hide();
-      fetchContacts(); // Tải lại danh sách để cập nhật trạng thái
+      fetchContacts();
     }
   } catch (err) {
     const errorMessage = err.response?.data?.message || 'Không thể gửi phản hồi. Vui lòng thử lại.';
@@ -191,7 +188,6 @@ const sendReply = async () => {
   }
 };
 
-// Các hàm tiện ích
 const formatDateTime = (dateTimeString) => {
   const options = { year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' };
   return new Date(dateTimeString).toLocaleDateString('vi-VN', options);
@@ -207,18 +203,14 @@ const getStatusClass = (status) => {
   return 'bg-info';
 };
 
-
-// Lifecycle hooks
 onMounted(() => {
   fetchContacts();
-  // Khởi tạo instance của modal khi component được mount
   if (modalRef.value) {
     modalInstance = new Modal(modalRef.value);
   }
 });
 
 onUnmounted(() => {
-  // Hủy instance khi component bị unmount để tránh rò rỉ bộ nhớ
   if (modalInstance) {
     modalInstance.dispose();
   }
@@ -230,7 +222,6 @@ onUnmounted(() => {
   background-color: #f5f7fb;
   min-height: calc(100vh - 50px);
 }
-
 .message-cell {
   max-width: 300px;
   white-space: nowrap;
@@ -238,15 +229,9 @@ onUnmounted(() => {
   text-overflow: ellipsis;
   cursor: help;
 }
-
-.table th {
-  font-weight: 600;
+.table th, .table td {
   vertical-align: middle;
 }
-.table td {
-    vertical-align: middle;
-}
-
 .btn-group .btn {
   margin-right: 5px;
 }

@@ -29,29 +29,33 @@ class ContactController extends Controller
     /**
      * Lưu một liên hệ mới từ form public.
      */
-    public function store(Request $request)
-    {
-        $validator = Validator::make($request->all(), [
-            'name' => 'required|string|max:255',
-            'email' => 'required|email|max:255',
-            'message' => 'required|string',
-        ]);
+    
+public function store(Request $request)
+{
+    $validator = Validator::make($request->all(), [
+        'name' => 'required|string|max:255',
+        'email' => 'required|email|max:255',
+        'phone' => 'nullable|string|regex:/^([0-9\s\-\+\(\)]*)$/|min:10|max:15', // <-- THÊM DÒNG NÀY
+        'message' => 'required|string',
+    ], [
+        'phone.regex' => 'Số điện thoại không hợp lệ.' // Thông báo lỗi tùy chỉnh
+    ]);
 
-        if ($validator->fails()) {
-            return response()->json([
-                'status' => false,
-                'errors' => $validator->errors()
-            ], 422);
-        }
-
-        $contact = Contact::create($request->all());
-
+    if ($validator->fails()) {
         return response()->json([
-            'status' => true,
-            'message' => 'Cảm ơn bạn đã liên hệ! Chúng tôi sẽ phản hồi sớm nhất có thể.',
-            'data' => $contact
-        ], 201);
+            'status' => false,
+            'errors' => $validator->errors()
+        ], 422);
     }
+
+    $contact = Contact::create($request->all());
+
+    return response()->json([
+        'status' => true,
+        'message' => 'Cảm ơn bạn đã liên hệ! Chúng tôi sẽ phản hồi sớm nhất có thể.',
+        'data' => $contact
+    ], 201);
+}
 
     /**
      * Xóa một liên hệ (cho admin).
