@@ -24,6 +24,9 @@ use App\Http\Controllers\api\NewsCommentController;
 use App\Http\Controllers\BookingHotelController;
 use App\Http\Controllers\api\AdminDashboardController;
 use App\Http\Controllers\api\ContactController;
+use App\Http\Controllers\ChatAIController;
+use App\Http\Controllers\WebhookController;
+use Illuminate\Support\Facades\Storage;
 
 Route::get('/seasonal-pricing/current/{typeId}', [RoomController::class, 'getCurrentPricing']);
 
@@ -165,4 +168,13 @@ Route::post('/available-rooms', [BookingHotelController::class, 'getAvailableRoo
 //thanh toan payOS
 Route::post('/payos/checkout', [BookingHotelController::class, 'payos']);
 //api webhook
-Route::get('/webhook', [\App\Http\Controllers\WebhookController::class, 'handleWebhook']);
+Route::get('/webhook', [WebhookController::class, 'handleWebhook']);
+//check xem có phòng trống hay không
+Route::get('/check-availability', [BookingHotelController::class, 'checkAvailability']);
+//api chat ai
+Route::get('/chat-ai/check-availability', [ChatAIController::class, 'checkAvailability']);
+Route::get('/chat-ai/hotel-info', [ChatAIController::class, 'hotelInfo']);
+Route::get('/hotel-infos', [ChatAIController::class, 'index']);
+Route::post('/hotel-infos', [ChatAIController::class, 'store']);
+Route::put('/hotel-infos/{id}', [ChatAIController::class, 'update']);
+Route::delete('/hotel-infos/{id}', [ChatAIController::class, 'destroy']);

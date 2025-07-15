@@ -45,6 +45,8 @@
               <li><router-link class="dropdown-item" to="/admin/rooms"><i class='bx bx-bed'></i> Quản lý phòng</router-link></li>
             </ul>
           </li>
+          <li class="nav-item"><router-link class="nav-link" to="/admin/ChatAdmin"><i class="bi bi-people"></i>Chat Admin</router-link></li>
+          <li class="nav-item"><router-link class="nav-link" to="/admin/traningAI"><i class="bi bi-people"></i>Traning AI </router-link></li>
           <li class="nav-item"><router-link class="nav-link" to="/admin/users"><i class="bi bi-people"></i>Quản lý tài khoản</router-link></li>
           <li class="nav-item"><router-link class="nav-link" to="/admin/contacts"><i class="bi bi-people"></i>Quản lý liên hệ</router-link></li>
           <li class="nav-item"><router-link class="nav-link" to="/admin/news"><i class="bi bi-newspaper"></i>Tin tức</router-link></li>
@@ -103,6 +105,8 @@
 
     <!-- Layout cho các route không phải admin (lấy từ code gốc) -->
     <div v-else>
+        <test></test>
+
       <header ref="headerRef">
         <nav class="navbar navbar-expand-lg navbar-light fixed-top" :class="{ 'scrolled': navbarSticky }">
           <div class="container-fluid">
@@ -175,7 +179,7 @@ import { ref, onMounted, onUnmounted, provide } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import axiosConfig from './axiosConfig.js';
 import Footer from './components/Footer.vue';
-
+import test from './components/booking_room/test.vue';
 const route = useRoute();
 const router = useRouter();
 const headerRef = ref(null);
@@ -185,8 +189,7 @@ const navbarSticky = ref(false);
 const userInfo = ref(null);
 const isLogin = ref(false);
 const isAdmin = ref(false);
-const isStaff = ref(false); // THÊM BIẾN isStaff
-const apiUrl = 'http://localhost:8000';
+const apiUrl = 'http://localhost:8000';//http://127.0.0.1:8000
 provide('apiUrl', apiUrl);
 
 const lastScrollPosition = ref(0);
