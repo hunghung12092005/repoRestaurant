@@ -35,12 +35,13 @@ class BookingHotelController extends Controller
             //return response()->json(['rooms' => $rooms, 'roomType' => $roomType]);
             // Lấy các room_id đã được đặt trong khoảng thời gian này
             $bookedRoomIds = BookingHotelDetail::whereHas('booking', function ($query) use ($checkInDate, $checkOutDate) {
-                $query->where('status', 'confirmed')
+                $query->whereIn('status', ['confirmed', 'completed']) // ✅ thêm điều kiện này
                     ->where(function ($query) use ($checkInDate, $checkOutDate) {
                         $query->whereBetween('check_in_date', [$checkInDate, $checkOutDate])
                             ->orWhereBetween('check_out_date', [$checkInDate, $checkOutDate]);
                     });
             })->pluck('room_id');
+
 
             // Tính số lượng phòng còn trống
             $availableRoomsCount = $rooms->whereNotIn('room_id', $bookedRoomIds)->count();

@@ -36,7 +36,7 @@ import AdminUsersComponent from '../components/admin/AdminUsersComponent.vue';
 // import ghn from '../components/ghn/mainghn.vue';
 // import menu_online from '../components/ShopOnline/menu_online.vue';
 // import detailMenu from '../components/ShopOnline/detailMenu.vue';
-
+import test from '../components/booking_room/test.vue';
 // import detailOrderMenu from '../components/menu_item/detailOrderMenu.vue';
 
 
@@ -59,6 +59,8 @@ import AdminNewsCommentComponent from '../components/admin/news/AdminNewsComment
 // AdminBookingComponent
 // import AdminBookingComponent from '../components/AdminBooking/AdminBookingComponent.vue';
 import RoomTypeDetail from '../components/RoomTypeDetail.vue';
+//admin AI
+import traningAI from '../components/admin/AI/traningAI.vue';
 const routes = [
   // {
   //   path: '/home',
@@ -112,7 +114,7 @@ const routes = [
     component: BlogDetailComponent,
   },
   {
-    path: '/ChatAdmin',
+    path: '/admin/ChatAdmin',
     name: 'ChatAdmin',
     component: ChatAdmin,
   }, {
@@ -152,6 +154,11 @@ const routes = [
     path: '/HistoryBooking',
     name: 'HistoryBooking',
     component: HistoryBooking,
+  },
+  {
+    path: '/test',
+    name: 'test',
+    component: test,
   },
   {
     path: '/ThanksBooking',
@@ -245,6 +252,12 @@ const routes = [
     path: '/admin/bookings',
     name: 'AdminBookingComponent',
     component: AdminBookingComponent,
+    meta: { requiresAdmin: true },
+  },
+  {
+    path: '/admin/traningAI',
+    name: 'traningAI',
+    component: traningAI,
     meta: { requiresAdmin: true },
   },
 ];

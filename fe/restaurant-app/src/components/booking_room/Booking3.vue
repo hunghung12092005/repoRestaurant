@@ -11,7 +11,7 @@
         </header>
         <Popup v-if="showPopup" :isVisible="showPopup" @close="showPopup = false"></Popup>
 
-        <div class="tooltip-container">
+        <!-- <div class="tooltip-container">
             <div class="icon" @click="showPopUpMain">
                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="50" height="50">
                     <path
@@ -23,7 +23,7 @@
             <div class="tooltip">
                 <p>Thông báo</p>
             </div>
-        </div>
+        </div> -->
 
         <!-- Search Box -->
         <section class="container my-5">
@@ -713,7 +713,7 @@
                 </div>
             </div>
         </div>
-        <Footer></Footer>
+        
     </div>
 </template>
 
@@ -1288,8 +1288,7 @@ onMounted(() => {
     checkin.value = today.toISOString().split('T')[0];
     checkOut.value = tomorrow.toISOString().split('T')[0];
     bookrooms.value = 1;
-    showPopup.value = true; // Đóng modal khi trang được tải
-    //getRoomTypes();
+    showPopup.value = true; 
     getRoomPrices();
     calculateTotalDays();
 });

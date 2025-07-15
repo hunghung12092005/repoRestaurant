@@ -6,7 +6,7 @@ import 'bootstrap'; // Import Bootstrap JS
 import axios from 'axios';
 import './assets/style.css'; // Import CSS tùy chỉnh
 // Ant Design
-import Antd from 'ant-design-vue';
+//import Antd from 'ant-design-vue';
 import { QuillEditor } from '@vueup/vue-quill';
 import '@vueup/vue-quill/dist/vue-quill.snow.css';
 // Flatpickr
@@ -18,7 +18,7 @@ const app = createApp(App);
 
 app
   .use(router) // Sử dụng router
-  .use(Antd)   // Sử dụng Ant Design Vue
+  //.use(Antd)   // Sử dụng Ant Design Vue
   .component('QuillEditor', QuillEditor) // Đăng ký component QuillEditor
   .provide('apiUrl', 'http://localhost:8000/api')
   .mount('#app');
