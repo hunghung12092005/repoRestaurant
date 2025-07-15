@@ -26,8 +26,6 @@
                 <option value="">Tất cả</option>
                 <option value="pending_confirmation">Chờ xác nhận</option>
                 <option value="confirmed">Đã xác nhận</option>
-                <option value="completed">Hoàn thành</option>
-                <option value="cancelled">Đã hủy</option>
               </select>
             </div>
           </div>
@@ -104,9 +102,6 @@
           </tr>
         </tbody>
       </table>
-      <div v-else class="alert alert-info text-center" role="alert">
-        {{ thongBaoKhongTimThay }}
-      </div>
     </div>
 
     <!-- Phân trang -->
@@ -136,7 +131,7 @@
     </div>
 
     <!-- Modal chi tiết đặt phòng -->
-    <div v-if="hienModal" class="modal fade show" style="display: block;" tabindex="-1" role="dialog">
+    <div v-if="hienModal" class="modal fade show" style="display: block;" tabindex-fin="-1" role="dialog">
       <div class="modal-dialog modal-lg" role="document">
         <div class="modal-content">
           <div class="modal-header">
@@ -217,7 +212,7 @@
                         </option>
                       </select>
                       <span v-else-if="chiTiet.room_id">Đã xếp: {{ chiTiet.room?.room_name || 'Phòng không xác định' }}</span>
-                      <span v-else-if="!chiTiet.room_id && (datPhongDuocChon.status === 'confirmed' || datPhongDuocChon.status === 'completed')">Chưa xếp (Đặt phòng {{ dinhDangTrangThai(datPhongDuocChon.status) }})</span>
+                      <span v-else-if="!chiTiet.room_id && datPhongDuocChon.status === 'confirmed'">Chưa xếp (Đặt phòng {{ dinhDangTrangThai(datPhongDuocChon.status) }})</span>
                       <span v-else>Không có phòng trống</span>
                     </td>
                   </tr>
@@ -269,16 +264,6 @@ const trangHienTai = ref(1); // Trang hiện tại
 const soBanGhiTrenTrang = ref(10); // Số bản ghi trên trang
 const sapXepCot = ref('booking_id'); // Cột sắp xếp mặc định là booking_id
 const sapXepGiam = ref(true); // Sắp xếp giảm dần (mới nhất đầu tiên)
-
-// Thông báo khi không tìm thấy
-const thongBaoKhongTimThay = computed(() => {
-  if (danhSachDatPhong.value.length === 0) {
-    return 'Không có dữ liệu đặt phòng. Vui lòng kiểm tra kết nối hoặc thêm đặt phòng mới.';
-  } else if (tuKhoaTimKiem.value || locTrangThai.value || tuNgay.value || denNgay.value) {
-    return 'Không tìm thấy đặt phòng phù hợp với bộ lọc. Vui lòng điều chỉnh bộ lọc.';
-  }
-  return 'Không tìm thấy đặt phòng nào phù hợp.';
-});
 
 // Tính toán danh sách đã lọc
 const danhSachLoc = computed(() => {
@@ -377,18 +362,15 @@ const coPhongChuaXep = computed(() => {
 // Lấy danh sách đặt phòng từ API
 const layDanhSachDatPhong = async () => {
   try {
-    const phanHoi = await axios.get('/api/bookings?status[]=pending_confirmation&status[]=confirmed&status[]=completed', {
+    const phanHoi = await axios.get('/api/bookings?status[]=pending_confirmation&status[]=confirmed&status[]=cancelled', {
       headers: { 'Accept': 'application/json' }
     });
     danhSachDatPhong.value = Array.isArray(phanHoi.data) ? phanHoi.data : [];
     trangHienTai.value = 1; // Đặt lại trang về 1 khi tải dữ liệu mới
     thongBaoLoi.value = danhSachDatPhong.value.length === 0 ? 'Không có dữ liệu đặt phòng từ server.' : '';
-    console.log('Danh sách đặt phòng:', danhSachDatPhong.value);
   } catch (loi) {
     console.error('Lỗi khi lấy danh sách đặt phòng:', loi);
-    thongBaoLoi.value = loi.response?.data?.error 
-      ? `Lỗi server: ${loi.response.data.error} (Mã: ${loi.response.status})`
-      : `Lỗi khi lấy danh sách đặt phòng: ${loi.message}`;
+    thongBaoLoi.value = 'Không có dữ liệu đặt phòng từ server.';
   }
 };
 
@@ -464,11 +446,7 @@ const xepPhong = async (chiTiet) => {
     }, {
       headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' }
     });
-    alert('Xếp phòng thành công!');
-    await moModalChiTiet(datPhongDuocChon.value);
-    if (!coPhongChuaXep.value) {
-      await xacNhanDatPhong();
-    }
+    await moModalChiTiet(datPhongDuocChon.value); // Làm mới dữ liệu modal
     thongBaoLoi.value = '';
   } catch (loi) {
     console.error('Lỗi khi xếp phòng:', loi);
@@ -481,18 +459,17 @@ const xepPhong = async (chiTiet) => {
 // Xác nhận đặt phòng
 const xacNhanDatPhong = async () => {
   try {
-    await axios.patch(`/api/bookings/${datPhongDuocChon.value.booking_id}`, {}, {
+    await axios.patch(`/api/bookings/${datPhongDuocChon.value.booking_id}`, {
+      status: 'confirmed'
+    }, {
       headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' }
     });
-    alert('Xác nhận đặt phòng thành công!');
-    hienModal.value = false;
     await layDanhSachDatPhong();
-    thongBaoLoi.value = '';
+    alert('Xác nhận đặt phòng thành công!');
+    dongModal();
   } catch (loi) {
     console.error('Lỗi khi xác nhận đặt phòng:', loi);
-    thongBaoLoi.value = loi.response?.data?.error 
-      ? `Lỗi server: ${loi.response.data.error} (Mã: ${loi.response.status})`
-      : `Lỗi khi xác nhận đặt phòng: ${loi.message}`;
+    alert('Lỗi khi xác nhận đặt phòng!');
   }
 };
 
@@ -557,8 +534,6 @@ const dinhDangTrangThai = (trangThai) => {
   const bangTrangThai = {
     pending_confirmation: 'Chờ xác nhận',
     confirmed: 'Đã xác nhận',
-    completed: 'Hoàn thành',
-    cancelled: 'Đã hủy'
   };
   return bangTrangThai[trangThai] || trangThai || 'Không xác định';
 };
@@ -566,9 +541,8 @@ const dinhDangTrangThai = (trangThai) => {
 // Định dạng trạng thái thanh toán
 const dinhDangTrangThaiThanhToan = (trangThai) => {
   const bangTrangThaiThanhToan = {
-    PENDING: 'Chờ thanh toán',
+    PENDING: 'Thanh toán tại quầy',
     PAID: 'Đã thanh toán',
-    CANCELLED: 'Đã hủy',
     REFUNDED: 'Đã hoàn tiền',
     ERROR: 'Lỗi thanh toán',
     UNKNOWN: 'Không xác định'
@@ -582,7 +556,6 @@ const layLopTrangThai = (trangThai) => {
     'badge': true,
     'badge-warning': trangThai === 'pending_confirmation',
     'badge-success': trangThai === 'confirmed',
-    'badge-info': trangThai === 'completed',
     'badge-danger': trangThai === 'cancelled'
   };
 };
@@ -677,14 +650,13 @@ onMounted(() => {
 }
 
 /* Màu cho trạng thái đặt phòng */
-.badge-warning { background-color: #ffc107; color: black; }   /* Chờ xác nhận */
-.badge-success { background-color: #28a745; color: white; }  /* Đã xác nhận */
-.badge-info    { background-color: #17a2b8; color: white; }  /* Hoàn thành */
-.badge-danger  { background-color: #dc3545; color: white; }  /* Đã hủy */
+.badge-warning { background-color: #ffc107; color: black; }  
+.badge-success { background-color: #28a745; color: white; }
+.badge-danger  { background-color: #dc3545; color: white; }  
 
 /* Màu cho trạng thái thanh toán */
-.badge-secondary { background-color: #6c757d; color: white; } /* Đã hoàn tiền */
-.badge-light     { background-color: #f8f9fa; color: black; } /* Không xác định */
+.badge-secondary { background-color: #6c757d; color: white; }
+.badge-light     { background-color: #f8f9fa; color: black; } 
 
 .page-item.active .page-link {
   background-color: #007bff;
