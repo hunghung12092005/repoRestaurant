@@ -207,12 +207,15 @@
       <div v-if="allServices.length === 0">Đang tải dịch vụ...</div>
 
       <div v-else>
-        <div v-for="service in allServices" :key="service.service_id">
-          <label>
-            <input type="checkbox" :value="service" v-model="selectedServices" />
-            {{ service.service_name }} - {{ Number(service.price).toLocaleString('vi-VN') }} VND
-          </label>
-        </div>
+        <div v-for="(service, index) in allServices" :key="service.service_id" class="service-item">
+  <div>{{ service.service_name }} - {{ formatPrice(service.price) }}</div>
+  <div class="qty-controls">
+    <button @click="decreaseQty(index)">-</button>
+    <input type="number" v-model.number="service.quantity" min="0" />
+    <button @click="increaseQty(index)">+</button>
+  </div>
+</div>
+
       </div>
 
       <p style="margin-top: 10px;">
@@ -372,11 +375,24 @@ const uploadImage = async () => {
 // Danh sách dịch vụ
 const showServiceModal = ref(false);
 const allServices = ref([]);
-const selectedServices = ref([]);
 const currentRoomId = ref(null);
+
 const serviceTotal = computed(() =>
-  selectedServices.value.reduce((sum, s) => sum + Number(s.price), 0)
+  allServices.value.reduce((sum, s) => sum + s.price * s.quantity, 0)
 );
+
+const increaseQty = (index) => {
+  allServices.value[index].quantity++
+};
+
+const decreaseQty = (index) => {
+  if (allServices.value[index].quantity > 0) {
+    allServices.value[index].quantity--
+  }
+};
+
+const formatPrice = (price) => price.toLocaleString('vi-VN') + ' VND';
+
 
 // Thanh toán - mở modal chọn dịch vụ
 const checkoutRoom = async (room_id) => {
@@ -384,8 +400,11 @@ const checkoutRoom = async (room_id) => {
   try {
     const res = await axios.get(`${apiUrl}/api/services/indexAllService`);
     allServices.value = res.data;
-    selectedServices.value = [];
-    showServiceModal.value = true;
+    allServices.value = res.data.map(service => ({
+  ...service,
+  price: Number(service.price) || 0, // 👈 ép kiểu giá
+  quantity: 0
+}));    showServiceModal.value = true;
   } catch (error) {
     console.error("Không thể tải dịch vụ:", error);
     alert("Không thể tải danh sách dịch vụ.");
@@ -398,7 +417,13 @@ const confirmPayment = async () => {
   try {
     //console.log(selectedServices.value.map(s => s.service_id));
     const response = await axios.post(`${apiUrl}/api/rooms/${currentRoomId.value}/checkout`, {
-      service_ids: selectedServices.value.map(s => s.service_id)
+      services: allServices.value
+  .filter(s => Number(s.quantity) > 0)
+  .map(s => ({
+    service_id: Number(s.service_id),
+    quantity: Number(s.quantity)
+  }))
+
     });
 
     const data = response.data;
@@ -860,6 +885,41 @@ button.secondary {
   background-color: #f3f4f6;
   /* xám sáng */
   color: #333;
+}
+.service-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 0;
+  border-bottom: 1px solid #eee;
+  font-size: 14px;
+}
+
+.service-item:last-child {
+  border-bottom: none;
+}
+
+.qty-controls {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.qty-controls input {
+  width: 50px;
+  text-align: center;
+  padding: 4px 6px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+}
+.qty-controls input {
+  width: 50px;
+  text-align: center;
+  padding: 6px 8px;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  background-color: #f9fafb;
+  font-weight: bold;
 }
 
 button.secondary:hover {
