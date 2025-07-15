@@ -136,13 +136,7 @@
                 </div>
               </div>
 
-              <!-- Widget Thẻ phổ biến -->
-              <div class="sidebar-widget p-4 rounded mb-4">
-                <h4 class="widget-title mb-3">Thẻ Phổ Biến</h4>
-                <div class="tag-cloud">
-                    <a href="#" v-for="tag in popularTags" :key="tag.name">{{ tag.name }}</a>
-                </div>
-              </div>
+              
             </div>
           </div>
         </div>
