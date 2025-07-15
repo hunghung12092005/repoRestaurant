@@ -191,13 +191,13 @@ const sendMessageToUser = () => {
 
 </script>
 <style scoped>
-.adminChat {
-    /* margin-top: 100px; */
-}
+/* .adminChat {
+    margin-top: 1000px;
+} */
 
-
+/* 
 #frame {
-    width: 80%;
+    width:100%;
     min-width: 360px;
     max-width: 80%;
     height: 30vh;
@@ -205,7 +205,7 @@ const sendMessageToUser = () => {
     margin: 10px auto;
     max-height: 420px;
     background: #E6EAEA;
-}
+} */
 
 @media screen and (max-width: 360px) {
     #frame {
