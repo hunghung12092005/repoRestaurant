@@ -101,7 +101,7 @@
 </template>
 <script setup>
 import { ref, onMounted, watch } from 'vue';
-//import socket from '../socket'; // Import socket từ file chung
+import socket from '../socket'; // Import socket từ file chung
 
 const users = ref([]);
 const selectedMessages = ref([]);
@@ -192,7 +192,7 @@ const sendMessageToUser = () => {
 </script>
 <style scoped>
 .adminChat {
-    margin-top: 100px;
+    /* margin-top: 100px; */
 }
 
 
@@ -200,10 +200,10 @@ const sendMessageToUser = () => {
     width: 80%;
     min-width: 360px;
     max-width: 80%;
-    height: 80vh;
-    min-height: 300px;
+    height: 30vh;
+    min-height: 100px;
     margin: 10px auto;
-    max-height: 720px;
+    max-height: 420px;
     background: #E6EAEA;
 }
 
@@ -980,4 +980,5 @@ const sendMessageToUser = () => {
 #frame .content .message-input .wrap button:focus {
     outline: none;
 }
+
 </style>

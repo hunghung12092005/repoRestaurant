@@ -65,8 +65,9 @@
 import { ref, nextTick, inject } from 'vue'
 import axios from 'axios'
 
-const API_KEY = 'AIzaSyD8i7zo013XnMvK1w9g_Xg4eY5AJC-nY58'
+const API_KEY = 'AIzaSyDdyQPlin693Vo16vKOWnI38qLJ5U2z5LQ'
 //AIzaSyDdyQPlin693Vo16vKOWnI38qLJ5U2z5LQ,AIzaSyD8i7zo013XnMvK1w9g_Xg4eY5AJC-nY58
+//AIzaSyCVDXoc9FWJTDFZQHaJqWlKqDlwWOK6Jxs
 const showChat = ref(true)
 const newMessage = ref('')
 const loading = ref(false)
