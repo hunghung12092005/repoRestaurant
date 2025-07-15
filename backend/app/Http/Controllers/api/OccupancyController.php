@@ -138,7 +138,7 @@ class OccupancyController extends Controller
                 'total_price' => $total_price,
                 'additional_fee' => 0,
                 'payment_status' => 'completed',
-                'status' => 'completed',
+                'status' => 'confirmed',
                 'note' => null,
                 'created_at' => now(),
                 'updated_at' => now(),
@@ -383,7 +383,7 @@ class OccupancyController extends Controller
 
             // Cập nhật lại booking
             DB::table('booking_hotel')->where('booking_id', $booking->booking_id)->update([
-                'status' => 'completed',
+                'status' => 'confirmed',
                 'payment_status' => 'failed',
                 'note' => $note,
                 'updated_at' => now()

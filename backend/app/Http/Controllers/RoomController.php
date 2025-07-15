@@ -49,7 +49,7 @@ class RoomController extends Controller
             'type_id' => 'required|exists:room_types,type_id',
             'floor_number' => 'required|integer|min:1',
             'status' => 'required|in:available,occupied',
-            'description' => 'required|string',
+            'description' => 'string',
         ]);
 
         if ($validator->fails()) {
@@ -91,7 +91,7 @@ class RoomController extends Controller
             'type_id' => 'required|exists:room_types,type_id',
             'floor_number' => 'required|integer|min:1',
             'status' => 'required|in:available,occupied',
-            'description' => 'required|string',
+            'description' => 'string',
         ]);
 
         if ($validator->fails()) {
