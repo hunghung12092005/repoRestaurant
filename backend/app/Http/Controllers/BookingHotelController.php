@@ -15,70 +15,104 @@ use Tymon\JWTAuth\Exceptions\JWTException;
 use PayOS\PayOS;
 use Illuminate\Support\Facades\DB;
 use Carbon\Carbon;
-use GuzzleHttp\Client; // === THÊM MÃ === Thêm import để sử dụng Guzzle
-use GuzzleHttp\Exception\RequestException; // === THÊM MÃ === Thêm import để xử lý lỗi Guzzle
+use GuzzleHttp\Client;
+use GuzzleHttp\Exception\RequestException;
 
 class BookingHotelController extends Controller
 {
+    /**
+     * Kiểm tra số lượng phòng trống theo loại phòng trong khoảng thời gian
+     */
     public function checkAvailability(Request $request)
     {
+        $request->validate([
+            'check_in_date' => 'required|date',
+            'check_out_date' => 'required|date|after:check_in_date',
+        ]);
+
         $checkInDate = $request->input('check_in_date');
         $checkOutDate = $request->input('check_out_date');
 
-        // Lấy tất cả các loại phòng
-        $roomTypes = RoomType::all();
-        $availability = [];
+        try {
+            $roomTypes = RoomType::all();
+            $availability = [];
 
-        foreach ($roomTypes as $roomType) {
-            // Lấy tất cả các phòng thuộc loại này
-            $rooms = Room::where('type_id', $roomType->type_id)->get();
-            //return response()->json(['rooms' => $rooms, 'roomType' => $roomType]);
-            // Lấy các room_id đã được đặt trong khoảng thời gian này
-            $bookedRoomIds = BookingHotelDetail::whereHas('booking', function ($query) use ($checkInDate, $checkOutDate) {
-                $query->whereIn('status', ['confirmed', 'completed']) // ✅ thêm điều kiện này
-                    ->where(function ($query) use ($checkInDate, $checkOutDate) {
-                        $query->whereBetween('check_in_date', [$checkInDate, $checkOutDate])
-                            ->orWhereBetween('check_out_date', [$checkInDate, $checkOutDate]);
-                    });
-            })->pluck('room_id');
+            foreach ($roomTypes as $roomType) {
+                $rooms = Room::where('type_id', $roomType->type_id)->get();
 
+                $bookedRoomIds = BookingHotelDetail::whereHas('booking', function ($query) use ($checkInDate, $checkOutDate) {
+                    $query->whereIn('status', ['pending_confirmation', 'confirmed'])
+                          ->where(function ($q) use ($checkInDate, $checkOutDate) {
+                              $q->whereBetween('check_in_date', [$checkInDate, $checkOutDate])
+                                ->orWhereBetween('check_out_date', [$checkInDate, $checkOutDate])
+                                ->orWhere(function ($q) use ($checkInDate, $checkOutDate) {
+                                    $q->where('check_in_date', '<=', $checkInDate)
+                                      ->where('check_out_date', '>=', $checkOutDate);
+                                });
+                          });
+                })->pluck('room_id');
 
-            // Tính số lượng phòng còn trống
-            $availableRoomsCount = $rooms->whereNotIn('room_id', $bookedRoomIds)->count();
+                $availableRoomsCount = $rooms->whereNotIn('room_id', $bookedRoomIds)->count();
 
-            $availability[] = [
-                'room_type' => $roomType->type_id,
-                'available_rooms' => $availableRoomsCount
-            ];
+                $availability[] = [
+                    'room_type' => $roomType->type_id,
+                    'type_name' => $roomType->type_name,
+                    'available_rooms' => $availableRoomsCount
+                ];
+            }
+
+            Log::info('Kiểm tra phòng trống thành công', [
+                'check_in_date' => $checkInDate,
+                'check_out_date' => $checkOutDate,
+                'availability' => $availability
+            ]);
+
+            return response()->json($availability, 200);
+        } catch (\Exception $e) {
+            Log::error('Lỗi khi kiểm tra phòng trống: ' . $e->getMessage(), [
+                'check_in_date' => $checkInDate,
+                'check_out_date' => $checkOutDate,
+                'trace' => $e->getTraceAsString()
+            ]);
+            return response()->json([
+                'error' => 'Không thể kiểm tra phòng trống',
+                'details' => $e->getMessage()
+            ], 500);
         }
-
-        return response()->json($availability);
     }
+
     /**
-     * Lấy danh sách phòng trống dựa trên room_type
+     * Lấy danh sách phòng trống dựa trên room_type và khoảng thời gian
      */
     public function getAvailableRooms(Request $request)
     {
-        // Xác thực dữ liệu đầu vào
         $request->validate([
             'room_type' => 'required|integer|exists:room_types,type_id',
+            'check_in_date' => 'required|date',
+            'check_out_date' => 'required|date|after:check_in_date',
         ]);
 
         $roomTypeId = $request->input('room_type');
+        $checkInDate = $request->input('check_in_date');
+        $checkOutDate = $request->input('check_out_date');
 
         try {
-            // Lấy danh sách booking đang hoạt động (pending_confirmation hoặc confirmed)
-            $activeBookings = BookingHotel::whereIn('status', ['pending_confirmation', 'confirmed'])
-                ->pluck('booking_id');
-
-            // Lấy danh sách room_id đã được gán trong các booking đang hoạt động
-            $occupiedRoomIds = BookingHotelDetail::whereIn('booking_id', $activeBookings)
-                ->whereNotNull('room_id')
-                ->pluck('room_id');
+            // Lấy danh sách room_id đã được gán trong khoảng thời gian yêu cầu
+            $occupiedRoomIds = BookingHotelDetail::whereHas('booking', function ($query) use ($checkInDate, $checkOutDate) {
+                $query->whereIn('status', ['pending_confirmation', 'confirmed'])
+                      ->where(function ($q) use ($checkInDate, $checkOutDate) {
+                          $q->whereBetween('check_in_date', [$checkInDate, $checkOutDate])
+                            ->orWhereBetween('check_out_date', [$checkInDate, $checkOutDate])
+                            ->orWhere(function ($q) use ($checkInDate, $checkOutDate) {
+                                $q->where('check_in_date', '<=', $checkInDate)
+                                  ->where('check_out_date', '>=', $checkOutDate);
+                            });
+                      });
+            })->whereNotNull('room_id')
+              ->pluck('room_id');
 
             // Lấy danh sách phòng trống thuộc room_type
             $availableRooms = Room::where('type_id', $roomTypeId)
-                ->where('status', 'available') // Chỉ lấy phòng có trạng thái available
                 ->whereNotIn('room_id', $occupiedRoomIds)
                 ->with('roomType')
                 ->get()
@@ -87,12 +121,14 @@ class BookingHotelController extends Controller
                         'room_id' => $room->room_id,
                         'room_name' => $room->room_name,
                         'type_name' => $room->roomType->type_name ?? 'N/A',
-                        'status' => $room->status, // Trả về trạng thái phòng để frontend xử lý
+                        'status' => $room->status, // Trả về trạng thái phòng để debug
                     ];
                 });
 
             Log::info('Lấy danh sách phòng trống thành công', [
                 'room_type' => $roomTypeId,
+                'check_in_date' => $checkInDate,
+                'check_out_date' => $checkOutDate,
                 'available_rooms_count' => $availableRooms->count(),
                 'occupied_room_ids' => $occupiedRoomIds->toArray(),
             ]);
@@ -101,6 +137,8 @@ class BookingHotelController extends Controller
         } catch (\Exception $e) {
             Log::error('Lỗi khi lấy danh sách phòng trống: ' . $e->getMessage(), [
                 'room_type' => $roomTypeId,
+                'check_in_date' => $checkInDate,
+                'check_out_date' => $checkOutDate,
                 'trace' => $e->getTraceAsString(),
             ]);
             return response()->json([
@@ -111,25 +149,118 @@ class BookingHotelController extends Controller
     }
 
     /**
+     * Gán phòng cho chi tiết booking
+     */
+    public function assignRoom($bookingDetailId, Request $request)
+    {
+        $request->validate([
+            'room_id' => 'required|exists:rooms,room_id',
+            'check_in_date' => 'required|date',
+            'check_out_date' => 'required|date|after:check_in_date',
+        ]);
+
+        try {
+            $bookingDetail = BookingHotelDetail::findOrFail($bookingDetailId);
+            $checkInDate = $request->input('check_in_date');
+            $checkOutDate = $request->input('check_out_date');
+
+            // Kiểm tra xem phòng đã được gán trong khoảng thời gian trùng lặp
+            $isRoomOccupied = BookingHotelDetail::where('room_id', $request->room_id)
+                ->whereHas('booking', function ($query) use ($checkInDate, $checkOutDate) {
+                    $query->whereIn('status', ['pending_confirmation', 'confirmed'])
+                          ->where(function ($q) use ($checkInDate, $checkOutDate) {
+                              $q->whereBetween('check_in_date', [$checkInDate, $checkOutDate])
+                                ->orWhereBetween('check_out_date', [$checkInDate, $checkOutDate])
+                                ->orWhere(function ($q) use ($checkInDate, $checkOutDate) {
+                                    $q->where('check_in_date', '<=', $checkInDate)
+                                      ->where('check_out_date', '>=', $checkOutDate);
+                                });
+                          });
+                })->exists();
+
+            if ($isRoomOccupied) {
+                Log::warning('Phòng đã được gán trong khoảng thời gian yêu cầu', [
+                    'booking_detail_id' => $bookingDetailId,
+                    'room_id' => $request->room_id,
+                    'check_in_date' => $checkInDate,
+                    'check_out_date' => $checkOutDate,
+                ]);
+                return response()->json([
+                    'error' => 'Phòng đã được gán trong khoảng thời gian này'
+                ], 400);
+            }
+
+            // Kiểm tra xem phòng có thuộc loại phòng yêu cầu không
+            $room = Room::where('room_id', $request->room_id)
+                ->where('type_id', $bookingDetail->room_type)
+                ->first();
+
+            if (!$room) {
+                Log::warning('Phòng không hợp lệ hoặc không thuộc loại phòng yêu cầu', [
+                    'booking_detail_id' => $bookingDetailId,
+                    'room_id' => $request->room_id,
+                    'room_type' => $bookingDetail->room_type
+                ]);
+                return response()->json([
+                    'error' => 'Phòng không hợp lệ hoặc không thuộc loại phòng yêu cầu'
+                ], 400);
+            }
+
+            // Gán phòng và cập nhật trạng thái
+            $bookingDetail->room_id = $request->room_id;
+            $bookingDetail->save();
+
+            $room->status = 'occupied';
+            $room->save();
+
+            // Kiểm tra xem tất cả phòng đã được gán chưa
+            $booking = BookingHotel::findOrFail($bookingDetail->booking_id);
+            $unassignedRooms = BookingHotelDetail::where('booking_id', $booking->booking_id)
+                ->whereNull('room_id')
+                ->count();
+
+            if ($unassignedRooms === 0) {
+                $booking->status = 'confirmed';
+                $booking->save();
+                Log::info('Tự động xác nhận booking vì tất cả phòng đã được gán', [
+                    'booking_id' => $booking->booking_id
+                ]);
+            }
+
+            Log::info('Xếp phòng thành công', [
+                'booking_detail_id' => $bookingDetailId,
+                'room_id' => $request->room_id
+            ]);
+            return response()->json(['message' => 'Xếp phòng thành công'], 200);
+        } catch (\Exception $e) {
+            Log::error('Lỗi khi xếp phòng: ' . $e->getMessage(), [
+                'trace' => $e->getTraceAsString(),
+                'booking_detail_id' => $bookingDetailId
+            ]);
+            return response()->json([
+                'error' => 'Không thể xếp phòng',
+                'details' => $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
      * Tạo token JWT cho khách hàng
      */
     public function generateToken(Request $request)
     {
         try {
-            // Xác thực dữ liệu nhập vào
             $request->validate([
                 'name' => 'required|string',
                 'phone' => 'required',
             ]);
 
-            // Tìm hoặc tạo khách hàng dựa trên phone
             $customer = Customer::firstOrCreate(['customer_phone' => $request->phone], [
                 'customer_name' => $request->name,
                 'customer_phone' => $request->phone,
                 'address' => $request->address ?? 'Unknown',
             ]);
 
-            // Tạo token cho khách hàng
             $token = JWTAuth::fromUser($customer);
             return response()->json(['token' => $token]);
         } catch (JWTException $e) {
@@ -141,12 +272,11 @@ class BookingHotelController extends Controller
     }
 
     /**
-     * Tạo mới booking
+     * Tạo mới.booking
      */
     public function storeBooking(Request $request)
     {
         try {
-            // Validate the incoming request data
             $bookingDetails = $request->validate([
                 'check_in_date' => 'required|date',
                 'check_out_date' => 'required|date',
@@ -159,13 +289,11 @@ class BookingHotelController extends Controller
                 'orderCode' => 'nullable',
             ]);
 
-            // Lấy token từ header
             $token = $request->header('Authorization');
             if (!$token) {
                 return response()->json(['error' => 'Token not provided'], 401);
             }
 
-            // Xác thực token và lấy thông tin người dùng
             try {
                 $user = JWTAuth::parseToken()->authenticate();
                 if (!$user) {
@@ -179,10 +307,8 @@ class BookingHotelController extends Controller
                 return response()->json(['error' => 'Token is invalid'], 401);
             }
 
-            // Lấy customer_id từ user
             $customerId = $user->customer_id;
 
-            // Lưu thông tin booking chính
             $booking = BookingHotel::create([
                 'customer_id' => $customerId,
                 'payment_method' => $bookingDetails['payment_method'],
@@ -197,18 +323,16 @@ class BookingHotelController extends Controller
                 'note' => $bookingDetails['note'],
             ]);
 
-            // Lưu thông tin chi tiết cho từng phòng
             foreach ($bookingDetails['roomDetails'] as $roomDetail) {
                 $bookingDetail = BookingHotelDetail::create([
                     'booking_id' => $booking->booking_id,
-                    'room_type' => (int)$roomDetail['id'], // ID loại phòng
-                    'gia_phong' => number_format($roomDetail['price'], 2, '.', ''), // Định dạng giá
-                    'gia_dich_vu' => number_format($roomDetail['totalServiceCost'], 2, '.', ''), // Định dạng giá
+                    'room_type' => (int)$roomDetail['id'],
+                    'gia_phong' => number_format($roomDetail['price'], 2, '.', ''),
+                    'gia_dich_vu' => number_format($roomDetail['totalServiceCost'], 2, '.', ''),
                     'total_price' => number_format($roomDetail['totalServiceCost'] + $roomDetail['price'], 2, '.', ''),
                     'note' => $bookingDetails['note'],
                 ]);
 
-                // Lưu thông tin dịch vụ cho từng phòng
                 foreach ($roomDetail['serviceChoose'] as $serviceId) {
                     BookingHotelService::create([
                         'booking_detail_id' => $bookingDetail->id,
@@ -261,25 +385,21 @@ class BookingHotelController extends Controller
 
         $amount = $request->input('amount');
         $items = $request->input('items');
-        // Lấy booking_id mới nhất với payment_method là 'thanh_toan_qr'
         $latestBooking = BookingHotel::where('payment_method', 'thanh_toan_qr')
-            ->orderBy('created_at', 'desc') // Sắp xếp theo ngày tạo
-            ->first(); // Lấy bản ghi đầu tiên (mới nhất)
-        if ($latestBooking) {
-            $bookingId = $latestBooking->booking_id; // Hoặc trường booking_id nếu bạn có trường này
-            // return response()->json(['checkoutUrl' => $latestBooking->booking_id], 200);
-        } else {
-            $bookingId = null; // Nếu không có bản ghi nào
-        }
+            ->orderBy('created_at', 'desc')
+            ->first();
+
+        $bookingId = $latestBooking ? $latestBooking->booking_id : null;
 
         $data = [
             "orderCode" => intval(substr(strval(microtime(true) * 10000), -6)),
             "amount" => $amount,
-            "description" => " booking HXH",
+            "description" => "Booking HXH",
             "items" => $items,
             "returnUrl" => "http://127.0.0.1:5173/ThanksBooking",
             "cancelUrl" => "http://127.0.0.1:5173/"
         ];
+
         try {
             $payOSClientId = '078daf0e-baed-45f9-b2f9-20b79c89668e';
             $payOSApiKey = '8841f63c-c976-4b89-bf56-b769b035292b';
@@ -321,7 +441,6 @@ class BookingHotelController extends Controller
                         $detail->type_name = $detail->roomType ? $detail->roomType->type_name : 'Loại phòng không xác định';
                     });
 
-                    // === THÊM MÃ === Lấy trạng thái thanh toán từ PayOS và định dạng tiếng Việt
                     $paymentStatusDisplay = 'Chưa xác định';
                     if ($booking->payment_method === 'thanh_toan_qr' && !empty($booking->orderCode)) {
                         try {
@@ -346,7 +465,6 @@ class BookingHotelController extends Controller
                         $paymentStatusDisplay = 'Thanh toán trực tiếp';
                     }
                     $booking->payment_status_display = $paymentStatusDisplay;
-                    // === KẾT THÚC MÃ THÊM ===
 
                     return $booking;
                 });
@@ -369,7 +487,7 @@ class BookingHotelController extends Controller
     }
 
     /**
-     * Hàm định dạng trạng thái thanh toán thành tiếng Việt (THÊM MỚI)
+     * Định dạng trạng thái thanh toán thành tiếng Việt
      */
     private function formatPaymentStatus($status)
     {
@@ -437,7 +555,7 @@ class BookingHotelController extends Controller
         }
     }
 
-    /**
+        /**
      * Lấy dịch vụ của booking
      */
     public function getBookingServices($bookingId)
@@ -456,69 +574,6 @@ class BookingHotelController extends Controller
             ]);
             return response()->json([
                 'error' => 'Không thể lấy dịch vụ booking',
-                'details' => $e->getMessage()
-            ], 500);
-        }
-    }
-
-    /**
-     * Gán phòng cho chi tiết booking
-     */
-    public function assignRoom($bookingDetailId, Request $request)
-    {
-        try {
-            $request->validate([
-                'room_id' => 'required|exists:rooms,room_id'
-            ]);
-
-            $bookingDetail = BookingHotelDetail::findOrFail($bookingDetailId);
-            $room = Room::where('room_id', $request->room_id)
-                ->where('type_id', $bookingDetail->room_type)
-                ->where('status', 'available')
-                ->first();
-
-            if (!$room) {
-                Log::warning('Phòng không hợp lệ hoặc đã được gán', [
-                    'booking_detail_id' => $bookingDetailId,
-                    'room_id' => $request->room_id,
-                    'room_type' => $bookingDetail->room_type
-                ]);
-                return response()->json([
-                    'error' => 'Phòng không hợp lệ, không thuộc loại phòng hoặc đã được gán'
-                ], 400);
-            }
-
-            $bookingDetail->room_id = $request->room_id;
-            $bookingDetail->save();
-
-            $room->status = 'occupied';
-            $room->save();
-
-            $booking = BookingHotel::findOrFail($bookingDetail->booking_id);
-            $unassignedRooms = BookingHotelDetail::where('booking_id', $booking->booking_id)
-                ->whereNull('room_id')
-                ->count();
-
-            if ($unassignedRooms === 0) {
-                $booking->status = 'confirmed';
-                $booking->save();
-                Log::info('Tự động xác nhận booking vì tất cả phòng đã được gán', [
-                    'booking_id' => $booking->booking_id
-                ]);
-            }
-
-            Log::info('Xếp phòng thành công', [
-                'booking_detail_id' => $bookingDetailId,
-                'room_id' => $request->room_id
-            ]);
-            return response()->json(['message' => 'Xếp phòng thành công'], 200);
-        } catch (\Exception $e) {
-            Log::error('Lỗi khi xếp phòng: ' . $e->getMessage(), [
-                'trace' => $e->getTraceAsString(),
-                'booking_detail_id' => $bookingDetailId
-            ]);
-            return response()->json([
-                'error' => 'Không thể xếp phòng',
                 'details' => $e->getMessage()
             ], 500);
         }
@@ -565,10 +620,7 @@ class BookingHotelController extends Controller
                 ], 400);
             }
 
-            // Lấy service_ids từ request (nếu có)
             $serviceIds = $request->input('service_ids', []);
-
-            // Lấy chi tiết booking
             $bookingDetails = BookingHotelDetail::where('booking_id', $bookingId)
                 ->whereNotNull('room_id')
                 ->get();
@@ -598,7 +650,6 @@ class BookingHotelController extends Controller
                     ], 400);
                 }
 
-                // Lấy giá phòng từ bảng prices
                 $now = Carbon::now();
                 $price = DB::table('prices')
                     ->where('type_id', $room->type_id)
@@ -617,7 +668,6 @@ class BookingHotelController extends Controller
                     ], 400);
                 }
 
-                // Tính giá phòng dựa trên thời gian thực tế
                 $checkIn = Carbon::parse($booking->check_in_date);
                 $actualCheckout = Carbon::now();
                 $totalHours = $checkIn->floatDiffInHours($actualCheckout);
@@ -641,14 +691,12 @@ class BookingHotelController extends Controller
                     $note .= "Phòng {$room->room_name}: Tính theo ngày ($fullDays ngày, $remainingHours giờ). ";
                 }
 
-                // Tính giá dịch vụ (nếu có)
                 $serviceFee = 0;
                 if (!empty($serviceIds)) {
                     $serviceFee = DB::table('services')
                         ->whereIn('service_id', $serviceIds)
                         ->sum('price');
 
-                    // Gán dịch vụ vào booking_hotel_service
                     foreach ($serviceIds as $serviceId) {
                         DB::table('booking_hotel_service')->insert([
                             'booking_detail_id' => $detail->booking_detail_id,
@@ -659,17 +707,14 @@ class BookingHotelController extends Controller
                     }
                 }
 
-                // Cập nhật chi tiết booking
                 $detail->gia_phong = number_format($roomPrice, 2, '.', '');
                 $detail->gia_dich_vu = number_format($serviceFee, 2, '.', '');
                 $detail->total_price = number_format($roomPrice + $serviceFee, 2, '.', '');
                 $detail->save();
 
-                // Cộng vào tổng giá
                 $totalPrice += ($roomPrice + $serviceFee);
                 $totalServiceFee += $serviceFee;
 
-                // Cập nhật trạng thái phòng về available
                 $room->status = 'available';
                 $room->save();
                 Log::info('Cập nhật trạng thái phòng về available', [
@@ -678,7 +723,6 @@ class BookingHotelController extends Controller
                 ]);
             }
 
-            // Tính chênh lệch giá so với dự kiến
             $expectedCheckout = Carbon::parse($booking->check_out_date);
             $expectedHours = $checkIn->floatDiffInHours($expectedCheckout);
             $expectedTotal = 0;
@@ -714,7 +758,6 @@ class BookingHotelController extends Controller
                 $note .= "Thanh toán đúng như dự kiến.";
             }
 
-            // Cập nhật booking
             $booking->total_price = number_format($totalPrice, 2, '.', '');
             $booking->status = 'completed';
             $booking->payment_status = 'completed';
