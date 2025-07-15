@@ -131,7 +131,7 @@
     </div>
 
     <!-- Modal chi tiết đặt phòng -->
-    <div v-if="hienModal" class="modal fade show" style="display: block;" tabindex-fin="-1" role="dialog">
+    <div v-if="hienModal" class="modal fade show" style="display: block;" tabindex="-1" role="dialog">
       <div class="modal-dialog modal-lg" role="document">
         <div class="modal-content">
           <div class="modal-header">
@@ -199,14 +199,12 @@
                         v-model="chiTiet.room_id"
                         @change="xepPhong(chiTiet)"
                         class="form-control form-control-sm"
-                        :disabled="chiTiet.room_id"
                       >
                         <option value="">Chọn phòng</option>
                         <option
                           v-for="phong in phongTrong[chiTiet.booking_detail_id]"
                           :key="phong.room_id"
                           :value="phong.room_id"
-                          :disabled="phong.status === 'occupied'"
                         >
                           {{ phong.room_name }} ({{ phong.type_name || 'Không xác định' }})
                         </option>
@@ -247,29 +245,28 @@ import { ref, onMounted, computed } from 'vue';
 import axios from 'axios';
 
 // Trạng thái (state)
-const danhSachDatPhong = ref([]); // Danh sách đặt phòng gốc
-const hienModal = ref(false); // Hiển thị modal
-const datPhongDuocChon = ref({}); // Đặt phòng được chọn
-const chiTietDatPhong = ref([]); // Chi tiết đặt phòng
-const phongTrong = ref({}); // Danh sách phòng trống
-const thongBaoLoi = ref(''); // Thông báo lỗi
-const dangTai = ref(false); // Trạng thái tải dữ liệu
+const danhSachDatPhong = ref([]);
+const hienModal = ref(false);
+const datPhongDuocChon = ref({});
+const chiTietDatPhong = ref([]);
+const phongTrong = ref({});
+const thongBaoLoi = ref('');
+const dangTai = ref(false);
 
 // Phân trang và lọc
-const tuKhoaTimKiem = ref(''); // Từ khóa tìm kiếm
-const locTrangThai = ref(''); // Lọc theo trạng thái
-const tuNgay = ref(''); // Lọc từ ngày
-const denNgay = ref(''); // Lọc đến ngày
-const trangHienTai = ref(1); // Trang hiện tại
-const soBanGhiTrenTrang = ref(10); // Số bản ghi trên trang
-const sapXepCot = ref('booking_id'); // Cột sắp xếp mặc định là booking_id
-const sapXepGiam = ref(true); // Sắp xếp giảm dần (mới nhất đầu tiên)
+const tuKhoaTimKiem = ref('');
+const locTrangThai = ref('');
+const tuNgay = ref('');
+const denNgay = ref('');
+const trangHienTai = ref(1);
+const soBanGhiTrenTrang = ref(10);
+const sapXepCot = ref('booking_id');
+const sapXepGiam = ref(true);
 
 // Tính toán danh sách đã lọc
 const danhSachLoc = computed(() => {
   let ketQua = [...danhSachDatPhong.value];
   
-  // Lọc theo từ khóa
   if (tuKhoaTimKiem.value) {
     const tuKhoa = tuKhoaTimKiem.value.toLowerCase();
     ketQua = ketQua.filter(item => 
@@ -279,12 +276,10 @@ const danhSachLoc = computed(() => {
     );
   }
   
-  // Lọc theo trạng thái
   if (locTrangThai.value) {
     ketQua = ketQua.filter(item => item.status === locTrangThai.value);
   }
   
-  // Lọc theo ngày
   if (tuNgay.value) {
     const ngayBatDau = new Date(tuNgay.value);
     ketQua = ketQua.filter(item => {
@@ -301,16 +296,13 @@ const danhSachLoc = computed(() => {
     });
   }
   
-  // Sắp xếp
   ketQua.sort((a, b) => {
     const giaTriA = a[sapXepCot.value];
     const giaTriB = b[sapXepCot.value];
     
     if (sapXepCot.value === 'booking_id') {
-      // So sánh số cho booking_id
       return sapXepGiam.value ? giaTriB - giaTriA : giaTriA - giaTriB;
     } else if (sapXepCot.value === 'check_in_date' || sapXepCot.value === 'check_out_date') {
-      // So sánh ngày
       const dateA = new Date(giaTriA);
       const dateB = new Date(giaTriB);
       return sapXepGiam.value ? dateB - dateA : dateA - dateB;
@@ -326,7 +318,7 @@ const danhSachLoc = computed(() => {
 const tongSoBanGhi = computed(() => danhSachLoc.value.length);
 const tongSoTrang = computed(() => Math.ceil(tongSoBanGhi.value / soBanGhiTrenTrang.value));
 const danhSachTrang = computed(() => {
-  const maxPagesToShow = 5; // Số trang tối đa hiển thị
+  const maxPagesToShow = 5;
   const halfPages = Math.floor(maxPagesToShow / 2);
   let trangBatDau = Math.max(1, trangHienTai.value - halfPages);
   let trangKetThuc = Math.min(tongSoTrang.value, trangBatDau + maxPagesToShow - 1);
@@ -366,7 +358,7 @@ const layDanhSachDatPhong = async () => {
       headers: { 'Accept': 'application/json' }
     });
     danhSachDatPhong.value = Array.isArray(phanHoi.data) ? phanHoi.data : [];
-    trangHienTai.value = 1; // Đặt lại trang về 1 khi tải dữ liệu mới
+    trangHienTai.value = 1;
     thongBaoLoi.value = danhSachDatPhong.value.length === 0 ? 'Không có dữ liệu đặt phòng từ server.' : '';
   } catch (loi) {
     console.error('Lỗi khi lấy danh sách đặt phòng:', loi);
@@ -402,7 +394,9 @@ const moModalChiTiet = async (datPhong) => {
                 throw new Error(`Mã loại phòng không hợp lệ: ${chiTiet.room_type}`);
               }
               const phanHoiPhong = await axios.post('/api/available-rooms', {
-                room_type: maLoaiPhong
+                room_type: maLoaiPhong,
+                check_in_date: datPhong.check_in_date,
+                check_out_date: datPhong.check_out_date
               }, {
                 headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' }
               });
@@ -442,11 +436,13 @@ const xepPhong = async (chiTiet) => {
   }
   try {
     await axios.post(`/api/assign-room/${chiTiet.booking_detail_id}`, {
-      room_id: chiTiet.room_id
+      room_id: chiTiet.room_id,
+      check_in_date: datPhongDuocChon.value.check_in_date,
+      check_out_date: datPhongDuocChon.value.check_out_date
     }, {
       headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' }
     });
-    await moModalChiTiet(datPhongDuocChon.value); // Làm mới dữ liệu modal
+    await moModalChiTiet(datPhongDuocChon.value);
     thongBaoLoi.value = '';
   } catch (loi) {
     console.error('Lỗi khi xếp phòng:', loi);
@@ -491,12 +487,12 @@ const chuyenTrang = (trang) => {
 
 // Tìm kiếm đặt phòng
 const timKiemDatPhong = () => {
-  trangHienTai.value = 1; // Reset về trang đầu khi tìm kiếm
+  trangHienTai.value = 1;
 };
 
 // Lọc danh sách
 const locDanhSach = () => {
-  trangHienTai.value = 1; // Reset về trang đầu khi lọc
+  trangHienTai.value = 1;
 };
 
 // Sắp xếp
@@ -505,9 +501,9 @@ const sapXep = (cot) => {
     sapXepGiam.value = !sapXepGiam.value;
   } else {
     sapXepCot.value = cot;
-    sapXepGiam.value = cot === 'booking_id' ? true : false; // Mặc định giảm dần cho booking_id
+    sapXepGiam.value = cot === 'booking_id' ? true : false;
   }
-  trangHienTai.value = 1; // Reset về trang đầu khi sắp xếp
+  trangHienTai.value = 1;
 };
 
 // Định dạng ngày
@@ -572,7 +568,6 @@ const layLopTrangThaiThanhToan = (trangThai) => {
   };
 };
 
-// Gọi layDanhSachDatPhong khi component được mount
 onMounted(() => {
   layDanhSachDatPhong();
 });
@@ -648,16 +643,11 @@ onMounted(() => {
   vertical-align: baseline;
   border-radius: 0.25rem;
 }
-
-/* Màu cho trạng thái đặt phòng */
-.badge-warning { background-color: #ffc107; color: black; }  
+.badge-warning { background-color: #ffc107; color: black; }
 .badge-success { background-color: #28a745; color: white; }
-.badge-danger  { background-color: #dc3545; color: white; }  
-
-/* Màu cho trạng thái thanh toán */
+.badge-danger { background-color: #dc3545; color: white; }
 .badge-secondary { background-color: #6c757d; color: white; }
-.badge-light     { background-color: #f8f9fa; color: black; } 
-
+.badge-light { background-color: #f8f9fa; color: black; }
 .page-item.active .page-link {
   background-color: #007bff;
   border-color: #007bff;
@@ -665,7 +655,6 @@ onMounted(() => {
 .page-link {
   color: #007bff;
 }
-
 @media (max-width: 768px) {
   .bang-du-lieu {
     overflow-x: auto;

@@ -776,8 +776,8 @@ const selectedHotel = ref(null);
 const selectedHotelBooking = ref(null);
 
 const currentDateTime = new Date().toLocaleString();
-const phoneNumber = ref('325697601');
-const fullName = ref('hunghunghung');
+const phoneNumber = ref('');
+const fullName = ref('');
 const orderNotes = ref('');
 const createAccount = ref('true');
 const paymentMethod = ref(''); // Phương thức thanh toán
@@ -884,8 +884,8 @@ const addBooking = (hotel) => {
             new bootstrap.Toast(toastEl, { delay: 1000 }).show();
         }
 
-        //console.log("✅ Thêm phòng:", roomData);
-        //console.log("📌 Tổng số phòng đã chọn:", selectedRooms.totalRooms);
+        //console.log("Thêm phòng:", roomData);
+        //console.log("Tổng số phòng đã chọn:", selectedRooms.totalRooms);
     } else {
         alert(`❗ Bạn chỉ có thể chọn tối đa ${maxRooms} phòng.`);
     }
