@@ -300,6 +300,7 @@ class OccupancyController extends Controller
                     'message' => 'Không tìm thấy đặt phòng để thanh toán.'
                 ], 404);
             }
+           // return ('test');
 
             $actualCheckout = now();
             $checkIn = $bookingDetail->created_at
@@ -379,7 +380,7 @@ class OccupancyController extends Controller
             if (!empty($services)) {
                 $bookingDetail = DB::table('booking_hotel_detail')
                     ->where('room_id', $room_id)
-                    ->whereNull('actual_check_out_time') // đảm bảo là lần đặt chưa thanh toán
+                   // ->whereNull('actual_check_out_time') // đảm bảo là lần đặt chưa thanh toán
                     ->latest('created_at')
                     ->first();
 
@@ -411,6 +412,7 @@ class OccupancyController extends Controller
                         logger()->error("❌ Không tìm thấy dịch vụ ID: $serviceId");
                         continue;
                     }
+                    //return ('test');
 
                     $total = $quantity * $service->price;
                     $totalServiceFee += $total;
@@ -432,7 +434,7 @@ class OccupancyController extends Controller
                     ->update([
                         'gia_dich_vu' => $totalServiceFee,
                         'total_price' => $newTotal + $totalServiceFee,
-                        'actual_check_out_time' => now(), // ✅ thêm dòng này nếu có cột
+                        //'actual_check_out_time' => now(), // ✅ thêm dòng này nếu có cột
                         'updated_at' => now()
                     ]);
             }
@@ -466,10 +468,18 @@ class OccupancyController extends Controller
                 'note' => $note
             ]);
         } catch (\Exception $e) {
+            // Xác định loại lỗi dựa trên thông tin trong exception
+            $errorMessage = 'Lỗi không xác định.';
+            if ($e instanceof \Illuminate\Database\QueryException) {
+                $errorMessage = 'Lỗi truy vấn cơ sở dữ liệu: ' . $e->getMessage();
+            } elseif ($e instanceof \InvalidArgumentException) {
+                $errorMessage = 'Tham số không hợp lệ: ' . $e->getMessage();
+            }
+
             return response()->json([
                 'success' => false,
-                'message' => 'Lỗi server khi thanh toán.',
-                'error' => $e->getMessage()
+                'message' => 'Lỗi khi thanh toán.',
+                'error' => $errorMessage
             ], 500);
         }
     }
