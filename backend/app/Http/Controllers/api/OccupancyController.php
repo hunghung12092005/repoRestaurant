@@ -125,7 +125,26 @@ class OccupancyController extends Controller
                 'customer_id_number' => $validated['customer_id_number'],
 
             ]);
-
+            $isOverlapping = DB::table('booking_hotel_detail as bkd')
+            ->join('booking_hotel as bk', 'bk.booking_id', '=', 'bkd.booking_id')
+            ->where('bkd.room_id', $room_id)
+            ->where('bk.status', '!=', 'completed') // chỉ kiểm tra những booking chưa hoàn tất
+            ->where(function ($query) use ($checkIn, $checkOut) {
+                $query->whereBetween('bk.check_in_date', [$checkIn, $checkOut])
+                      ->orWhereBetween('bk.check_out_date', [$checkIn, $checkOut])
+                      ->orWhere(function ($q) use ($checkIn, $checkOut) {
+                          $q->where('bk.check_in_date', '<=', $checkIn)
+                            ->where('bk.check_out_date', '>=', $checkOut);
+                      });
+            })
+            ->exists();
+        
+        if ($isOverlapping) {
+            return response()->json([
+                'message' => 'Phòng này đã có người đặt trong khoảng thời gian đã chọn.'
+            ], 409); // Conflict
+        }
+        
             // Tạo booking
             $bookingId = DB::table('booking_hotel')->insertGetId([
                 'customer_id' => $customerId,
@@ -138,7 +157,7 @@ class OccupancyController extends Controller
                 'total_price' => $total_price,
                 'additional_fee' => 0,
                 'payment_status' => 'completed',
-                'status' => 'completed',
+                'status' => 'confirmed',
                 'note' => null,
                 'created_at' => now(),
                 'updated_at' => now(),
@@ -667,6 +686,7 @@ class OccupancyController extends Controller
                     ->where('bkd.room_id', $room->room_id)
                     ->whereDate('bk.check_in_date', '<=', $date)
                     ->whereDate('bk.check_out_date', '>', $date)
+                    ->where('bk.status', '!=', 'completed')
                     ->exists();
 
                 $room->status = $isBooked ? 'occupied' : 'available';
