@@ -61,6 +61,7 @@ import AdminNewsCommentComponent from '../components/admin/news/AdminNewsComment
 import RoomTypeDetail from '../components/RoomTypeDetail.vue';
 //admin AI
 import traningAI from '../components/admin/AI/traningAI.vue';
+import AdminBookingHistory from '../components/AdminBooking/AdminBookingHistory.vue';
 const routes = [
   // {
   //   path: '/home',
@@ -252,6 +253,18 @@ const routes = [
     path: '/admin/bookings',
     name: 'AdminBookingComponent',
     component: AdminBookingComponent,
+    meta: { requiresAdmin: true },
+  },
+  {
+    path: '/admin/bookings',
+    name: 'AdminBookingComponent',
+    component: AdminBookingComponent,
+    meta: { requiresAdmin: true },
+  },
+  {
+    path: '/admin/booking-histories',
+    name: 'AdminBookingHistory',
+    component: AdminBookingHistory,
     meta: { requiresAdmin: true },
   },
   {
