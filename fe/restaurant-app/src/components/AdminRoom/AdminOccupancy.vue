@@ -269,16 +269,14 @@ import axios from 'axios';
 import { useRouter } from 'vue-router';
 import { inject } from 'vue';
 import isLoading from '../loading.vue'
+
 const apiUrl = inject('apiUrl');
 const allRooms = ref([]);
 const isisLoading = ref(false);
-// Trạng thái lọc
 const selectedStatus = ref('Tất cả');
 const selectedRoomType = ref('Tất cả');
 const selectedFloor = ref('Tất cả');
-const selectedDate = ref(new Date().toISOString().substr(0, 10)); // Ngày mặc định: hôm nay
-
-// Form thêm khách
+const selectedDate = ref(new Date().toISOString().substr(0, 10));
 const showForm = ref(false);
 const totalPricePreview = ref(null);
 const formData = ref({
@@ -292,7 +290,6 @@ const formData = ref({
   check_out_date: '',
   pricing_type: 'nightly'
 });
-
 const showEditForm = ref(false);
 const editFormData = ref({
   customer_id: null,
@@ -301,6 +298,30 @@ const editFormData = ref({
   customer_email: '',
   address: '',
 });
+const showServiceModal = ref(false);
+const allServices = ref([]);
+const currentRoomId = ref(null);
+const showGuestModal = ref(false);
+const guestInfo = ref({});
+const showExtendModal = ref(false);
+const extendForm = ref({ room_id: null, check_out_date: '' });
+const apiKey = 'XXjjI5g9j7gk4NcZE9Dh9PPLCrvrR6zJ';
+
+const serviceTotal = computed(() =>
+  allServices.value.reduce((sum, s) => sum + s.price * s.quantity, 0)
+);
+
+const increaseQty = (index) => {
+  allServices.value[index].quantity++;
+};
+
+const decreaseQty = (index) => {
+  if (allServices.value[index].quantity > 0) {
+    allServices.value[index].quantity--;
+  }
+};
+
+const formatPrice = (price) => price.toLocaleString('vi-VN') + ' VND';
 
 const editCustomerInfo = (customer) => {
   if (!customer) return;
@@ -324,13 +345,10 @@ const submitEditForm = async () => {
     });
 
     alert(res.data.message || 'Cập nhật thành công.');
-
-    // ✅ Cập nhật dữ liệu hiển thị
     guestInfo.value.customer.customer_name = editFormData.value.customer_name;
     guestInfo.value.customer.customer_phone = editFormData.value.customer_phone;
     guestInfo.value.customer.customer_email = editFormData.value.customer_email;
     guestInfo.value.customer.address = editFormData.value.address;
-
     showEditForm.value = false;
   } catch (e) {
     alert("Không thể cập nhật.");
@@ -338,13 +356,12 @@ const submitEditForm = async () => {
   }
 };
 
-// CCCD
-const imageFile = ref(null);
 const onFileChange = (e) => {
   const file = e.target.files[0];
   if (file) imageFile.value = file;
 };
-const apiKey = 'XXjjI5g9j7gk4NcZE9Dh9PPLCrvrR6zJ';
+
+const imageFile = ref(null);
 const uploadImage = async () => {
   if (!imageFile.value) return alert('Chọn ảnh CCCD trước!');
   isisLoading.value = true;
@@ -372,91 +389,68 @@ const uploadImage = async () => {
   }
 };
 
-// Danh sách dịch vụ
-const showServiceModal = ref(false);
-const allServices = ref([]);
-const currentRoomId = ref(null);
-
-const serviceTotal = computed(() =>
-  allServices.value.reduce((sum, s) => sum + s.price * s.quantity, 0)
-);
-
-const increaseQty = (index) => {
-  allServices.value[index].quantity++
-};
-
-const decreaseQty = (index) => {
-  if (allServices.value[index].quantity > 0) {
-    allServices.value[index].quantity--
+const checkoutRoom = async (room_id) => {
+  currentRoomId.value = room_id;
+  try {
+    const res = await axios.get(`${apiUrl}/api/services/indexAllService`);
+    allServices.value = res.data.map(service => ({
+      ...service,
+      price: Number(service.price) || 0,
+      quantity: 0
+    }));
+    showServiceModal.value = true;
+  } catch (error) {
+    console.error("Không thể tải dịch vụ:", error);
+    alert("Không thể tải danh sách dịch vụ.");
   }
 };
 
-const formatPrice = (price) => price.toLocaleString('vi-VN') + ' VND';
+const confirmPayment = async () => {
+  if (!window.confirm("Xác nhận thanh toán và trả phòng?")) return;
+  try {
+    const services = allServices.value
+      .filter(s => Number(s.quantity) > 0)
+      .map(s => ({
+        service_id: Number(s.service_id),
+        quantity: Number(s.quantity)
+      }));
 
+    console.log("Dịch vụ sẽ gửi đi:", services);
 
-// Thanh toán - mở modal chọn dịch vụ
-// const checkoutRoom = async (room_id) => {
-//   currentRoomId.value = room_id;
-//   try {
-//     const res = await axios.get(`${apiUrl}/api/services/indexAllService`);
-//     allServices.value = res.data;
-//     allServices.value = res.data.map(service => ({
-//   ...service,
-//   price: Number(service.price) || 0, // 👈 ép kiểu giá
-//   quantity: 0
-// }));    showServiceModal.value = true;
-//   } catch (error) {
-//     console.error("Không thể tải dịch vụ:", error);
-//     alert("Không thể tải danh sách dịch vụ.");
-//   }
-// };
+    const response = await axios.post(`${apiUrl}/api/rooms/${currentRoomId.value}/checkout`, {
+      services: services,
+      date: selectedDate.value
+    });
 
-// // Xác nhận thanh toán và gửi kèm dịch vụ
-// const confirmPayment = async () => {
-//   if (!window.confirm("Xác nhận thanh toán và trả phòng?")) return;
-//   try {
-//     const services = allServices.value
-//       .filter(s => Number(s.quantity) > 0)
-//       .map(s => ({
-//         service_id: Number(s.service_id),
-//         quantity: Number(s.quantity)
-//       }));
+    const data = response.data;
+    console.log("Thanh toán thành công:", data);
+    alert(
+      `${data.message}\n\n` +
+      `💳 Đã thanh toán trước: ${Number(data.paid_total).toLocaleString('vi-VN')} VND\n` +
+      `🛏️ Tiền phòng: ${Number(data.room_total).toLocaleString('vi-VN')} VND\n` +
+      `🧾 Dịch vụ: ${Number(data.service_total).toLocaleString('vi-VN')} VND\n` +
+      `💰 Tổng phải trả: ${Number(data.actual_total).toLocaleString('vi-VN')} VND\n\n` +
+      (data.note || '')
+    );
 
-//     console.log("Dịch vụ sẽ gửi đi:", services); // Thêm dòng này để kiểm tra
+    showServiceModal.value = false;
+    await fetchRooms();
+  } catch (error) {
+    console.error("Lỗi thanh toán:", error);
+    const errorMessage = error.response?.data?.message || "Không thể thanh toán phòng.";
+    alert(errorMessage); // Hiển thị thông báo lỗi từ backend
+  }
+};
 
-//     const response = await axios.post(`${apiUrl}/api/rooms/${currentRoomId.value}/checkout`, {
-//       services: services
-//     });
-
-//     const data = response.data;
-//     console.log("Thanh toán thành công:", data);
-//     alert(
-//       `${data.message}\n\n` +
-//       `💳 Đã thanh toán trước: ${Number(data.paid_total).toLocaleString('vi-VN')} VND\n` +
-//       `🛏️ Tiền phòng: ${Number(data.room_total).toLocaleString('vi-VN')} VND\n` +
-//       `🧾 Dịch vụ: ${Number(data.service_total).toLocaleString('vi-VN')} VND\n` +
-//       `💰 Tổng phải trả: ${Number(data.actual_total).toLocaleString('vi-VN')} VND\n\n` +
-//       (data.note || '')
-//     );
-
-//     showServiceModal.value = false;
-//     await fetchRooms();
-//   } catch (error) {
-//     console.error("Lỗi thanh toán:", error);
-//     alert("Không thể thanh toán phòng.");
-//   }
-// };
-
-
-// Xử lý dữ liệu phòng
 const mapApiStatusToVietnamese = (s) => s === 'available' ? 'Còn trống' : s === 'occupied' ? 'Đã đặt' : 'Không xác định';
 const mapBedCountToString = (c) => c === 1 ? 'Giường đơn' : c === 2 ? 'Giường đôi' : `${c} giường`;
+
 const fetchRooms = async () => {
   isisLoading.value = true;
   try {
     const res = await axios.get(`${apiUrl}/api/occupancy/by-date`, {
-  params: { date: selectedDate.value }
-});
+      params: { date: selectedDate.value }
+    });
 
     allRooms.value = res.data.map(r => ({
       room_id: r.room_id,
@@ -473,7 +467,6 @@ const fetchRooms = async () => {
   }
 };
 
-// Mở form thêm khách
 const showAddGuest = (room_id) => {
   formData.value = {
     customer_name: '',
@@ -520,7 +513,6 @@ const calculateTotalPricePreview = async () => {
   }
 };
 
-// Bộ lọc
 const roomTypes = computed(() => ['Tất cả', ...[...new Set(allRooms.value.map(r => r.type))].sort()]);
 const floors = computed(() => ['Tất cả', ...[...new Set(allRooms.value.map(r => r.floor))].sort((a, b) => a - b).map(f => `Tầng ${f}`)]);
 const filteredRooms = computed(() =>
@@ -538,22 +530,18 @@ const groupedAndSortedRooms = computed(() => {
   }
   return Object.keys(groups).sort((a, b) => a - b).map(f => ({ floor: f, rooms: groups[f] }));
 });
+
 const clearFilters = () => {
   selectedStatus.value = 'Tất cả';
   selectedRoomType.value = 'Tất cả';
   selectedFloor.value = 'Tất cả';
 };
 
-// Chi tiết khách
-const showGuestModal = ref(false);
-const guestInfo = ref({});
-// Trong hàm showGuestDetails
 const showGuestDetails = async (room) => {
   try {
-    const res = await axios
-      .get(`${apiUrl}/api/rooms/${room.room_id}/customer`, {
-        params: { date: selectedDate.value }
-      });
+    const res = await axios.get(`${apiUrl}/api/rooms/${room.room_id}/customer`, {
+      params: { date: selectedDate.value }
+    });
     guestInfo.value = res.data;
     showGuestModal.value = true;
   } catch (e) {
@@ -562,67 +550,11 @@ const showGuestDetails = async (room) => {
   }
 };
 
-// Trong hàm checkoutRoom
-const checkoutRoom = async (room_id) => {
-  currentRoomId.value = room_id;
-  try {
-    const res = await axios.get(`${apiUrl}/api/services/indexAllService`);
-    allServices.value = res.data.map(service => ({
-      ...service,
-      price: Number(service.price) || 0,
-      quantity: 0
-    }));
-    showServiceModal.value = true;
-  } catch (error) {
-    console.error("Không thể tải dịch vụ:", error);
-    alert("Không thể tải danh sách dịch vụ.");
-  }
-};
-
-// Trong hàm confirmPayment
-const confirmPayment = async () => {
-  if (!window.confirm("Xác nhận thanh toán và trả phòng?")) return;
-  try {
-    const services = allServices.value
-      .filter(s => Number(s.quantity) > 0)
-      .map(s => ({
-        service_id: Number(s.service_id),
-        quantity: Number(s.quantity)
-      }));
-
-    console.log("Dịch vụ sẽ gửi đi:", services);
-
-    const response = await axios.post(`${apiUrl}/api/rooms/${currentRoomId.value}/checkout`, {
-      services: services,
-      date: selectedDate.value // Thêm ngày được chọn vào request
-    });
-
-    const data = response.data;
-    console.log("Thanh toán thành công:", data);
-    alert(
-      `${data.message}\n\n` +
-      `💳 Đã thanh toán trước: ${Number(data.paid_total).toLocaleString('vi-VN')} VND\n` +
-      `🛏️ Tiền phòng: ${Number(data.room_total).toLocaleString('vi-VN')} VND\n` +
-      `🧾 Dịch vụ: ${Number(data.service_total).toLocaleString('vi-VN')} VND\n` +
-      `💰 Tổng phải trả: ${Number(data.actual_total).toLocaleString('vi-VN')} VND\n\n` +
-      (data.note || '')
-    );
-
-    showServiceModal.value = false;
-    await fetchRooms();
-  } catch (error) {
-    console.error("Lỗi thanh toán:", error);
-    alert("Không thể thanh toán phòng.");
-  }
-};
-
-// Gia hạn
-const showExtendModal = ref(false);
-const extendForm = ref({ room_id: null, check_out_date: '' });
 const showExtendForm = (room_id) => {
   extendForm.value = { room_id, check_out_date: '' };
   showExtendModal.value = true;
 };
+
 const submitExtendForm = async () => {
   try {
     const res = await axios.post(`${apiUrl}/api/rooms/${extendForm.value.room_id}/extend`, {
@@ -637,7 +569,11 @@ const submitExtendForm = async () => {
   }
 };
 
-// Mounted + Watch
+const getActualCheckout = (booking) => {
+  if (!booking || !booking.actual_check_out_time) return 'Chưa trả';
+  return booking.actual_check_out_time;
+};
+
 onMounted(fetchRooms);
 watch(() => [
   formData.value.check_in_date,
@@ -648,12 +584,7 @@ watch(() => formData.value.room_id, () => {
   if (formData.value.check_in_date && formData.value.check_out_date) {
     calculateTotalPricePreview();
   }
-  
 });
-const getActualCheckout = (booking) => {
-  if (!booking || !booking.actual_check_out_time) return 'Chưa trả';
-  return booking.actual_check_out_time;
-};
 </script>
 
 <style scoped>

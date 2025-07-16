@@ -314,6 +314,16 @@ class OccupancyController extends Controller
                 ], 404);
             }
 
+            // Kiểm tra xem ngày hiện tại có lớn hơn hoặc bằng ngày check-in hay không
+            $now = now();
+            $checkInDate = \Carbon\Carbon::parse($booking->check_in_date);
+            if ($now->lt($checkInDate)) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Chưa thể thanh toán vì chưa đến ngày nhận phòng (' . $checkInDate->format('d-m-Y') . ').'
+                ], 422);
+            }
+
             $paidTotal = $booking->total_price; // Số tiền đã thanh toán trước
 
             $actualCheckout = now();
@@ -327,7 +337,6 @@ class OccupancyController extends Controller
                 ], 422);
             }
 
-            $now = now();
             $price = DB::table('prices')
                 ->where('type_id', $room->type_id)
                 ->where('start_date', '<=', $now)
@@ -349,8 +358,7 @@ class OccupancyController extends Controller
             } elseif ($totalHours <= 6) {
                 $hours = ceil($totalHours);
                 $newTotal = $hours * $price->hourly_price;
-                $note = "Ở trên 2 và dưới hoặc bằng 6 giờ, tính Redacted
-                tính theo giờ: {$hours} giờ.";
+                $note = "Ở trên 2 và dưới hoặc bằng 6 giờ, tính theo giờ: {$hours} giờ.";
             } elseif ($totalHours < 24) {
                 $newTotal = $price->price_per_night;
                 $note = "Ở trên 6 giờ và dưới 1 ngày, tính 1 ngày.";
