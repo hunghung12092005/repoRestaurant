@@ -467,7 +467,7 @@ onMounted(layDanhSachDatPhong);
 .page-title {
   font-size: 2.5rem;
   font-weight: 700;
-  color: #34495e;
+  color: #454d55;
 }
 
 .page-subtitle {
@@ -514,7 +514,7 @@ onMounted(layDanhSachDatPhong);
 }
 .booking-table thead th {
   background-color: #f8f9fa;
-  color: #353535;
+  color: #454d55;
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.5px;
@@ -539,7 +539,8 @@ onMounted(layDanhSachDatPhong);
   color: #3498db;
 }
 .customer-name {
-    font-weight: 600;
+  color: #454d55;
+  font-weight: 600;
 }
 .customer-phone {
     font-size: 0.9em;
