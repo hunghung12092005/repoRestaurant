@@ -78,6 +78,25 @@ class OccupancyController extends Controller
             // Tính giá
             $checkIn = \Carbon\Carbon::parse($validated['check_in_date']);
             $checkOut = \Carbon\Carbon::parse($validated['check_out_date']);
+            $isOverlapping = DB::table('booking_hotel_detail as bkd')
+                ->join('booking_hotel as bk', 'bk.booking_id', '=', 'bkd.booking_id')
+                ->where('bkd.room_id', $room_id)
+                ->where('bk.status', '!=', 'completed') // chỉ kiểm tra những booking chưa hoàn tất
+                ->where(function ($query) use ($checkIn, $checkOut) {
+                    $query->whereBetween('bk.check_in_date', [$checkIn, $checkOut])
+                        ->orWhereBetween('bk.check_out_date', [$checkIn, $checkOut])
+                        ->orWhere(function ($q) use ($checkIn, $checkOut) {
+                            $q->where('bk.check_in_date', '<=', $checkIn)
+                                ->where('bk.check_out_date', '>=', $checkOut);
+                        });
+                })
+                ->exists();
+
+            if ($isOverlapping) {
+                return response()->json([
+                    'message' => 'Phòng này đã có người đặt trong khoảng thời gian đã chọn.'
+                ], 409); // Conflict
+            }
             $total_price = 0;
 
             if ($checkOut <= $checkIn) {
@@ -125,25 +144,7 @@ class OccupancyController extends Controller
                 'customer_id_number' => $validated['customer_id_number'],
 
             ]);
-            $isOverlapping = DB::table('booking_hotel_detail as bkd')
-                ->join('booking_hotel as bk', 'bk.booking_id', '=', 'bkd.booking_id')
-                ->where('bkd.room_id', $room_id)
-                ->where('bk.status', '!=', 'completed') // chỉ kiểm tra những booking chưa hoàn tất
-                ->where(function ($query) use ($checkIn, $checkOut) {
-                    $query->whereBetween('bk.check_in_date', [$checkIn, $checkOut])
-                        ->orWhereBetween('bk.check_out_date', [$checkIn, $checkOut])
-                        ->orWhere(function ($q) use ($checkIn, $checkOut) {
-                            $q->where('bk.check_in_date', '<=', $checkIn)
-                                ->where('bk.check_out_date', '>=', $checkOut);
-                        });
-                })
-                ->exists();
-
-            if ($isOverlapping) {
-                return response()->json([
-                    'message' => 'Phòng này đã có người đặt trong khoảng thời gian đã chọn.'
-                ], 409); // Conflict
-            }
+            
 
             // Tạo booking
             $bookingId = DB::table('booking_hotel')->insertGetId([
@@ -191,9 +192,11 @@ class OccupancyController extends Controller
     }
 
 
-    public function getCustomerByRoom($room_id)
+    public function getCustomerByRoom(Request $request, $room_id)
     {
         try {
+            $date = $request->input('date', now()->toDateString()); // Lấy ngày từ request, mặc định là hôm nay
+
             $room = DB::table('rooms')
                 ->join('room_types', 'rooms.type_id', '=', 'room_types.type_id')
                 ->where('rooms.room_id', $room_id)
@@ -211,18 +214,23 @@ class OccupancyController extends Controller
                 return response()->json(['message' => 'Không tìm thấy phòng.'], 404);
             }
 
-            $bookingDetail = DB::table('booking_hotel_detail')
-                ->where('room_id', $room_id)
-                ->latest('created_at')
+            $bookingDetail = DB::table('booking_hotel_detail as bkd')
+                ->join('booking_hotel as bk', 'bk.booking_id', '=', 'bkd.booking_id')
+                ->where('bkd.room_id', $room_id)
+                ->whereDate('bk.check_in_date', '<=', $date)
+                ->whereDate('bk.check_out_date', '>=', $date)
+                ->whereIn('bk.status', ['pending', 'confirmed'])
+                ->select('bkd.*', 'bk.customer_id', 'bk.check_in_date', 'bk.check_out_date', 'bk.pricing_type', 'bk.status', 'bk.payment_status')
                 ->first();
 
             if (!$bookingDetail) {
-                return response()->json(['message' => 'Không tìm thấy thông tin chi tiết phòng.'], 404);
+                return response()->json(['message' => 'Không tìm thấy thông tin chi tiết phòng cho ngày này.'], 404);
             }
 
             $booking = DB::table('booking_hotel')
                 ->where('booking_id', $bookingDetail->booking_id)
                 ->first();
+
             $totalService = DB::table('booking_hotel_service')
                 ->where('booking_detail_id', $bookingDetail->booking_detail_id)
                 ->sum('total');
@@ -262,6 +270,7 @@ class OccupancyController extends Controller
     {
         $additionalFee = $request->input('additional_fee', 0);
         $services = $request->input('services', []);
+        $date = $request->input('date', now()->toDateString()); // Lấy ngày từ request
 
         try {
             $room = Room::find($room_id);
@@ -277,22 +286,26 @@ class OccupancyController extends Controller
                     'message' => "Phòng chưa có loại phòng (type_id), không thể tính giá."
                 ], 400);
             }
-            $bookingDetail = DB::table('booking_hotel_detail')
-                ->where('room_id', $room_id)
-                ->latest('created_at')
+
+            $bookingDetail = DB::table('booking_hotel_detail as bkd')
+                ->join('booking_hotel as bk', 'bk.booking_id', '=', 'bkd.booking_id')
+                ->where('bkd.room_id', $room_id)
+                ->whereDate('bk.check_in_date', '<=', $date)
+                ->whereDate('bk.check_out_date', '>=', $date)
+                ->whereIn('bk.status', ['pending', 'confirmed'])
+                ->select('bkd.*', 'bk.customer_id', 'bk.check_in_date', 'bk.check_out_date', 'bk.total_price')
                 ->first();
 
             if (!$bookingDetail) {
                 return response()->json([
                     'success' => false,
-                    'message' => 'Không tìm thấy thông tin đặt phòng cho phòng này.'
+                    'message' => 'Không tìm thấy thông tin đặt phòng cho phòng này vào ngày được chọn.'
                 ], 404);
             }
 
             $booking = DB::table('booking_hotel')
                 ->where('booking_id', $bookingDetail->booking_id)
                 ->first();
-            $paidTotal = $booking->total_price; // số tiền đã thanh toán trước
 
             if (!$booking) {
                 return response()->json([
@@ -300,7 +313,8 @@ class OccupancyController extends Controller
                     'message' => 'Không tìm thấy đặt phòng để thanh toán.'
                 ], 404);
             }
-           // return ('test');
+
+            $paidTotal = $booking->total_price; // Số tiền đã thanh toán trước
 
             $actualCheckout = now();
             $checkIn = $bookingDetail->created_at
@@ -312,6 +326,7 @@ class OccupancyController extends Controller
                     'message' => 'Giờ checkout không hợp lệ (phải sau giờ nhận phòng).'
                 ], 422);
             }
+
             $now = now();
             $price = DB::table('prices')
                 ->where('type_id', $room->type_id)
@@ -334,7 +349,8 @@ class OccupancyController extends Controller
             } elseif ($totalHours <= 6) {
                 $hours = ceil($totalHours);
                 $newTotal = $hours * $price->hourly_price;
-                $note = "Ở trên 2 và dưới hoặc bằng 6 giờ, tính theo giờ: {$hours} giờ.";
+                $note = "Ở trên 2 và dưới hoặc bằng 6 giờ, tính Redacted
+                tính theo giờ: {$hours} giờ.";
             } elseif ($totalHours < 24) {
                 $newTotal = $price->price_per_night;
                 $note = "Ở trên 6 giờ và dưới 1 ngày, tính 1 ngày.";
@@ -358,11 +374,7 @@ class OccupancyController extends Controller
                 $newTotal = ($fullDays * $price->price_per_night) + $extraFee;
             }
 
-
             $difference = round($paidTotal - $newTotal);
-
-
-
 
             if ($difference > 0) {
                 $note .= " Khách trả sớm, hoàn lại " . number_format($difference, 0, ',', '.') . " VND.";
@@ -372,31 +384,11 @@ class OccupancyController extends Controller
                 $note .= " Thanh toán đúng như dự kiến.";
             }
 
-
             $newTotal += $additionalFee;
 
             // Gộp tiền dịch vụ nếu có
             $totalServiceFee = 0;
             if (!empty($services)) {
-                $bookingDetail = DB::table('booking_hotel_detail')
-                    ->where('room_id', $room_id)
-                    ->latest('created_at')
-                    ->first();
-
-                if (!$bookingDetail) {
-                    return response()->json(['message' => 'Không tìm thấy booking_detail cho phòng này.'], 404);
-                }
-
-
-                if (!$bookingDetail) {
-                    return response()->json([
-                        'success' => false,
-                        'message' => 'Không tìm thấy chi tiết đặt phòng để gán dịch vụ.'
-                    ], 404);
-                }
-
-                $totalServiceFee = 0;
-
                 foreach ($services as $index => $item) {
                     if (!isset($item['service_id'], $item['quantity'])) {
                         logger()->error("❌ Thiếu dữ liệu dịch vụ tại vị trí $index", ['item' => $item]);
@@ -404,14 +396,13 @@ class OccupancyController extends Controller
                     }
 
                     $serviceId = $item['service_id'];
-                    $quantity = max(1, intval($item['quantity'])); // đảm bảo quantity >= 1
+                    $quantity = max(1, intval($item['quantity']));
 
                     $service = DB::table('services')->where('service_id', $serviceId)->first();
                     if (!$service) {
                         logger()->error("❌ Không tìm thấy dịch vụ ID: $serviceId");
                         continue;
                     }
-                    //return ('test');
 
                     $total = $quantity * $service->price;
                     $totalServiceFee += $total;
@@ -427,22 +418,18 @@ class OccupancyController extends Controller
                     ]);
                 }
 
-
                 DB::table('booking_hotel_detail')
                     ->where('booking_detail_id', $bookingDetail->booking_detail_id)
                     ->update([
                         'gia_dich_vu' => $totalServiceFee,
                         'total_price' => $newTotal + $totalServiceFee,
-                        //'actual_check_out_time' => now(), // ✅ thêm dòng này nếu có cột
                         'updated_at' => now()
                     ]);
             }
 
-
-
             // Cập nhật lại booking
             DB::table('booking_hotel')->where('booking_id', $booking->booking_id)->update([
-                'status' => 'confirmed',
+                'status' => 'completed',
                 'payment_status' => 'completed',
                 'note' => $note,
                 'total_price' => $newTotal + $totalServiceFee,
@@ -452,9 +439,8 @@ class OccupancyController extends Controller
             // Cập nhật trạng thái phòng về 'available'
             DB::table('rooms')->where('room_id', $room_id)->update([
                 'status' => 'available',
-                'updated_at' => now() // chỉ dùng nếu bảng có cột updated_at
+                'updated_at' => now()
             ]);
-
 
             return response()->json([
                 'success' => true,
@@ -467,7 +453,6 @@ class OccupancyController extends Controller
                 'note' => $note
             ]);
         } catch (\Exception $e) {
-            // Xác định loại lỗi dựa trên thông tin trong exception
             $errorMessage = 'Lỗi không xác định.';
             if ($e instanceof \Illuminate\Database\QueryException) {
                 $errorMessage = 'Lỗi truy vấn cơ sở dữ liệu: ' . $e->getMessage();
@@ -729,14 +714,12 @@ class OccupancyController extends Controller
                 ->get();
 
             foreach ($rooms as $room) {
-                // Kiểm tra xem có booking nào trong ngày được chọn không
                 $isBooked = DB::table('booking_hotel_detail as bkd')
                     ->join('booking_hotel as bk', 'bk.booking_id', '=', 'bkd.booking_id')
                     ->where('bkd.room_id', $room->room_id)
                     ->whereDate('bk.check_in_date', '<=', $date)
                     ->whereDate('bk.check_out_date', '>', $date)
-                    ->where('bk.status', '!=', 'completed')
-                    ->where('bk.payment_status', '!=', 'completed')
+                    ->whereIn('bk.status', ['pending', 'confirmed'])
                     ->exists();
 
                 $room->status = $isBooked ? 'occupied' : 'available';

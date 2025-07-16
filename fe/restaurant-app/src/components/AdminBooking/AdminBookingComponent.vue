@@ -74,7 +74,7 @@
             <td><span class="booking-id">#{{ datPhong.booking_id }}</span></td>
             <td>
               <div class="customer-name">{{ datPhong.customer?.customer_name || 'Không xác định' }}</div>
-              <div class="customer-phone">{{ datPhong.customer?.customer_phone || 'Không có SĐT' }}</div>
+              <div class="customer-phone">0{{ datPhong.customer?.customer_phone || 'Không có SĐT' }}</div>
             </td>
             <td>{{ dinhDangNgay(datPhong.check_in_date) }}</td>
             <td>{{ dinhDangNgay(datPhong.check_out_date) }}</td>
@@ -455,20 +455,19 @@ onMounted(layDanhSachDatPhong);
 <style scoped>
 @import url('https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@300;400;500;600;700&display=swap');
 
-/* CSS ĐÃ SỬA VÀ THÊM MỚI */
 
 /* Đảm bảo toàn bộ component dùng chung một font */
 .page-container {
-  font-family: 'Be Vietnam Pro', sans-serif;
+  font-family: 'monospace', sans-serif;
   background-color: #f4f7f9;
-  padding: 2rem;
+  /* padding: 5rem; */
   color: #34495e;
 }
 
 .page-title {
-  font-size: 2rem;
+  font-size: 2.5rem;
   font-weight: 700;
-  color: #34495e;
+  color: #454d55;
 }
 
 .page-subtitle {
@@ -515,7 +514,7 @@ onMounted(layDanhSachDatPhong);
 }
 .booking-table thead th {
   background-color: #f8f9fa;
-  color: #7f8c8d;
+  color: #454d55;
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.5px;
@@ -540,15 +539,12 @@ onMounted(layDanhSachDatPhong);
   color: #3498db;
 }
 .customer-name {
-    font-weight: 600;
+  color: #454d55;
+  font-weight: 600;
 }
 .customer-phone {
     font-size: 0.9em;
     color: #7f8c8d;
-}
-.price-tag {
-    font-weight: 600;
-    color: #27ae60;
 }
 
 .badge {

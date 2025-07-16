@@ -395,57 +395,57 @@ const formatPrice = (price) => price.toLocaleString('vi-VN') + ' VND';
 
 
 // Thanh toán - mở modal chọn dịch vụ
-const checkoutRoom = async (room_id) => {
-  currentRoomId.value = room_id;
-  try {
-    const res = await axios.get(`${apiUrl}/api/services/indexAllService`);
-    allServices.value = res.data;
-    allServices.value = res.data.map(service => ({
-  ...service,
-  price: Number(service.price) || 0, // 👈 ép kiểu giá
-  quantity: 0
-}));    showServiceModal.value = true;
-  } catch (error) {
-    console.error("Không thể tải dịch vụ:", error);
-    alert("Không thể tải danh sách dịch vụ.");
-  }
-};
+// const checkoutRoom = async (room_id) => {
+//   currentRoomId.value = room_id;
+//   try {
+//     const res = await axios.get(`${apiUrl}/api/services/indexAllService`);
+//     allServices.value = res.data;
+//     allServices.value = res.data.map(service => ({
+//   ...service,
+//   price: Number(service.price) || 0, // 👈 ép kiểu giá
+//   quantity: 0
+// }));    showServiceModal.value = true;
+//   } catch (error) {
+//     console.error("Không thể tải dịch vụ:", error);
+//     alert("Không thể tải danh sách dịch vụ.");
+//   }
+// };
 
-// Xác nhận thanh toán và gửi kèm dịch vụ
-const confirmPayment = async () => {
-  if (!window.confirm("Xác nhận thanh toán và trả phòng?")) return;
-  try {
-    const services = allServices.value
-      .filter(s => Number(s.quantity) > 0)
-      .map(s => ({
-        service_id: Number(s.service_id),
-        quantity: Number(s.quantity)
-      }));
+// // Xác nhận thanh toán và gửi kèm dịch vụ
+// const confirmPayment = async () => {
+//   if (!window.confirm("Xác nhận thanh toán và trả phòng?")) return;
+//   try {
+//     const services = allServices.value
+//       .filter(s => Number(s.quantity) > 0)
+//       .map(s => ({
+//         service_id: Number(s.service_id),
+//         quantity: Number(s.quantity)
+//       }));
 
-    console.log("Dịch vụ sẽ gửi đi:", services); // Thêm dòng này để kiểm tra
+//     console.log("Dịch vụ sẽ gửi đi:", services); // Thêm dòng này để kiểm tra
 
-    const response = await axios.post(`${apiUrl}/api/rooms/${currentRoomId.value}/checkout`, {
-      services: services
-    });
+//     const response = await axios.post(`${apiUrl}/api/rooms/${currentRoomId.value}/checkout`, {
+//       services: services
+//     });
 
-    const data = response.data;
-    console.log("Thanh toán thành công:", data);
-    alert(
-      `${data.message}\n\n` +
-      `💳 Đã thanh toán trước: ${Number(data.paid_total).toLocaleString('vi-VN')} VND\n` +
-      `🛏️ Tiền phòng: ${Number(data.room_total).toLocaleString('vi-VN')} VND\n` +
-      `🧾 Dịch vụ: ${Number(data.service_total).toLocaleString('vi-VN')} VND\n` +
-      `💰 Tổng phải trả: ${Number(data.actual_total).toLocaleString('vi-VN')} VND\n\n` +
-      (data.note || '')
-    );
+//     const data = response.data;
+//     console.log("Thanh toán thành công:", data);
+//     alert(
+//       `${data.message}\n\n` +
+//       `💳 Đã thanh toán trước: ${Number(data.paid_total).toLocaleString('vi-VN')} VND\n` +
+//       `🛏️ Tiền phòng: ${Number(data.room_total).toLocaleString('vi-VN')} VND\n` +
+//       `🧾 Dịch vụ: ${Number(data.service_total).toLocaleString('vi-VN')} VND\n` +
+//       `💰 Tổng phải trả: ${Number(data.actual_total).toLocaleString('vi-VN')} VND\n\n` +
+//       (data.note || '')
+//     );
 
-    showServiceModal.value = false;
-    await fetchRooms();
-  } catch (error) {
-    console.error("Lỗi thanh toán:", error);
-    alert("Không thể thanh toán phòng.");
-  }
-};
+//     showServiceModal.value = false;
+//     await fetchRooms();
+//   } catch (error) {
+//     console.error("Lỗi thanh toán:", error);
+//     alert("Không thể thanh toán phòng.");
+//   }
+// };
 
 
 // Xử lý dữ liệu phòng
@@ -547,14 +547,72 @@ const clearFilters = () => {
 // Chi tiết khách
 const showGuestModal = ref(false);
 const guestInfo = ref({});
+// Trong hàm showGuestDetails
 const showGuestDetails = async (room) => {
   try {
-    const res = await axios.get(`${apiUrl}/api/rooms/${room.room_id}/customer`);
+    const res = await axios
+      .get(`${apiUrl}/api/rooms/${room.room_id}/customer`, {
+        params: { date: selectedDate.value }
+      });
     guestInfo.value = res.data;
     showGuestModal.value = true;
   } catch (e) {
     alert("Không tìm thấy thông tin khách.");
     console.error(e);
+  }
+};
+
+// Trong hàm checkoutRoom
+const checkoutRoom = async (room_id) => {
+  currentRoomId.value = room_id;
+  try {
+    const res = await axios.get(`${apiUrl}/api/services/indexAllService`);
+    allServices.value = res.data.map(service => ({
+      ...service,
+      price: Number(service.price) || 0,
+      quantity: 0
+    }));
+    showServiceModal.value = true;
+  } catch (error) {
+    console.error("Không thể tải dịch vụ:", error);
+    alert("Không thể tải danh sách dịch vụ.");
+  }
+};
+
+// Trong hàm confirmPayment
+const confirmPayment = async () => {
+  if (!window.confirm("Xác nhận thanh toán và trả phòng?")) return;
+  try {
+    const services = allServices.value
+      .filter(s => Number(s.quantity) > 0)
+      .map(s => ({
+        service_id: Number(s.service_id),
+        quantity: Number(s.quantity)
+      }));
+
+    console.log("Dịch vụ sẽ gửi đi:", services);
+
+    const response = await axios.post(`${apiUrl}/api/rooms/${currentRoomId.value}/checkout`, {
+      services: services,
+      date: selectedDate.value // Thêm ngày được chọn vào request
+    });
+
+    const data = response.data;
+    console.log("Thanh toán thành công:", data);
+    alert(
+      `${data.message}\n\n` +
+      `💳 Đã thanh toán trước: ${Number(data.paid_total).toLocaleString('vi-VN')} VND\n` +
+      `🛏️ Tiền phòng: ${Number(data.room_total).toLocaleString('vi-VN')} VND\n` +
+      `🧾 Dịch vụ: ${Number(data.service_total).toLocaleString('vi-VN')} VND\n` +
+      `💰 Tổng phải trả: ${Number(data.actual_total).toLocaleString('vi-VN')} VND\n\n` +
+      (data.note || '')
+    );
+
+    showServiceModal.value = false;
+    await fetchRooms();
+  } catch (error) {
+    console.error("Lỗi thanh toán:", error);
+    alert("Không thể thanh toán phòng.");
   }
 };
 
@@ -602,7 +660,7 @@ const getActualCheckout = (booking) => {
 
 /* CSS giữ nguyên như phiên bản trước */
 .occupancy-page {
-  font-family: 'Be Vietnam Pro', sans-serif;
+  font-family: 'monospace', sans-serif;
   /* background-color: #f0f2f5; */
   padding: 24px;
   color: #333;

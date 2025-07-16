@@ -37,9 +37,7 @@ class RoomTypeController extends Controller
             'max_occupancy' => 'required|integer|min:1',
             'images' => 'nullable|image|mimes:jpeg,png,jpg|max:2048',
             'amenity_ids' => 'nullable|array',
-            'amenity_ids.*' => 'exists:amenities,amenity_id',
-            'service_ids' => 'nullable|array',
-            'service_ids.*' => 'exists:services,service_id',
+            'amenity_ids.*' => 'exists:amenities,amenity_id'
         ]);
 
         if ($validator->fails()) {
@@ -111,9 +109,7 @@ class RoomTypeController extends Controller
             'max_occupancy' => 'required|integer|min:1',
             'images' => 'nullable|image|mimes:jpeg,png,jpg|max:2048',
             'amenity_ids' => 'nullable|array',
-            'amenity_ids.*' => 'exists:amenities,amenity_id',
-            'service_ids' => 'nullable|array',
-            'service_ids.*' => 'exists:services,service_id',
+            'amenity_ids.*' => 'exists:amenities,amenity_id'
         ]);
 
         if ($validator->fails()) {
@@ -312,7 +308,6 @@ class RoomTypeController extends Controller
                 'max_occupancy' => $roomType->max_occupancy,
                 'images' => $roomType->images ?? [],
                 'amenities' => $roomType->amenities,
-                'services' => $roomType->services,
                 'price' => $priceData,
             ], 200);
         } catch (\Exception $e) {
