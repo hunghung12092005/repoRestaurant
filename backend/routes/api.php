@@ -61,6 +61,7 @@ Route::post('/contacts', [ContactController::class, 'store']);
 Route::get('/admin/contacts', [ContactController::class, 'index']);
 Route::delete('/admin/contacts/{contact}', [ContactController::class, 'destroy']);
 Route::post('/admin/contacts/{contact}/reply', [ContactController::class, 'reply']);
+Route::get('/admin/contacts/new', [ContactController::class, 'fetchNew']);
 
 
 

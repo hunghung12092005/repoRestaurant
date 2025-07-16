@@ -29,33 +29,33 @@ class ContactController extends Controller
     /**
      * Lưu một liên hệ mới từ form public.
      */
-    
-public function store(Request $request)
-{
-    $validator = Validator::make($request->all(), [
-        'name' => 'required|string|max:255',
-        'email' => 'required|email|max:255',
-        'phone' => 'nullable|string|regex:/^([0-9\s\-\+\(\)]*)$/|min:10|max:15', // <-- THÊM DÒNG NÀY
-        'message' => 'required|string',
-    ], [
-        'phone.regex' => 'Số điện thoại không hợp lệ.' // Thông báo lỗi tùy chỉnh
-    ]);
 
-    if ($validator->fails()) {
+    public function store(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'name' => 'required|string|max:255',
+            'email' => 'required|email|max:255',
+            'phone' => 'nullable|string|regex:/^([0-9\s\-\+\(\)]*)$/|min:10|max:15', // <-- THÊM DÒNG NÀY
+            'message' => 'required|string',
+        ], [
+            'phone.regex' => 'Số điện thoại không hợp lệ.' // Thông báo lỗi tùy chỉnh
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'status' => false,
+                'errors' => $validator->errors()
+            ], 422);
+        }
+
+        $contact = Contact::create($request->all());
+
         return response()->json([
-            'status' => false,
-            'errors' => $validator->errors()
-        ], 422);
+            'status' => true,
+            'message' => 'Cảm ơn bạn đã liên hệ! Chúng tôi sẽ phản hồi sớm nhất có thể.',
+            'data' => $contact
+        ], 201);
     }
-
-    $contact = Contact::create($request->all());
-
-    return response()->json([
-        'status' => true,
-        'message' => 'Cảm ơn bạn đã liên hệ! Chúng tôi sẽ phản hồi sớm nhất có thể.',
-        'data' => $contact
-    ], 201);
-}
 
     /**
      * Xóa một liên hệ (cho admin).
@@ -105,5 +105,23 @@ public function store(Request $request)
                 'message' => 'Gửi email thất bại. Vui lòng kiểm tra lại cấu hình.'
             ], 500);
         }
+    }
+
+    /**
+     * Lấy các liên hệ mới hơn một ID cụ thể.
+     * Dùng cho việc polling từ phía admin.
+     */
+    public function fetchNew(Request $request)
+    {
+        $lastId = $request->query('lastContactId', 0);
+
+        $newContacts = Contact::where('id', '>', $lastId)
+            ->orderBy('id', 'asc') // Sắp xếp theo ID tăng dần để frontend dễ xử lý
+            ->get();
+
+        return response()->json([
+            'status' => true,
+            'data' => $newContacts
+        ]);
     }
 }

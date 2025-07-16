@@ -34,7 +34,6 @@
                 <td>
                   <div class="fw-bold">{{ contact.name }}</div>
                   <div class="small text-muted">{{ contact.email }}</div>
-                  <!-- Hiển thị SĐT nếu có -->
                   <div v-if="contact.phone" class="small text-primary mt-1">
                     <i class="bi bi-telephone-fill me-1"></i>{{ contact.phone }}
                   </div>
@@ -70,7 +69,6 @@
           <div class="modal-header">
             <h5 class="modal-title" id="replyModalLabel">
               Phản hồi tới: {{ selectedContact.name }}
-              <!-- Hiển thị email và SĐT trong modal title -->
               <small class="text-muted d-block">{{ selectedContact.email }} <span v-if="selectedContact.phone">| {{ selectedContact.phone }}</span></small>
             </h5>
             <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
@@ -104,16 +102,19 @@ import { Modal } from 'bootstrap';
 import axiosConfig from '../../axiosConfig.js';
 import Swal from 'sweetalert2';
 
+// --- Khai báo biến và state ---
 const apiUrl = inject('apiUrl');
 const contacts = ref([]);
 const loading = ref(true);
 const error = ref(null);
-
 const selectedContact = ref(null);
 const replyMessage = ref('');
 const isReplying = ref(false);
 const modalRef = ref(null);
 let modalInstance = null;
+let pollingTimer = null; // Biến để lưu trữ bộ đếm thời gian polling
+
+// --- Các hàm xử lý chính ---
 
 const fetchContacts = async () => {
   try {
@@ -147,7 +148,8 @@ const deleteContact = async (id) => {
     try {
       await axiosConfig.delete(`${apiUrl}/api/admin/contacts/${id}`);
       Swal.fire('Đã xóa!', 'Liên hệ đã được xóa thành công.', 'success');
-      fetchContacts();
+      // Xóa liên hệ khỏi mảng thay vì gọi lại API
+      contacts.value = contacts.value.filter(contact => contact.id !== id);
     } catch (err) {
       Swal.fire('Lỗi!', 'Không thể xóa liên hệ. Vui lòng thử lại.', 'error');
       console.error(err);
@@ -177,7 +179,11 @@ const sendReply = async () => {
     if (response.data.status) {
       Swal.fire('Thành công!', response.data.message, 'success');
       modalInstance.hide();
-      fetchContacts();
+      // Cập nhật trạng thái của liên hệ trong mảng
+      const contactIndex = contacts.value.findIndex(c => c.id === selectedContact.value.id);
+      if (contactIndex !== -1) {
+          contacts.value[contactIndex].status = 'replied';
+      }
     }
   } catch (err) {
     const errorMessage = err.response?.data?.message || 'Không thể gửi phản hồi. Vui lòng thử lại.';
@@ -188,29 +194,77 @@ const sendReply = async () => {
   }
 };
 
+
+// --- Logic Polling ---
+
+const startPollingForNewContacts = () => {
+  if (pollingTimer) clearInterval(pollingTimer);
+  pollingTimer = setInterval(pollNewContacts, 7000); // Tăng thời gian polling lên 7s để giảm tải
+};
+
+const pollNewContacts = async () => {
+  if (contacts.value.length === 0) {
+    // Nếu chưa có contact nào, gọi lại fetchContacts để lấy dữ liệu ban đầu
+    // điều này xử lý trường hợp trang admin được mở trước khi có bất kỳ liên hệ nào
+    await fetchContacts(); 
+    return;
+  }
+
+  const lastContactId = contacts.value[0].id;
+
+  try {
+    const response = await axiosConfig.get(`${apiUrl}/api/admin/contacts/new?lastContactId=${lastContactId}`);
+    
+    if (response.data.status && response.data.data.length > 0) {
+      const newContacts = response.data.data;
+      contacts.value.unshift(...newContacts);
+
+      Swal.fire({
+          toast: true,
+          position: 'top-end',
+          icon: 'info',
+          title: `Có ${newContacts.length} liên hệ mới!`,
+          showConfirmButton: false,
+          timer: 3000,
+          timerProgressBar: true
+      });
+    }
+  } catch (err) {
+    console.error("Lỗi khi polling:", err);
+    if (err.response && (err.response.status === 401 || err.response.status === 403)) {
+        console.warn("Lỗi xác thực, dừng polling.");
+        stopPolling();
+    }
+  }
+};
+
+const stopPolling = () => {
+  if (pollingTimer) clearInterval(pollingTimer);
+};
+
+
+// --- Các hàm tiện ích ---
+
 const formatDateTime = (dateTimeString) => {
   const options = { year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' };
   return new Date(dateTimeString).toLocaleDateString('vi-VN', options);
 };
+const formatStatus = (status) => (status === 'replied' ? 'Đã phản hồi' : 'Mới');
+const getStatusClass = (status) => (status === 'replied' ? 'bg-success' : 'bg-info');
 
-const formatStatus = (status) => {
-  if (status === 'replied') return 'Đã phản hồi';
-  return 'Mới';
-};
 
-const getStatusClass = (status) => {
-  if (status === 'replied') return 'bg-success';
-  return 'bg-info';
-};
+// --- Lifecycle Hooks ---
 
-onMounted(() => {
-  fetchContacts();
+onMounted(async () => {
+  await fetchContacts();
+  startPollingForNewContacts();
   if (modalRef.value) {
     modalInstance = new Modal(modalRef.value);
   }
 });
 
 onUnmounted(() => {
+  stopPolling();
   if (modalInstance) {
     modalInstance.dispose();
   }
