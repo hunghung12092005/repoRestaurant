@@ -478,7 +478,7 @@ class OccupancyController extends Controller
                 'success' => true,
                 'message' => 'Thanh toán thành công. Phòng đã chuyển về trạng thái trống.',
                 'room' => $room,
-                'actual_total' => $newTotal + $totalServiceFee + $additionalFee,
+                '   total' => $newTotal + $totalServiceFee + $additionalFee,
                 'room_total' => $newTotal,
                 'paid_total' => $paidTotal,
                 'service_total' => $totalServiceFee,
