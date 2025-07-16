@@ -269,6 +269,7 @@ class OccupancyController extends Controller
     public function checkoutRoom(Request $request, $room_id)
     {
         $additionalFee = $request->input('additional_fee', 0);
+        $surchargeReason = $request->input('surcharge_reason', null); // Lấy lý do phụ phí
         $services = $request->input('services', []);
         $date = $request->input('date', now()->toDateString()); // Lấy ngày từ request
 
@@ -392,6 +393,12 @@ class OccupancyController extends Controller
                 $note .= " Thanh toán đúng như dự kiến.";
             }
 
+            if ($additionalFee > 0 && $surchargeReason) {
+                $note .= " Phí phụ thu: " . number_format($additionalFee, 0, ',', '.') . " VND (Lý do: {$surchargeReason}).";
+            } elseif ($additionalFee > 0) {
+                $note .= " Phí phụ thu: " . number_format($additionalFee, 0, ',', '.') . " VND.";
+            }
+
             $newTotal += $additionalFee;
 
             // Gộp tiền dịch vụ nếu có
@@ -444,6 +451,23 @@ class OccupancyController extends Controller
                 'updated_at' => now()
             ]);
 
+            // Thêm bản ghi vào bảng booking_room_status
+            DB::table('booking_room_status')->insert([
+                'customer_id' => $booking->customer_id,
+                'booking_id' => $booking->booking_id,
+                'booking_detail_id' => $bookingDetail->booking_detail_id,
+                'room_id' => $room_id,
+                'check_in' => $checkIn,
+                'check_out' => $actualCheckout,
+                'room_price' => $newTotal,
+                'service_price' => $totalServiceFee,
+                'surcharge' => $additionalFee,
+                'surcharge_reason' => $surchargeReason,
+                'total_paid' => $newTotal + $totalServiceFee + $additionalFee,
+                'created_at' => now(),
+                'updated_at' => now()
+            ]);
+
             // Cập nhật trạng thái phòng về 'available'
             DB::table('rooms')->where('room_id', $room_id)->update([
                 'status' => 'available',
@@ -454,10 +478,12 @@ class OccupancyController extends Controller
                 'success' => true,
                 'message' => 'Thanh toán thành công. Phòng đã chuyển về trạng thái trống.',
                 'room' => $room,
-                'actual_total' => $newTotal + $totalServiceFee,
+                'actual_total' => $newTotal + $totalServiceFee + $additionalFee,
                 'room_total' => $newTotal,
                 'paid_total' => $paidTotal,
                 'service_total' => $totalServiceFee,
+                'additional_fee' => $additionalFee,
+                'surcharge_reason' => $surchargeReason,
                 'note' => $note
             ]);
         } catch (\Exception $e) {
