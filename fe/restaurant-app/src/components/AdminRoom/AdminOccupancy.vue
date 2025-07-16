@@ -133,7 +133,7 @@
         </div>
         <div class="form-actions">
           <div v-if="totalPricePreview" class="form-group">
-            <label>Tổng tiền ước tính:</label>
+            <label>Tổng tiền ước tính: </label>
             <div style="font-weight: bold; color: #2c3e50;">
               {{ Number(totalPricePreview).toLocaleString('vi-VN') + ' VND' }}
             </div>
@@ -219,7 +219,7 @@
       </div>
 
       <p style="margin-top: 10px;">
-        <strong>Tổng dịch vụ:</strong>
+        <strong>Tổng dịch vụ: </strong>
         <span style="color: #e74c3c; font-weight: bold;">
           {{ serviceTotal.toLocaleString('vi-VN') }} VND
         </span>
