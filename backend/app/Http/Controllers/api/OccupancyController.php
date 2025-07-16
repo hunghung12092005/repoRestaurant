@@ -434,7 +434,7 @@ class OccupancyController extends Controller
                     ->update([
                         'gia_dich_vu' => $totalServiceFee,
                         'total_price' => $newTotal + $totalServiceFee,
-                        //'actual_check_out_time' => now(), // ✅ thêm dòng này nếu có cột
+                        'actual_check_out_time' => now(), 
                         'updated_at' => now()
                     ]);
             }
