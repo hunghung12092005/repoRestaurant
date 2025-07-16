@@ -37,6 +37,7 @@ import AdminUsersComponent from '../components/admin/AdminUsersComponent.vue';
 // import menu_online from '../components/ShopOnline/menu_online.vue';
 // import detailMenu from '../components/ShopOnline/detailMenu.vue';
 import test from '../components/booking_room/test.vue';
+import chatbot from '../components/booking_room/chatbot.vue';
 // import detailOrderMenu from '../components/menu_item/detailOrderMenu.vue';
 
 
@@ -159,6 +160,11 @@ const routes = [
     path: '/test',
     name: 'test',
     component: test,
+  },
+  {
+    path: '/chatbot',
+    name: 'chatbot',
+    component: chatbot,
   },
   {
     path: '/ThanksBooking',

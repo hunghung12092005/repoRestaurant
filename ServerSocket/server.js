@@ -83,7 +83,7 @@ io.on('connection', (socket) => {
     // Xử lý nhận tin nhắn và lưu vào Redis
     socket.on('chat message', (data) => {
         // Kiểm tra xem có file không
-        //console.log('Received message:', data);
+        console.log('Received message:', data);
         if (data.file) {
             //console.log('Received file:');
             const filePath = saveFile(data.file); // Lưu file và lấy đường dẫn
@@ -96,15 +96,21 @@ io.on('connection', (socket) => {
             message: data.message,
             file: data.file // Gửi đường dẫn file
         });
-    
+
         // Gửi lại cho admin
         io.emit('chat messageSendAdmin', data);
-    
+
         const recipientId = '6'; // ID của admin
         const key = `chat:${data.userId}:${recipientId}`;
         redisClient.lPush(key, JSON.stringify(data)).catch(err => {
             console.error('Error saving message to Redis:', err);
         });
+        // ✅ THÊM NGAY SAU:
+        redisClient.hSet(`userId:${data.userId}`, 'user', data.user).catch(err => {
+            console.error('Error saving user info:', err);
+        });
+        //  Thêm dòng này:goi ham khi cap nhat danh sach nguoi dung moi
+        updateUserList();
     });
 
     // Lấy lịch sử tin nhắn ở client cho user đó
@@ -141,6 +147,11 @@ io.on('connection', (socket) => {
             console.log(`User with ID ${data.userId} is not connected.`);
         }
     });
+    //thong báo người dùng mới
+    socket.on('getUserList', async () => {
+        await updateUserList(); // Phản hồi cho client
+    });
+
     //
     socket.on('disconnect', () => {
         if (socket.userName) {
@@ -197,43 +208,36 @@ app.get('/api/messages/:userId/:recipientId', async (req, res) => {
     }
 });
 //phần admin
-app.get('/api/users', async (req, res) => {
+//socket thong bao nguoi dung moi
+const updateUserList = async () => {
     try {
-        const keys = await redisClient.keys('chat:*:6');
+        const keys = await redisClient.keys('chat:*:6'); // Lấy tất cả các user ID
         const users = new Set();
-
-        // Lưu trữ thông tin người dùng
         const userInfo = {};
 
-        // Lấy danh sách người dùng từ Redis
         await Promise.all(keys.map(async key => {
             const parts = key.split(':');
             const userId = parts[1];
-            if (userId !== '6') {
+            if (userId !== '6') { // Tránh lấy admin
                 users.add(userId);
-
-                // Lấy thông tin người dùng từ Redis
                 const userDetail = await redisClient.hGet(`userId:${userId}`, 'user'); // Lấy tên người dùng
                 if (userDetail) {
-                    userInfo[userId] = userDetail; // Lưu tên người dùng vào userInfo
+                    userInfo[userId] = userDetail; // Lưu tên người dùng
                 }
             }
         }));
 
-        // Tạo mảng người dùng với thông tin tên
         const userArray = Array.from(users).map(userId => ({
             userId,
-            name: userInfo[userId] || 'Unknown' // Lấy tên hoặc 'Unknown' nếu không có
+            name: userInfo[userId] || 'Unknown' // Trả về tên người dùng
         }));
 
-        res.json(userArray);
-        // Phát sự kiện sau khi trả về danh sách người dùng
+        // Gửi danh sách người dùng mới tới tất cả client
         io.emit('userListUpdated', userArray);
     } catch (error) {
-        console.error('Error fetching users:', error);
-        res.status(500).send('Internal Server Error');
+        console.error('Error updating user list:', error);
     }
-});
+};
 
 server.listen(6001, () => {
     console.log('Socket.IO server running on port 6001');

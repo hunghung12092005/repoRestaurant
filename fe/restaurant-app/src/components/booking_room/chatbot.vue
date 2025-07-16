@@ -5,6 +5,7 @@
       <div class="popup-content">
         <h3>Nhập tên của bạn</h3>
         <input v-model="userName" placeholder="Tên của bạn" class="form-control mb-3" />
+        <div class="cf-turnstile" data-sitekey="0x4AAAAAABhcDWU29f0qZu4n"></div>
         <div class="popup-actions">
           <button class="btn btn-warning m-2" @click="closePopup">Hủy</button>
           <button class="btn btn-primary m-2" @click="saveName">Lưu</button>
@@ -19,10 +20,10 @@
         <div class="chat-header">
           <img src="https://jbagy.me/wp-content/uploads/2025/03/Hinh-anh-avatar-nam-cute-2.jpg" class="avatar" alt="Support" />
           <div>
-            <h6>{{ activeTab === 'ai' ? 'Hỏi đáp cùng ChatBot AI 🤖' : 'Admin Support' }}</h6>
-            <small>{{ activeTab === 'ai' ? 'Hệ thống hỗ trợ tự động 24/7' : 'Online 24/7' }}</small>
+            <h6>{{ activeTab === 'ai' ? 'Hỏi đáp cùng ChatBot AI 🤖' : 'Chat với Nhân viên 💁' }}</h6>
+            <small>{{ activeTab === 'ai' ? 'Hệ thống hỗ trợ tự động 24/7' : 'Hỗ trợ trực tiếp từ nhân viên' }}</small>
           </div>
-          <span class="badge">{{ activeTab === 'ai' ? 'AI Chat' : 'Chat' }}</span>
+          <span class="badge">{{ activeTab === 'ai' ? 'AI Chat' : 'Staff Chat' }}</span>
         </div>
 
         <!-- Tabs -->
@@ -44,18 +45,18 @@
         <!-- Messages -->
         <div class="chat-body">
           <div class="messages" ref="messagesRef">
-            <div v-for="(msg, index) in currentMessages" :key="'msg-' + index" :class="['message', msg.user === user ? 'user' : 'admin']">
-              <img v-if="msg.user !== user" src="https://jbagy.me/wp-content/uploads/2025/03/Hinh-anh-avatar-nam-cute-2.jpg" class="avatar-sm" />
+            <div v-for="(msg, index) in currentMessages" :key="'msg-' + index" :class="['message', msg.sender]">
+              <img v-if="msg.sender === 'admin'" src="https://jbagy.me/wp-content/uploads/2025/03/Hinh-anh-avatar-nam-cute-2.jpg" class="avatar-sm" />
               <div class="bubble">
-                <div class="meta">{{ msg.user === user ? msg.user : (activeTab === 'ai' ? 'AI' : 'Admin') }}</div>
-                <div class="text">{{ msg.message }}</div>
+                <div class="meta">{{ msg.sender === 'user' ? msg.user : (activeTab === 'ai' ? 'AI' : 'Nhân viên') }}</div>
+                <div class="text">{{ msg.text || msg.message }}</div>
                 <img v-if="msg.file" :src="msg.file" class="image-preview" />
               </div>
-              <img v-if="msg.user === user" src="https://jbagy.me/wp-content/uploads/2025/03/Hinh-anh-avatar-nam-cute-2.jpg" class="avatar-sm" />
+              <img v-if="msg.sender === 'user'" src="https://jbagy.me/wp-content/uploads/2025/03/Hinh-anh-avatar-nam-cute-2.jpg" class="avatar-sm" />
             </div>
             <div v-if="loading" class="message admin loading">
               <div class="bubble">
-                <div class="meta">{{ activeTab === 'ai' ? 'AI' : 'Admin' }}</div>
+                <div class="meta">{{ activeTab === 'ai' ? 'AI' : 'Nhân viên' }}</div>
                 <div class="text">Đang xử lý<span class="dots"></span></div>
               </div>
             </div>
@@ -73,7 +74,7 @@
               </button>
             </div>
           </div>
-          <input type="text" v-model="message" @keyup.enter="sendMessage()" :placeholder="activeTab === 'ai' ? 'Bạn cần hỏi gì?' : 'Type a message...'" />
+          <input type="text" v-model="newMessage" @keyup.enter="sendMessage()" :placeholder="activeTab === 'ai' ? 'Bạn cần hỏi gì?' : 'Nhắn tin với nhân viên...'" />
           <button @click="sendMessage()" :disabled="loading">
             <i class="bi bi-send"></i>
           </button>
@@ -86,19 +87,19 @@
 <script setup>
 import { ref, computed, nextTick, onMounted, onUnmounted, inject } from 'vue';
 import axios from 'axios';
-import socket from '../socket'; // Import socket từ file chung
+import socket from '../../socket'; // Import socket từ file chung
 
 const API_KEY = 'AIzaSyDdyQPlin693Vo16vKOWnI38qLJ5U2z5LQ';
 const apiUrl = inject('apiUrl');
 const showPopup = ref(!localStorage.getItem('userInfo'));
 const userName = ref('');
-const message = ref('');
+const newMessage = ref('');
 const loading = ref(false);
-const activeTab = ref('ai');
+const activeTab = ref('ai'); // 'ai' or 'human'
 const aiMessages = ref([
-  { user: 'AI', message: 'Xin chào! Tôi là AI ChatBot HXH. Bạn muốn hỏi gì về khách sạn ạ?' },
+  { sender: 'admin', text: 'Xin chào! Tôi là AI ChatBot HXH. Bạn muốn hỏi gì về khách sạn ạ?' },
 ]);
-const messageSend = ref([]);
+const humanMessages = ref([]);
 const aiSuggestions = ref([
   '🕒 Giờ nhận và trả phòng là khi nào?',
   '💰 Giá phòng bao nhiêu?',
@@ -118,13 +119,17 @@ const user = JSON.parse(localStorage.getItem('userInfo'))?.name || 'User chưa l
 const userId = JSON.parse(localStorage.getItem('userInfo'))?.id;
 
 // Computed property to display messages based on active tab
-const currentMessages = computed(() => {
-  if (activeTab.value === 'ai') return aiMessages.value;
-  return messageSend.value;
-});
+const currentMessages = computed(() => (activeTab.value === 'ai' ? aiMessages.value : humanMessages.value));
 
 // Popup Functions
 const saveName = () => {
+//   const turnstileResponse = document.querySelector('input[name="cf-turnstile-response"]')?.value;
+//   console.log('Turnstile response:', turnstileResponse); // Debug Turnstile
+//   if (!turnstileResponse) {
+//     alert('Vui lòng xác nhận bạn là người.');
+//     loading.value = false;
+//     return;
+//   }
   if (userName.value) {
     localStorage.setItem('userInfo', JSON.stringify({ name: userName.value, id: socket.id }));
     showPopup.value = false;
@@ -146,8 +151,10 @@ const toggleSuggestions = () => {
 const switchTab = (tab) => {
   activeTab.value = tab;
   if (tab === 'human') {
-    socket.emit('join', user);
-    socket.emit('register', userId);
+    socket.emit('connect-to-staff', { user, userId });
+    if (humanMessages.value.length === 0) {
+      humanMessages.value.push({ sender: 'admin', text: '💁 Vui lòng chờ trong giây lát, chúng tôi sẽ kết nối bạn với nhân viên hỗ trợ...' });
+    }
     getMessages();
   }
   scrollToBottom();
@@ -174,7 +181,7 @@ const convertFileToBase64 = (file) => {
 };
 
 const sendMessage = async (suggestion = null) => {
-  const msg = suggestion || message.value.trim();
+  const msg = suggestion || newMessage.value.trim();
   if (!msg && !file.value) return;
 
   if (file.value && file.value.size > MAX_FILE_SIZE) {
@@ -189,6 +196,7 @@ const sendMessage = async (suggestion = null) => {
     message: msg,
     socketId: socketId.value,
     file: fileBase64,
+    sender: 'user',
   };
 
   if (activeTab.value === 'ai') {
@@ -219,20 +227,19 @@ const sendMessage = async (suggestion = null) => {
 
       const data = await response.json();
       const reply = data?.candidates?.[0]?.content?.parts?.[0]?.text || '❗ Không có phản hồi từ AI.';
-      aiMessages.value.push({ user: 'AI', message: reply });
+      aiMessages.value.push({ sender: 'admin', text: reply });
     } catch (err) {
-      aiMessages.value.push({ user: 'AI', message: '❌ Lỗi khi gọi Gemini: ' + err.message });
+      aiMessages.value.push({ sender: 'admin', text: '❌ Lỗi khi gọi Gemini: ' + err.message });
     } finally {
       loading.value = false;
       scrollToBottom();
     }
   } else {
-    messageSend.value.push(messageData);
+    humanMessages.value.push(messageData);
     socket.emit('chat message', messageData);
-    console.log('Sent message:', messageData);
   }
 
-  message.value = '';
+  newMessage.value = '';
   file.value = null;
   showSuggestions.value = false;
   scrollToBottom();
@@ -241,7 +248,7 @@ const sendMessage = async (suggestion = null) => {
 const handleAvailabilityCheck = async () => {
   if (activeTab.value !== 'ai') return;
   const userText = 'Còn bao nhiêu phòng trống?';
-  aiMessages.value.push({ user, message: userText });
+  aiMessages.value.push({ sender: 'user', text: userText });
   scrollToBottom();
   loading.value = true;
 
@@ -267,9 +274,9 @@ const handleAvailabilityCheck = async () => {
 
     const data = await response.json();
     const reply = data?.candidates?.[0]?.content?.parts?.[0]?.text || '❗ Không có phản hồi.';
-    aiMessages.value.push({ user: 'AI', message: reply });
+    aiMessages.value.push({ sender: 'admin', text: reply });
   } catch (err) {
-    aiMessages.value.push({ user: 'AI', message: '❌ Không lấy được dữ liệu phòng.' });
+    aiMessages.value.push({ sender: 'admin', text: '❌ Không lấy được dữ liệu phòng.' });
   } finally {
     loading.value = false;
     scrollToBottom();
@@ -277,47 +284,49 @@ const handleAvailabilityCheck = async () => {
 };
 
 // Socket.IO Functions
-socket.on('connect', () => {
-    socketId.value = socket.id;
-    console.log(`Connected with socket ID: ${socket.id}`);
-    socket.emit('join', user);
-    socket.emit('register', userId);
-  });
 const getMessages = () => {
   socket.emit('get user messages', userId);
 };
 
 const listenForMessages = () => {
-  socket.on('chat messageSend', (data) => {
-    if (activeTab.value === 'human') {
-      const messageObject = { user: data.user, message: data.message, userId: data.userId };
-      if (data.file) {
-        messageObject.file = data.file;
-      }
-      messageSend.value.push(messageObject);
+  socket.on('chat message', (data) => {
+    if (data.userId !== userId && activeTab.value === 'human') {
+      const messageObject = { sender: 'admin', text: data.message, file: data.file };
+      humanMessages.value.push(messageObject);
       scrollToBottom();
     }
   });
 
   socket.on('chat history', (chatMessages) => {
-    messageSend.value = [];
-    chatMessages.forEach((msg) => {
-      const messageObject = {
-        user: msg.user,
-        userId: msg.userId,
-        message: msg.message,
-        file: msg.file,
-      };
-      messageSend.value.push(messageObject);
-    });
+    humanMessages.value = chatMessages.map((msg) => ({
+      sender: msg.userId === userId ? 'user' : 'admin',
+      text: msg.message,
+      file: msg.file,
+    }));
     scrollToBottom();
   });
 };
 
 // Lifecycle Hooks
 onMounted(() => {
-  getMessages();
-  listenForMessages();
+//   const script = document.createElement('script');
+//   script.src = 'https://challenges.cloudflare.com/turnstile/v0/api.js';
+//   script.async = true;
+//   script.onload = () => {
+//     console.log('Turnstile script loaded successfully.');
+//     const turnstileWidget = document.querySelector('.cf-turnstile');
+//     console.log('Turnstile widget:', turnstileWidget);
+//   };
+//   document.body.appendChild(script);
+
+  socket.on('connect', () => {
+    socketId.value = socket.id;
+    console.log(`Connected with socket ID: ${socket.id}`);
+    socket.emit('join', user);
+    socket.emit('register', userId);
+    getMessages();
+    listenForMessages();
+  });
 });
 
 // onUnmounted(() => {
@@ -365,30 +374,24 @@ onMounted(() => {
   justify-content: space-between;
 }
 
-/* CHỈNH SỬA VỊ TRÍ CHAT WIDGET */
 .chat-container {
-  position: fixed;
-  bottom: 20px;
-  right: 20px;
-  width: 360px;
-  height: auto;
-  background-color: transparent;
-  z-index: 1000;
-  padding: 0;
+  padding: 20px;
+  display: flex;
+  justify-content: center;
+  background-color: #f9fafb;
+  height: 100vh;
 }
 
-/* THU NHỎ KHUNG CHAT */
 .chat-card {
   width: 100%;
-  max-width: 360px;
-  height: 500px;
+  max-width: 700px;
+  height: 85vh;
   display: flex;
   flex-direction: column;
   background: white;
   border-radius: 16px;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
   overflow: hidden;
-  position: relative;
 }
 
 .chat-header {

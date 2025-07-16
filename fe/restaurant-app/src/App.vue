@@ -89,13 +89,13 @@
         <main class="admin-main">
           <RouterView></RouterView>
         </main>
-        <footer class="admin-footer text-center py-3">Trang quản trị khách sạn Hồ Xuân Hương</footer>
+        <!-- <footer class="admin-footer text-center py-3">Trang quản trị khách sạn Hồ Xuân Hương</footer> -->
       </div>
     </div>
 
     <!-- Layout cho các route không phải admin hoặc staff (ĐÃ CHỈNH SỬA THEO YÊU CẦU) -->
     <div v-else>
-        <test></test>
+        <chatbot></chatbot>
 
       <header ref="headerRef">
         <nav class="navbar navbar-expand-lg navbar-light fixed-top" :class="{ 'scrolled': navbarSticky }">
@@ -182,7 +182,7 @@ import { ref, onMounted, onUnmounted, provide } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import axiosConfig from './axiosConfig.js';
 import Footer from './components/Footer.vue';
-import test from './components/booking_room/test.vue';
+import chatbot from './components/Chat.vue';
 const route = useRoute();
 const router = useRouter();
 const headerRef = ref(null);

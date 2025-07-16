@@ -344,7 +344,7 @@ const onFileChange = (e) => {
   const file = e.target.files[0];
   if (file) imageFile.value = file;
 };
-const apiKey = 'XXjjI5g9j7gk4NcZE9Dh9PPLCrvrR6zJ';
+const apiKey = '14lmp7urPNfAzH9BNp9GdAG8tX8XCnop';
 const uploadImage = async () => {
   if (!imageFile.value) return alert('Chọn ảnh CCCD trước!');
   isisLoading.value = true;
