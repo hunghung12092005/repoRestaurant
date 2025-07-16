@@ -380,7 +380,6 @@ class OccupancyController extends Controller
             if (!empty($services)) {
                 $bookingDetail = DB::table('booking_hotel_detail')
                     ->where('room_id', $room_id)
-                   // ->whereNull('actual_check_out_time') // đảm bảo là lần đặt chưa thanh toán
                     ->latest('created_at')
                     ->first();
 
@@ -444,7 +443,7 @@ class OccupancyController extends Controller
             // Cập nhật lại booking
             DB::table('booking_hotel')->where('booking_id', $booking->booking_id)->update([
                 'status' => 'confirmed',
-                'payment_status' => 'failed',
+                'payment_status' => 'completed',
                 'note' => $note,
                 'total_price' => $newTotal + $totalServiceFee,
                 'updated_at' => now()
@@ -722,7 +721,8 @@ class OccupancyController extends Controller
                     'rooms.floor_number',
                     'room_types.type_name',
                     'room_types.bed_count',
-                    'rooms.type_id'
+                    'rooms.type_id',
+                    'rooms.status'
                 )
                 ->orderBy('rooms.floor_number')
                 ->orderBy('rooms.room_name')
@@ -736,6 +736,7 @@ class OccupancyController extends Controller
                     ->whereDate('bk.check_in_date', '<=', $date)
                     ->whereDate('bk.check_out_date', '>', $date)
                     ->where('bk.status', '!=', 'completed')
+                    ->where('bk.payment_status', '!=', 'completed')
                     ->exists();
 
                 $room->status = $isBooked ? 'occupied' : 'available';
