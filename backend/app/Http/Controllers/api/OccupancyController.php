@@ -78,6 +78,25 @@ class OccupancyController extends Controller
             // Tính giá
             $checkIn = \Carbon\Carbon::parse($validated['check_in_date']);
             $checkOut = \Carbon\Carbon::parse($validated['check_out_date']);
+            $isOverlapping = DB::table('booking_hotel_detail as bkd')
+                ->join('booking_hotel as bk', 'bk.booking_id', '=', 'bkd.booking_id')
+                ->where('bkd.room_id', $room_id)
+                ->where('bk.status', '!=', 'completed') // chỉ kiểm tra những booking chưa hoàn tất
+                ->where(function ($query) use ($checkIn, $checkOut) {
+                    $query->whereBetween('bk.check_in_date', [$checkIn, $checkOut])
+                        ->orWhereBetween('bk.check_out_date', [$checkIn, $checkOut])
+                        ->orWhere(function ($q) use ($checkIn, $checkOut) {
+                            $q->where('bk.check_in_date', '<=', $checkIn)
+                                ->where('bk.check_out_date', '>=', $checkOut);
+                        });
+                })
+                ->exists();
+
+            if ($isOverlapping) {
+                return response()->json([
+                    'message' => 'Phòng này đã có người đặt trong khoảng thời gian đã chọn.'
+                ], 409); // Conflict
+            }
             $total_price = 0;
 
             if ($checkOut <= $checkIn) {
@@ -125,25 +144,7 @@ class OccupancyController extends Controller
                 'customer_id_number' => $validated['customer_id_number'],
 
             ]);
-            $isOverlapping = DB::table('booking_hotel_detail as bkd')
-                ->join('booking_hotel as bk', 'bk.booking_id', '=', 'bkd.booking_id')
-                ->where('bkd.room_id', $room_id)
-                ->where('bk.status', '!=', 'completed') // chỉ kiểm tra những booking chưa hoàn tất
-                ->where(function ($query) use ($checkIn, $checkOut) {
-                    $query->whereBetween('bk.check_in_date', [$checkIn, $checkOut])
-                        ->orWhereBetween('bk.check_out_date', [$checkIn, $checkOut])
-                        ->orWhere(function ($q) use ($checkIn, $checkOut) {
-                            $q->where('bk.check_in_date', '<=', $checkIn)
-                                ->where('bk.check_out_date', '>=', $checkOut);
-                        });
-                })
-                ->exists();
-
-            if ($isOverlapping) {
-                return response()->json([
-                    'message' => 'Phòng này đã có người đặt trong khoảng thời gian đã chọn.'
-                ], 409); // Conflict
-            }
+            
 
             // Tạo booking
             $bookingId = DB::table('booking_hotel')->insertGetId([
@@ -442,7 +443,7 @@ class OccupancyController extends Controller
 
             // Cập nhật lại booking
             DB::table('booking_hotel')->where('booking_id', $booking->booking_id)->update([
-                'status' => 'confirmed',
+                'status' => 'completed',
                 'payment_status' => 'completed',
                 'note' => $note,
                 'total_price' => $newTotal + $totalServiceFee,
@@ -735,8 +736,7 @@ class OccupancyController extends Controller
                     ->where('bkd.room_id', $room->room_id)
                     ->whereDate('bk.check_in_date', '<=', $date)
                     ->whereDate('bk.check_out_date', '>', $date)
-                    ->where('bk.status', '!=', 'completed')
-                    ->where('bk.payment_status', '!=', 'completed')
+                    ->whereIn('bk.status', ['pending', 'confirmed'])
                     ->exists();
 
                 $room->status = $isBooked ? 'occupied' : 'available';
