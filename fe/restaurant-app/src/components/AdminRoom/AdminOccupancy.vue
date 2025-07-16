@@ -602,7 +602,7 @@ const getActualCheckout = (booking) => {
 
 /* CSS giữ nguyên như phiên bản trước */
 .occupancy-page {
-  font-family: 'Be Vietnam Pro', sans-serif;
+  font-family: 'monospace', sans-serif;
   /* background-color: #f0f2f5; */
   padding: 24px;
   color: #333;
