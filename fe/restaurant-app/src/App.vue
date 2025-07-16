@@ -189,6 +189,8 @@ const navbarSticky = ref(false);
 const userInfo = ref(null);
 const isLogin = ref(false);
 const isAdmin = ref(false);
+const isStaff = ref(false);
+
 const apiUrl = 'http://localhost:8000';//http://127.0.0.1:8000
 provide('apiUrl', apiUrl);
 

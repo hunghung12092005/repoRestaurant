@@ -161,10 +161,6 @@ const pagination = ref({});
 const loading = ref(true);
 const searchQuery = ref('');
 
-const popularTags = ref([
-    { name: 'Đồ Ăn Nhanh' }, { name: 'Bữa Trưa' }, { name: 'Nhà Hàng' },
-    { name: 'Burger' }, { name: 'Bữa Tối' }, { name: 'Gà Rán' },
-]);
 
 const apiUrl = inject('apiUrl');
 

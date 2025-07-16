@@ -97,24 +97,31 @@
         
         <div class="row g-4">
           <!-- Sử dụng v-for để lặp qua danh sách các loại phòng -->
-          <div v-for="(roomType, index) in roomTypes" :key="roomType.type_id" class="col-lg-4 col-md-6">
-            <div class="room-card">
-              <img :src="getRoomImage(index)" class="img-fluid" :alt="roomType.type_name" />
-              <div class="room-info">
-                <div>
-                  <h3>{{ roomType.type_name }}</h3>
-                  <div class="room-details">
-                    <span>📏 {{ roomType.m2 }} m²</span>
-                    <span>🛏️ {{ roomType.bed_count }} Giường</span>
-                    <span>👤 {{ roomType.max_occupancy }} Người</span>
+          <div v-for="roomType in roomTypes" :key="roomType.type_id" class="col-lg-4 col-md-6">
+            <router-link :to="`/room-types/${roomType.type_id}`" class="text-decoration-none">
+              <div class="room-card">
+                <img 
+                  :src="roomType.images && roomType.images.length > 0 ? `${apiUrl}/images/room_type/${roomType.images[0]}` : 'https://via.placeholder.com/575x250?text=No+Image+Available'" 
+                  class="img-fluid" 
+                  :alt="roomType.type_name"
+                  @error="handleImageError"
+                />
+                <div class="room-info">
+                  <div>
+                    <h3>{{ roomType.type_name }}</h3>
+                    <div class="room-details">
+                      <span>📏 {{ roomType.m2 }} m²</span>
+                      <span>🛏️ {{ roomType.bed_count }} Giường</span>
+                      <span>👤 {{ roomType.max_occupancy }} Người</span>
+                    </div>
+                  </div>
+                  <div class="room-rate">
+                    <span>{{ roomType.rate }}</span>
+                    <span style="color: #f5b942; margin-left: 4px;">★</span>
                   </div>
                 </div>
-                <div class="room-rate">
-                  <span>{{ roomType.rate }}</span>
-                  <span style="color: #f5b942; margin-left: 4px;">★</span>
-                </div>
               </div>
-            </div>
+            </router-link>
           </div>
 
           <!-- Hiển thị thông báo khi đang tải hoặc không có dữ liệu -->
@@ -124,10 +131,6 @@
           <div v-if="!roomTypes.length && !loading" class="col-12 text-center py-5">
             <p>Hiện không có loại phòng nào để hiển thị.</p>
           </div>
-        </div>
-        
-        <div class="pagination-dots text-center mt-5">
-          <span class="dot active"></span><span class="dot"></span><span class="dot"></span><span class="dot"></span>
         </div>
       </div>
     </section>
@@ -167,7 +170,7 @@
                   <li class="d-flex align-items-start mb-2"><span class="me-2" style="color: #A98A66;">✓</span><span>Vé vào cửa công viên giải trí miễn phí</span></li>
                   <li class="d-flex align-items-start mb-2"><span class="me-2" style="color: #A98A66;">✓</span><span>Hoạt động gia đình hàng ngày</span></li>
                 </ul>
-                <a href="#" class="book-now-link mt-auto">Đặt Ngay</a>
+                
               </div>
             </div>
           </div>
@@ -182,7 +185,7 @@
                     <li class="d-flex align-items-start mb-2"><span class="me-2" style="color: #A98A66;">✓</span><span>Bữa sáng và bữa trưa lành mạnh</span></li>
                     <li class="d-flex align-items-start mb-2"><span class="me-2" style="color: #A98A66;">✓</span><span>Sử dụng tất cả các tiện ích spa</span></li>
                 </ul>
-                <a href="#" class="book-now-link mt-auto">Đặt Ngay</a>
+                
               </div>
             </div>
           </div>
@@ -204,60 +207,41 @@
       </div>
     </section>
 
-    <!-- 8. Đăng ký nhận tin -->
-    <section class="newsletter-section bg-white">
-      <div class="container">
-        <div class="row justify-content-center">
-          <div class="col-lg-7 text-center">
-            <h2 class="section-title">Đăng Ký Nhận Tin</h2>
-            <form class="d-flex gap-2 mt-4">
-                <input type="email" class="form-control form-control-lg" placeholder="Nhập email của bạn">
-                <button type="submit" class="btn btn-custom-secondary btn-lg flex-shrink-0">Đăng Ký</button>
-            </form>
-          </div>
-        </div>
-      </div>
-    </section>
+    
   </div>
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue';
-import axios from 'axios';
+import { ref, onMounted, inject } from 'vue';
+import axiosConfig from '../axiosConfig.js';
 
 const roomTypes = ref([]);
 const loading = ref(true);
-
-const staticImages = [
-  'https://images.trvl-media.com/lodging/42000000/41830000/41826900/41826852/ff9dfc7c.jpg?impolicy=resizecrop&rw=575&rh=575&ra=fill',
-  'https://images.trvl-media.com/lodging/1000000/30000/22600/22580/e54e5b7c.jpg?impolicy=resizecrop&rw=575&rh=575&ra=fill',
-  'https://images.trvl-media.com/lodging/2000000/1320000/1319100/1319087/e524b7fb.jpg?impolicy=resizecrop&rw=575&rh=575&ra=fill',
-  'https://images.trvl-media.com/lodging/4000000/3040000/3039100/3039088/6e885149.jpg?impolicy=resizecrop&rw=575&rh=575&ra=fill'
-];
-
-const getRoomImage = (index) => {
-  return staticImages[index % staticImages.length];
-};
+const apiUrl = inject('apiUrl');
 
 const fetchRoomTypes = async () => {
-  // !!! QUAN TRỌNG: Thay thế URL này bằng URL API thực tế của bạn
-  const apiUrl = 'http://127.0.0.1:8000/api/room-types';
   loading.value = true;
-  
   try {
-    const response = await axios.get(apiUrl);
+    const response = await axiosConfig.get(`${apiUrl}/api/room-types`);
     if (response.data && response.data.status === true) {
-      roomTypes.value = response.data.data;
+      roomTypes.value = response.data.data.map(roomType => ({
+        ...roomType,
+        images: roomType.images ? JSON.parse(roomType.images) : [],
+      }));
     } else {
       console.error('API không trả về dữ liệu hợp lệ:', response.data);
-      roomTypes.value = []; // Xóa dữ liệu cũ nếu API lỗi
+      roomTypes.value = [];
     }
   } catch (error) {
     console.error('Lỗi khi gọi API lấy danh sách loại phòng:', error);
-    roomTypes.value = []; // Xóa dữ liệu cũ nếu API lỗi
+    roomTypes.value = [];
   } finally {
     loading.value = false;
   }
+};
+
+const handleImageError = (event) => {
+  event.target.src = 'https://via.placeholder.com/575x250?text=Image+Not+Found';
 };
 
 onMounted(() => {
@@ -368,6 +352,10 @@ section {
   border-radius: var(--bs-border-radius);
   box-shadow: var(--bs-box-shadow-sm);
   height: 100%;
+  transition: transform 0.3s ease;
+}
+.room-card:hover {
+  transform: translateY(-5px);
 }
 .room-card img {
   width: 100%;
@@ -375,24 +363,31 @@ section {
   object-fit: cover;
 }
 .room-info {
-  position: absolute; bottom: 0; left: 0; right: 0;
+  position: absolute; 
+  bottom: 0; 
+  left: 0; 
+  right: 0;
   background: linear-gradient(to top, rgba(0,0,0,0.8), transparent);
-  color: #fff; padding: 1.5rem; display: flex;
-  justify-content: space-between; align-items: flex-end;
+  color: #fff; 
+  padding: 1.5rem; 
+  display: flex;
+  justify-content: space-between; 
+  align-items: flex-end;
 }
-.room-info h3 { font-size: 1.4rem; color: white;}
-.room-details { font-size: 0.8rem; opacity: 0.9; }
+.room-info h3 { 
+  font-size: 1.4rem; 
+  color: white;
+}
+.room-details { 
+  font-size: 0.8rem; 
+  opacity: 0.9; 
+}
 .room-rate { 
   font-size: 1.8rem; 
   font-weight: bold;
   display: flex;
   align-items: center;
 }
-.pagination-dots .dot {
-  display: inline-block; width: 10px; height: 10px; border-radius: 50%;
-  background-color: #ccc; margin: 0 5px; cursor: pointer;
-}
-.pagination-dots .dot.active { background-color: #A98A66; }
 
 /* 5. STATIC BANNER SECTION */
 .static-banner-section {
@@ -416,15 +411,26 @@ section {
     overflow: hidden;
     box-shadow: var(--bs-box-shadow-sm);
 }
-.offer-image { object-fit: cover; }
-@media (min-width: 768px) { .offer-image { width: 40%; } }
-@media (max-width: 767px) { .offer-image { width: 100%; height: 200px; } }
+.offer-image { 
+  object-fit: cover; 
+}
+@media (min-width: 768px) { 
+  .offer-image { width: 40%; } 
+}
+@media (max-width: 767px) { 
+  .offer-image { width: 100%; height: 200px; } 
+}
 .book-now-link {
-    color: #A98A66; text-decoration: none; font-weight: bold;
-    border-bottom: 2px solid transparent; transition: border-color 0.3s;
+    color: #A98A66; 
+    text-decoration: none; 
+    font-weight: bold;
+    border-bottom: 2px solid transparent; 
+    transition: border-color 0.3s;
     align-self: flex-start;
 }
-.book-now-link:hover { border-color: #A98A66; }
+.book-now-link:hover { 
+  border-color: #A98A66; 
+}
 
 /* RESPONSIVE ADJUSTMENTS */
 @media (max-width: 992px) {

@@ -8,89 +8,115 @@
     </div>
 
     <!-- Content State -->
-    <div v-else-if="roomType">
-      <!-- Hero Section with Full-width Carousel -->
-      <section class="hero-section position-relative">
-        <div id="hotelImageCarousel" class="carousel slide" data-bs-ride="carousel" data-bs-interval="5000">
-          <div class="carousel-inner">
-            <div class="carousel-item active">
-              <img src="https://pistachiohotel.com/UploadFile/Gallery/Overview/a3.jpg" class="d-block w-100" alt="Hotel Room View 1">
-            </div>
-            <div class="carousel-item">
-              <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRMFteLbo7EdtFP32wDKvTJxML1CEt9pCdo4ByeKxCZnFX9cBf0ifdq6eCRQZBW_3feWRI&usqp=CAU" class="d-block w-100" alt="Hotel Room View 2">
-            </div>
-            <div class="carousel-item">
-              <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcR7roFS7C9CH67wV7w3WdxLZ8CtW8nuvA2tf3kNJzn6YR5Xczj8AktzixNewUwV_SASOz8&usqp=CAU" class="d-block w-100" alt="Hotel Room View 3">
-            </div>
+    <div v-else-if="roomType" class="page-content">
+      <div class="container py-5">
+        <!-- Header: Title and Back Button -->
+        <div class="row align-items-center mb-4">
+          <div class="col-md-8">
+            <h1 class="display-4 fw-bold room-title">{{ roomType.type_name }}</h1>
+            <p class="fs-5 text-muted room-subtitle">Trải nghiệm không gian nghỉ dưỡng đẳng cấp và tiện nghi vượt trội.</p>
           </div>
-          <button class="carousel-control-prev" type="button" data-bs-target="#hotelImageCarousel" data-bs-slide="prev">
-            <span class="carousel-control-prev-icon" aria-hidden="true"></span>
-            <span class="visually-hidden">Previous</span>
-          </button>
-          <button class="carousel-control-next" type="button" data-bs-target="#hotelImageCarousel" data-bs-slide="next">
-            <span class="carousel-control-next-icon" aria-hidden="true"></span>
-            <span class="visually-hidden">Next</span>
-          </button>
-        </div>
-        <div class="overlay-content d-flex align-items-center justify-content-center text-center">
-          <div>
-            <h1 class="text-white display-3 fw-bolder">{{ roomType.type_name }}</h1>
-            <p class="text-white fs-4 lead">Trải nghiệm không gian nghỉ dưỡng đẳng cấp</p>
+          <div class="col-md-4 text-md-end">
+            <router-link to="/rooms3" class="btn btn-primary btn-lg rounded-pill px-4 py-2 shadow-sm">
+                <i class="bi bi-calendar-check me-2"></i> Đặt Phòng Ngay
+            </router-link>
           </div>
         </div>
-      </section>
 
-      <!-- Main Details Section -->
-      <main class="container py-5">
-        <div class="row g-5">
-          <!-- Description -->
-          <div class="col-12">
-            <h2 class="section-title">Tổng Quan Về Hạng Phòng</h2>
-            <p class="text-muted fs-5">{{ roomType.description }}</p>
-          </div>
-        </div>
-        
-        <hr class="my-5">
-
-        <div class="row g-5 align-items-center">
-            <!-- Key Info -->
-            <div class="col-lg-4">
-                <ul class="info-list list-unstyled">
-                    <li><i class="bi bi-people-fill"></i> Sức chứa: <strong>{{ roomType.max_occupancy }} người</strong></li>
-                    <li><i class="bi bi-aspect-ratio-fill"></i> Diện tích: <strong>{{ roomType.m2 }} m²</strong></li>
-                    <li><i class="bi bi-hdd-stack-fill"></i> Số giường: <strong>{{ roomType.bed_count }} giường</strong></li>
-                </ul>
+        <!-- Carousel -->
+        <section class="carousel-section mb-5">
+          <!-- SỬA Ở ĐÂY: Xóa 2 nút <button> Previous và Next -->
+          <div id="hotelImageCarousel" class="carousel slide shadow-lg" data-bs-ride="carousel">
+            <div class="carousel-indicators">
+              <button 
+                v-for="(image, index) in roomType.images" 
+                :key="index"
+                type="button" 
+                data-bs-target="#hotelImageCarousel" 
+                :data-bs-slide-to="index" 
+                :class="{ 'active': index === 0 }" 
+                :aria-current="index === 0 ? 'true' : 'false'"
+                :aria-label="`Slide ${index + 1}`"
+              ></button>
             </div>
-            <!-- Amenities -->
-            <div class="col-lg-4">
-                <h3 class="subsection-title"><i class="bi bi-gem me-2"></i>Tiện nghi</h3>
+            <div class="carousel-inner">
+              <div 
+                v-if="roomType.images && roomType.images.length > 0"
+                v-for="(image, index) in roomType.images" 
+                :key="index" 
+                class="carousel-item" 
+                :class="{ 'active': index === 0 }"
+              >
+                <img :src="`${apiUrl}/images/room_type/${image}`" class="d-block w-100" :alt="`Room Image ${index + 1}`">
+              </div>
+              <div v-else class="carousel-item active">
+                <img src="https://via.placeholder.com/1200x700?text=No+Image+Available" class="d-block w-100" alt="No Image">
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- Main Details Section -->
+        <main class="main-content">
+          <div class="row g-4 g-lg-5">
+            <!-- Left Column: Description & Key Info -->
+            <div class="col-lg-7">
+              <div class="detail-card">
+                <h2 class="section-title">Tổng Quan Về Hạng Phòng</h2>
+                <p class="text-muted fs-5">{{ roomType.description }}</p>
+                
+                <div class="row g-3 mt-4 text-center">
+                    <div class="col-sm-4">
+                        <div class="info-card">
+                            <i class="bi bi-people-fill info-icon"></i>
+                            <div class="info-label">Sức chứa</div>
+                            <div class="info-value">{{ roomType.max_occupancy }} người</div>
+                        </div>
+                    </div>
+                    <!-- SỬA Ở ĐÂY: Sửa roomType.m2 thành roomType.area -->
+                    <div class="col-sm-4">
+                        <div class="info-card">
+                            <i class="bi bi-aspect-ratio-fill info-icon"></i>
+                            <div class="info-label">Diện tích</div>
+                            <div class="info-value">{{ roomType.area || 'N/A' }} m²</div>
+                        </div>
+                    </div>
+                    <div class="col-sm-4">
+                        <div class="info-card">
+                           <i class="bi bi-hdd-stack-fill info-icon"></i>
+                            <div class="info-label">Số giường</div>
+                            <div class="info-value">{{ roomType.bed_count }} giường</div>
+                        </div>
+                    </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- SỬA Ở ĐÂY: Bỏ cột dịch vụ, mở rộng cột tiện nghi -->
+            <!-- Right Column: Amenities -->
+            <div class="col-lg-5">
+              <div class="detail-card">
+                <h2 class="section-title">Tiện Nghi Trong Phòng</h2>
                 <ul v-if="roomType.amenities && roomType.amenities.length > 0" class="feature-list list-unstyled">
                     <li v-for="amenity in roomType.amenities" :key="amenity.amenity_id">
-                        <i class="bi bi-check-circle-fill text-success"></i> {{ amenity.amenity_name }}
+                        <i class="bi bi-check-circle-fill"></i> {{ amenity.amenity_name }}
                     </li>
                 </ul>
-                <p v-else class="text-muted">Không có thông tin tiện nghi.</p>
+                <p v-else class="text-muted small">Chưa có thông tin tiện nghi.</p>
+              </div>
             </div>
-            <!-- Services -->
-            <div class="col-lg-4">
-                <h3 class="subsection-title"><i class="bi bi-patch-check-fill me-2"></i>Dịch vụ</h3>
-                <ul v-if="roomType.services && roomType.services.length > 0" class="feature-list list-unstyled">
-                    <li v-for="service in roomType.services" :key="service.service_id">
-                        <i class="bi bi-check-circle-fill text-success"></i> {{ service.service_name }}
-                    </li>
-                </ul>
-                <p v-else class="text-muted">Không có thông tin dịch vụ.</p>
-            </div>
-        </div>
+          </div>
+        </main>
 
         <!-- Call to Action Section -->
-        <section class="text-center mt-5 pt-5 border-top">
-          <h2 class="mb-4">Sẵn sàng cho kỳ nghỉ của bạn?</h2>
+        <section class="cta-section text-center mt-5 pt-5">
+          <h2 class="mb-3">Sẵn sàng cho một kỳ nghỉ đáng nhớ?</h2>
+          <p class="lead text-muted mb-4">Đặt phòng ngay hôm nay để nhận được những ưu đãi tốt nhất từ chúng tôi.</p>
           <router-link to="/rooms3" class="btn btn-primary btn-lg rounded-pill px-5 py-3 shadow-lg">
             <i class="bi bi-calendar-check me-2"></i> Đặt Phòng Ngay
           </router-link>
         </section>
-      </main>
+      </div>
     </div>
 
     <!-- Error State -->
@@ -106,6 +132,7 @@
 </template>
 
 <script setup>
+// PHẦN SCRIPT GIỮ NGUYÊN
 import { ref, onMounted, inject, watch } from 'vue';
 import { useRoute } from 'vue-router';
 import axiosConfig from '../axiosConfig.js';
@@ -119,21 +146,21 @@ const fetchRoomTypeDetails = async () => {
   loading.value = true;
   roomType.value = null;
   const typeId = route.params.id;
-  
+
   if (!typeId) {
     loading.value = false;
     return;
   }
 
   try {
-    const response = await axiosConfig.get(`${apiUrl}/api/room-types`);
-    if (response.data.status && response.data.data) {
-      const foundRoomType = response.data.data.find(rt => rt.type_id == typeId);
-      if(foundRoomType) {
-        roomType.value = foundRoomType;
-      } else {
-        console.error(`Không tìm thấy loại phòng với ID: ${typeId}`);
-      }
+    const response = await axiosConfig.get(`${apiUrl}/api/room-types/${typeId}`);
+    if (response.data) {
+      roomType.value = {
+        ...response.data,
+        images: response.data.images ? JSON.parse(response.data.images) : [],
+      };
+    } else {
+      console.error(`Không tìm thấy loại phòng với ID: ${typeId}`);
     }
   } catch (error) {
     console.error(`Lỗi khi lấy chi tiết loại phòng ${typeId}:`, error);
@@ -155,41 +182,42 @@ watch(() => route.params.id, (newId) => {
 </script>
 
 <style scoped>
-.loading-container {
-  min-height: calc(100vh - 80px); /* Full height minus navbar */
-  padding-top: 80px;
-}
+@import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;700;800&display=swap');
+@import url("https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css");
 
-/* --- Hero Section --- */
-.hero-section {
+/* --- General & Theme --- */
+.page-content {
+  font-family: 'Montserrat', sans-serif;
+  background-color: #f8f9fa;
+  color: #343a40;
+}
+.loading-container { min-height: 100vh; }
+.room-title { color: #081B54; }
+.room-subtitle { color: #6c757d; }
+
+/* --- Carousel --- */
+.carousel-section {
+  border-radius: 20px;
+  overflow: hidden;
+}
+.carousel-item {
   height: 65vh;
   min-height: 450px;
-  max-height: 700px;
-  color: #fff;
+  max-height: 600px;
 }
-
-.hero-section .carousel,
-.hero-section .carousel-inner,
-.hero-section .carousel-item {
-  height: 100%;
-}
-
-.hero-section .carousel-item img {
+.carousel-item img {
   height: 100%;
   object-fit: cover;
-  filter: brightness(0.6);
 }
 
-.overlay-content {
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: rgba(0, 0, 0, 0.3);
+/* --- Main Content Cards --- */
+.detail-card {
+  background-color: #fff;
+  padding: 2.5rem;
+  border-radius: 15px;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.05);
+  height: 100%;
 }
-
-/* --- Main Content Section --- */
 .section-title {
   font-weight: 700;
   color: #081B54;
@@ -199,44 +227,76 @@ watch(() => route.params.id, (newId) => {
   display: inline-block;
 }
 
-.subsection-title {
-    font-weight: 600;
-    color: #333;
-    margin-bottom: 1rem;
+/* --- Key Info Cards --- */
+.info-card {
+  background-color: #f8f9fa;
+  border-radius: 12px;
+  padding: 1.5rem 1rem;
+  transition: all 0.3s ease;
+  border: 1px solid #e9ecef;
+}
+.info-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 8px 20px rgba(0,0,0,0.08);
+  border-color: #16B978;
+}
+.info-icon {
+  font-size: 2.5rem;
+  color: #16B978;
+  margin-bottom: 0.75rem;
+  display: block;
+}
+.info-label {
+  font-size: 0.9rem;
+  color: #6c757d;
+  margin-bottom: 0.25rem;
+}
+.info-value {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: #081B54;
 }
 
-.info-list li {
-    font-size: 1.1rem;
-    padding: 0.8rem 0;
-    border-bottom: 1px solid #e9ecef;
+/* --- Feature List (Amenities/Services) --- */
+.feature-list {
+  padding-left: 0;
+  /* SỬA Ở ĐÂY: Thêm columns để tự chia cột */
+  columns: 2;
+  -webkit-columns: 2;
+  -moz-columns: 2;
+  column-gap: 2rem;
 }
-
-.info-list li i {
-    color: #16B978;
-    margin-right: 1rem;
-    font-size: 1.5rem;
-    vertical-align: middle;
-}
-
 .feature-list li {
-    padding: 0.5rem 0;
-    font-size: 1rem;
+  padding: 0.5rem 0;
+  font-size: 1rem;
+  color: #495057;
+  display: flex;
+  align-items: center;
+  /* Ngăn ngắt cột giữa chừng của 1 item */
+  -webkit-column-break-inside: avoid;
+  page-break-inside: avoid;
+  break-inside: avoid;
 }
 .feature-list li i {
-    margin-right: 0.75rem;
+  color: #16B978;
+  margin-right: 0.75rem;
+  font-size: 1.2rem;
 }
 
+/* --- Call to Action --- */
+.cta-section {
+  border-top: 1px solid #e9ecef;
+}
 .btn-primary {
-    background-color: #16B978;
-    border-color: #16B978;
-    font-weight: 600;
-    transition: all 0.3s ease;
+  background-color: #16B978;
+  border-color: #16B978;
+  font-weight: 600;
+  transition: all 0.3s ease;
 }
-
 .btn-primary:hover {
-    background-color: #13a86c;
-    border-color: #13a86c;
-    transform: translateY(-3px);
-    box-shadow: 0 4px 15px rgba(22, 185, 120, 0.4);
+  background-color: #13a86c;
+  border-color: #13a86c;
+  transform: translateY(-3px);
+  box-shadow: 0 4px 15px rgba(22, 185, 120, 0.4);
 }
 </style>
