@@ -1010,7 +1010,7 @@ const getRoomPrices = async () => {
     isLoading.value = true; // Bắt đầu tải dữ liệu (spinner hiện ra)
 
     // --- DÒNG CODE MỚI: Giả lập độ trễ 5 giây cho mục đích test ---
-    await new Promise(resolve => setTimeout(resolve, 5000));
+   // await new Promise(resolve => setTimeout(resolve, 5000));
     // -----------------------------------------------------------------
 
     getRoomTypes(); // Gọi hàm lấy loại phòng (hàm này sẽ chạy sau 5s chờ)
@@ -1043,6 +1043,8 @@ const getRoomPrices = async () => {
                 gia1h: roomPrice.gia1h
             };
         });
+            console.log("Bắt đầu lấy giá phòng...");
+
         calculateTotalDays();
     } catch (error) {
         console.error("Có lỗi xảy ra khi lấy dữ liệu:", error);

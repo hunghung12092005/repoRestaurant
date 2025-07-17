@@ -230,9 +230,7 @@ const loading = ref(true);
 
 const staticImages = [
   'https://images.trvl-media.com/lodging/42000000/41830000/41826900/41826852/ff9dfc7c.jpg?impolicy=resizecrop&rw=575&rh=575&ra=fill',
-  'https://images.trvl-media.com/lodging/1000000/30000/22600/22580/e54e5b7c.jpg?impolicy=resizecrop&rw=575&rh=575&ra=fill',
-  'https://images.trvl-media.com/lodging/2000000/1320000/1319100/1319087/e524b7fb.jpg?impolicy=resizecrop&rw=575&rh=575&ra=fill',
-  'https://images.trvl-media.com/lodging/4000000/3040000/3039100/3039088/6e885149.jpg?impolicy=resizecrop&rw=575&rh=575&ra=fill'
+  
 ];
 
 const getRoomImage = (index) => {

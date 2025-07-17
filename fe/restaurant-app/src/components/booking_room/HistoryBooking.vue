@@ -8,73 +8,64 @@
 
     <Loading v-if="isLoading" />
 
-    <div v-else-if="error" class="alert alert-danger text-center">
-      {{ error }}
-    </div>
+    <div v-else-if="error" class="alert alert-danger text-center">{{ error }}</div>
 
     <div v-else-if="bookings.length === 0" class="alert alert-info text-center">
       <p class="mb-1">Bạn chưa có lịch sử đặt phòng nào.</p>
-      <small class="text-muted fst-italic">Hãy khám phá và đặt phòng ngay hôm nay để có một kỳ nghỉ tuyệt vời!</small>
     </div>
 
     <div v-else class="row g-4 justify-content-center">
-      <div
-        v-for="booking in bookings"
-        :key="booking.booking_id"
-        class="col-12 col-md-10 col-lg-8"
-      >
+      <div v-for="booking in bookings" :key="booking.booking_id" class="col-12 col-md-10 col-lg-8">
         <div class="card shadow-sm border-0 rounded-4 p-4">
+          <!-- Header -->
           <div class="d-flex justify-content-between align-items-center mb-3 border-bottom pb-2">
-            <h5 class="mb-0">Mã đặt phòng: #{{ booking.booking_id }}</h5>
+            <div>
+              <h5 class="mb-0">Mã đặt phòng: <strong>#{{ booking.booking_id }}</strong></h5>
+              <small class="text-muted">Mã đơn hàng: {{ booking.orderCode || 'Không có' }}</small>
+            </div>
             <span :class="['badge px-3 py-2', formatStatusClass(booking.status)]">
               {{ formatStatus(booking.status) }}
             </span>
           </div>
 
-          <div class="mb-2">
-            <strong>Ngày nhận phòng:</strong>
-            <span class="ms-1">{{ formatDate(booking.check_in_date) }}</span>
-            <span class="mx-2">|</span>
-            <strong>Ngày trả phòng:</strong>
-            <span class="ms-1">{{ formatDate(booking.check_out_date) }}</span>
+          <!-- Thông tin chính -->
+          <div class="mb-2 row">
+            <div class="col-6"><strong>Nhận phòng:</strong> {{ formatDate(booking.check_in_date) }}</div>
+            <div class="col-6"><strong>Trả phòng:</strong> {{ formatDate(booking.check_out_date) }}</div>
           </div>
 
-          <div v-if="booking.room_type_info">
-            <div class="mb-2">
-              <strong>Loại phòng:</strong>
-              <span class="ms-1">{{ booking.room_type_info.type_name }}</span>
-              <span class="mx-2">|</span>
-              <strong>Sức chứa:</strong>
-              <span class="ms-1">{{ booking.room_type_info.max_occupancy }} người</span>
-            </div>
-            <div class="mb-2">
-              <strong>Số lượng phòng:</strong>
-              <span class="ms-1">{{ booking.total_rooms }}</span>
-              <span class="mx-2">|</span>
-              <strong>Diện tích:</strong>
-              <span class="ms-1">{{ booking.room_type_info.m2 }} m²</span>
-            </div>
-            <div class="mb-2" v-if="booking.room_type_info.description">
-              <strong>Mô tả:</strong>
-              <span class="ms-1">{{ booking.room_type_info.description }}</span>
-            </div>
-          </div>
-          <div v-else class="mb-2">
-            <strong>Loại phòng:</strong> <span>Đang cập nhật...</span>
+          <div class="mb-2 row" v-if="booking.room_type_info">
+            <div class="col-6"><strong>Loại phòng:</strong> {{ booking.room_type_info.type_name }}</div>
+            <div class="col-6"><strong>Sức chứa:</strong> {{ booking.room_type_info.max_occupancy }} người</div>
           </div>
 
-          <div class="mb-2">
-            <strong>Tổng tiền:</strong>
-            <span class="ms-1">{{ formatCurrency(booking.total_price) }}</span>
-            <span class="mx-2">|</span>
-            <strong>Phương thức:</strong>
-            <span class="ms-1">{{ formatPaymentMethod(booking.payment_method) }}</span>
+          <div class="mb-2 row">
+            <div class="col-6"><strong>Số lượng phòng:</strong> {{ booking.total_rooms }}</div>
+            <div class="col-6"><strong>Loại đặt:</strong> {{ booking.booking_type === 'online' ? 'Đặt online' : booking.booking_type }}</div>
           </div>
 
-          <div v-if="booking.note && booking.note !== 'Không có ghi chú'">
-            <strong>Ghi chú:</strong>
-            <span class="ms-1">{{ booking.note }}</span>
+          <div class="mb-2 row">
+            <div class="col-6"><strong>Hình thức thanh toán:</strong> {{ formatPayment(booking.payment_method) }}</div>
+            <div class="col-6"><strong>Trạng thái thanh toán:</strong> {{ formatPaymentStatus(booking.payment_status) }}</div>
           </div>
+
+          <div class="mb-2 row">
+            <div class="col-6"><strong>Phụ phí:</strong> {{ formatCurrency(booking.additional_fee) }}</div>
+            <div class="col-6"><strong>Tổng tiền:</strong> {{ formatCurrency(booking.total_price) }}</div>
+          </div>
+
+          <div v-if="booking.note" class="mb-2">
+            <strong>Ghi chú:</strong> <span class="fst-italic">{{ booking.note }}</span>
+          </div>
+
+          <!-- Hành động -->
+          <div class="mb-3" v-if="canCancelBooking(booking)">
+            <button class="btn btn-outline-danger btn-sm" @click="cancelBooking(booking.booking_id)">
+              Hủy đặt phòng
+            </button>
+          </div>
+
+          <small class="text-muted fst-italic">Cập nhật: {{ formatDate(booking.updated_at) }}</small>
         </div>
       </div>
     </div>
@@ -87,118 +78,119 @@ import axios from 'axios';
 import Loading from '../loading.vue';
 
 const apiUrl = inject('apiUrl');
-
 const isLoading = ref(false);
 const bookings = ref([]);
 const error = ref(null);
 
-const paymentMethodsMap = {
-  'thanh toan qr': 'Thanh toán QR',
-  'cash': 'Tiền mặt',
-  'credit_card': 'Thẻ tín dụng',
-  'bank_transfer': 'Chuyển khoản ngân hàng',
-};
-
 const statusMap = {
-  'pending_confirmation': 'Đang chờ xác nhận',
-  'pending': 'Đang chờ',
-  'confirmed': 'Đã xác nhận',
-  'cancelled': 'Đã hủy',
-  'completed': 'Hoàn thành',
+  pending_confirmation: 'Đang chờ xác nhận',
+  confirmed: 'Đã xác nhận',
+  cancelled: 'Đã hủy',
+  completed: 'Hoàn thành',
 };
 
 const getHistoryBooking = async () => {
   let token = localStorage.getItem('BookingAuth') || '';
   const axiosInstance = axios.create({
-    headers: {
-      'Content-Type': 'application/json',
-      'Authorization': `Bearer ${token}`,
-    }
+    headers: { 'Authorization': `Bearer ${token}` }
   });
 
   try {
     isLoading.value = true;
-    error.value = null;
-
-    const response = await axiosInstance.get(`${apiUrl}/api/booking-history`);
-
-    if (response.data && response.data.status === 'success') {
-      bookings.value = response.data.data;
+    const res = await axiosInstance.get(`${apiUrl}/api/booking-history`);
+    if (res.data?.status === 'success') {
+      bookings.value = res.data.data;
     } else {
-      error.value = response.data.message || 'Không thể tải dữ liệu lịch sử đặt phòng.';
-      bookings.value = [];
+      error.value = res.data.message || 'Không thể tải dữ liệu.';
     }
-  } catch (err) {
-    console.error('Error fetching booking history:', err);
-    if (err.response) {
-      if (err.response.status === 401) {
-        error.value = 'Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.';
-      } else if (err.response.data && err.response.data.message) {
-        error.value = 'Bạn chưa có đơn hàng nào.';
-      } else {
-        error.value = 'Bạn chưa có đơn hàng nào.';
-      }
-    } else if (err.request) {
-      error.value = 'Không thể kết nối đến máy chủ. Vui lòng kiểm tra kết nối mạng của bạn.';
-    } else {
-      error.value = 'Bạn chưa có đơn hàng nào.';
-    }
-    bookings.value = [];
+  } catch {
+    error.value = 'Lỗi kết nối hoặc chưa có đơn hàng.';
   } finally {
     isLoading.value = false;
   }
 };
 
+const cancelBooking = async (bookingId) => {
+  if (!confirm('Bạn có chắc muốn hủy đơn này?')) return;
+  try {
+    const token = localStorage.getItem('BookingAuth') || '';
+    const axiosInstanceDel = axios.create({
+      headers: { 'Authorization': `Bearer ${token}` }
+    });
+    await axiosInstanceDel.delete(`${apiUrl}/api/booking-history/${bookingId}`);
+    alert('Hủy thành công');
+    getHistoryBooking();
+  } catch {
+    alert('Không thể hủy đơn. Vui lòng thử lại sau.');
+  }
+};
+
 const formatDate = (dateString) => {
   if (!dateString) return 'N/A';
-  try {
-    const options = { year: 'numeric', month: 'long', day: 'numeric' };
-    return new Date(dateString).toLocaleDateString('vi-VN', options);
-  } catch (e) {
-    console.error('Error formatting date:', e);
-    return dateString;
-  }
+  return new Date(dateString).toLocaleDateString('vi-VN', {
+    year: 'numeric', month: '2-digit', day: '2-digit',
+  });
 };
 
 const formatCurrency = (amount) => {
-  if (amount === null || amount === undefined) return '0 VNĐ';
-  try {
-    return parseFloat(amount).toLocaleString('vi-VN', { style: 'currency', currency: 'VND' });
-  } catch (e) {
-    console.error('Error formatting currency:', e);
-    return `${amount} VNĐ`;
-  }
+  return (Number(amount) || 0).toLocaleString('vi-VN', {
+    style: 'currency',
+    currency: 'VND'
+  });
 };
 
-const formatStatus = (status) => {
-  return statusMap[status] || status.replace(/_/g, ' ');
+const formatStatus = (status) => statusMap[status] || status;
+const formatStatusClass = (status) => `bg-${status.replace(/_/g, '-')}`;
+
+const formatPayment = (method) => {
+  const map = {
+    thanh_toan_qr: 'QR Code',
+    thanh_toan_tien_mat: 'Tiền mặt',
+    thanh_toan_the: 'Thẻ',
+  };
+  return map[method] || 'Không rõ';
 };
 
-const formatStatusClass = (status) => {
-  return `bg-${status.replace(/_/g, '-')}`;
+const formatPaymentStatus = (status) => {
+  const map = {
+    pending: 'Chưa thanh toán',
+    paid: 'Đã thanh toán',
+  };
+  return map[status] || 'Không rõ';
 };
 
-const formatPaymentMethod = (method) => {
-  return paymentMethodsMap[method] || method.replace(/_/g, ' ');
+const canCancelBooking = (booking) => {
+  if (booking.status !== 'pending_confirmation') return false;
+  const checkInDate = new Date(booking.check_in_date);
+  const now = new Date();
+  checkInDate.setDate(checkInDate.getDate() - 1);
+  return now < checkInDate;
 };
 
-onMounted(() => {
-  getHistoryBooking();
-});
+onMounted(getHistoryBooking);
 </script>
 
 <style scoped>
-.bg-pending-confirmation, .bg-pending {
-  background-color: #ffc107;
-  color: #212529;
-}
 .bg-confirmed {
   background-color: #0d6efd;
+  color: #fff;
 }
 .bg-cancelled {
   background-color: #dc3545;
+  color: #fff;
 }
 .bg-completed {
   background-color: #198754;
+  color: #fff;
+}
+.bg-pending-confirmation {
+  background-color: #ffc107;
+  color: #000;
+}
+.card {
+  transition: box-shadow 0.3s;
+}
+.card:hover {
+  box-shadow: 0 0 12px rgba(0, 0, 0, 0.12);
 }
 </style>

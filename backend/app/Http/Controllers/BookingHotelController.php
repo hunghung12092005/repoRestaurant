@@ -42,14 +42,14 @@ class BookingHotelController extends Controller
 
                 $bookedRoomIds = BookingHotelDetail::whereHas('booking', function ($query) use ($checkInDate, $checkOutDate) {
                     $query->whereIn('status', ['pending_confirmation', 'confirmed'])
-                          ->where(function ($q) use ($checkInDate, $checkOutDate) {
-                              $q->whereBetween('check_in_date', [$checkInDate, $checkOutDate])
+                        ->where(function ($q) use ($checkInDate, $checkOutDate) {
+                            $q->whereBetween('check_in_date', [$checkInDate, $checkOutDate])
                                 ->orWhereBetween('check_out_date', [$checkInDate, $checkOutDate])
                                 ->orWhere(function ($q) use ($checkInDate, $checkOutDate) {
                                     $q->where('check_in_date', '<=', $checkInDate)
-                                      ->where('check_out_date', '>=', $checkOutDate);
+                                        ->where('check_out_date', '>=', $checkOutDate);
                                 });
-                          });
+                        });
                 })->pluck('room_id');
 
                 $availableRoomsCount = $rooms->whereNotIn('room_id', $bookedRoomIds)->count();
@@ -100,16 +100,16 @@ class BookingHotelController extends Controller
             // Lấy danh sách room_id đã được gán trong khoảng thời gian yêu cầu
             $occupiedRoomIds = BookingHotelDetail::whereHas('booking', function ($query) use ($checkInDate, $checkOutDate) {
                 $query->whereIn('status', ['pending_confirmation', 'confirmed'])
-                      ->where(function ($q) use ($checkInDate, $checkOutDate) {
-                          $q->whereBetween('check_in_date', [$checkInDate, $checkOutDate])
+                    ->where(function ($q) use ($checkInDate, $checkOutDate) {
+                        $q->whereBetween('check_in_date', [$checkInDate, $checkOutDate])
                             ->orWhereBetween('check_out_date', [$checkInDate, $checkOutDate])
                             ->orWhere(function ($q) use ($checkInDate, $checkOutDate) {
                                 $q->where('check_in_date', '<=', $checkInDate)
-                                  ->where('check_out_date', '>=', $checkOutDate);
+                                    ->where('check_out_date', '>=', $checkOutDate);
                             });
-                      });
+                    });
             })->whereNotNull('room_id')
-              ->pluck('room_id');
+                ->pluck('room_id');
 
             // Lấy danh sách phòng trống thuộc room_type
             $availableRooms = Room::where('type_id', $roomTypeId)
@@ -168,14 +168,14 @@ class BookingHotelController extends Controller
             $isRoomOccupied = BookingHotelDetail::where('room_id', $request->room_id)
                 ->whereHas('booking', function ($query) use ($checkInDate, $checkOutDate) {
                     $query->whereIn('status', ['pending_confirmation', 'confirmed'])
-                          ->where(function ($q) use ($checkInDate, $checkOutDate) {
-                              $q->whereBetween('check_in_date', [$checkInDate, $checkOutDate])
+                        ->where(function ($q) use ($checkInDate, $checkOutDate) {
+                            $q->whereBetween('check_in_date', [$checkInDate, $checkOutDate])
                                 ->orWhereBetween('check_out_date', [$checkInDate, $checkOutDate])
                                 ->orWhere(function ($q) use ($checkInDate, $checkOutDate) {
                                     $q->where('check_in_date', '<=', $checkInDate)
-                                      ->where('check_out_date', '>=', $checkOutDate);
+                                        ->where('check_out_date', '>=', $checkOutDate);
                                 });
-                          });
+                        });
                 })->exists();
 
             if ($isRoomOccupied) {
@@ -371,6 +371,34 @@ class BookingHotelController extends Controller
             ], 500);
         }
     }
+    public function deleteBookingHistory($id)
+    {
+        $sub = JWTAuth::parseToken()->getPayload()->get('sub');
+        //return response()->json(['message' => $sub],500);
+        $booking = BookingHotel::where('booking_id', $id)
+            ->where('customer_id', $sub)
+            ->first();
+
+        if (!$booking) {
+            return response()->json(['message' => 'dadadaadda'], 404);
+        }
+
+        if ($booking->status !== 'pending_confirmation') {
+            return response()->json(['message' => 'Chỉ có thể hủy đơn đã xác nhận'], 400);
+        }
+
+        $now = now();
+        $checkInDate = Carbon::parse($booking->check_in_date);
+        if (now()->greaterThanOrEqualTo($checkInDate->subDay())) {
+            return response()->json(['message' => 'Chỉ được hủy trước ít nhất 1 ngày'], 400);
+        }
+
+        $booking->status = 'cancelled';
+        $booking->save();
+
+        return response()->json(['message' => 'Đơn đã được hủy thành công']);
+    }
+
 
     /**
      * Tạo link thanh toán PayOS
@@ -555,7 +583,7 @@ class BookingHotelController extends Controller
         }
     }
 
-        /**
+    /**
      * Lấy dịch vụ của booking
      */
     public function getBookingServices($bookingId)
