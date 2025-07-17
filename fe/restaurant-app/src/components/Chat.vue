@@ -11,24 +11,31 @@
         </div>
       </div>
     </div>
-
+ <!-- Nút mở/đóng chat-container -->
+    <button @click="toggleChatContainer" class="toggle-chat-btn">
+      <small>CHATBOT HXH </small>
+      <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcR1q6z2kV8_7RZuJAp74ii9srftzUxaoYSRAw&s" alt="Toggle Chat" />
+    </button>
     <!-- Chat Container -->
-    <div class="chat-container">
+    <div v-if="showChat" class="chat-container">
       <div class="chat-card">
         <!-- Header -->
         <div class="chat-header">
-          <img src="https://jbagy.me/wp-content/uploads/2025/03/Hinh-anh-avatar-nam-cute-2.jpg" class="avatar" alt="Support" />
+          <img src="https://jbagy.me/wp-content/uploads/2025/03/Hinh-anh-avatar-nam-cute-2.jpg" class="avatar"
+            alt="Support" />
           <div>
             <h6>{{ activeTab === 'ai' ? 'Hỏi đáp cùng ChatBot AI 🤖' : 'Admin Support' }}</h6>
-            <small>{{ activeTab === 'ai' ? 'Hệ thống hỗ trợ tự động 24/7' : 'Online 24/7' }}</small>
+            <small>{{ activeTab === 'ai' ? 'Hệ thống hỗ trợ tự động 24/7' : 'Online Gần Đây' }}</small>
           </div>
-          <span class="badge">{{ activeTab === 'ai' ? 'AI Chat' : 'Chat' }}</span>
+          <span @click="toggleChatContainer" class="badge">Close</span>
         </div>
 
         <!-- Tabs -->
         <div class="chat-tabs d-flex border-bottom">
+          
           <button :class="['tab-btn', { active: activeTab === 'ai' }]" @click="switchTab('ai')">Chat với AI</button>
-          <button :class="['tab-btn', { active: activeTab === 'human' }]" @click="switchTab('human')">Chat với Nhân viên</button>
+          <button :class="['tab-btn', { active: activeTab === 'human' }]" @click="switchTab('human')">Chat với Nhân
+            viên</button>
         </div>
 
         <!-- Suggested Questions (AI Tab Only) -->
@@ -44,14 +51,17 @@
         <!-- Messages -->
         <div class="chat-body">
           <div class="messages" ref="messagesRef">
-            <div v-for="(msg, index) in currentMessages" :key="'msg-' + index" :class="['message', msg.user === user ? 'user' : 'admin']">
-              <img v-if="msg.user !== user" src="https://jbagy.me/wp-content/uploads/2025/03/Hinh-anh-avatar-nam-cute-2.jpg" class="avatar-sm" />
+            <div v-for="(msg, index) in currentMessages" :key="'msg-' + index"
+              :class="['message', msg.user === user ? 'user' : 'admin']">
+              <img v-if="msg.user !== user"
+                src="https://jbagy.me/wp-content/uploads/2025/03/Hinh-anh-avatar-nam-cute-2.jpg" class="avatar-sm" />
               <div class="bubble">
                 <div class="meta">{{ msg.user === user ? msg.user : (activeTab === 'ai' ? 'AI' : 'Admin') }}</div>
                 <div class="text">{{ msg.message }}</div>
                 <img v-if="msg.file" :src="msg.file" class="image-preview" />
               </div>
-              <img v-if="msg.user === user" src="https://jbagy.me/wp-content/uploads/2025/03/Hinh-anh-avatar-nam-cute-2.jpg" class="avatar-sm" />
+              <img v-if="msg.user === user"
+                src="https://jbagy.me/wp-content/uploads/2025/03/Hinh-anh-avatar-nam-cute-2.jpg" class="avatar-sm" />
             </div>
             <div v-if="loading" class="message admin loading">
               <div class="bubble">
@@ -73,7 +83,8 @@
               </button>
             </div>
           </div>
-          <input type="text" v-model="message" @keyup.enter="sendMessage()" :placeholder="activeTab === 'ai' ? 'Bạn cần hỏi gì?' : 'Type a message...'" />
+          <input type="text" v-model="message" @keyup.enter="sendMessage()"
+            :placeholder="activeTab === 'ai' ? 'Bạn cần hỏi gì?' : 'Type a message...'" />
           <button @click="sendMessage()" :disabled="loading">
             <i class="bi bi-send"></i>
           </button>
@@ -88,21 +99,31 @@ import { ref, computed, nextTick, onMounted, onUnmounted, inject } from 'vue';
 import axios from 'axios';
 import socket from '../socket'; // Import socket từ file chung
 
+// Khai báo biến trạng thái cho chat-container
+const showChat = ref(true);
+
+// Hàm để bật/tắt chat-container
+const toggleChatContainer = () => {
+  showChat.value = !showChat.value;
+};
+
 const API_KEY = 'AIzaSyDdyQPlin693Vo16vKOWnI38qLJ5U2z5LQ';
 const apiUrl = inject('apiUrl');
-const showPopup = ref(!localStorage.getItem('userInfo'));
+const showPopup = ref(false);
 const userName = ref('');
 const message = ref('');
 const loading = ref(false);
 const activeTab = ref('ai');
+const nameU = JSON.parse(localStorage.getItem('userInfo'))?.name || '';
+
 const aiMessages = ref([
-  { user: 'AI', message: 'Xin chào! Tôi là AI ChatBot HXH. Bạn muốn hỏi gì về khách sạn ạ?' },
+  { user: 'AI', message: `Xin chào ${nameU}! Tôi là AI ChatBot HXH. Bạn muốn hỏi gì về khách sạn ạ?` },
 ]);
 const messageSend = ref([]);
 const aiSuggestions = ref([
   '🕒 Giờ nhận và trả phòng là khi nào?',
   '💰 Giá phòng bao nhiêu?',
-  '📞 Tôi muốn liên hệ khách sạn',
+  // '📞 Tôi muốn liên hệ khách sạn',
 ]);
 const suggestions = ref([
   'Tôi cần hỗ trợ chuyển khoản lỗi/nhầm',
@@ -114,8 +135,8 @@ const messagesRef = ref(null);
 const socketId = ref('');
 const file = ref(null);
 const MAX_FILE_SIZE = 0.5 * 1024 * 1024; // 0.5 MB
-const user = JSON.parse(localStorage.getItem('userInfo'))?.name || 'User chưa login';
-const userId = JSON.parse(localStorage.getItem('userInfo'))?.id;
+var user = JSON.parse(localStorage.getItem('userInfo'))?.name || 'MR';
+var userId = JSON.parse(localStorage.getItem('userInfo'))?.id;
 
 // Computed property to display messages based on active tab
 const currentMessages = computed(() => {
@@ -146,9 +167,15 @@ const toggleSuggestions = () => {
 const switchTab = (tab) => {
   activeTab.value = tab;
   if (tab === 'human') {
+    showPopup.value = !localStorage.getItem('userInfo');
     socket.emit('join', user);
     socket.emit('register', userId);
     getMessages();
+    //listenForMessages();
+    //showPopup.value = false;
+  }
+  else {
+    showPopup.value = false;
   }
   scrollToBottom();
 };
@@ -198,6 +225,7 @@ const sendMessage = async (suggestion = null) => {
       const docResponse = await fetch(`${apiUrl}/api/chat-ai/hotel-info`);
       const hotelDocs = await docResponse.text();
       const prompt = `
+      Người dùng name is ${nameU},
         Dưới đây là toàn bộ thông tin về khách sạn:
         ${hotelDocs}
 
@@ -227,9 +255,9 @@ const sendMessage = async (suggestion = null) => {
       scrollToBottom();
     }
   } else {
-    messageSend.value.push(messageData);
+    // messageSend.value.push(messageData);
     socket.emit('chat message', messageData);
-    console.log('Sent message:', messageData);
+    //console.log('Sent message:', messageData);
   }
 
   message.value = '';
@@ -278,11 +306,11 @@ const handleAvailabilityCheck = async () => {
 
 // Socket.IO Functions
 socket.on('connect', () => {
-    socketId.value = socket.id;
-    console.log(`Connected with socket ID: ${socket.id}`);
-    socket.emit('join', user);
-    socket.emit('register', userId);
-  });
+  socketId.value = socket.id;
+  console.log(`Connected with socket ID: ${socket.id}`);
+  socket.emit('join', user);
+  socket.emit('register', userId);
+});
 const getMessages = () => {
   socket.emit('get user messages', userId);
 };
@@ -299,21 +327,15 @@ const listenForMessages = () => {
     }
   });
 
-  socket.on('chat history', (chatMessages) => {
-    messageSend.value = [];
-    chatMessages.forEach((msg) => {
-      const messageObject = {
-        user: msg.user,
-        userId: msg.userId,
-        message: msg.message,
-        file: msg.file,
-      };
-      messageSend.value.push(messageObject);
-    });
-    scrollToBottom();
-  });
-};
 
+};
+socket.on('chat history', (chatMessages) => {
+  messageSend.value = [];
+  chatMessages.forEach((msg) => {
+    messageSend.value.push(msg); // Thêm tin nhắn vào danh sách
+  });
+  //scrollToBottom();
+});
 // Lifecycle Hooks
 onMounted(() => {
   getMessages();
@@ -326,6 +348,21 @@ onMounted(() => {
 </script>
 
 <style scoped>
+.toggle-chat-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  position: fixed; /* Đặt ở vị trí bạn muốn */
+  bottom: 20px; /* Ví dụ: gần đáy */
+  right: 20px; /* Ví dụ: gần bên phải */
+  z-index: 1001; /* Đảm bảo nó nằm trên cùng */
+}
+.toggle-chat-btn > img{
+  width: 50px; /* Kích thước hình ảnh */
+  height: 50px; /* Kích thước hình ảnh */
+  border-radius: 50%; /* Làm tròn hình ảnh */
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2); /* Thêm bóng đổ */
+}
 .popup {
   position: fixed;
   top: 0;
@@ -368,7 +405,7 @@ onMounted(() => {
 /* CHỈNH SỬA VỊ TRÍ CHAT WIDGET */
 .chat-container {
   position: fixed;
-  bottom: 20px;
+  bottom: 90px;
   right: 20px;
   width: 360px;
   height: auto;
@@ -381,7 +418,7 @@ onMounted(() => {
 .chat-card {
   width: 100%;
   max-width: 360px;
-  height: 500px;
+  height: 600px;
   display: flex;
   flex-direction: column;
   background: white;
@@ -549,10 +586,21 @@ onMounted(() => {
 }
 
 @keyframes dots {
-  0% { content: ''; }
-  33% { content: '.'; }
-  66% { content: '..'; }
-  100% { content: '...'; }
+  0% {
+    content: '';
+  }
+
+  33% {
+    content: '.';
+  }
+
+  66% {
+    content: '..';
+  }
+
+  100% {
+    content: '...';
+  }
 }
 
 .chat-footer {
@@ -590,14 +638,15 @@ onMounted(() => {
 
 .suggestions {
   position: absolute;
-  top: -160px;
+  top: -210px;
   background: white;
   border: 1px solid #ddd;
   padding: 10px;
   border-radius: 8px;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
   z-index: 999;
-  width: 220px;
+  width: 320px;
+
 }
 
 .suggestions input[type="file"] {
@@ -605,6 +654,8 @@ onMounted(() => {
 }
 
 .suggestions button {
+  color: black;
+
   display: block;
   width: 100%;
   padding: 6px;

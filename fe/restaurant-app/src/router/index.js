@@ -39,7 +39,7 @@ import AdminUsersComponent from '../components/admin/AdminUsersComponent.vue';
 import test from '../components/booking_room/test.vue';
 import chatbot from '../components/booking_room/chatbot.vue';
 // import detailOrderMenu from '../components/menu_item/detailOrderMenu.vue';
-
+import page404 from '../components/404.vue';
 
 import ChatAdmin from '../components/ChatAdmin.vue';
 import Chat from '../components/Chat.vue';
@@ -181,6 +181,12 @@ const routes = [
     path: '/forgotPass',
     name: 'forgotPass',
     component: forgotPass,
+  },
+   // Catch-all 404 route - MUST be the last route
+  {
+    path: '/:catchAll(.*)',
+    name: 'NotFound',
+    component: page404,
   },
   // Admin routes
   {

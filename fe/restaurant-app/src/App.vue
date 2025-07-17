@@ -281,6 +281,7 @@ const handleUrlParams = () => {
       userInfo.value = parsedUser;
       isLogin.value = true;
       isAdmin.value = parsedUser.role === 'admin';
+      
       router.replace({ query: {} });
     } catch (e) {
       console.error('Error parsing user from URL:', e);
@@ -294,7 +295,7 @@ const logout = () => {
   userInfo.value = null;
   isLogin.value = false;
   isAdmin.value = false;
-  router.push('/');
+   window.location.reload();
 };
 
 const goToProfile = () => {

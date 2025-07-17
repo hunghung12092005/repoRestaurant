@@ -44,7 +44,7 @@
                  class="rounded-circle me-2" style="width: 36px; height: 36px;" />
             <div>
               <h6 class="mb-0 text-dark">{{ selectedUserId || 'Chọn người dùng' }}</h6>
-              <small class="text-muted">Đang trò chuyện</small>
+              <!-- <small class="text-muted">Đang trò chuyện</small> -->
             </div>
           </div>
 
