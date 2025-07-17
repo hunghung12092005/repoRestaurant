@@ -33,19 +33,16 @@
         <select id="floor" v-model="selectedFloor">
           <option v-for="floor in floors" :key="floor" :value="floor">{{ floor }}</option>
         </select>
-        </div>
-          <div class="filter-group">
-      <label for="filter-date">Ngày:</label>
-      <input type="date" id="filter-date" v-model="selectedDate" @change="fetchRooms" />
-    </div>
-
-        <button @click="clearFilters" class="clear-btn">Xóa lọc</button>
       </div>
-
+      <div class="filter-group">
+        <label for="filter-date">Ngày:</label>
+        <input type="date" id="filter-date" v-model="selectedDate" @change="fetchRooms" />
+      </div>
+      <button @click="clearFilters" class="clear-btn">Xóa lọc</button>
+    </div>
 
     <div>
       <div v-for="floorGroup in groupedAndSortedRooms" :key="floorGroup.floor" class="floor-section">
-
         <div class="floor-header-container">
           <h2 class="floor-header-text">Tầng {{ floorGroup.floor }}</h2>
           <div class="floor-header-line"></div>
@@ -56,28 +53,22 @@
             <div :class="['status-badge', room.status === 'Đã đặt' ? 'booked' : 'available']">
               {{ room.status }}
             </div>
-
             <p class="room-label">Phòng</p>
             <h2 class="room-number">{{ room.number }}</h2>
-
             <h3 class="room-type">{{ room.type }}</h3>
             <p class="bed-size">{{ room.bedSize }}</p>
-
             <div v-if="room.status === 'Đã đặt'">
               <button class="action-link" @click.prevent="showGuestDetails(room)">
                 Chi tiết
               </button>
               <br>
-              <a href="#" class="action-link" @click.prevent="checkoutRoom(room.room_id)"><button>Thanh
-                  toán</button></a>
+              <a href="#" class="action-link" @click.prevent="checkoutRoom(room.room_id)"><button>Thanh toán</button></a>
               <br>
               <a href="#" class="action-link" @click.prevent="showExtendForm(room.room_id)"><button>Gia hạn</button></a>
-
             </div>
             <a v-else href="#" class="action-link" @click.prevent="showAddGuest(room.room_id)">
               <button>Thêm khách</button>
             </a>
-
           </div>
         </div>
       </div>
@@ -85,200 +76,185 @@
         Không có phòng nào khớp với bộ lọc hiện tại.
       </div>
     </div>
-  </div>
-  <!-- Modal Form Thêm Khách -->
-  <div v-if="showForm" class="modal-overlay">
-    <div class="modal-content">
-      <h2>Đăng ký khách hàng</h2>
-      <form @submit.prevent="submitCustomerForm">
-        <div class="form-group">
-          <label>Ảnh CCCD</label>
-          <input type="file" @change="onFileChange" accept="image/*" />
-          <button type="button" @click="uploadImage">Tải Ảnh CCCD</button>
-        </div>
 
-        <div class="form-group">
-
-          <label>Họ tên</label>
-          <input v-model="formData.customer_name" required />
-        </div>
-
+    <!-- Modal Form Thêm Khách -->
+    <div v-if="showForm" class="modal-overlay">
+      <div class="modal-content">
+        <h2>Đăng ký khách hàng</h2>
+        <form @submit.prevent="submitCustomerForm">
+          <div class="form-group">
+            <label>Ảnh CCCD</label>
+            <input type="file" @change="onFileChange" accept="image/*" />
+            <button type="button" @click="uploadImage">Tải Ảnh CCCD</button>
+          </div>
+          <div class="form-group">
+            <label>Họ tên</label>
+            <input v-model="formData.customer_name" required />
+          </div>
           <div class="form-group">
             <label>Số điện thoại</label>
             <input v-model="formData.customer_phone" required />
           </div>
           <div class="form-group">
-    <label>Số CCCD</label>
-    <input v-model="formData.customer_id_number" required />
-  </div>
-
+            <label>Số CCCD</label>
+            <input v-model="formData.customer_id_number" required />
+          </div>
           <div class="form-group">
             <label>Email</label>
             <input v-model="formData.customer_email" type="email" required />
           </div>
+          <div class="form-group">
+            <label>Địa chỉ</label>
+            <input v-model="formData.address" />
+          </div>
+          <input type="hidden" v-model="formData.pricing_type" />
+          <div class="form-group">
+            <label>Ngày giờ nhận phòng</label>
+            <input type="datetime-local" v-model="formData.check_in_date" required />
+          </div>
+          <div class="form-group">
+            <label>Ngày giờ trả phòng</label>
+            <input type="datetime-local" v-model="formData.check_out_date" required />
+          </div>
+          <div class="form-actions">
+            <div v-if="totalPricePreview" class="form-group">
+              <label>Tổng tiền ước tính: </label>
+              <div style="font-weight: bold; color: #2c3e50;">
+                {{ Number(totalPricePreview).toLocaleString('vi-VN') + ' VND' }}
+              </div>
+            </div>
+            <button type="submit">Lưu</button>
+            <button type="button" @click="showForm = false">Hủy</button>
+          </div>
+        </form>
+      </div>
+    </div>
 
-        <div class="form-group">
-          <label>Địa chỉ</label>
-          <input v-model="formData.address" />
-        </div>
-        <input type="hidden" v-model="formData.pricing_type" />
-
-        <div class="form-group">
-          <label>Ngày giờ nhận phòng</label>
-          <input type="datetime-local" v-model="formData.check_in_date" required />
-        </div>
-        <div class="form-group">
-          <label>Ngày giờ trả phòng</label>
-          <input type="datetime-local" v-model="formData.check_out_date" required />
-        </div>
+    <!-- Modal Thông tin Khách -->
+    <div v-if="showGuestModal" class="modal-overlay">
+      <div class="modal-content">
+        <h2>Chi tiết phòng & khách</h2>
+        <p v-if="guestInfo.room"><strong>Phòng:</strong> {{ guestInfo.room.room_name }} - {{ guestInfo.room.type_name }}
+          (Tầng {{ guestInfo.room.floor_number }})</p>
+        <p v-else>Đang tải thông tin phòng...</p>
+        <p><strong>Trạng thái:</strong> {{ guestInfo.room?.status }}</p>
+        <hr />
+        <p v-if="guestInfo.room"><strong>Khách hàng:</strong> {{ guestInfo.customer?.customer_name || 'Chưa có' }}</p>
+        <p v-if="guestInfo.room"><strong>SĐT:</strong> {{ guestInfo.customer?.customer_phone || '...' }}</p>
+        <p v-if="guestInfo.room"><strong>Email:</strong> {{ guestInfo.customer?.customer_email || '...' }}</p>
+        <p v-if="guestInfo.room"><strong>Địa chỉ:</strong> {{ guestInfo.customer?.address || '...' }}</p>
+        <hr />
+        <p v-if="guestInfo.room"><strong>Nhận phòng:</strong> {{ guestInfo.booking?.check_in_date || '...' }}</p>
+        <p v-if="guestInfo.room"><strong>Trả phòng dự kiến:</strong> {{ guestInfo.booking?.check_out_date || '...' }}</p>
+        <p v-if="guestInfo.room"><strong>Trả phòng thực tế:</strong> {{ getActualCheckout(guestInfo.booking) }}</p>
+        <p v-if="guestInfo.room"><strong>Loại giá:</strong> {{ guestInfo.booking?.pricing_type || '...' }}</p>
+        <p v-if="guestInfo.room"><strong>Trạng thái:</strong> {{ guestInfo.booking?.status || '...' }}</p>
+        <p v-if="guestInfo.room"><strong>Tổng tiền:</strong> {{ guestInfo.booking?.total_price ?
+          Number(guestInfo.booking.total_price).toLocaleString('vi-VN') + ' VND' : '...' }}</p>
         <div class="form-actions">
-          <div v-if="totalPricePreview" class="form-group">
-            <label>Tổng tiền ước tính: </label>
-            <div style="font-weight: bold; color: #2c3e50;">
-              {{ Number(totalPricePreview).toLocaleString('vi-VN') + ' VND' }}
+          <button @click="editCustomerInfo(guestInfo.customer)">Sửa thông tin</button>
+          <button @click="showGuestModal = false">Đóng</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Modal Gia hạn -->
+    <div v-if="showExtendModal" class="modal-overlay">
+      <div class="modal-content">
+        <h2>Gia hạn thuê phòng</h2>
+        <form @submit.prevent="submitExtendForm">
+          <div class="form-group">
+            <label>Ngày giờ trả mới:</label>
+            <input type="datetime-local" v-model="extendForm.check_out_date" required />
+          </div>
+          <div class="form-actions">
+            <button type="submit">Xác nhận</button>
+            <button type="button" @click="showExtendModal = false">Hủy</button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- Modal Chọn Dịch Vụ Khi Thanh Toán -->
+    <div v-if="showServiceModal" class="modal-overlay">
+      <div class="modal-content">
+        <h2>Chọn dịch vụ sử dụng</h2>
+        <div v-if="allServices.length === 0">Đang tải dịch vụ...</div>
+        <div v-else>
+          <div v-for="(service, index) in allServices" :key="service.service_id" class="service-item">
+            <div>{{ service.service_name }} - {{ formatPrice(service.price) }}</div>
+            <div class="qty-controls">
+              <button @click="decreaseQty(index)">-</button>
+              <input type="number" v-model.number="service.quantity" min="0" />
+              <button @click="increaseQty(index)">+</button>
             </div>
           </div>
-
-          <button type="submit">Lưu</button>
-          <button type="button" @click="showForm = false">Hủy</button>
-        </div>
-      </form>
-    </div>
-  </div>
-  <div v-if="showGuestModal" class="modal-overlay">
-    <div class="modal-content">
-      <h2>Chi tiết phòng & khách</h2>
-
-      <!-- Chi tiết Phòng -->
-      <p v-if="guestInfo.room"><strong>Phòng:</strong> {{ guestInfo.room.room_name }} - {{ guestInfo.room.type_name }}
-        (Tầng {{ guestInfo.room.floor_number }})</p>
-      <p v-else>Đang tải thông tin phòng...</p>
-
-      <p><strong>Trạng thái:</strong> {{ guestInfo.room?.status }}</p>
-
-      <hr />
-
-      <!-- Chi tiết Khách -->
-      <p v-if="guestInfo.room"><strong>Khách hàng:</strong> {{ guestInfo.customer?.customer_name || 'Chưa có' }}</p>
-      <p v-if="guestInfo.room"><strong>SĐT:</strong> {{ guestInfo.customer?.customer_phone || '...' }}</p>
-      <p v-if="guestInfo.room"><strong>Email:</strong> {{ guestInfo.customer?.customer_email || '...' }}</p>
-      <p v-if="guestInfo.room"><strong>Địa chỉ:</strong> {{ guestInfo.customer?.address || '...' }}</p>
-
-      <hr />
-
-      <!-- Thông tin đặt phòng -->
-      <p v-if="guestInfo.room"><strong>Nhận phòng:</strong> {{ guestInfo.booking?.check_in_date || '...' }}</p>
-      <p v-if="guestInfo.room"><strong>Trả phòng dự kiến:</strong> {{ guestInfo.booking?.check_out_date || '...' }}</p>
-      <p v-if="guestInfo.room"><strong>Trả phòng thực tế:</strong> {{ getActualCheckout(guestInfo.booking) }} </p>
-      <p v-if="guestInfo.room"><strong>Loại giá:</strong> {{ guestInfo.booking?.pricing_type || '...' }}</p>
-      <p v-if="guestInfo.room"><strong>Trạng thái:</strong> {{ guestInfo.booking?.status || '...' }}</p>
-      <p v-if="guestInfo.room"><strong>Tổng tiền:</strong> {{ guestInfo.booking?.total_price ?
-        Number(guestInfo.booking.total_price).toLocaleString('vi-VN') + ' VND' : '...' }}</p>
-
-      <!-- Nút sửa -->
-<div class="form-actions">
-  <button @click="editCustomerInfo(guestInfo.customer)">Sửa thông tin</button>
-  <button @click="showGuestModal = false">Đóng</button>
-</div>
-    </div>
-
-
-  </div>
-  <div v-if="showExtendModal" class="modal-overlay">
-    <div class="modal-content">
-      <h2>Gia hạn thuê phòng</h2>
-      <form @submit.prevent="submitExtendForm">
-        <div class="form-group">
-          <label>Ngày giờ trả mới:</label>
-          <input type="datetime-local" v-model="extendForm.check_out_date" required />
+          <div class="form-group">
+            <label>Tổng tiền dịch vụ:</label>
+            <span style="color: #e74c3c; font-weight: bold;">
+              {{ serviceTotal.toLocaleString('vi-VN') }} VND
+            </span>
+          </div>
+          <div class="form-group">
+            <label>Phí phụ thu (VND):</label>
+            <input type="number" v-model.number="additionalFee" min="0" placeholder="Nhập số tiền phụ thu" />
+          </div>
+          <div class="form-group">
+            <label>Lý do phụ thu:</label>
+            <input type="text" v-model="surchargeReason" placeholder="Nhập lý do phụ thu (ví dụ: Phí ngày lễ)" />
+          </div>
         </div>
         <div class="form-actions">
-          <button type="submit">Xác nhận</button>
-          <button type="button" @click="showExtendModal = false">Hủy</button>
+          <button @click="confirmPayment">Xác nhận thanh toán</button>
+          <button @click="showServiceModal = false">Hủy</button>
         </div>
-      </form>
-    </div>
-  </div>
-  <!-- Modal Chọn Dịch Vụ Khi Thanh Toán -->
-  <div v-if="showServiceModal" class="modal-overlay">
-    <div class="modal-content">
-      <h2>Chọn dịch vụ sử dụng</h2>
-
-      <div v-if="allServices.length === 0">Đang tải dịch vụ...</div>
-
-      <div v-else>
-        <div v-for="(service, index) in allServices" :key="service.service_id" class="service-item">
-  <div>{{ service.service_name }} - {{ formatPrice(service.price) }}</div>
-  <div class="qty-controls">
-    <button @click="decreaseQty(index)">-</button>
-    <input type="number" v-model.number="service.quantity" min="0" />
-    <button @click="increaseQty(index)">+</button>
-  </div>
-</div>
-
       </div>
+    </div>
 
-      <p style="margin-top: 10px;">
-        <strong>Tổng dịch vụ: </strong>
-        <span style="color: #e74c3c; font-weight: bold;">
-          {{ serviceTotal.toLocaleString('vi-VN') }} VND
-        </span>
-      </p>
-
-      <div class="form-actions">
-        <button @click="confirmPayment">Xác nhận thanh toán</button>
-        <button @click="showServiceModal = false">Hủy</button>
+    <!-- Modal Sửa Thông tin -->
+    <div v-if="showEditForm" class="modal-overlay">
+      <div class="modal-content">
+        <h2>Sửa thông tin khách</h2>
+        <form @submit.prevent="submitEditForm">
+          <div class="form-group">
+            <label>Họ tên:</label>
+            <input v-model="editFormData.customer_name" required />
+          </div>
+          <div class="form-group">
+            <label>SĐT:</label>
+            <input v-model="editFormData.customer_phone" />
+          </div>
+          <div class="form-group">
+            <label>Email:</label>
+            <input v-model="editFormData.customer_email" />
+          </div>
+          <div class="form-group">
+            <label>Địa chỉ:</label>
+            <input v-model="editFormData.address" />
+          </div>
+          <div class="form-actions">
+            <button type="submit">Lưu</button>
+            <button type="button" @click="showEditForm = false">Hủy</button>
+          </div>
+        </form>
       </div>
     </div>
   </div>
-
-<!-- Modal sửa thông tin -->
-<div v-if="showEditForm" class="modal-overlay">
-  <div class="modal-content">
-    <h2>Sửa thông tin khách</h2>
-    <form @submit.prevent="submitEditForm">
-      <div class="form-group">
-        <label>Họ tên:</label>
-        <input v-model="editFormData.customer_name" required />
-      </div>
-      <div class="form-group">
-        <label>SĐT:</label>
-        <input v-model="editFormData.customer_phone" />
-      </div>
-      <div class="form-group">
-        <label>Email:</label>
-        <input v-model="editFormData.customer_email" />
-      </div>
-      <div class="form-group">
-        <label>Địa chỉ:</label>
-        <input v-model="editFormData.address" />
-      </div>
-      <div class="form-actions">
-        <button type="submit">Lưu</button>
-        <button type="button" @click="showEditForm = false">Hủy</button>
-      </div>
-    </form>
-  </div>
-</div>
-
 </template>
 
 <script setup>
 import { ref, computed, onMounted, watch } from 'vue';
 import axios from 'axios';
-import { useRouter } from 'vue-router';
 import { inject } from 'vue';
 import isLoading from '../loading.vue'
+
 const apiUrl = inject('apiUrl');
 const allRooms = ref([]);
 const isisLoading = ref(false);
-// Trạng thái lọc
 const selectedStatus = ref('Tất cả');
 const selectedRoomType = ref('Tất cả');
 const selectedFloor = ref('Tất cả');
-const selectedDate = ref(new Date().toISOString().substr(0, 10)); // Ngày mặc định: hôm nay
-
-// Form thêm khách
+const selectedDate = ref(new Date().toISOString().substr(0, 10));
 const showForm = ref(false);
 const totalPricePreview = ref(null);
 const formData = ref({
@@ -292,7 +268,6 @@ const formData = ref({
   check_out_date: '',
   pricing_type: 'nightly'
 });
-
 const showEditForm = ref(false);
 const editFormData = ref({
   customer_id: null,
@@ -301,6 +276,32 @@ const editFormData = ref({
   customer_email: '',
   address: '',
 });
+const showServiceModal = ref(false);
+const allServices = ref([]);
+const currentRoomId = ref(null);
+const showGuestModal = ref(false);
+const guestInfo = ref({});
+const showExtendModal = ref(false);
+const extendForm = ref({ room_id: null, check_out_date: '' });
+const additionalFee = ref(0); // Số tiền phụ thu
+const surchargeReason = ref(''); // Lý do phụ thu
+const apiKey = 'XXjjI5g9j7gk4NcZE9Dh9PPLCrvrR6zJ';
+
+const serviceTotal = computed(() =>
+  allServices.value.reduce((sum, s) => sum + s.price * s.quantity, 0)
+);
+
+const increaseQty = (index) => {
+  allServices.value[index].quantity++;
+};
+
+const decreaseQty = (index) => {
+  if (allServices.value[index].quantity > 0) {
+    allServices.value[index].quantity--;
+  }
+};
+
+const formatPrice = (price) => price.toLocaleString('vi-VN') + ' VND';
 
 const editCustomerInfo = (customer) => {
   if (!customer) return;
@@ -324,13 +325,10 @@ const submitEditForm = async () => {
     });
 
     alert(res.data.message || 'Cập nhật thành công.');
-
-    // ✅ Cập nhật dữ liệu hiển thị
     guestInfo.value.customer.customer_name = editFormData.value.customer_name;
     guestInfo.value.customer.customer_phone = editFormData.value.customer_phone;
     guestInfo.value.customer.customer_email = editFormData.value.customer_email;
     guestInfo.value.customer.address = editFormData.value.address;
-
     showEditForm.value = false;
   } catch (e) {
     alert("Không thể cập nhật.");
@@ -338,13 +336,16 @@ const submitEditForm = async () => {
   }
 };
 
-// CCCD
-const imageFile = ref(null);
 const onFileChange = (e) => {
   const file = e.target.files[0];
   if (file) imageFile.value = file;
 };
+<<<<<<< HEAD
 const apiKey = '14lmp7urPNfAzH9BNp9GdAG8tX8XCnop';
+=======
+
+const imageFile = ref(null);
+>>>>>>> e7acc6f59c8dd1dce16d654361333435dd56a17f
 const uploadImage = async () => {
   if (!imageFile.value) return alert('Chọn ảnh CCCD trước!');
   isisLoading.value = true;
@@ -372,46 +373,24 @@ const uploadImage = async () => {
   }
 };
 
-// Danh sách dịch vụ
-const showServiceModal = ref(false);
-const allServices = ref([]);
-const currentRoomId = ref(null);
-
-const serviceTotal = computed(() =>
-  allServices.value.reduce((sum, s) => sum + s.price * s.quantity, 0)
-);
-
-const increaseQty = (index) => {
-  allServices.value[index].quantity++
-};
-
-const decreaseQty = (index) => {
-  if (allServices.value[index].quantity > 0) {
-    allServices.value[index].quantity--
-  }
-};
-
-const formatPrice = (price) => price.toLocaleString('vi-VN') + ' VND';
-
-
-// Thanh toán - mở modal chọn dịch vụ
 const checkoutRoom = async (room_id) => {
   currentRoomId.value = room_id;
   try {
     const res = await axios.get(`${apiUrl}/api/services/indexAllService`);
-    allServices.value = res.data;
     allServices.value = res.data.map(service => ({
-  ...service,
-  price: Number(service.price) || 0, // 👈 ép kiểu giá
-  quantity: 0
-}));    showServiceModal.value = true;
+      ...service,
+      price: Number(service.price) || 0,
+      quantity: 0
+    }));
+    additionalFee.value = 0; // Reset phụ phí
+    surchargeReason.value = ''; // Reset lý do phụ phí
+    showServiceModal.value = true;
   } catch (error) {
     console.error("Không thể tải dịch vụ:", error);
     alert("Không thể tải danh sách dịch vụ.");
   }
 };
 
-// Xác nhận thanh toán và gửi kèm dịch vụ
 const confirmPayment = async () => {
   if (!window.confirm("Xác nhận thanh toán và trả phòng?")) return;
   try {
@@ -422,10 +401,13 @@ const confirmPayment = async () => {
         quantity: Number(s.quantity)
       }));
 
-    console.log("Dịch vụ sẽ gửi đi:", services); // Thêm dòng này để kiểm tra
+    console.log("Dịch vụ sẽ gửi đi:", services);
 
     const response = await axios.post(`${apiUrl}/api/rooms/${currentRoomId.value}/checkout`, {
-      services: services
+      services: services,
+      date: selectedDate.value,
+      additional_fee: additionalFee.value,
+      surcharge_reason: surchargeReason.value
     });
 
     const data = response.data;
@@ -435,6 +417,8 @@ const confirmPayment = async () => {
       `💳 Đã thanh toán trước: ${Number(data.paid_total).toLocaleString('vi-VN')} VND\n` +
       `🛏️ Tiền phòng: ${Number(data.room_total).toLocaleString('vi-VN')} VND\n` +
       `🧾 Dịch vụ: ${Number(data.service_total).toLocaleString('vi-VN')} VND\n` +
+      `➕ Phí phụ thu: ${Number(data.additional_fee).toLocaleString('vi-VN')} VND` +
+      (data.surcharge_reason ? ` (Lý do: ${data.surcharge_reason})` : '') + `\n` +
       `💰 Tổng phải trả: ${Number(data.actual_total).toLocaleString('vi-VN')} VND\n\n` +
       (data.note || '')
     );
@@ -443,20 +427,20 @@ const confirmPayment = async () => {
     await fetchRooms();
   } catch (error) {
     console.error("Lỗi thanh toán:", error);
-    alert("Không thể thanh toán phòng.");
+    const errorMessage = error.response?.data?.message || "Không thể thanh toán phòng.";
+    alert(errorMessage);
   }
 };
 
-
-// Xử lý dữ liệu phòng
 const mapApiStatusToVietnamese = (s) => s === 'available' ? 'Còn trống' : s === 'occupied' ? 'Đã đặt' : 'Không xác định';
 const mapBedCountToString = (c) => c === 1 ? 'Giường đơn' : c === 2 ? 'Giường đôi' : `${c} giường`;
+
 const fetchRooms = async () => {
   isisLoading.value = true;
   try {
     const res = await axios.get(`${apiUrl}/api/occupancy/by-date`, {
-  params: { date: selectedDate.value }
-});
+      params: { date: selectedDate.value }
+    });
 
     allRooms.value = res.data.map(r => ({
       room_id: r.room_id,
@@ -473,7 +457,6 @@ const fetchRooms = async () => {
   }
 };
 
-// Mở form thêm khách
 const showAddGuest = (room_id) => {
   formData.value = {
     customer_name: '',
@@ -520,7 +503,6 @@ const calculateTotalPricePreview = async () => {
   }
 };
 
-// Bộ lọc
 const roomTypes = computed(() => ['Tất cả', ...[...new Set(allRooms.value.map(r => r.type))].sort()]);
 const floors = computed(() => ['Tất cả', ...[...new Set(allRooms.value.map(r => r.floor))].sort((a, b) => a - b).map(f => `Tầng ${f}`)]);
 const filteredRooms = computed(() =>
@@ -538,18 +520,18 @@ const groupedAndSortedRooms = computed(() => {
   }
   return Object.keys(groups).sort((a, b) => a - b).map(f => ({ floor: f, rooms: groups[f] }));
 });
+
 const clearFilters = () => {
   selectedStatus.value = 'Tất cả';
   selectedRoomType.value = 'Tất cả';
   selectedFloor.value = 'Tất cả';
 };
 
-// Chi tiết khách
-const showGuestModal = ref(false);
-const guestInfo = ref({});
 const showGuestDetails = async (room) => {
   try {
-    const res = await axios.get(`${apiUrl}/api/rooms/${room.room_id}/customer`);
+    const res = await axios.get(`${apiUrl}/api/rooms/${room.room_id}/customer`, {
+      params: { date: selectedDate.value }
+    });
     guestInfo.value = res.data;
     showGuestModal.value = true;
   } catch (e) {
@@ -558,13 +540,11 @@ const showGuestDetails = async (room) => {
   }
 };
 
-// Gia hạn
-const showExtendModal = ref(false);
-const extendForm = ref({ room_id: null, check_out_date: '' });
 const showExtendForm = (room_id) => {
   extendForm.value = { room_id, check_out_date: '' };
   showExtendModal.value = true;
 };
+
 const submitExtendForm = async () => {
   try {
     const res = await axios.post(`${apiUrl}/api/rooms/${extendForm.value.room_id}/extend`, {
@@ -579,7 +559,11 @@ const submitExtendForm = async () => {
   }
 };
 
-// Mounted + Watch
+const getActualCheckout = (booking) => {
+  if (!booking || !booking.actual_check_out_time) return 'Chưa trả';
+  return booking.actual_check_out_time;
+};
+
 onMounted(fetchRooms);
 watch(() => [
   formData.value.check_in_date,
@@ -590,20 +574,13 @@ watch(() => formData.value.room_id, () => {
   if (formData.value.check_in_date && formData.value.check_out_date) {
     calculateTotalPricePreview();
   }
-  
 });
-const getActualCheckout = (booking) => {
-  if (!booking || !booking.actual_check_out_time) return 'Chưa trả';
-  return booking.actual_check_out_time;
-};
 </script>
 
 <style scoped>
-
-/* CSS giữ nguyên như phiên bản trước */
+/* CSS giữ nguyên như phiên bản bạn cung cấp */
 .occupancy-page {
-  font-family: 'Be Vietnam Pro', sans-serif;
-  /* background-color: #f0f2f5; */
+  font-family: 'monospace', sans-serif;
   padding: 24px;
   color: #333;
 }
@@ -654,7 +631,8 @@ const getActualCheckout = (booking) => {
   z-index: 1;
 }
 
-.filter-group select {
+.filter-group select,
+.filter-group input[type="date"] {
   padding: 10px 12px;
   border: 1px solid #adb5bd;
   border-radius: 6px;
@@ -664,15 +642,19 @@ const getActualCheckout = (booking) => {
   -webkit-appearance: none;
   -moz-appearance: none;
   appearance: none;
-  background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3e%3cpath fill='none' stroke='%23343a40' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M2 5l6 6 6-6'/%3e%3c/svg%3e");
-  background-repeat: no-repeat;
-  background-position: right 12px center;
-  background-size: 16px 12px;
   transition: border-color 0.2s, box-shadow 0.2s;
   outline: none;
 }
 
-.filter-group select:focus {
+.filter-group select {
+  background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3e%3cpath fill='none' stroke='%23343a40' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M2 5l6 6 6-6'/%3e%3c/svg%3e");
+  background-repeat: no-repeat;
+  background-position: right 12px center;
+  background-size: 16px 12px;
+}
+
+.filter-group select:focus,
+.filter-group input[type="date"]:focus {
   border-color: #6c5ffc;
   box-shadow: 0 0 0 3px rgba(108, 95, 252, 0.2);
 }
@@ -801,7 +783,6 @@ const getActualCheckout = (booking) => {
 .modal-overlay {
   z-index: 1000;
   position: fixed;
-  z-index: 1000;
   top: 0;
   left: 0;
   width: 100%;
@@ -823,11 +804,39 @@ const getActualCheckout = (booking) => {
   margin-bottom: 16px;
 }
 
-.form-group input {
+.form-group label {
+  display: block;
+  font-size: 14px;
+  font-weight: 500;
+  margin-bottom: 8px;
+}
+
+.form-group input,
+.form-group input[type="number"],
+.form-group input[type="text"],
+.form-group input[type="datetime-local"],
+.form-group input[type="file"] {
   width: 100%;
   padding: 8px;
   border: 1px solid #ccc;
   border-radius: 4px;
+  font-size: 14px;
+  transition: border-color 0.2s;
+}
+
+.form-group input:focus {
+  border-color: #6c5ffc;
+  outline: none;
+}
+
+.form-group input[type="number"] {
+  -moz-appearance: textfield;
+}
+
+.form-group input[type="number"]::-webkit-outer-spin-button,
+.form-group input[type="number"]::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
 }
 
 .form-actions {
@@ -839,7 +848,6 @@ const getActualCheckout = (booking) => {
 button {
   padding: 6px 14px;
   background-color: #4f46e5;
-  /* tím dịu */
   color: white;
   border: none;
   border-radius: 8px;
@@ -852,7 +860,6 @@ button {
 
 button:hover {
   background-color: #4338ca;
-  /* tím đậm hơn */
   transform: translateY(-1px);
 }
 
@@ -868,9 +875,13 @@ button:disabled {
 
 button.secondary {
   background-color: #f3f4f6;
-  /* xám sáng */
   color: #333;
 }
+
+button.secondary:hover {
+  background-color: #e5e7eb;
+}
+
 .service-item {
   display: flex;
   justify-content: space-between;
@@ -893,13 +904,6 @@ button.secondary {
 .qty-controls input {
   width: 50px;
   text-align: center;
-  padding: 4px 6px;
-  border: 1px solid #ccc;
-  border-radius: 4px;
-}
-.qty-controls input {
-  width: 50px;
-  text-align: center;
   padding: 6px 8px;
   border: 1px solid #d1d5db;
   border-radius: 6px;
@@ -907,8 +911,8 @@ button.secondary {
   font-weight: bold;
 }
 
-button.secondary:hover {
-  background-color: #e5e7eb;
-  /* xám hover */
+.qty-controls button {
+  padding: 4px 8px;
+  font-size: 16px;
 }
 </style>
