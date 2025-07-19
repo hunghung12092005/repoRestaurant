@@ -1013,7 +1013,7 @@ const getRoomPrices = async () => {
    // await new Promise(resolve => setTimeout(resolve, 5000));
     // -----------------------------------------------------------------
 
-    await getRoomTypes(); // Gọi hàm lấy loại phòng (hàm này sẽ chạy sau 5s chờ)
+    await getRoomTypes(); 
 
     try {
         // Dữ liệu cần gửi (phần này sẽ chạy sau độ trễ 5s)
