@@ -144,7 +144,7 @@
                     <h6 class="info-title">Thông tin khách hàng</h6>
                     <ul class="info-list">
                       <li><span>Họ tên:</span><strong>{{ datPhongDuocChon.customer?.customer_name || 'N/A' }}</strong></li>
-                      <li><span>Điện thoại:</span><strong>{{ datPhongDuocChon.customer?.customer_phone || 'N/A' }}</strong></li>
+                      <li><span>Điện thoại:</span><strong>0{{ datPhongDuocChon.customer?.customer_phone || 'N/A' }}</strong></li>
                       <li><span>Email:</span><strong>{{ datPhongDuocChon.customer?.customer_email || 'N/A' }}</strong></li>
                     </ul>
                 </div>
