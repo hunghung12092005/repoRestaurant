@@ -486,7 +486,7 @@ const getHistoryBooking = async () => {
       error.value = res.data.message || 'Không thể tải dữ liệu.';
     }
   } catch {
-    error.value = 'Lỗi kết nối hoặc chưa có đơn hàng.';
+    error.value = 'Chưa có đơn hàng.';
   } finally {
     isLoading.value = false;
   }

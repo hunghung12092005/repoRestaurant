@@ -1013,7 +1013,7 @@ const getRoomPrices = async () => {
    // await new Promise(resolve => setTimeout(resolve, 5000));
     // -----------------------------------------------------------------
 
-    getRoomTypes(); // Gọi hàm lấy loại phòng (hàm này sẽ chạy sau 5s chờ)
+    await getRoomTypes(); // Gọi hàm lấy loại phòng (hàm này sẽ chạy sau 5s chờ)
 
     try {
         // Dữ liệu cần gửi (phần này sẽ chạy sau độ trễ 5s)
@@ -1044,6 +1044,7 @@ const getRoomPrices = async () => {
             };
         });
             console.log("Bắt đầu lấy giá phòng...");
+            console.log("Giá phòng đã lấy:", hotels.value); // Kiểm tra dữ liệu phòng đã lấy
 
         calculateTotalDays();
     } catch (error) {
@@ -1294,6 +1295,7 @@ onMounted(() => {
     checkOut.value = tomorrow.toISOString().split('T')[0];
     bookrooms.value = 1;
     showPopup.value = true; 
+   // getRoomTypes();
     getRoomPrices();
     calculateTotalDays();
 });

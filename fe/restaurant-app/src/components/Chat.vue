@@ -14,14 +14,14 @@
  <!-- Nút mở/đóng chat-container -->
     <button @click="toggleChatContainer" class="toggle-chat-btn">
       <small>CHATBOT HXH </small>
-      <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcR1q6z2kV8_7RZuJAp74ii9srftzUxaoYSRAw&s" alt="Toggle Chat" />
+      <img src="https://img.freepik.com/free-vector/chatbot-conversation-vectorart_78370-4107.jpg?semt=ais_hybrid&w=740" alt="Toggle Chat" />
     </button>
     <!-- Chat Container -->
     <div v-if="showChat" class="chat-container">
       <div class="chat-card">
         <!-- Header -->
         <div class="chat-header">
-          <img src="https://jbagy.me/wp-content/uploads/2025/03/Hinh-anh-avatar-nam-cute-2.jpg" class="avatar"
+          <img src="https://img.freepik.com/free-vector/chatbot-conversation-vectorart_78370-4107.jpg?semt=ais_hybrid&w=740" class="avatar"
             alt="Support" />
           <div>
             <h6>{{ activeTab === 'ai' ? 'Hỏi đáp cùng ChatBot AI 🤖' : 'Admin Support' }}</h6>
@@ -54,7 +54,7 @@
             <div v-for="(msg, index) in currentMessages" :key="'msg-' + index"
               :class="['message', msg.user === user ? 'user' : 'admin']">
               <img v-if="msg.user !== user"
-                src="https://jbagy.me/wp-content/uploads/2025/03/Hinh-anh-avatar-nam-cute-2.jpg" class="avatar-sm" />
+                src="https://img.freepik.com/free-vector/chatbot-conversation-vectorart_78370-4107.jpg?semt=ais_hybrid&w=740" class="avatar-sm" />
               <div class="bubble">
                 <div class="meta">{{ msg.user === user ? msg.user : (activeTab === 'ai' ? 'AI' : 'Admin') }}</div>
                 <div class="text">{{ msg.message }}</div>
@@ -248,6 +248,7 @@ const sendMessage = async (suggestion = null) => {
       const data = await response.json();
       const reply = data?.candidates?.[0]?.content?.parts?.[0]?.text || '❗ Không có phản hồi từ AI.';
       aiMessages.value.push({ user: 'AI', message: reply });
+      message.value = ''; // Clear input after sending
     } catch (err) {
       aiMessages.value.push({ user: 'AI', message: '❌ Lỗi khi gọi Gemini: ' + err.message });
     } finally {
