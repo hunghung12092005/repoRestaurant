@@ -1007,30 +1007,35 @@ const getRoomTypes = async () => {
 //lấy giá phòng
 const getRoomPrices = async () => {
     selectedRooms.value = []; // Reset danh sách phòng đã chọn
-    isLoading.value = true; // Bắt đầu tải dữ liệu
-    getRoomTypes(); // Gọi hàm lấy loại phòng
+    isLoading.value = true; // Bắt đầu tải dữ liệu (spinner hiện ra)
+
+    // --- DÒNG CODE MỚI: Giả lập độ trễ 5 giây cho mục đích test ---
+   // await new Promise(resolve => setTimeout(resolve, 5000));
+    // -----------------------------------------------------------------
+
+    getRoomTypes(); // Gọi hàm lấy loại phòng (hàm này sẽ chạy sau 5s chờ)
+
     try {
-        // Dữ liệu cần gửi
+        // Dữ liệu cần gửi (phần này sẽ chạy sau độ trễ 5s)
         const requestData = {
             checkin: checkin.value,
             checkout: checkOut.value,
             bookrooms: bookrooms.value
         };
 
-        // Gọi API lấy giá phòng
+        // Gọi API lấy giá phòng thực tế
         const roomPricesResponse = await axios.post(`${apiUrl}/api/prices/prices_client`, requestData);
-        const roomPrices = roomPricesResponse.data || []; // Đảm bảo roomPrices là một mảng
-        //console.log("Room Prices:", roomPrices); // Kiểm tra giá phòng
+        const roomPrices = roomPricesResponse.data || []; 
 
-        // Giả định rằng hotels.value đã được khởi tạo và chứa thông tin phòng
+        // Cập nhật dữ liệu phòng
         hotels.value = hotels.value.map(room => {
-            const roomPrice = roomPrices.find(price => price.type_id === room.id); // Tìm giá tương ứng với type_id
+            const roomPrice = roomPrices.find(price => price.type_id === room.id); 
 
             return {
-                ...room, // Kết hợp thông tin phòng hiện tại
-                price_per_night: roomPrice ? roomPrice.gia_tien1ngay : 0, // Gán giá nếu tìm thấy, nếu không gán 0
-                total_days: roomPrice ? roomPrice.total_days : 0, // Bạn có thể thêm các thông tin khác nếu cần
-                surcharges: roomPrice ? roomPrice.surcharges : 0,// Thêm phụ phí nếu có
+                ...room, 
+                price_per_night: roomPrice ? roomPrice.gia_tien1ngay : 0, 
+                total_days: roomPrice ? roomPrice.total_days : 0, 
+                surcharges: roomPrice ? roomPrice.surcharges : 0,
                 price: roomPrice.total_price,
                 so_phong: roomPrice.so_phong,
                 gia_tien1ngay: roomPrice.gia_tien1ngay,
@@ -1038,15 +1043,15 @@ const getRoomPrices = async () => {
                 gia1h: roomPrice.gia1h
             };
         });
-        calculateTotalDays();//tinh lai ngay
-        //totalday.value = hotels[0].total_days; 
-        //console.log("Updated Hotels:", hotels.value); // Kiểm tra thông tin phòng đã cập nhật
+            console.log("Bắt đầu lấy giá phòng...");
+
+        calculateTotalDays();
     } catch (error) {
         console.error("Có lỗi xảy ra khi lấy dữ liệu:", error);
     } finally {
-        isLoading.value = false; // Kết thúc tải dữ liệu
+        isLoading.value = false; // Kết thúc tải dữ liệu (spinner ẩn đi)
     }
-}
+};
 //boooking
 
 // Xử lý booking

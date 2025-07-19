@@ -38,8 +38,9 @@ import AdminContacts from '../components/admin/AdminContacts.vue';
 // import menu_online from '../components/ShopOnline/menu_online.vue';
 // import detailMenu from '../components/ShopOnline/detailMenu.vue';
 import test from '../components/booking_room/test.vue';
+import chatbot from '../components/booking_room/chatbot.vue';
 // import detailOrderMenu from '../components/menu_item/detailOrderMenu.vue';
-
+import page404 from '../components/404.vue';
 
 import ChatAdmin from '../components/ChatAdmin.vue';
 import Chat from '../components/Chat.vue';
@@ -62,6 +63,7 @@ import AdminNewsCommentComponent from '../components/admin/news/AdminNewsComment
 import RoomTypeDetail from '../components/RoomTypeDetail.vue';
 //admin AI
 import traningAI from '../components/admin/AI/traningAI.vue';
+import AdminBookingHistory from '../components/AdminBooking/AdminBookingHistory.vue';
 const routes = [
   // {
   //   path: '/home',
@@ -162,6 +164,11 @@ const routes = [
     component: test,
   },
   {
+    path: '/chatbot',
+    name: 'chatbot',
+    component: chatbot,
+  },
+  {
     path: '/ThanksBooking',
     name: 'ThanksBooking',
     component: ThanksBooking,
@@ -176,6 +183,12 @@ const routes = [
     path: '/forgotPass',
     name: 'forgotPass',
     component: forgotPass,
+  },
+   // Catch-all 404 route - MUST be the last route
+  {
+    path: '/:catchAll(.*)',
+    name: 'NotFound',
+    component: page404,
   },
   // Admin routes
   {
@@ -260,6 +273,18 @@ const routes = [
     name: 'AdminBookingComponent',
     component: AdminBookingComponent,
     meta: { requiresAuth: true, roles: ['admin', 'staff'] },
+  },
+  {
+    path: '/admin/bookings',
+    name: 'AdminBookingComponent',
+    component: AdminBookingComponent,
+    meta: { requiresAdmin: true },
+  },
+  {
+    path: '/admin/booking-histories',
+    name: 'AdminBookingHistory',
+    component: AdminBookingHistory,
+    meta: { requiresAdmin: true },
   },
   {
     path: '/admin/traningAI',

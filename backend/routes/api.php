@@ -24,8 +24,10 @@ use App\Http\Controllers\api\NewsCommentController;
 use App\Http\Controllers\BookingHotelController;
 use App\Http\Controllers\api\AdminDashboardController;
 use App\Http\Controllers\api\ContactController;
+use App\Http\Controllers\BookingHistoryController;
 use App\Http\Controllers\ChatAIController;
 use App\Http\Controllers\WebhookController;
+use App\Models\BookingHistory;
 use Illuminate\Support\Facades\Storage;
 
 Route::get('/seasonal-pricing/current/{typeId}', [RoomController::class, 'getCurrentPricing']);
@@ -55,7 +57,7 @@ Route::post('/rooms/{room_id}/add-guest', [OccupancyController::class, 'addGuest
 Route::post('/rooms/preview-price', [OccupancyController::class, 'previewPrice']); //xem trước giá
 Route::post('/rooms/{room_id}/extend', [OccupancyController::class, 'extendStay']); //gia hạn phòng
 Route::post('/customers/{id}/update-name', [OccupancyController::class, 'updateCustomerName']);
- // Cập nhật thông tin khách hàng
+// Cập nhật thông tin khách hàng
 
 Route::post('/contacts', [ContactController::class, 'store']);
 Route::get('/admin/contacts', [ContactController::class, 'index']);
@@ -129,7 +131,6 @@ Route::post('/rooms', [RoomController::class, 'store']);
 Route::put('/rooms/{id}', [RoomController::class, 'update']);
 Route::delete('/rooms/{id}', [RoomController::class, 'destroy']);
 
-
 // Route::get('/bookings/form-data', [BookingController::class, 'getFormData']);
 // Route::get('/bookings', [BookingController::class, 'index']);
 // Route::get('/bookings/{booking_id}', [BookingController::class, 'show']);
@@ -146,6 +147,9 @@ Route::get('/booking-services/{bookingId}', [BookingHotelController::class, 'get
 Route::get('/available-rooms', [BookingHotelController::class, 'getAvailableRooms']);
 Route::post('/assign-room/{bookingDetailId}', [BookingHotelController::class, 'assignRoom']);
 Route::patch('/bookings/{bookingId}', [BookingHotelController::class, 'confirmBooking']);
+
+Route::get('/booking-histories', [BookingHistoryController::class, 'index']);
+Route::get('/booking-histories/{status_id}', [BookingHistoryController::class, 'show']);
 
 Route::post('/qr-login', [ApiLoginController::class, 'qrLogin']); // Thêm dòng này
 // Route::get('/menu-items', [MenuItemController::class, 'index']);
@@ -164,6 +168,10 @@ Route::post('/booking-client', [BookingHotelController::class, 'storeBooking']);
 Route::post('/generate-token', [BookingHotelController::class, 'generateToken']);
 //tra ve lich su cho khach hang
 Route::get('/booking-history', [BookingHotelController::class, 'getBookingHistory']);
+Route::delete('/booking-history/{id}', [BookingHotelController::class, 'deleteBookingHistory']);
+Route::delete('/booking-history/{id}', [BookingHotelController::class, 'deleteBookingHistory']);
+Route::get('/cancel-booking/{booking}', [BookingHotelController::class, 'showBookingCancel']);
+Route::post('/cancel-booking/{booking}/bank-info', [BookingHotelController::class, 'updateBankInfo']);
 //lay hang phong dua vao so nguoi
 Route::post('/available-rooms', [BookingHotelController::class, 'getAvailableRooms']);
 //thanh toan payOS

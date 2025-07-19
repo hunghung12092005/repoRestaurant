@@ -24,8 +24,18 @@
               Trang thống kê</router-link></li>
           <li class="nav-item"><router-link class="nav-link" to="/admin/occupancy"><i class="bi bi-house-door"></i>
               QL tình trạng phòng <span class="badge bg-danger">5</span></router-link></li>
-          <li class="nav-item"><router-link class="nav-link" to="/admin/bookings"><i class="bi bi-book"></i>
-              Quản lý đặt phòng</router-link></li>
+          <ul class="nav">
+            <li class="nav-item">
+              <router-link class="nav-link" to="/admin/bookings">
+                <i class="bi bi-book"></i> Quản lý đặt phòng
+              </router-link>
+            </li>
+            <li class="nav-item">
+              <router-link class="nav-link" to="/admin/booking-histories">
+                <i class="bi bi-clock-history"></i> Lịch sử đặt phòng
+              </router-link>
+            </li>
+          </ul>
           <li class="nav-item dropdown">
             <a class="nav-link dropdown-toggle" href="#" id="servicesDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
               <i class='bx bx-hotel'></i> Dịch vụ và tiện nghi
@@ -99,13 +109,13 @@
         <main class="admin-main">
           <RouterView></RouterView>
         </main>
-        <footer class="admin-footer text-center py-3">Trang quản trị khách sạn Hồ Xuân Hương</footer>
+        <!-- <footer class="admin-footer text-center py-3">Trang quản trị khách sạn Hồ Xuân Hương</footer> -->
       </div>
     </div>
 
     <!-- Layout cho các route không phải admin (lấy từ code gốc) -->
     <div v-else>
-        <test></test>
+        <chatbot></chatbot>
 
       <header ref="headerRef">
         <nav class="navbar navbar-expand-lg navbar-light fixed-top" :class="{ 'scrolled': navbarSticky }">
@@ -179,7 +189,7 @@ import { ref, onMounted, onUnmounted, provide } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import axiosConfig from './axiosConfig.js';
 import Footer from './components/Footer.vue';
-import test from './components/booking_room/test.vue';
+import chatbot from './components/Chat.vue';
 const route = useRoute();
 const router = useRouter();
 const headerRef = ref(null);
@@ -277,7 +287,12 @@ const handleUrlParams = () => {
     localStorage.setItem('tokenJwt', token);
     localStorage.setItem('userInfo', user);
     try {
-      setUserRoles(JSON.parse(user));
+      const parsedUser = JSON.parse(user);
+      localStorage.setItem('userInfo', user);
+      userInfo.value = parsedUser;
+      isLogin.value = true;
+      isAdmin.value = parsedUser.role === 'admin';
+      
       router.replace({ query: {} });
     } catch (e) {
       console.error('Error parsing user from URL:', e);
@@ -288,8 +303,10 @@ const handleUrlParams = () => {
 const logout = () => {
   localStorage.removeItem('tokenJwt');
   localStorage.removeItem('userInfo');
-  setUserRoles(null);
-  router.push('/');
+  userInfo.value = null;
+  isLogin.value = false;
+  isAdmin.value = false;
+   window.location.reload();
 };
 
 const goToProfile = () => {

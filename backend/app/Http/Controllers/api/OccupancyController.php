@@ -269,6 +269,7 @@ class OccupancyController extends Controller
     public function checkoutRoom(Request $request, $room_id)
     {
         $additionalFee = $request->input('additional_fee', 0);
+        $surchargeReason = $request->input('surcharge_reason', null); // Lấy lý do phụ phí
         $services = $request->input('services', []);
         $date = $request->input('date', now()->toDateString()); // Lấy ngày từ request
 
@@ -314,6 +315,16 @@ class OccupancyController extends Controller
                 ], 404);
             }
 
+            // Kiểm tra xem ngày hiện tại có lớn hơn hoặc bằng ngày check-in hay không
+            $now = now();
+            $checkInDate = \Carbon\Carbon::parse($booking->check_in_date);
+            if ($now->lt($checkInDate)) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Chưa thể thanh toán vì chưa đến ngày nhận phòng (' . $checkInDate->format('d-m-Y') . ').'
+                ], 422);
+            }
+
             $paidTotal = $booking->total_price; // Số tiền đã thanh toán trước
 
             $actualCheckout = now();
@@ -327,7 +338,6 @@ class OccupancyController extends Controller
                 ], 422);
             }
 
-            $now = now();
             $price = DB::table('prices')
                 ->where('type_id', $room->type_id)
                 ->where('start_date', '<=', $now)
@@ -349,8 +359,7 @@ class OccupancyController extends Controller
             } elseif ($totalHours <= 6) {
                 $hours = ceil($totalHours);
                 $newTotal = $hours * $price->hourly_price;
-                $note = "Ở trên 2 và dưới hoặc bằng 6 giờ, tính Redacted
-                tính theo giờ: {$hours} giờ.";
+                $note = "Ở trên 2 và dưới hoặc bằng 6 giờ, tính theo giờ: {$hours} giờ.";
             } elseif ($totalHours < 24) {
                 $newTotal = $price->price_per_night;
                 $note = "Ở trên 6 giờ và dưới 1 ngày, tính 1 ngày.";
@@ -382,6 +391,12 @@ class OccupancyController extends Controller
                 $note .= " Khách ở quá giờ, phụ thu thêm " . number_format(abs($difference), 0, ',', '.') . " VND.";
             } else {
                 $note .= " Thanh toán đúng như dự kiến.";
+            }
+
+            if ($additionalFee > 0 && $surchargeReason) {
+                $note .= " Phí phụ thu: " . number_format($additionalFee, 0, ',', '.') . " VND (Lý do: {$surchargeReason}).";
+            } elseif ($additionalFee > 0) {
+                $note .= " Phí phụ thu: " . number_format($additionalFee, 0, ',', '.') . " VND.";
             }
 
             $newTotal += $additionalFee;
@@ -436,6 +451,23 @@ class OccupancyController extends Controller
                 'updated_at' => now()
             ]);
 
+            // Thêm bản ghi vào bảng booking_room_status
+            DB::table('booking_room_status')->insert([
+                'customer_id' => $booking->customer_id,
+                'booking_id' => $booking->booking_id,
+                'booking_detail_id' => $bookingDetail->booking_detail_id,
+                'room_id' => $room_id,
+                'check_in' => $checkIn,
+                'check_out' => $actualCheckout,
+                'room_price' => $newTotal,
+                'service_price' => $totalServiceFee,
+                'surcharge' => $additionalFee,
+                'surcharge_reason' => $surchargeReason,
+                'total_paid' => $newTotal + $totalServiceFee + $additionalFee,
+                'created_at' => now(),
+                'updated_at' => now()
+            ]);
+
             // Cập nhật trạng thái phòng về 'available'
             DB::table('rooms')->where('room_id', $room_id)->update([
                 'status' => 'available',
@@ -446,10 +478,12 @@ class OccupancyController extends Controller
                 'success' => true,
                 'message' => 'Thanh toán thành công. Phòng đã chuyển về trạng thái trống.',
                 'room' => $room,
-                'actual_total' => $newTotal + $totalServiceFee,
+                '   total' => $newTotal + $totalServiceFee + $additionalFee,
                 'room_total' => $newTotal,
                 'paid_total' => $paidTotal,
                 'service_total' => $totalServiceFee,
+                'additional_fee' => $additionalFee,
+                'surcharge_reason' => $surchargeReason,
                 'note' => $note
             ]);
         } catch (\Exception $e) {

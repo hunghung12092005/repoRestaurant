@@ -42,43 +42,7 @@
       </div>
     </section>
 
-    <!-- 3. Tiện nghi khách sạn -->
-    <section class="facilities-section">
-      <div class="container">
-        <p class="section-subtitle">Tiện Nghi</p>
-        <h2 class="section-title">Tiện Nghi Khách Sạn</h2>
-        <div class="row g-4 mt-4">
-          <div class="col-md-6 col-lg-3">
-            <div class="card facility-card h-100 text-center p-4">
-                <div class="facility-icon">🏨</div>
-                <h3>Phòng & Suite</h3>
-                <p class="mb-0">Đa dạng các loại phòng, từ tiêu chuẩn đến suite sang trọng, được trang bị đầy đủ tiện nghi thiết yếu.</p>
-            </div>
-          </div>
-          <div class="col-md-6 col-lg-3">
-            <div class="card facility-card h-100 text-center p-4">
-                <div class="facility-icon">🛡️</div>
-                <h3>An Ninh 24/7</h3>
-                <p class="mb-0">Nhân viên an ninh tại chỗ và hệ thống giám sát tốt nhất, đảm bảo an toàn tuyệt đối cho quý khách.</p>
-            </div>
-          </div>
-          <div class="col-md-6 col-lg-3">
-            <div class="card facility-card h-100 text-center p-4">
-                <div class="facility-icon">🏋️</div>
-                <h3>Trung Tâm Thể Hình</h3>
-                <p class="mb-0">Trang bị máy tập và tạ hiện đại. Cung cấp các dịch vụ massage, chăm sóc da mặt và trị liệu khác.</p>
-            </div>
-          </div>
-          <div class="col-md-6 col-lg-3">
-            <div class="card facility-card h-100 text-center p-4">
-                <div class="facility-icon">🏊</div>
-                <h3>Hồ Bơi</h3>
-                <p class="mb-0">Hồ bơi trong nhà và ngoài trời để giải trí hoặc tập luyện. Cung cấp dịch vụ massage và trị liệu.</p>
-            </div>
-          </div>
-        </div>
-      </div>
-    </section>
+   
 
     <!-- 4. Các loại phòng (KẾT NỐI DỮ LIỆU ĐỘNG) -->
     <section class="rooms-section bg-white">
@@ -144,55 +108,7 @@
         </div>
     </section>
 
-    <!-- 6. Ưu đãi đặc biệt -->
-    <section class="offers-section bg-white">
-      <div class="container">
-        <div class="row align-items-center mb-5">
-            <div class="col-lg-5">
-                <p class="section-subtitle text-start">Ưu Đãi Đặc Biệt</p>
-                <h2 class="section-title text-start">Ưu Đãi Đặc Biệt</h2>
-            </div>
-            <div class="col-lg-7">
-              <p class="section-text text-start offers-description">
-                  Trải nghiệm sự sang trọng và thư giãn tột đỉnh với các gói ưu đãi độc quyền của chúng tôi! Đặt phòng ngay hôm nay để nhận những quyền lợi đặc biệt.
-              </p>
-            </div>
-        </div>
-        <div class="row g-4">
-          <div class="col-lg-6">
-            <div class="offer-card d-flex flex-column flex-md-row">
-              <img src="https://images.trvl-media.com/lodging/42000000/41830000/41826900/41826852/ff9dfc7c.jpg?impolicy=resizecrop&rw=575&rh=575&ra=fill" class="offer-image" alt="Gói Gia Đình">
-              <div class="offer-content d-flex flex-column p-4">
-                <h3>Gói Vui Vẻ Gia Đình</h3>
-                <ul class="list-unstyled my-3">
-                  <li class="d-flex align-items-start mb-2"><span class="me-2" style="color: #A98A66;">✓</span><span>Lưu trú tại phòng Suite Gia đình rộng rãi</span></li>
-                  <li class="d-flex align-items-start mb-2"><span class="me-2" style="color: #A98A66;">✓</span><span>Miễn phí bữa ăn cho trẻ em dưới 12 tuổi</span></li>
-                  <li class="d-flex align-items-start mb-2"><span class="me-2" style="color: #A98A66;">✓</span><span>Vé vào cửa công viên giải trí miễn phí</span></li>
-                  <li class="d-flex align-items-start mb-2"><span class="me-2" style="color: #A98A66;">✓</span><span>Hoạt động gia đình hàng ngày</span></li>
-                </ul>
-                
-              </div>
-            </div>
-          </div>
-          <div class="col-lg-6">
-            <div class="offer-card d-flex flex-column flex-md-row">
-              <img src="https://images.trvl-media.com/lodging/42000000/41830000/41826900/41826852/ff9dfc7c.jpg?impolicy=resizecrop&rw=575&rh=575&ra=fill" class="offer-image" alt="Gói Spa">
-              <div class="offer-content d-flex flex-column p-4">
-                <h3>Gói Thư Giãn Spa</h3>
-                <ul class="list-unstyled my-3">
-                    <li class="d-flex align-items-start mb-2"><span class="me-2" style="color: #A98A66;">✓</span><span>Hai đêm nghỉ tại phòng premium</span></li>
-                    <li class="d-flex align-items-start mb-2"><span class="me-2" style="color: #A98A66;">✓</span><span>Tín dụng Spa trị giá 100$</span></li>
-                    <li class="d-flex align-items-start mb-2"><span class="me-2" style="color: #A98A66;">✓</span><span>Bữa sáng và bữa trưa lành mạnh</span></li>
-                    <li class="d-flex align-items-start mb-2"><span class="me-2" style="color: #A98A66;">✓</span><span>Sử dụng tất cả các tiện ích spa</span></li>
-                </ul>
-                
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </section>
-
+    
     <!-- 7. Thư viện ảnh -->
     <section class="gallery-section">
       <div class="container">
@@ -217,7 +133,15 @@ import axiosConfig from '../axiosConfig.js';
 
 const roomTypes = ref([]);
 const loading = ref(true);
-const apiUrl = inject('apiUrl');
+
+const staticImages = [
+  'https://images.trvl-media.com/lodging/42000000/41830000/41826900/41826852/ff9dfc7c.jpg?impolicy=resizecrop&rw=575&rh=575&ra=fill',
+  
+];
+
+const getRoomImage = (index) => {
+  return staticImages[index % staticImages.length];
+};
 
 const fetchRoomTypes = async () => {
   loading.value = true;

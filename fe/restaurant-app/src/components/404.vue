@@ -1,140 +1,204 @@
 <template>
-   <div class="noise"></div>
-<div class="overlay"></div>
-<div class="terminal">
-  <h1>Error <span class="errorcode">404</span></h1>
-  <p class="output">Bạn đang truy cập website trái phép.</p>
-  <p class="output">  <router-link to="/">Quay về trang chủ ngay </router-link>
-  </p>
-</div>
+  <div class="not-found-container">
+    <div class="overlay-gradient"></div>
+    <div class="content-wrapper">
+      <img src="https://vcdn1-dulich.vnecdn.net/2022/07/29/hypat-1659069584-1659081355.jpg?w=460&h=0&q=100&dpr=1&fit=crop&s=3I9-DXsUwSBDQeq8oF_LgA" alt="Hotel Logo" class="hotel-logo">
+      <h1>Oops! Trang này không tồn tại.</h1>
+      <p>Có vẻ như bạn đã đi lạc khỏi khu nghỉ dưỡng của chúng tôi.</p>
+      <p>Mã lỗi: <span class="error-code">404 - Not Found</span></p>
+      <p>
+        Hãy để chúng tôi hướng dẫn bạn trở lại:
+        <router-link to="/" class="home-link">Về Trang Chủ</router-link>
+        hoặc <a href="hxh@hotel.com" class="contact-link">Liên Hệ Hỗ Trợ</a>
+      </p>
+      <div class="suggestions">
+        <p>Bạn có thể thử:</p>
+        <ul>
+          <li><router-link to="/rooms">Khám phá các loại phòng của chúng tôi</router-link></li>
+          <li><router-link to="/news">Đọc tin tức và ưu đãi mới nhất</router-link></li>
+          <li><router-link to="/contact">Tìm thông tin liên hệ</router-link></li>
+        </ul>
+      </div>
+      <p class="copyright">&copy; {{ currentYear }} [HXH HOTEL]. All Rights Reserved.</p>
+    </div>
+  </div>
 </template>
 
 <script>
 export default {
-    name: 'NotFound'
+  name: 'NotFound',
+  data() {
+    return {
+      currentYear: new Date().getFullYear()
+    };
+  }
 }
 </script>
 
 <style scoped>
-@import 'https://fonts.googleapis.com/css?family=Inconsolata';
-html {
-  min-height: 100%;
+/* Google Fonts - chọn font thanh lịch, sang trọng */
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=Open+Sans:wght@300;400;600&display=swap');
+
+html, body {
+  margin: 0;
+  padding: 0;
+  height: 100%; /* Đảm bảo body và html chiếm toàn bộ chiều cao */
+  overflow: hidden; /* Ngăn cuộn trang */
 }
 
-body {
-  box-sizing: border-box;
-  height: 100%;
-  background-color: #000000;
-  background-image: radial-gradient(#11581E, #041607), url("https://media.giphy.com/media/oEI9uBYSzLpBK/giphy.gif");
-  background-repeat: no-repeat;
+.not-found-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh; /* Chiếm toàn bộ chiều cao viewport */
+  background-image: url('https://i.imgur.com/your_hotel_background_image.jpg'); /* Thay bằng ảnh nền khách sạn của bạn */
   background-size: cover;
-  font-family: "Inconsolata", Helvetica, sans-serif;
-  font-size: 1.5rem;
-  color: rgba(128, 255, 128, 0.8);
-  text-shadow: 0 0 1ex #33ff33, 0 0 2px rgba(255, 255, 255, 0.8);
+  background-position: center;
+  color: #fff; /* Màu chữ tổng thể */
+  text-align: center;
+  position: relative;
+  font-family: 'Open Sans', sans-serif; /* Font chữ chính */
+  overflow: hidden;
 }
 
-.noise {
-  pointer-events: none;
+.overlay-gradient {
   position: absolute;
+  top: 0;
+  left: 0;
   width: 100%;
   height: 100%;
-  background-image: url("https://media.giphy.com/media/oEI9uBYSzLpBK/giphy.gif");
-  background-repeat: no-repeat;
-  background-size: cover;
-  z-index: -1;
-  opacity: 0.02;
-}
-
-.overlay {
-  pointer-events: none;
-  position: absolute;
-  width: 100%;
-  height: 100%;
-  background: repeating-linear-gradient(180deg, rgba(0, 0, 0, 0) 0, rgba(0, 0, 0, 0.3) 50%, rgba(0, 0, 0, 0) 100%);
-  background-size: auto 4px;
+  background: linear-gradient(rgba(0, 0, 0, 0.6), rgba(0, 0, 0, 0.8)); /* Lớp phủ làm tối ảnh nền */
   z-index: 1;
 }
 
-.overlay::before {
-  content: "";
-  pointer-events: none;
-  position: absolute;
-  display: block;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  width: 100%;
-  height: 100%;
-  background-image: linear-gradient(0deg, transparent 0%, rgba(32, 128, 32, 0.2) 2%, rgba(32, 128, 32, 0.8) 3%, rgba(32, 128, 32, 0.2) 3%, transparent 100%);
-  background-repeat: no-repeat;
-  -webkit-animation: scan 7.5s linear 0s infinite;
-          animation: scan 7.5s linear 0s infinite;
+.content-wrapper {
+  position: relative;
+  z-index: 2;
+  padding: 2rem;
+  max-width: 800px;
+  background-color: rgba(0, 0, 0, 0.7); /* Nền mờ cho nội dung */
+  border-radius: 10px;
+  box-shadow: 0 0 30px rgba(0, 0, 0, 0.5);
+  animation: fadeIn 1s ease-out; /* Hiệu ứng xuất hiện */
 }
 
-@-webkit-keyframes scan {
-  0% {
-    background-position: 0 -100vh;
-  }
-  35%, 100% {
-    background-position: 0 100vh;
-  }
+.hotel-logo {
+  max-width: 150px;
+  margin-bottom: 2rem;
+  filter: drop-shadow(0 0 5px rgba(255, 255, 255, 0.3)); /* Hiệu ứng đổ bóng cho logo */
 }
 
-@keyframes scan {
-  0% {
-    background-position: 0 -100vh;
-  }
-  35%, 100% {
-    background-position: 0 100vh;
-  }
-}
-.terminal {
-  box-sizing: inherit;
-  position: absolute;
-  height: 100%;
-  width: 1000px;
-  max-width: 100%;
-  padding: 4rem;
-  text-transform: uppercase;
+h1 {
+  font-family: 'Playfair Display', serif; /* Font chữ tiêu đề sang trọng */
+  font-size: 3.5rem;
+  margin-bottom: 1rem;
+  color: #FFD700; /* Màu vàng đồng hoặc màu nhấn của khách sạn */
+  text-shadow: 0 0 10px rgba(255, 215, 0, 0.5);
 }
 
-.output {
-  color: rgba(128, 255, 128, 0.8);
-  text-shadow: 0 0 1px rgba(51, 255, 51, 0.4), 0 0 2px rgba(255, 255, 255, 0.8);
+p {
+  font-size: 1.2rem;
+  line-height: 1.6;
+  margin-bottom: 1rem;
+  color: rgba(255, 255, 255, 0.9);
 }
 
-.output::before {
-  content: "> ";
+.error-code {
+  font-weight: bold;
+  color: #e74c3c; /* Màu đỏ cho lỗi */
+  background-color: rgba(255, 255, 255, 0.1);
+  padding: 0.2em 0.5em;
+  border-radius: 5px;
 }
 
-/*
-.input {
-  color: rgba(192, 255, 192, 0.8);
-  text-shadow:
-      0 0 1px rgba(51, 255, 51, 0.4),
-      0 0 2px rgba(255, 255, 255, 0.8);
-}
-
-.input::before {
-  content: "$ ";
-}
-*/
-a {
-  color: #fff;
+.home-link, .contact-link {
+  color: #FFD700; /* Màu vàng đồng */
   text-decoration: none;
+  font-weight: bold;
+  transition: color 0.3s ease, text-shadow 0.3s ease;
 }
 
-a::before {
-  content: "[";
+.home-link:hover, .contact-link:hover {
+  color: #ffe066; /* Sáng hơn khi hover */
+  text-shadow: 0 0 8px rgba(255, 215, 0, 0.7);
 }
 
-a::after {
-  content: "]";
+.suggestions {
+  margin-top: 2rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.2);
 }
 
-.errorcode {
-  color: white;
+.suggestions p {
+  font-size: 1.1rem;
+  margin-bottom: 0.8rem;
+  font-style: italic;
+}
+
+.suggestions ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.suggestions li {
+  margin-bottom: 0.5rem;
+}
+
+.suggestions a {
+  color: #87CEEB; /* Màu xanh nhẹ, dễ chịu */
+  text-decoration: none;
+  transition: color 0.3s ease;
+}
+
+.suggestions a:hover {
+  color: #b0e0fe;
+  text-decoration: underline;
+}
+
+.copyright {
+  margin-top: 3rem;
+  font-size: 0.9rem;
+  color: rgba(255, 255, 255, 0.6);
+}
+
+/* Animations */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  h1 {
+    font-size: 2.5rem;
+  }
+  p {
+    font-size: 1rem;
+  }
+  .content-wrapper {
+    padding: 1.5rem;
+  }
+  .hotel-logo {
+    max-width: 120px;
+  }
+}
+
+@media (max-width: 480px) {
+  h1 {
+    font-size: 2rem;
+  }
+  p {
+    font-size: 0.9rem;
+  }
+  .content-wrapper {
+    padding: 1rem;
+  }
 }
 </style>

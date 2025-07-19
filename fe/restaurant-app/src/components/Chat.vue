@@ -1,85 +1,92 @@
 <template>
-  <div class="container-fluid py-3">
-    <div class="card shadow-sm rounded-3 border-0 position-relative"
-      style="max-width: 700px; margin: 0 auto; height: 85vh; display: flex; flex-direction: column;">
-      <!-- Circular Badge in Top-Right Corner -->
-      <span
-        class="position-absolute top-0 end-0 m-2 bg-primary text-white rounded-circle d-flex align-items-center justify-content-center fw-semibold"
-        style="width: 40px; height: 40px; font-size: 0.8rem;">
-        Chat
-      </span>
-
-      <!-- Chat Header -->
-      <div class="card-header bg-white border-bottom p-3 d-flex align-items-center">
-        <img
-          src="https://static.vecteezy.com/system/resources/thumbnails/019/194/935/small_2x/global-admin-icon-color-outline-vector.jpg"
-          alt="Admin Avatar" class="rounded-circle me-2" style="width: 32px; height: 32px;" />
-        <h6 class="mb-0 fw-semibold text-dark">Admin Support</h6>
-      </div>
-
-      <!-- Chat Body -->
-      <div class="card-body p-3 flex-grow-1 overflow-auto" style="background: #f1f0f0;">
-        <div class="chat__conversation-board d-flex flex-column gap-3">
-          <!-- Admin Message (Left) -->
-          <div class="d-flex mb-2 align-items-start" v-for="(msg, index) in messageReceive" :key="'receive-' + index">
-            <div class="me-2">
-              <img
-                src="https://static.vecteezy.com/system/resources/thumbnails/019/194/935/small_2x/global-admin-icon-color-outline-vector.jpg"
-                alt="Admin" class="rounded-circle" style="width: 30px; height: 30px;" />
-            </div>
-            <div class="bg-white p-3 rounded-3 shadow-sm" style="max-width: 60%; border-radius: 12px 12px 12px 0;">
-              <span class="text-dark fs-6 fw-medium d-block mb-1">Admin</span>
-              <span class="text-dark fs-6">{{ msg.message }}</span>
-            </div>
-          </div>
-
-          <!-- User Message (Right) -->
-          <div class="d-flex mb-2 justify-content-end align-items-start" v-for="(msgSend, index) in messageSend"
-            :key="'send-' + index">
-            <div class="bg-primary text-white p-3 rounded-3 shadow-sm"
-              style="max-width: 60%; border-radius: 12px 12px 0 12px;">
-              <span class="fs-6 fw-medium d-block mb-1">{{ msgSend.user }}</span>
-              <span class="fs-6">{{ msgSend.message }}</span>
-              <img v-if="msgSend.file" :src="msgSend.file" alt="Image" class="mt-2 rounded" style="max-width: 180px;" />
-            </div>
-            <div class="ms-2">
-              <img
-                src="https://th.bing.com/th/id/R.f357e2632f7052a0eac815cfb90ba680?rik=oUi9SIYz5kpY%2bw&pid=ImgRaw&r=0"
-                alt="User" class="rounded-circle" style="width: 30px; height: 30px;" />
-            </div>
-          </div>
+  <div>
+    <!-- Popup nhập tên -->
+    <div v-if="showPopup" class="popup">
+      <div class="popup-content">
+        <h3>Nhập tên của bạn</h3>
+        <input v-model="userName" placeholder="Tên của bạn" class="form-control mb-3" />
+        <div class="popup-actions">
+          <button class="btn btn-warning m-2" @click="closePopup">Hủy</button>
+          <button class="btn btn-primary m-2" @click="saveName">Lưu</button>
         </div>
       </div>
+    </div>
+ <!-- Nút mở/đóng chat-container -->
+    <button @click="toggleChatContainer" class="toggle-chat-btn">
+      <small>CHATBOT HXH </small>
+      <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcR1q6z2kV8_7RZuJAp74ii9srftzUxaoYSRAw&s" alt="Toggle Chat" />
+    </button>
+    <!-- Chat Container -->
+    <div v-if="showChat" class="chat-container">
+      <div class="chat-card">
+        <!-- Header -->
+        <div class="chat-header">
+          <img src="https://jbagy.me/wp-content/uploads/2025/03/Hinh-anh-avatar-nam-cute-2.jpg" class="avatar"
+            alt="Support" />
+          <div>
+            <h6>{{ activeTab === 'ai' ? 'Hỏi đáp cùng ChatBot AI 🤖' : 'Admin Support' }}</h6>
+            <small>{{ activeTab === 'ai' ? 'Hệ thống hỗ trợ tự động 24/7' : 'Online Gần Đây' }}</small>
+          </div>
+          <span @click="toggleChatContainer" class="badge">Close</span>
+        </div>
 
-      <!-- Chat Input -->
-      <div class="card-footer p-2 bg-white border-top">
-        <div class="d-flex align-items-center gap-2">
-          <!-- Suggestions Button -->
-          <button class="btn btn-outline-light text-dark rounded-circle p-2" @click="toggleSuggestions">
-            <i class="bi bi-plus-lg"></i>
-          </button>
+        <!-- Tabs -->
+        <div class="chat-tabs d-flex border-bottom">
+          
+          <button :class="['tab-btn', { active: activeTab === 'ai' }]" @click="switchTab('ai')">Chat với AI</button>
+          <button :class="['tab-btn', { active: activeTab === 'human' }]" @click="switchTab('human')">Chat với Nhân
+            viên</button>
+        </div>
 
-          <!-- Suggestions Dropdown -->
-          <div v-if="showSuggestions" class="dropdown-menu show p-2"
-            style="min-width: 250px; transform: translateY(-120px);">
-            <input type="file" @change="handleFileUpload" accept="image/*" class="form-control form-control-sm mb-2" />
-            <button v-for="suggestion in suggestions" :key="suggestion"
-              class="btn btn-outline-secondary btn-sm d-block w-100 mb-1 text-start" @click="sendMessage(suggestion)">
+        <!-- Suggested Questions (AI Tab Only) -->
+        <div v-if="activeTab === 'ai'" class="chat-suggestions">
+          <button @click="handleAvailabilityCheck">📦 Còn phòng trống?</button>
+          <div class="suggestion-buttons">
+            <button v-for="suggestion in aiSuggestions" :key="suggestion" @click="sendMessage(suggestion)">
               {{ suggestion }}
             </button>
           </div>
+        </div>
 
-          <!-- Message Input -->
-          <input class="form-control rounded-pill fs-6" v-model="message" @keyup.enter="sendMessage()"
-            placeholder="Type a message..." style="border: 1px solid #e5e5e5;" />
+        <!-- Messages -->
+        <div class="chat-body">
+          <div class="messages" ref="messagesRef">
+            <div v-for="(msg, index) in currentMessages" :key="'msg-' + index"
+              :class="['message', msg.user === user ? 'user' : 'admin']">
+              <img v-if="msg.user !== user"
+                src="https://jbagy.me/wp-content/uploads/2025/03/Hinh-anh-avatar-nam-cute-2.jpg" class="avatar-sm" />
+              <div class="bubble">
+                <div class="meta">{{ msg.user === user ? msg.user : (activeTab === 'ai' ? 'AI' : 'Admin') }}</div>
+                <div class="text">{{ msg.message }}</div>
+                <img v-if="msg.file" :src="msg.file" class="image-preview" />
+              </div>
+              <img v-if="msg.user === user"
+                src="https://jbagy.me/wp-content/uploads/2025/03/Hinh-anh-avatar-nam-cute-2.jpg" class="avatar-sm" />
+            </div>
+            <div v-if="loading" class="message admin loading">
+              <div class="bubble">
+                <div class="meta">{{ activeTab === 'ai' ? 'AI' : 'Admin' }}</div>
+                <div class="text">Đang xử lý<span class="dots"></span></div>
+              </div>
+            </div>
+          </div>
+        </div>
 
-          <!-- Send Button -->
-          <button class="btn btn-primary rounded-circle p-2" @click="sendMessage()">
-            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="currentColor" viewBox="0 0 24 24"
-              stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <line x1="22" y1="2" x2="11" y2="13"></line>
-              <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
-            </svg>
+        <!-- Footer -->
+        <div class="chat-footer">
+          <div class="tools">
+            <button @click="toggleSuggestions">+</button>
+            <div v-if="showSuggestions" class="suggestions">
+              <input type="file" @change="handleFileUpload" accept="image/*" :disabled="activeTab === 'ai'" />
+              <button v-for="suggestion in suggestions" :key="suggestion" @click="sendMessage(suggestion)">
+                {{ suggestion }}
+              </button>
+            </div>
+          </div>
+          <input type="text" v-model="message" @keyup.enter="sendMessage()"
+            :placeholder="activeTab === 'ai' ? 'Bạn cần hỏi gì?' : 'Type a message...'" />
+          <button @click="sendMessage()" :disabled="loading">
+            <i class="bi bi-send"></i>
           </button>
         </div>
       </div>
@@ -88,69 +95,102 @@
 </template>
 
 <script setup>
-import { ref, onMounted, onUnmounted } from 'vue';
-// import socket from '../socket'; // Import socket từ file chung
+import { ref, computed, nextTick, onMounted, onUnmounted, inject } from 'vue';
+import axios from 'axios';
+import socket from '../socket'; // Import socket từ file chung
 
-const message = ref('');
-const messageSend = ref([]);
-const messageReceive = ref([]);
-const messages = ref([]);
-const socketId = ref();
-//const socket = io('http://localhost:6001'); // Kết nối đến server Socket.IO
-socket.on('connect', () => {
-  console.log(`Connected with socket ID: ${socket.id}`);
-  socketId.value = socket.id;
-});
-const user = JSON.parse(localStorage.getItem('userInfo'))?.name || 'User chưa login'; // Lấy tên người dùng
-const userId = JSON.parse(localStorage.getItem('userInfo'))?.id;
-socket.emit('join', user); // Gửi dữ liệu tới server
-socket.emit('register', userId); // Thay 'user-id-example' bằng ID thực tế
-// Hàm gửi tin nhắn
-const suggestions = ref(['Tôi cần hỗ trợ chuyển khoản lỗi/nhầm', 'Hỗ trợ đặt bàn nhanh', 'Hỗ trợ đặt phòng nhanh']);
-const showSuggestions = ref(false);
-const toggleSuggestions = () => {
-  showSuggestions.value = !showSuggestions.value; // Chuyển đổi trạng thái hiển thị gợi ý
+// Khai báo biến trạng thái cho chat-container
+const showChat = ref(true);
+
+// Hàm để bật/tắt chat-container
+const toggleChatContainer = () => {
+  showChat.value = !showChat.value;
 };
 
-//gửi file
+const API_KEY = 'AIzaSyDdyQPlin693Vo16vKOWnI38qLJ5U2z5LQ';
+const apiUrl = inject('apiUrl');
+const showPopup = ref(false);
+const userName = ref('');
+const message = ref('');
+const loading = ref(false);
+const activeTab = ref('ai');
+const nameU = JSON.parse(localStorage.getItem('userInfo'))?.name || '';
+
+const aiMessages = ref([
+  { user: 'AI', message: `Xin chào ${nameU}! Tôi là AI ChatBot HXH. Bạn muốn hỏi gì về khách sạn ạ?` },
+]);
+const messageSend = ref([]);
+const aiSuggestions = ref([
+  '🕒 Giờ nhận và trả phòng là khi nào?',
+  '💰 Giá phòng bao nhiêu?',
+  // '📞 Tôi muốn liên hệ khách sạn',
+]);
+const suggestions = ref([
+  'Tôi cần hỗ trợ chuyển khoản lỗi/nhầm',
+  'Hỗ trợ đặt bàn nhanh',
+  'Hỗ trợ đặt phòng nhanh',
+]);
+const showSuggestions = ref(false);
+const messagesRef = ref(null);
+const socketId = ref('');
 const file = ref(null);
+const MAX_FILE_SIZE = 0.5 * 1024 * 1024; // 0.5 MB
+var user = JSON.parse(localStorage.getItem('userInfo'))?.name || 'MR';
+var userId = JSON.parse(localStorage.getItem('userInfo'))?.id;
+
+// Computed property to display messages based on active tab
+const currentMessages = computed(() => {
+  if (activeTab.value === 'ai') return aiMessages.value;
+  return messageSend.value;
+});
+
+// Popup Functions
+const saveName = () => {
+  if (userName.value) {
+    localStorage.setItem('userInfo', JSON.stringify({ name: userName.value, id: socket.id }));
+    showPopup.value = false;
+    window.location.reload();
+  } else {
+    alert('Vui lòng nhập tên');
+  }
+};
+
+const closePopup = () => {
+  showPopup.value = false;
+};
+
+// Chat Functions
+const toggleSuggestions = () => {
+  showSuggestions.value = !showSuggestions.value;
+};
+
+const switchTab = (tab) => {
+  activeTab.value = tab;
+  if (tab === 'human') {
+    showPopup.value = !localStorage.getItem('userInfo');
+    socket.emit('join', user);
+    socket.emit('register', userId);
+    getMessages();
+    //listenForMessages();
+    //showPopup.value = false;
+  }
+  else {
+    showPopup.value = false;
+  }
+  scrollToBottom();
+};
+
+const scrollToBottom = () => {
+  nextTick(() => {
+    const el = messagesRef.value;
+    if (el) el.scrollTop = el.scrollHeight;
+  });
+};
 
 const handleFileUpload = (event) => {
-  file.value = event.target.files[0]; // Lưu file được chọn
-  sendMessage();
+  file.value = event.target.files[0];
 };
 
-const MAX_FILE_SIZE = 0.5 * 1024 * 1024; // 5 MB
-
-const sendMessage = async (suggestion) => {
-  const msg = suggestion || message.value;
-  if (msg.trim() === '' && !file.value) return;
-
-  if (file.value && file.value.size > MAX_FILE_SIZE) {
-    console.error('File size exceeds limit of 5MB');
-    alert('File size exceeds limit of 1MB. Please choose a smaller file.'); // Thông báo cho người dùng
-    return;
-  }
-
-  const fileBase64 = file.value ? await convertFileToBase64(file.value) : null;
-  //console.log('Converted file to base64:', fileBase64);
-
-  const messageData = {
-    user: user,
-    userId: userId,
-    message: msg,
-    socketId: socketId.value,
-    file: fileBase64
-  };
-  console.log('Sending message:', messageData);
-
-  socket.emit('chat message', messageData);
-  message.value = '';
-  file.value = null;
-  showSuggestions.value = false;
-};
-
-// Hàm chuyển file thành base64
 const convertFileToBase64 = (file) => {
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
@@ -160,44 +200,469 @@ const convertFileToBase64 = (file) => {
   });
 };
 
-// Hàm lắng nghe tin nhắn từ server
+const sendMessage = async (suggestion = null) => {
+  const msg = suggestion || message.value.trim();
+  if (!msg && !file.value) return;
+
+  if (file.value && file.value.size > MAX_FILE_SIZE) {
+    alert('File size exceeds limit of 0.5MB. Please choose a smaller file.');
+    return;
+  }
+
+  const fileBase64 = file.value ? await convertFileToBase64(file.value) : null;
+  const messageData = {
+    user,
+    userId,
+    message: msg,
+    socketId: socketId.value,
+    file: fileBase64,
+  };
+
+  if (activeTab.value === 'ai') {
+    aiMessages.value.push(messageData);
+    loading.value = true;
+    try {
+      const docResponse = await fetch(`${apiUrl}/api/chat-ai/hotel-info`);
+      const hotelDocs = await docResponse.text();
+      const prompt = `
+      Người dùng name is ${nameU},
+        Dưới đây là toàn bộ thông tin về khách sạn:
+        ${hotelDocs}
+
+        Người dùng hỏi: "${msg}"
+        → Trả lời ngắn gọn, rõ ràng, thân thiện dựa trên thông tin khách sạn trên.
+        → Trả lời như một lễ tân chuyên nghiệp, thân thiện, dễ hiểu. Dùng ngôn ngữ tiếng Việt tự nhiên, nhẹ nhàng.
+      `;
+
+      const response = await fetch(
+        `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${API_KEY}`,
+        {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            contents: [{ parts: [{ text: prompt }] }],
+          }),
+        }
+      );
+
+      const data = await response.json();
+      const reply = data?.candidates?.[0]?.content?.parts?.[0]?.text || '❗ Không có phản hồi từ AI.';
+      aiMessages.value.push({ user: 'AI', message: reply });
+    } catch (err) {
+      aiMessages.value.push({ user: 'AI', message: '❌ Lỗi khi gọi Gemini: ' + err.message });
+    } finally {
+      loading.value = false;
+      scrollToBottom();
+    }
+  } else {
+    // messageSend.value.push(messageData);
+    socket.emit('chat message', messageData);
+    //console.log('Sent message:', messageData);
+  }
+
+  message.value = '';
+  file.value = null;
+  showSuggestions.value = false;
+  scrollToBottom();
+};
+
+const handleAvailabilityCheck = async () => {
+  if (activeTab.value !== 'ai') return;
+  const userText = 'Còn bao nhiêu phòng trống?';
+  aiMessages.value.push({ user, message: userText });
+  scrollToBottom();
+  loading.value = true;
+
+  try {
+    const res = await axios.get(`${apiUrl}/api/chat-ai/check-availability`);
+    const rooms = res.data;
+    const roomList = rooms.map((room) => `- ${room.room_name}: ${room.available_rooms} phòng`).join('\n');
+    const prompt = `
+      Khách hỏi về tình trạng phòng trống.
+      Dữ liệu hiện tại:
+      ${roomList}
+      Hãy trả lời khách bằng tiếng Việt, giọng thân thiện, dễ hiểu và chuyên nghiệp.
+    `.trim();
+
+    const response = await fetch(
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${API_KEY}`,
+      {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }] }),
+      }
+    );
+
+    const data = await response.json();
+    const reply = data?.candidates?.[0]?.content?.parts?.[0]?.text || '❗ Không có phản hồi.';
+    aiMessages.value.push({ user: 'AI', message: reply });
+  } catch (err) {
+    aiMessages.value.push({ user: 'AI', message: '❌ Không lấy được dữ liệu phòng.' });
+  } finally {
+    loading.value = false;
+    scrollToBottom();
+  }
+};
+
+// Socket.IO Functions
+socket.on('connect', () => {
+  socketId.value = socket.id;
+  console.log(`Connected with socket ID: ${socket.id}`);
+  socket.emit('join', user);
+  socket.emit('register', userId);
+});
+const getMessages = () => {
+  socket.emit('get user messages', userId);
+};
+
 const listenForMessages = () => {
   socket.on('chat messageSend', (data) => {
-    const messageObject = { user: data.user, message: data.message };
-
-    // Kiểm tra xem có file không
-    if (data.file) {
-      messageObject.file = data.file; // Lưu đường dẫn file vào đối tượng tin nhắn
+    if (activeTab.value === 'human') {
+      const messageObject = { user: data.user, message: data.message, userId: data.userId };
+      if (data.file) {
+        messageObject.file = data.file;
+      }
+      messageSend.value.push(messageObject);
+      scrollToBottom();
     }
-
-    messageSend.value.push(messageObject); // Lưu tin nhắn vào messages
   });
 
-  // socket.on('chat messageReceive', (data) => {
-  //     messageReceive.value.push({ user: data.user, message: data.message }); // Lưu tin nhắn vào messages
-  // });
-};
 
-// Hàm lấy lịch sử chat từ server
-const getMessages = () => {
-  socket.emit('get user messages', userId); // Gửi yêu cầu lấy lịch sử chat cho userId
 };
-// Lắng nghe lịch sử chat từ server
 socket.on('chat history', (chatMessages) => {
-  messageSend.value = []; // Xóa danh sách hiện tại trước khi thêm
-  chatMessages.forEach(msg => {
+  messageSend.value = [];
+  chatMessages.forEach((msg) => {
     messageSend.value.push(msg); // Thêm tin nhắn vào danh sách
   });
+  //scrollToBottom();
 });
-
-// Lắng nghe tin nhắn khi component được gắn vào DOM
+// Lifecycle Hooks
 onMounted(() => {
   getMessages();
-  listenForMessages(); // Bắt đầu lắng nghe tin nhắn
+  listenForMessages();
 });
 
-// Ngắt kết nối khi component bị hủy
-onUnmounted(() => {
-  socket.disconnect();
-});
+// onUnmounted(() => {
+//   socket.disconnect();
+// });
 </script>
+
+<style scoped>
+.toggle-chat-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  position: fixed; /* Đặt ở vị trí bạn muốn */
+  bottom: 20px; /* Ví dụ: gần đáy */
+  right: 20px; /* Ví dụ: gần bên phải */
+  z-index: 1001; /* Đảm bảo nó nằm trên cùng */
+}
+.toggle-chat-btn > img{
+  width: 50px; /* Kích thước hình ảnh */
+  height: 50px; /* Kích thước hình ảnh */
+  border-radius: 50%; /* Làm tròn hình ảnh */
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2); /* Thêm bóng đổ */
+}
+.popup {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.7);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+
+.popup-content {
+  background: white;
+  padding: 30px;
+  border-radius: 10px;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+  text-align: center;
+  width: 300px;
+}
+
+.popup-content h3 {
+  margin-bottom: 20px;
+}
+
+.popup-content input {
+  width: 100%;
+  padding: 10px;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  margin-bottom: 20px;
+}
+
+.popup-actions {
+  display: flex;
+  justify-content: space-between;
+}
+
+/* CHỈNH SỬA VỊ TRÍ CHAT WIDGET */
+.chat-container {
+  position: fixed;
+  bottom: 90px;
+  right: 20px;
+  width: 360px;
+  height: auto;
+  background-color: transparent;
+  z-index: 1000;
+  padding: 0;
+}
+
+/* THU NHỎ KHUNG CHAT */
+.chat-card {
+  width: 100%;
+  max-width: 360px;
+  height: 600px;
+  display: flex;
+  flex-direction: column;
+  background: white;
+  border-radius: 16px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+  overflow: hidden;
+  position: relative;
+}
+
+.chat-header {
+  display: flex;
+  align-items: center;
+  padding: 16px;
+  border-bottom: 1px solid #eee;
+  background-color: #f3f4f6;
+  position: relative;
+}
+
+.chat-header .avatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  margin-right: 10px;
+}
+
+.chat-header h6 {
+  margin: 0;
+  font-size: 16px;
+}
+
+.chat-header .badge {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  background: #4f46e5;
+  color: white;
+  padding: 4px 8px;
+  border-radius: 20px;
+  font-size: 12px;
+}
+
+.chat-tabs {
+  display: flex;
+  background: #f3f4f6;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.tab-btn {
+  flex: 1;
+  padding: 10px;
+  background: none;
+  border: none;
+  font-size: 14px;
+  cursor: pointer;
+  text-align: center;
+  color: #1e3a8a;
+}
+
+.tab-btn.active {
+  background: #e0e7ff;
+  font-weight: bold;
+}
+
+.chat-suggestions {
+  padding: 10px;
+  background: #f3f4f6;
+  border-bottom: 1px solid #e5e7eb;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.chat-suggestions button {
+  background: #e0e7ff;
+  border: none;
+  border-radius: 4px;
+  padding: 6px 10px;
+  font-size: 12px;
+  cursor: pointer;
+  color: #1e3a8a;
+}
+
+.suggestion-buttons {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.suggestion-buttons button {
+  font-size: 12px;
+  padding: 4px 8px;
+  border-radius: 12px;
+  border: none;
+  background-color: #e3efff;
+  color: #0066cc;
+  cursor: pointer;
+  transition: 0.2s;
+}
+
+.suggestion-buttons button:hover {
+  background-color: #cde2ff;
+}
+
+.chat-body {
+  flex: 1;
+  overflow-y: auto;
+  padding: 16px;
+  background: #f9fafb;
+}
+
+.messages {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.message {
+  display: flex;
+  align-items: flex-start;
+}
+
+.message.user {
+  justify-content: flex-end;
+}
+
+.message .avatar-sm {
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+}
+
+.bubble {
+  max-width: 70%;
+  background: #e5e7eb;
+  padding: 12px;
+  border-radius: 16px;
+  position: relative;
+}
+
+.message.user .bubble {
+  background: #dbeafe;
+}
+
+.meta {
+  font-size: 12px;
+  color: #6b7280;
+  margin-bottom: 4px;
+}
+
+.image-preview {
+  margin-top: 8px;
+  max-width: 200px;
+  border-radius: 8px;
+}
+
+.message.loading .bubble {
+  font-style: italic;
+  color: #6b7280;
+}
+
+.dots::after {
+  content: '';
+  display: inline-block;
+  animation: dots 1s steps(3, end) infinite;
+}
+
+@keyframes dots {
+  0% {
+    content: '';
+  }
+
+  33% {
+    content: '.';
+  }
+
+  66% {
+    content: '..';
+  }
+
+  100% {
+    content: '...';
+  }
+}
+
+.chat-footer {
+  display: flex;
+  padding: 12px;
+  border-top: 1px solid #eee;
+  align-items: center;
+  background-color: #fff;
+}
+
+.chat-footer input[type="text"] {
+  flex: 1;
+  border: 1px solid #ddd;
+  border-radius: 20px;
+  padding: 8px 12px;
+  margin: 0 8px;
+  font-size: 14px;
+}
+
+.chat-footer button {
+  background: #4f46e5;
+  border: none;
+  border-radius: 50%;
+  width: 36px;
+  height: 36px;
+  color: white;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.tools {
+  position: relative;
+}
+
+.suggestions {
+  position: absolute;
+  top: -210px;
+  background: white;
+  border: 1px solid #ddd;
+  padding: 10px;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  z-index: 999;
+  width: 320px;
+
+}
+
+.suggestions input[type="file"] {
+  margin-bottom: 10px;
+}
+
+.suggestions button {
+  color: black;
+
+  display: block;
+  width: 100%;
+  padding: 6px;
+  margin-bottom: 6px;
+  border: none;
+  background: #f3f4f6;
+  cursor: pointer;
+  font-size: 13px;
+}
+</style>

@@ -1,415 +1,410 @@
+
 <template>
-    <div>
-        <!-- Nút mở chat -->
-        <button class="chat-toggle" @click="toggleChat">💬</button>
-
-        <!-- Khung chat -->
-        <div v-if="showChat" class="chatbox">
-            <div class="chatbox-header">
-                <div>
-                    <strong>Hỏi đáp cùng ChatBot AI 🤖</strong>
-                    <p class="sub-text">Hệ thống hỗ trợ tự động 24/7</p>
-                </div>
-                <span class="close-btn" @click="toggleChat">✕</span>
-            </div>
-
-            <!-- Gợi ý -->
-            <div class="chat-suggestions">
-                <button @click="handleAvailabilityCheck">📦 Còn phòng trống không?</button>
-                <div class="suggestion-buttons">
-    <button @click="fillMessage('🕒 Giờ nhận và trả phòng là khi nào?')">🕒Nhận/trả phòng?</button>
-    <button @click="fillMessage('💰 Giá phòng bao nhiêu?')">💰 Giá phòng ?</button>
-    <button @click="fillMessage('📞 Tôi muốn liên hệ khách sạn')">📞 Liên hệ khách sạn</button>
-  </div>
-            </div>
-
-            <!-- Tin nhắn -->
-            <div class="chat-messages" ref="messagesRef">
-                <div v-for="(msg, index) in messages" :key="index" :class="['message', msg.sender]">
-                    <div class="bubble">
-                        <span v-if="msg.sender === 'admin'">🤖 </span>
-                        <span v-if="msg.sender === 'user'">🧑 </span>{{ msg.text }}
-                    </div>
-                </div>
-
-                <!-- Loading -->
-                <div v-if="loading" class="message admin loading">
-                    <div class="bubble">
-                        🤖 AI đang suy nghĩ<span class="dots">...</span>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Nhập tin -->
-            <div class="chat-input">
-                <input v-model="newMessage" @keydown.enter="sendMessage" placeholder="Bạn cần hỏi gì?" />
-                <button :disabled="loading" @click="sendMessage">
-                    {{ loading ? '...' : 'Gửi' }}
-                </button>
-            </div>
-
-            <!-- Nút gọi nhân viên -->
-            <div class="chat-footer">
-                <button class="staff-button">
-                    <router-link class="dropdown-item" to="/chat">
-                  💬 Chat ngay với nhân viên
-                </router-link>
-                    
-                </button>
-            </div>
-        </div>
+  <div v-if="showPopup" class="popup">
+    <div class="popup-content">
+      <h3>Nhập tên của bạn</h3>
+      <input v-model="userName" placeholder="Tên của bạn" />
+        <div class="cf-turnstile" data-sitekey="0x4AAAAAABhcDWU29f0qZu4n"></div>
+      <button class="btn btn-primary m-2" @click="saveName">Lưu</button>
+      <button class="btn btn-warning m-2" @click="closePopup">Hủy</button>
     </div>
+  </div>
+  <div class="chat-container">
+    <div class="chat-card">
+      <!-- Header -->
+      <div class="chat-header">
+        <img src="https://jbagy.me/wp-content/uploads/2025/03/Hinh-anh-avatar-nam-cute-2.jpg" class="avatar" alt="Admin" />
+        <div>
+          <h6>Admin Support</h6>
+          <small>Online 24/7</small>
+        </div>
+        <span class="badge">Chat</span>
+      </div>
+
+      <!-- Messages -->
+      <div class="chat-body">
+        <div class="messages">
+          <div v-for="(msg, index) in messageReceive" :key="'admin-' + index" class="message admin">
+            <img src="https://jbagy.me/wp-content/uploads/2025/03/Hinh-anh-avatar-nam-cute-2.jpg" class="avatar-sm" />
+            <div class="bubble">
+              <div class="meta">Admin</div>
+              <div class="text">{{ msg.message }}</div>
+            </div>
+          </div>
+
+          <div v-for="(msg, index) in messageSend" :key="'user-' + index" class="message user">
+            <div class="bubble">
+              <div class="meta">{{ msg.user }}</div>
+              <div class="text">{{ msg.message }}</div>
+              <img v-if="msg.file" :src="msg.file" class="image-preview" />
+            </div>
+            <img src="https://jbagy.me/wp-content/uploads/2025/03/Hinh-anh-avatar-nam-cute-2.jpg" class="avatar-sm" />
+          </div>
+        </div>
+      </div>
+
+      <!-- Footer -->
+      <div class="chat-footer">
+        <div class="tools">
+          <button @click="toggleSuggestions">+</button>
+
+          <div v-if="showSuggestions" class="suggestions">
+            <input type="file" @change="handleFileUpload" accept="image/*" />
+            <button v-for="suggestion in suggestions" :key="suggestion" @click="sendMessage(suggestion)">
+              {{ suggestion }}
+            </button>
+          </div>
+        </div>
+        <input type="text" v-model="message" @keyup.enter="sendMessage()" placeholder="Type a message..." />
+        <button @click="sendMessage()">
+          <i class="bi bi-send"></i>
+        </button>
+      </div>
+    </div>
+  </div>
 </template>
 
 <script setup>
-import { ref, nextTick, inject } from 'vue'
-import axios from 'axios'
+import { ref, onMounted, onUnmounted } from 'vue';
+import socket from '../../socket'; // Import socket từ file chung
+//[popup
+const showPopup = ref(false);
+const userName = ref('');
 
-const API_KEY = 'AIzaSyDdyQPlin693Vo16vKOWnI38qLJ5U2z5LQ'
-//AIzaSyDdyQPlin693Vo16vKOWnI38qLJ5U2z5LQ,AIzaSyD8i7zo013XnMvK1w9g_Xg4eY5AJC-nY58
-//AIzaSyCVDXoc9FWJTDFZQHaJqWlKqDlwWOK6Jxs
-const showChat = ref(true)
-const newMessage = ref('')
-const loading = ref(false)
-const messages = ref([
-    { sender: 'admin', text: 'Xin chào! Tôi là AI ChatBot HXH Bạn muốn hỏi gì về khách sạn ạ?' },
-])
-const apiUrl = inject('apiUrl');
-const messagesRef = ref(null)
-function fillMessage(text) {
-  newMessage.value = text
+const saveName = () => {
+   // Lấy giá trị Turnstile response
+    const turnstileResponse = document.querySelector('input[name="cf-turnstile-response"]').value; console.log("Turnstile response:", turnstileResponse); // In giá trị ra console
+    if (!turnstileResponse) {
+        showError("Please complete the Turnstile challenge."); // Hiển thị thông báo nếu Turnstile chưa hoàn thành
+        isLoading.value = false;
+        return;
+    }
+  if (userName.value) {
+    localStorage.setItem('userInfo', JSON.stringify({ name: userName.value, id: socket.id }));
+    showPopup.value = false;
+    window.location.reload(); // Tải lại trang để cập nhật tên người dùng
+  } else {
+    alert('Vui lòng nhập tên');
+  }
+};
+
+const closePopup = () => {
+  showPopup.value = false;
+};
+
+// Kiểm tra userInfo khi component được khởi tạo
+if (!localStorage.getItem('userInfo')) {
+  showPopup.value = true;
+}
+const message = ref('');
+const messageSend = ref([]);
+const messageReceive = ref([]);
+const messages = ref([]);
+const socketId = ref();
+//const socket = io('http://localhost:6001'); // Kết nối đến server Socket.IO
+socket.on('connect', () => {
+  console.log(`Connected with socket ID: ${socket.id}`);
+  socketId.value = socket.id;
+});
+const user = JSON.parse(localStorage.getItem('userInfo'))?.name || 'User chưa login'; // Lấy tên người dùng
+const userId = JSON.parse(localStorage.getItem('userInfo'))?.id;
+socket.emit('join', user); // Gửi dữ liệu tới server
+socket.emit('register', userId); // Thay 'user-id-example' bằng ID thực tế
+// Hàm gửi tin nhắn
+const suggestions = ref(['Tôi cần hỗ trợ chuyển khoản lỗi/nhầm', 'Hỗ trợ đặt bàn nhanh', 'Hỗ trợ đặt phòng nhanh']);
+const showSuggestions = ref(false);
+const toggleSuggestions = () => {
+  showSuggestions.value = !showSuggestions.value; // Chuyển đổi trạng thái hiển thị gợi ý
+};
+
+//gửi file
+const file = ref(null);
+
+const handleFileUpload = (event) => {
+  file.value = event.target.files[0]; // Lưu file được chọn
   sendMessage();
-}
+};
 
-function toggleChat() {
-    showChat.value = !showChat.value
-}
+const MAX_FILE_SIZE = 0.5 * 1024 * 1024; // 0.5 MB
 
-function scrollToBottom() {
-    nextTick(() => {
-        const el = messagesRef.value
-        if (el) el.scrollTop = el.scrollHeight
-    })
-}
+const sendMessage = async (suggestion) => {
+  const msg = suggestion || message.value;
+  if (msg.trim() === '' && !file.value) return;
 
-async function sendMessage() {
-    const userText = newMessage.value.trim();
-    if (!userText || loading.value) return;
+  if (file.value && file.value.size > MAX_FILE_SIZE) {
+    //console.error('File size exceeds limit of 5MB');
+    alert('File size exceeds limit of 1MB. Please choose a smaller file.'); // Thông báo cho người dùng
+    return;
+  }
 
-    messages.value.push({ sender: 'user', text: userText });
-    newMessage.value = '';
-    scrollToBottom();
-    loading.value = true;
+  const fileBase64 = file.value ? await convertFileToBase64(file.value) : null;
+  //console.log('Converted file to base64:', fileBase64);
 
-    try {
-        // Gọi API docs từ Laravel
-        const docResponse = await fetch(`${apiUrl}/api/chat-ai/hotel-info`);
-        const hotelDocs = await docResponse.text();
-        //console.log('Hotel Docs:', hotelDocs);
-        // Prompt cho Gemini đọc nội dung trước khi trả lời
-        const prompt = `
-Dưới đây là toàn bộ thông tin về khách sạn (để AI đọc trước):
-${hotelDocs}
+  const messageData = {
+    user: user,
+    userId: userId,
+    message: msg,
+    socketId: socketId.value,
+    file: fileBase64
+  };
+  console.log('Sending message:', messageData);
 
-Người dùng hỏi: "${userText}"
-→ Hãy trả lời ngắn gọn, rõ ràng, thân thiện dựa trên thông tin khách sạn trên.
-→ Trả lời như một lễ tân chuyên nghiệp, thân thiện, dễ hiểu. Dùng ngôn ngữ tiếng Việt tự nhiên, nhẹ nhàng.
+  socket.emit('chat message', messageData);
+  message.value = '';
+  file.value = null;
+  showSuggestions.value = false;
+};
 
-`;
+// Hàm chuyển file thành base64
+const convertFileToBase64 = (file) => {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(reader.result);
+    reader.onerror = (error) => reject(error);
+    reader.readAsDataURL(file);
+  });
+};
 
-        // Gọi Gemini API
-        const response = await fetch(
-            'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=' + API_KEY,
-            {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    contents: [
-                        {
-                            parts: [{ text: prompt }],
-                        },
-                    ],
-                }),
-            }
-        );
+// Hàm lắng nghe tin nhắn từ server
+const listenForMessages = () => {
+  socket.on('chat messageSend', (data) => {
+    const messageObject = { user: data.user, message: data.message };
 
-        const data = await response.json();
-        const reply = data?.candidates?.[0]?.content?.parts?.[0]?.text || '❗ Không có phản hồi từ AI.';
-        messages.value.push({ sender: 'admin', text: reply });
-
-    } catch (err) {
-        messages.value.push({
-            sender: 'admin',
-            text: '❌ Lỗi khi gọi Gemini: ' + err.message,
-        });
-    } finally {
-        loading.value = false;
-        scrollToBottom();
+    // Kiểm tra xem có file không
+    if (data.file) {
+      messageObject.file = data.file; // Lưu đường dẫn file vào đối tượng tin nhắn
     }
-}
 
+    messageSend.value.push(messageObject); // Lưu tin nhắn vào messages
+  });
 
-async function sendQuick(text) {
-    messages.value.push({ sender: 'user', text })
-    scrollToBottom()
-    await sendToGemini(text)
-}
+  // socket.on('chat messageReceive', (data) => {
+  //     messageReceive.value.push({ user: data.user, message: data.message }); // Lưu tin nhắn vào messages
+  // });
+};
 
-async function handleAvailabilityCheck() {
-    const userText = 'Còn bao nhiêu phòng trống?'
-    messages.value.push({ sender: 'user', text: userText })
-    scrollToBottom()
-    loading.value = true
+// Hàm lấy lịch sử chat từ server
+const getMessages = () => {
+  socket.emit('get user messages', userId); // Gửi yêu cầu lấy lịch sử chat cho userId
+};
+// Lắng nghe lịch sử chat từ server
+socket.on('chat history', (chatMessages) => {
+  messageSend.value = []; // Xóa danh sách hiện tại trước khi thêm
+  chatMessages.forEach(msg => {
+    messageSend.value.push(msg); // Thêm tin nhắn vào danh sách
+  });
+});
 
-    try {
-        const res = await axios.get(`${apiUrl}/api/chat-ai/check-availability`)
-        const rooms = res.data
-        const roomList = rooms
-            .map((room) => `- ${room.room_name}: ${room.available_rooms} phòng`)
-            .join('\n')
+// Lắng nghe tin nhắn khi component được gắn vào DOM
+onMounted(() => {
+  getMessages();
+  listenForMessages(); // Bắt đầu lắng nghe tin nhắn
+});
 
-        const prompt = `
-Khách hỏi về tình trạng phòng trống.
-
-Dữ liệu hiện tại:
-${roomList}
-
-Hãy trả lời khách bằng tiếng Việt, giọng thân thiện, dễ hiểu và chuyên nghiệp.
-    `.trim()
-
-        await sendToGemini(prompt)
-    } catch (err) {
-        messages.value.push({ sender: 'admin', text: '❌ Không lấy được dữ liệu phòng.' })
-    } finally {
-        loading.value = false
-        scrollToBottom()
-    }
-}
-
-async function sendToGemini(prompt) {
-    loading.value = true
-    scrollToBottom()
-
-    try {
-        const response = await fetch(
-            `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${API_KEY}`,
-            {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }] }),
-            }
-        )
-
-        const data = await response.json()
-        const reply = data?.candidates?.[0]?.content?.parts?.[0]?.text || '❗ Không có phản hồi.'
-
-        messages.value.push({ sender: 'admin', text: reply })
-    } catch (err) {
-        messages.value.push({ sender: 'admin', text: '❌ Lỗi khi gọi Gemini: ' + err.message })
-    } finally {
-        loading.value = false
-        scrollToBottom()
-    }
-}
-
-function contactHuman() {
-    messages.value.push({
-        sender: 'admin',
-        text: '💁 Vui lòng chờ trong giây lát, chúng tôi sẽ kết nối bạn với nhân viên hỗ trợ...',
-    })
-}
+// Ngắt kết nối khi component bị hủy
+onUnmounted(() => {
+  socket.disconnect();
+});
 </script>
-
 <style scoped>
-
-.suggestion-buttons {
+.popup {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.7);
   display: flex;
-  gap: 8px;
-  flex-wrap: wrap;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
 }
 
-.suggestion-buttons button {
-  font-size: 12px;
+.popup-content {
+  background: white;
+  padding: 30px;
+  border-radius: 10px;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+  text-align: center;
+  width: 300px; /* Đặt chiều rộng tối đa cho popup */
+}
+
+.popup-content h3 {
+  margin-bottom: 20px;
+}
+
+.popup-content input {
+  width: 100%;
+  padding: 10px;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  margin-bottom: 20px;
+}
+
+.popup-actions {
+  display: flex;
+  justify-content: space-between;
+}
+
+
+.chat-container {
+  padding: 20px;
+  display: flex;
+  justify-content: center;
+  background-color: #f9fafb;
+  height: 100vh;
+}
+
+.chat-card {
+  width: 100%;
+  max-width: 700px;
+  height: 85vh;
+  display: flex;
+  flex-direction: column;
+  background: white;
+  border-radius: 16px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+  overflow: hidden;
+}
+
+.chat-header {
+  display: flex;
+  align-items: center;
+  padding: 16px;
+  border-bottom: 1px solid #eee;
+  background-color: #f3f4f6;
+  position: relative;
+}
+
+.chat-header .avatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  margin-right: 10px;
+}
+
+.chat-header h6 {
+  margin: 0;
+  font-size: 16px;
+}
+
+.chat-header .badge {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  background: #4f46e5;
+  color: white;
   padding: 4px 8px;
-  border-radius: 12px;
-  border: none;
-  background-color: #e3efff;
-  color: #0066cc;
-  cursor: pointer;
-  transition: 0.2s;
+  border-radius: 20px;
+  font-size: 12px;
 }
 
-.suggestion-buttons button:hover {
-  background-color: #cde2ff;
+.chat-body {
+  flex: 1;
+  overflow-y: auto;
+  padding: 16px;
+  background: #f9fafb;
 }
 
-.chat-toggle {
-    position: fixed;
-    bottom: 20px;
-    right: 20px;
-    background: #4f46e5;
-    color: white;
-    border: none;
-    border-radius: 50%;
-    width: 52px;
-    height: 52px;
-    font-size: 24px;
-    cursor: pointer;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
-    z-index: 1000;
-}
-
-.chatbox {
-    position: fixed;
-    bottom: 80px;
-    right: 20px;
-    width: 360px;
-    max-height: 600px;
-    background: #ffffff;
-    border-radius: 12px;
-    box-shadow: 0 10px 24px rgba(0, 0, 0, 0.25);
-    display: flex;
-    flex-direction: column;
-    z-index: 999;
-    overflow: hidden;
-}
-
-.chatbox-header {
-    background: #4f46e5;
-    color: white;
-    padding: 12px 16px;
-    font-size: 14px;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-}
-
-.chatbox-header .sub-text {
-    font-size: 11px;
-    font-weight: normal;
-    margin: 2px 0 0;
-    opacity: 0.8;
-}
-
-.close-btn {
-    font-size: 16px;
-    cursor: pointer;
-    opacity: 0.9;
-}
-
-.chat-suggestions {
-    padding: 10px;
-    background: #f3f4f6;
-    border-bottom: 1px solid #e5e7eb;
-    display: flex;
-    flex-wrap: wrap;
-    gap: 6px;
-}
-
-.chat-suggestions button {
-    background: #e0e7ff;
-    border: none;
-    border-radius: 4px;
-    padding: 6px 10px;
-    font-size: 12px;
-    cursor: pointer;
-    color: #1e3a8a;
-}
-
-.chat-messages {
-    flex: 1;
-    padding: 12px;
-    overflow-y: auto;
-    background: #fafafa;
+.messages {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
 }
 
 .message {
-    margin-bottom: 10px;
+  display: flex;
+  align-items: flex-start;
 }
 
-.message .bubble {
-    padding: 8px 12px;
-    border-radius: 8px;
-    background: #e2e8f0;
-    display: inline-block;
-    max-width: 85%;
+.message.user {
+  justify-content: flex-end;
+}
+
+.message .avatar-sm {
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+}
+
+.bubble {
+  max-width: 70%;
+  background: #e5e7eb;
+  padding: 12px;
+  border-radius: 16px;
+  position: relative;
 }
 
 .message.user .bubble {
-    background: #dbeafe;
-    text-align: right;
-    margin-left: auto;
+  background: #dbeafe;
 }
 
-.message.admin .bubble {
-    background: #f3f4f6;
+.meta {
+  font-size: 12px;
+  color: #6b7280;
+  margin-bottom: 4px;
 }
 
-.message.loading .bubble {
-    font-style: italic;
-    color: #6b7280;
-}
-
-.dots::after {
-    content: '';
-    display: inline-block;
-    animation: dots 1s steps(3, end) infinite;
-}
-
-@keyframes dots {
-    0% {
-        content: '';
-    }
-
-    33% {
-        content: '.';
-    }
-
-    66% {
-        content: '..';
-    }
-
-    100% {
-        content: '...';
-    }
-}
-
-.chat-input {
-    display: flex;
-    border-top: 1px solid #ddd;
-}
-
-.chat-input input {
-    flex: 1;
-    padding: 10px;
-    border: none;
-    font-size: 13px;
-    outline: none;
-}
-
-.chat-input button {
-    padding: 10px 14px;
-    border: none;
-    background: #4f46e5;
-    color: white;
-    cursor: pointer;
-    font-size: 13px;
+.image-preview {
+  margin-top: 8px;
+  max-width: 200px;
+  border-radius: 8px;
 }
 
 .chat-footer {
-    padding: 10px;
-    background: #f9fafb;
-    border-top: 1px solid #e5e7eb;
-    text-align: center;
+  display: flex;
+  padding: 12px;
+  border-top: 1px solid #eee;
+  align-items: center;
+  background-color: #fff;
 }
 
-.staff-button {
-    background: #10b981;
-    color: white;
-    border: none;
-    border-radius: 6px;
-    padding: 8px 12px;
-    font-size: 13px;
-    cursor: pointer;
+.chat-footer input[type="text"] {
+  flex: 1;
+  border: 1px solid #ddd;
+  border-radius: 20px;
+  padding: 8px 12px;
+  margin: 0 8px;
+  font-size: 14px;
+}
+
+.chat-footer button {
+  background: #4f46e5;
+  border: none;
+  border-radius: 50%;
+  width: 36px;
+  height: 36px;
+  color: white;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.tools {
+  position: relative;
+}
+
+.suggestions {
+  position: absolute;
+  top: -160px;
+  background: white;
+  border: 1px solid #ddd;
+  padding: 10px;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  z-index: 999;
+  width: 220px;
+}
+
+.suggestions button {
+  display: block;
+  width: 100%;
+  padding: 6px;
+  margin-bottom: 6px;
+  border: none;
+  background: #f3f4f6;
+  cursor: pointer;
+  font-size: 13px;
 }
 </style>
+
