@@ -42,8 +42,6 @@
       </div>
     </section>
 
-   
-
     <!-- 4. Các loại phòng (KẾT NỐI DỮ LIỆU ĐỘNG) -->
     <section class="rooms-section bg-white">
       <div class="container">
