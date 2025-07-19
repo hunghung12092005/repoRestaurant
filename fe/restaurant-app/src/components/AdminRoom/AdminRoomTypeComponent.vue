@@ -42,16 +42,6 @@
               <div class="fw-bold type-name">{{ type.type_name || 'Chưa có tên' }}</div>
               <p class="description-text mb-0">{{ type.description || 'Không có mô tả' }}</p>
             </td>
-            <td class="text-center">
-              <img
-                v-if="getImageUrl(type.images)"
-                :src="getImageUrl(type.images)"
-                alt="Room type image"
-                class="room-image"
-                @error="onImageError"
-              />
-              <span v-else class="badge badge-secondary">Không có ảnh</span>
-            </td>
             <td>
               <div class="occupancy-info">
                 <span class="me-3">
@@ -178,21 +168,6 @@
                       <span>Đổi ảnh</span>
                     </div>
                   </div>
-              </div>
-
-              <!-- SỬA Ở ĐÂY: Thêm checkbox "Chọn tất cả" -->
-              <div class="col-md-6">
-                <label class="form-label">Tiện Ích</label>
-                <div class="checkbox-list">
-                    <div class="form-check form-switch select-all-switch">
-                      <input class="form-check-input" type="checkbox" role="switch" id="select-all-amenities" :checked="isAllAmenitiesSelected" @change="toggleAllAmenities">
-                      <label class="form-check-label" for="select-all-amenities">Chọn Tất Cả Tiện Ích</label>
-                    </div>
-                    <hr class="my-2">
-                    <div class="form-check" v-for="amenity in amenities" :key="amenity.amenity_id">
-                        <input class="form-check-input" type="checkbox" :value="amenity.amenity_id" v-model="newType.amenity_ids" :id="'amenity-' + amenity.amenity_id"/>
-                        <label class="form-check-label" :for="'amenity-' + amenity.amenity_id">{{ amenity.amenity_name }}</label>
-                    </div>
                 </div>
               </div>
 
@@ -344,15 +319,6 @@ const handleFile = (file) => {
   }
 };
 
-const handleFile = (file) => {
-    if (file && file.type.startsWith('image/')) {
-        newType.value.images = file;
-        previewImage.value = URL.createObjectURL(file);
-    } else {
-        alert('Vui lòng chỉ chọn file hình ảnh.');
-    }
-}
-
 const handleImageUpload = (event) => {
   const file = event.target.files[0];
   handleFile(file);
@@ -414,14 +380,6 @@ const saveType = async () => {
     alert('Vui lòng điền đầy đủ thông tin bắt buộc (Tên, số giường, sức chứa).');
     return;
   }
-  const formData = new FormData();
-  Object.keys(newType.value).forEach(key => {
-    if (key === 'amenity_ids' || key === 'service_ids') {
-        newType.value[key].forEach(id => formData.append(`${key}[]`, id));
-    } else if (newType.value[key] !== null) {
-        formData.append(key, newType.value[key]);
-    }
-});
 
   const formData = new FormData();
   formData.append('type_name', newType.value.type_name);
@@ -455,7 +413,7 @@ const saveType = async () => {
     alert('Lưu loại phòng thành công!');
   } catch (error) {
     handleApiError('Lưu loại phòng thất bại', error);
-}
+  }
 };
 
 const xoaLoaiPhong = async (id) => {

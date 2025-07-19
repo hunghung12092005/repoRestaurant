@@ -78,7 +78,7 @@
                         <div class="info-card">
                             <i class="bi bi-aspect-ratio-fill info-icon"></i>
                             <div class="info-label">Diện tích</div>
-                            <div class="info-value">{{ roomType.area || 'N/A' }} m²</div>
+                            <div class="info-value">{{ roomType.m2 || 'N/A' }} m²</div>
                         </div>
                     </div>
                     <div class="col-sm-4">

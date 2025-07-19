@@ -35,7 +35,7 @@ class RoomTypeController extends Controller
             'description' => 'nullable|string',
             'bed_count' => 'required|integer|min:1',
             'max_occupancy' => 'required|integer|min:1',
-            'images' => 'nullable|image|mimes:jpeg,png,jpg|max:2048',
+            'images.*' => 'nullable|image|mimes:jpeg,png,jpg|max:2048',
             'amenity_ids' => 'nullable|array',
             'amenity_ids.*' => 'exists:amenities,amenity_id'
         ]);
@@ -53,7 +53,7 @@ class RoomTypeController extends Controller
 
             $imagePath = null;
             if ($request->hasFile('images')) {
-                $image = $request->file('images'); // Chỉ lấy ảnh đầu tiên
+                $image = $request->file('images')[0]; // Chỉ lấy ảnh đầu tiên
                 $imageName = time() . '_' . uniqid() . '.' . $image->getClientOriginalExtension();
                 $image->move(public_path('images/room_type'), $imageName);
                 $imagePath = $imageName;
@@ -107,7 +107,7 @@ class RoomTypeController extends Controller
             'description' => 'nullable|string',
             'bed_count' => 'required|integer|min:1',
             'max_occupancy' => 'required|integer|min:1',
-            'images' => 'nullable|image|mimes:jpeg,png,jpg|max:2048',
+            'images.*' => 'nullable|image|mimes:jpeg,png,jpg|max:2048',
             'amenity_ids' => 'nullable|array',
             'amenity_ids.*' => 'exists:amenities,amenity_id'
         ]);
@@ -135,7 +135,7 @@ class RoomTypeController extends Controller
                     }
                 }
                 // Lưu chỉ 1 ảnh mới
-                $image = $request->file('images');
+                $image = $request->file('images')[0];
                 $imageName = time() . '_' . uniqid() . '.' . $image->getClientOriginalExtension();
                 $image->move(public_path('images/room_type'), $imageName);
                 $newImages = [$imageName];
@@ -309,6 +309,8 @@ class RoomTypeController extends Controller
                 'images' => $roomType->images ?? [],
                 'amenities' => $roomType->amenities,
                 'price' => $priceData,
+                'rate' => $roomType->rate,   
+                'm2' => $roomType->m2
             ], 200);
         } catch (\Exception $e) {
             Log::error('Lỗi khi lấy loại phòng (type_id: ' . $type_id . '): ' . $e->getMessage());
