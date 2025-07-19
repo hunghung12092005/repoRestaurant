@@ -161,6 +161,9 @@ Route::post('/generate-token', [BookingHotelController::class, 'generateToken'])
 //tra ve lich su cho khach hang
 Route::get('/booking-history', [BookingHotelController::class, 'getBookingHistory']);
 Route::delete('/booking-history/{id}', [BookingHotelController::class, 'deleteBookingHistory']);
+Route::delete('/booking-history/{id}', [BookingHotelController::class, 'deleteBookingHistory']);
+Route::get('/cancel-booking/{booking}', [BookingHotelController::class, 'showBookingCancel']);
+Route::post('/cancel-booking/{booking}/bank-info', [BookingHotelController::class, 'updateBankInfo']);
 //lay hang phong dua vao so nguoi
 Route::post('/available-rooms', [BookingHotelController::class, 'getAvailableRooms']);
 //thanh toan payOS

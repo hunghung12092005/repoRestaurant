@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\BookingHotel;
 use App\Models\BookingHotelDetail;
 use App\Models\BookingHotelService;
+use App\Models\CancelBooking;
 use App\Models\Customer;
 use App\Models\Room;
 use App\Models\RoomType;
@@ -371,35 +372,137 @@ class BookingHotelController extends Controller
             ], 500);
         }
     }
-    public function deleteBookingHistory($id)
+    public function deleteBookingHistory(Request $request, $id)
     {
+        // Log::info('Đã vào controller!');
         $sub = JWTAuth::parseToken()->getPayload()->get('sub');
-        //return response()->json(['message' => $sub],500);
         $booking = BookingHotel::where('booking_id', $id)
             ->where('customer_id', $sub)
             ->first();
 
         if (!$booking) {
-            return response()->json(['message' => 'dadadaadda'], 404);
+            return response()->json(['message' => 'Đơn đặt không tồn tại'], 404);
         }
 
         if ($booking->status !== 'pending_confirmation') {
-            return response()->json(['message' => 'Chỉ có thể hủy đơn đã xác nhận'], 400);
+            return response()->json(['message' => 'Chỉ có thể hủy đơn cho xác nhận'], 400);
         }
 
         $now = now();
         $checkInDate = Carbon::parse($booking->check_in_date);
-        if (now()->greaterThanOrEqualTo($checkInDate->subDay())) {
+
+        // Tính số ngày giữa ngày hiện tại và ngày check-in
+        $daysBeforeCheckIn = $now->diffInDays($checkInDate); // Đổi thứ tự các đối số
+
+        // Log::info('Ngày hiện tại: ' . $now);
+        // Log::info('Ngày check-in: ' . $checkInDate);
+        // Log::info('Số ngày trước check-in: ' . $daysBeforeCheckIn);
+
+        // Kiểm tra nếu ngày hiện tại đã qua ngày check-in
+        if ($daysBeforeCheckIn < 1) {
             return response()->json(['message' => 'Chỉ được hủy trước ít nhất 1 ngày'], 400);
         }
 
-        $booking->status = 'cancelled';
+        // Tính toán số tiền hoàn lại
+        $refundAmount = 0;
+        
+        if ($booking->payment_method = 'thanh_toan_qr') {
+            if ($daysBeforeCheckIn >= 1 && $daysBeforeCheckIn < 3) {
+                $refundAmount = $booking->total_price * 0.5; // Hoàn 50%
+            } elseif ($daysBeforeCheckIn >= 5) {
+                $refundAmount = $booking->total_price * 0.7; // Hoàn 70%
+            } elseif ($daysBeforeCheckIn >= 7) {
+                $refundAmount = $booking->total_price; // Hoàn 100%
+            }
+        }
+        
+        if($booking->payment_status != 'completed') {
+             $refundAmount = 0;
+        }
+        // Cập nhật trạng thái hủy
+        $booking->status = 'pending_cancel';
         $booking->save();
+        //return response()->json(['message' =>  $booking->booking_id], 404);
+        // Lưu thông tin hủy vào bảng CancelBooking
+        CancelBooking::create([
+            'booking_id' => $booking->booking_id,
+            'customer_id' => $sub,
+            'cancellation_reason' => $request->input('cancellation_reason'),
+            'refund_amount' => $refundAmount,
+            'status' => 'requested',
+        ]);
 
-        return response()->json(['message' => 'Đơn đã được hủy thành công']);
+        // Xử lý hoàn tiền (giả lập)
+        if ($refundAmount > 0) {
+            // Giả lập hoàn tiền ở đây
+        }
+
+        return response()->json([
+            'message' => 'Đơn đã được gui thành công,Cho nhan vien xac nhan lai',
+            'refund_amount' => $refundAmount
+        ]);
     }
+    public function showBookingCancel($bookingId)
+    {
+        $cancel = CancelBooking::where('booking_id', $bookingId)->first();
 
+        if (!$cancel) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Không tìm thấy thông tin hủy đặt phòng.'
+            ], 404);
+        }
 
+        return response()->json([
+            'status' => 'success',
+            'data' => [
+                'cancel_id' => $cancel->cancel_id,
+                'booking_id' => $cancel->booking_id,
+                'customer_id' => $cancel->customer_id,
+                'reason' => $cancel->cancellation_reason,
+                'refund_amount' => $cancel->refund_amount,
+                'refund_bank' => $cancel->refund_bank,
+                'refund_account_number' => $cancel->refund_account_number,
+                'refund_account_name' => $cancel->refund_account_name,
+                'cancellation_date' => $cancel->cancellation_date,
+                'status' => $cancel->status,
+                'created_at' => $cancel->created_at,
+            ]
+        ]);
+    }
+    public function updateBankInfo(Request $request, $bookingId)
+    {
+        $request->validate([
+            'refund_bank' => 'required|string|max:100',
+            'refund_account_number' => 'required|string|max:100',
+            'refund_account_name' => 'required|string|max:150'
+        ]);
+
+        $cancel = CancelBooking::where('booking_id', $bookingId)->first();
+
+        if (!$cancel) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Không tìm thấy đơn hủy.'
+            ], 404);
+        }
+
+        $cancel->update([
+            'refund_bank' => $request->refund_bank,
+            'refund_account_number' => $request->refund_account_number,
+            'refund_account_name' => $request->refund_account_name,
+        ]);
+
+        return response()->json([
+            'status' => 'success',
+            'message' => 'Cập nhật thông tin ngân hàng thành công.',
+            'data' => [
+                'refund_bank' => $cancel->refund_bank,
+                'refund_account_number' => $cancel->refund_account_number,
+                'refund_account_name' => $cancel->refund_account_name,
+            ]
+        ]);
+    }
     /**
      * Tạo link thanh toán PayOS
      */
