@@ -162,6 +162,8 @@ Route::post('/qr-login', [ApiLoginController::class, 'qrLogin']); // Thêm dòng
 Route::post('/send-otp', [ApiLoginController::class, 'sendOtp']);
 Route::post('/verify-otp', [ApiLoginController::class, 'verifyOtp']);
 Route::post('/reset-password', [ApiLoginController::class, 'resetPassword']);
+Route::post('/change-password', [ApiLoginController::class, 'changePassword']);
+Route::post('/update-password', [ApiLoginController::class, 'updateProfile']);
 //thêm booking từ client
 Route::post('/booking-client', [BookingHotelController::class, 'storeBooking']);
 //tao token jwt cho khách hàng

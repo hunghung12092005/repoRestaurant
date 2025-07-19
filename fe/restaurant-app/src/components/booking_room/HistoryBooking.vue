@@ -634,7 +634,7 @@ const formatPaymentStatus = (status) => {
 };
 
 const canCancelBooking = (booking) => {
-  if (booking.status !== 'pending_confirmation') return false;
+  //if (booking.status !== 'pending_confirmation') return false;
   const checkInDate = new Date(booking.check_in_date);
   const now = new Date();
   checkInDate.setDate(checkInDate.getDate() - 1);

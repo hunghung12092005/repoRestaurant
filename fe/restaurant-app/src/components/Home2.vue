@@ -152,7 +152,7 @@ const getRoomImage = (roomType, index) => {
     return `${apiUrl.value}/images/room_type/${roomType.images[0]}`;
   }
   // Fallback nếu không có ảnh
-  return 'https://via.placeholder.com/575x250?text=No+Image+Available';
+  //return 'https://via.placeholder.com/575x250?text=No+Image+Available';
 };
 
 const fetchRoomTypes = async () => {
@@ -181,7 +181,7 @@ onMounted(() => {
 });
 
 const handleImageError = (event) => {
-  event.target.src = 'https://via.placeholder.com/575x250?text=Image+Not+Found';
+  //event.target.src = 'https://via.placeholder.com/575x250?text=Image+Not+Found';
 };
 
 </script>

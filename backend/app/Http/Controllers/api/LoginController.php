@@ -11,6 +11,7 @@ use Endroid\QrCode\QrCode; // Thêm dòng này để sử dụng thư viện QR 
 use Endroid\QrCode\Writer\PngWriter;
 use Endroid\QrCode\ErrorCorrectionLevel;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Mail;
 
@@ -85,20 +86,20 @@ class LoginController extends Controller
         // Tạo token cho người dùng vừa đăng ký
         $token = JWTAuth::fromUser($user);
         // Tạo mã QR
-        $qrCode = new QrCode('http://127.0.0.1:8000/qr-login?token=' . $token);
+        //$qrCode = new QrCode('http://127.0.0.1:8000/qr-login?token=' . $token);
 
         // Tạo writer để xuất mã QR
-        $writer = new PngWriter();
-        $dataUri = $writer->write($qrCode)->getDataUri();
+       // $writer = new PngWriter();
+        //$dataUri = $writer->write($qrCode)->getDataUri();
         // Lưu mã QR vào cơ sở dữ liệu
-        $user->qr_code = $dataUri; // Lưu mã QR
-        $user->save();
+        //$user->qr_code = $dataUri; // Lưu mã QR
+        //$user->save();
         // Trả về thông tin người dùng và mã QR
         return response()->json([
             'message' => 'Đăng ký thành công',
             'token' => $token,
             'user' => $user,
-            'qr_code' => $dataUri, // Trả về mã QR dưới dạng URI
+            //'qr_code' => $dataUri, // Trả về mã QR dưới dạng URI
         ], 201);
     }
     //lấy token về
@@ -204,6 +205,63 @@ class LoginController extends Controller
 
         return response()->json(['success' => false, 'message' => 'Không tìm thấy tài khoản.'], 400);
     }
+    public function changePassword(Request $request)
+    {
+        // Lấy ID từ token JWT
+        $sub = JWTAuth::parseToken()->getPayload()->get('sub');
+
+        // Tìm người dùng theo ID
+        $user = User::find($sub);
+
+        if (!$user) {
+            return response()->json(['message' => 'Unauthorized'], 401);
+        }
+
+        // Kiểm tra dữ liệu đầu vào
+        $request->validate([
+            'current_password' => 'required',
+            'new_password' => 'required|min:6|confirmed',
+        ]);
+
+        // Kiểm tra mật khẩu hiện tại
+        if (!Hash::check($request->current_password, $user->password)) {
+            return response()->json(['message' => 'Current password is incorrect'], 400);
+        }
+
+        // Cập nhật mật khẩu mới
+        $user->password = Hash::make($request->new_password);
+        $user->save();
+
+        return response()->json(['message' => 'Password changed successfully'], 200);
+    }
+    public function updateProfile(Request $request)
+    {
+        // Lấy ID từ token JWT
+        $sub = JWTAuth::parseToken()->getPayload()->get('sub');
+
+        // Tìm người dùng theo ID
+        $user = User::find($sub);
+
+        if (!$user) {
+            return response()->json(['message' => 'Unauthorized'], 401);
+        }
+
+        // Kiểm tra dữ liệu đầu vào
+        $request->validate([
+            'name' => 'required|string|max:255',
+            'email' => 'required|email|unique:users,email,' . $user->id,
+            // Thêm các trường cần thiết khác
+        ]);
+
+        // Cập nhật thông tin hồ sơ
+        $user->name = $request->name;
+        $user->email = $request->email;
+        // Cập nhật thêm các trường khác nếu cần
+
+        $user->save();
+
+        return response()->json(['message' => 'Profile updated successfully'], 200);
+    }
 
     /**
      * Display a listing of the resource.
@@ -212,6 +270,7 @@ class LoginController extends Controller
     {
         //
     }
+
 
     /**
      * Store a newly created resource in storage.

@@ -90,16 +90,14 @@
 
             </p>
 
-            <p v-if="isLogin" class="p line">Or With</p>
+            <!-- <p v-if="isLogin" class="p line">Or With</p>
             <div v-if="isLogin">
                 <h4>Đăng Nhập Nhanh Qua Mã QR</h4>
-                <!-- <input type="file" @change="onFileChange" accept="image/*" /> -->
                 
                 <button class="btn-main" @click="startQRCodeScanner">Quét Mã QR</button>
                 <div id="reader" style="width: 100%; height: 300px; display: none;"></div>
-                <!-- <button class="btn btn-info m-2" @click="stopQRCodeScanner">dừng</button> -->
                 <p v-if="errorMessageQr">{{ errorMessage }}</p>
-            </div>
+            </div> -->
             <p class="p line">Or With</p>
 
             <div class="flex-row">
@@ -183,7 +181,7 @@ const submitForm = async () => {
                 turnstileResponse, // Gửi Turnstile response cho register
             });
             const token = response.data.token;
-            qrCode.value = response.data.qr_code;
+            //qrCode.value = response.data.qr_code;
             localStorage.setItem('tokenJwt', token);
             //console.log(response.data.message);
             showAlert(response.data.message);
@@ -361,7 +359,6 @@ function showAlert(message) {
     position: relative;
     background-color: rgba(15, 141, 172, 0.2);
 }
-
 .main-login::before {
     content: "";
     position: absolute;
