@@ -309,6 +309,8 @@ class RoomTypeController extends Controller
                 'images' => $roomType->images ?? [],
                 'amenities' => $roomType->amenities,
                 'price' => $priceData,
+                'rate' => $roomType->rate,   
+                'm2' => $roomType->m2
             ], 200);
         } catch (\Exception $e) {
             Log::error('Lỗi khi lấy loại phòng (type_id: ' . $type_id . '): ' . $e->getMessage());

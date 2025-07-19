@@ -23,6 +23,7 @@ use App\Http\Controllers\api\NewsCategoryController;
 use App\Http\Controllers\api\NewsCommentController;
 use App\Http\Controllers\BookingHotelController;
 use App\Http\Controllers\api\AdminDashboardController;
+use App\Http\Controllers\api\ContactController;
 use App\Http\Controllers\BookingHistoryController;
 use App\Http\Controllers\ChatAIController;
 use App\Http\Controllers\WebhookController;
@@ -57,6 +58,13 @@ Route::post('/rooms/preview-price', [OccupancyController::class, 'previewPrice']
 Route::post('/rooms/{room_id}/extend', [OccupancyController::class, 'extendStay']); //gia hạn phòng
 Route::post('/customers/{id}/update-name', [OccupancyController::class, 'updateCustomerName']);
 // Cập nhật thông tin khách hàng
+
+Route::post('/contacts', [ContactController::class, 'store']);
+Route::get('/admin/contacts', [ContactController::class, 'index']);
+Route::delete('/admin/contacts/{contact}', [ContactController::class, 'destroy']);
+Route::post('/admin/contacts/{contact}/reply', [ContactController::class, 'reply']);
+Route::get('/admin/contacts/new', [ContactController::class, 'fetchNew']);
+
 
 
 Route::apiResource('users', UsersController::class);

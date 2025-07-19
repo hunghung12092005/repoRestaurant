@@ -88,7 +88,7 @@
 
 <script setup>
 import { ref, onMounted, watch } from 'vue';
-import socket from '../socket'; // Import socket từ file chung
+//import socket from '../socket'; // Import socket từ file chung
 
 const users = ref([]);
 const selectedMessages = ref([]);

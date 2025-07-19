@@ -136,13 +136,7 @@
                 </div>
               </div>
 
-              <!-- Widget Thẻ phổ biến -->
-              <div class="sidebar-widget p-4 rounded mb-4">
-                <h4 class="widget-title mb-3">Thẻ Phổ Biến</h4>
-                <div class="tag-cloud">
-                    <a href="#" v-for="tag in popularTags" :key="tag.name">{{ tag.name }}</a>
-                </div>
-              </div>
+              
             </div>
           </div>
         </div>
@@ -167,10 +161,6 @@ const pagination = ref({});
 const loading = ref(true);
 const searchQuery = ref('');
 
-const popularTags = ref([
-    { name: 'Đồ Ăn Nhanh' }, { name: 'Bữa Trưa' }, { name: 'Nhà Hàng' },
-    { name: 'Burger' }, { name: 'Bữa Tối' }, { name: 'Gà Rán' },
-]);
 
 const apiUrl = inject('apiUrl');
 

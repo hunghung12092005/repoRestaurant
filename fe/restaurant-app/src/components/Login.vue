@@ -137,7 +137,6 @@
 import axios from 'axios';
 import { inject, ref, onMounted, onBeforeUnmount } from 'vue';
 const apiUrl = inject('apiUrl');
-// import Footer from './Footer.vue';
 import loading from './loading.vue';
 const isLoading = ref(false);
 const isLogin = ref(true);
