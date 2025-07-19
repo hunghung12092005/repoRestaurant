@@ -376,72 +376,139 @@ class BookingHotelController extends Controller
     {
         // Log::info('Đã vào controller!');
         $sub = JWTAuth::parseToken()->getPayload()->get('sub');
-        $booking = BookingHotel::where('booking_id', $id)
-            ->where('customer_id', $sub)
-            ->first();
+        $booking = BookingHotel::where('booking_id', $id)->where('customer_id', $sub)->first();
 
         if (!$booking) {
-            return response()->json(['message' => 'Đơn đặt không tồn tại'], 404);
+            return response()->json(['message' => 'Đơn đặt phòng không tồn tại'], 404);
         }
 
-        if ($booking->status !== 'pending_confirmation') {
-            return response()->json(['message' => 'Chỉ có thể hủy đơn cho xác nhận'], 400);
+        if ($booking->status !== 'pending_confirmation' && $booking->status !== 'confirmed') {
+            return response()->json(['message' => 'Chỉ có thể hủy đơn ở trạng thái chờ xác nhận hoặc đã xác nhận'], 400);
         }
 
-        $now = now();
+        $now = Carbon::today();
         $checkInDate = Carbon::parse($booking->check_in_date);
 
-        // Tính số ngày giữa ngày hiện tại và ngày check-in
-        $daysBeforeCheckIn = $now->diffInDays($checkInDate); // Đổi thứ tự các đối số
-
-        // Log::info('Ngày hiện tại: ' . $now);
-        // Log::info('Ngày check-in: ' . $checkInDate);
-        // Log::info('Số ngày trước check-in: ' . $daysBeforeCheckIn);
-
-        // Kiểm tra nếu ngày hiện tại đã qua ngày check-in
-        if ($daysBeforeCheckIn < 1) {
-            return response()->json(['message' => 'Chỉ được hủy trước ít nhất 1 ngày'], 400);
+        if ($checkInDate->isToday()) {
+            return response()->json(['message' => 'Không thể hủy đặt phòng cho ngày hiện tại'], 400);
         }
 
         // Tính toán số tiền hoàn lại
         $refundAmount = 0;
-        
-        if ($booking->payment_method = 'thanh_toan_qr') {
-            if ($daysBeforeCheckIn >= 1 && $daysBeforeCheckIn < 3) {
-                $refundAmount = $booking->total_price * 0.5; // Hoàn 50%
-            } elseif ($daysBeforeCheckIn >= 5) {
-                $refundAmount = $booking->total_price * 0.7; // Hoàn 70%
-            } elseif ($daysBeforeCheckIn >= 7) {
-                $refundAmount = $booking->total_price; // Hoàn 100%
-            }
+        if ($booking->payment_method === 'thanh_toan_qr' && $booking->payment_status === 'completed') {
+            $daysBeforeCheckIn = $now->diffInDays($checkInDate);
+            if ($daysBeforeCheckIn >= 7) $refundAmount = $booking->total_price;
+            elseif ($daysBeforeCheckIn >= 5) $refundAmount = $booking->total_price * 0.7;
+            elseif ($daysBeforeCheckIn >= 1) $refundAmount = $booking->total_price * 0.5;
         }
-        
-        if($booking->payment_status != 'completed') {
-             $refundAmount = 0;
-        }
-        // Cập nhật trạng thái hủy
+
         $booking->status = 'pending_cancel';
         $booking->save();
-        //return response()->json(['message' =>  $booking->booking_id], 404);
-        // Lưu thông tin hủy vào bảng CancelBooking
-        CancelBooking::create([
+
+        $cancel = CancelBooking::create([
             'booking_id' => $booking->booking_id,
             'customer_id' => $sub,
-            'cancellation_reason' => $request->input('cancellation_reason'),
+            'cancellation_reason' => $request->input('cancellation_reason', 'Không có lý do cụ thể'),
             'refund_amount' => $refundAmount,
             'status' => 'requested',
         ]);
 
-        // Xử lý hoàn tiền (giả lập)
-        if ($refundAmount > 0) {
-            // Giả lập hoàn tiền ở đây
-        }
+        Log::info('Tạo yêu cầu hủy thành công', ['cancel_id' => $cancel->cancel_id, 'booking_id' => $booking->booking_id]);
 
         return response()->json([
-            'message' => 'Đơn đã được gui thành công,Cho nhan vien xac nhan lai',
+            'message' => 'Yêu cầu hủy đơn đặt phòng đã được gửi, đang chờ xác nhận',
             'refund_amount' => $refundAmount
-        ]);
+        ], 200);
     }
+
+    public function confirmCancelBooking(Request $request, $cancel_id)
+    {
+        try {
+            $cancel = CancelBooking::where('cancel_id', $cancel_id)->first();
+            if (!$cancel) {
+                return response()->json(['message' => 'Không tìm thấy yêu cầu hủy'], 404);
+            }
+
+            if ($cancel->status !== 'requested') {
+                return response()->json(['message' => 'Yêu cầu hủy không thể xác nhận vì đã được xử lý'], 400);
+            }
+
+            $booking = BookingHotel::where('booking_id', $cancel->booking_id)->first();
+            if (!$booking) {
+                return response()->json(['message' => 'Đơn đặt phòng không tồn tại'], 404);
+            }
+
+            $newStatus = $request->input('status', 'processed');
+            if (!in_array($newStatus, ['processed', 'failed'])) {
+                return response()->json(['message' => 'Trạng thái không hợp lệ'], 400);
+            }
+
+            $cancel->status = $newStatus;
+            $cancel->refund_bank = $request->input('refund_bank');
+            $cancel->refund_account_number = $request->input('refund_account_number');
+            $cancel->refund_account_name = $request->input('refund_account_name');
+            $cancel->save();
+
+            $booking->status = 'cancelled';
+            $booking->save();
+
+            Log::info('Xác nhận hủy thành công', ['cancel_id' => $cancel_id, 'booking_id' => $cancel->booking_id]);
+
+            return response()->json([
+                'message' => 'Xác nhận hủy đặt phòng thành công',
+                'data' => $cancel
+            ], 200);
+        } catch (\Exception $e) {
+            Log::error('Lỗi khi xác nhận hủy: ' . $e->getMessage(), [
+                'cancel_id' => $cancel_id,
+                'trace' => $e->getTraceAsString()
+            ]);
+            return response()->json(['error' => 'Lỗi server, vui lòng thử lại sau'], 500);
+        }
+    }
+
+    public function getCancelInfo($booking_id)
+    {
+        try {
+            $cancel = CancelBooking::where('booking_id', $booking_id)->first();
+            if (!$cancel) {
+                Log::warning('Không tìm thấy bản ghi hủy cho booking_id', ['booking_id' => $booking_id]);
+                return response()->json(['message' => 'Không tìm thấy thông tin hủy cho đặt phòng này'], 404);
+            }
+
+            // Kiểm tra trạng thái hợp lệ
+            $validStatuses = ['requested', 'processed', 'failed'];
+            if (!in_array($cancel->status, $validStatuses)) {
+                Log::warning('Trạng thái không hợp lệ', ['booking_id' => $booking_id, 'status' => $cancel->status]);
+                return response()->json(['message' => 'Trạng thái hủy không hợp lệ'], 400);
+            }
+
+            $data = [
+                'cancel_id' => $cancel->cancel_id,
+                'booking_id' => $cancel->booking_id,
+                'customer_id' => $cancel->customer_id,
+                'reason' => $cancel->cancellation_reason,
+                'cancellation_date' => $cancel->cancellation_date,
+                'refund_amount' => $cancel->refund_amount,
+                'status' => $cancel->status,
+                'refund_bank' => $cancel->refund_bank,
+                'refund_account_number' => $cancel->refund_account_number,
+                'refund_account_name' => $cancel->refund_account_name,
+                'created_at' => $cancel->created_at,
+                'updated_at' => $cancel->updated_at,
+            ];
+
+            Log::info('Lấy thông tin hủy thành công', ['booking_id' => $booking_id]);
+            return response()->json(['data' => $data], 200);
+        } catch (\Exception $e) {
+            Log::error('Lỗi khi lấy thông tin hủy: ' . $e->getMessage(), [
+                'booking_id' => $booking_id,
+                'trace' => $e->getTraceAsString()
+            ]);
+            return response()->json(['error' => 'Lỗi server, vui lòng thử lại sau'], 500);
+        }
+    }
+
     public function showBookingCancel($bookingId)
     {
         $cancel = CancelBooking::where('booking_id', $bookingId)->first();
@@ -561,7 +628,7 @@ class BookingHotelController extends Controller
     public function getBookings(Request $request)
     {
         try {
-            $statuses = $request->query('status', ['pending_confirmation', 'confirmed', 'completed']);
+            $statuses = $request->query('status', ['pending_confirmation', 'confirmed', 'completed', 'pending_cancel', 'cancelled']);
             $statuses = is_array($statuses) ? $statuses : [$statuses];
 
             $bookings = BookingHotel::with(['customer', 'details.roomType'])

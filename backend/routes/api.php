@@ -147,6 +147,8 @@ Route::get('/booking-services/{bookingId}', [BookingHotelController::class, 'get
 Route::get('/available-rooms', [BookingHotelController::class, 'getAvailableRooms']);
 Route::post('/assign-room/{bookingDetailId}', [BookingHotelController::class, 'assignRoom']);
 Route::patch('/bookings/{bookingId}', [BookingHotelController::class, 'confirmBooking']);
+Route::get('/booking-cancel/{booking_id}', [BookingHotelController::class, 'getCancelInfo']);
+Route::patch('/booking-cancel/{cancel_id}', [BookingHotelController::class, 'confirmCancelBooking']);
 
 Route::get('/booking-histories', [BookingHistoryController::class, 'index']);
 Route::get('/booking-histories/{status_id}', [BookingHistoryController::class, 'show']);

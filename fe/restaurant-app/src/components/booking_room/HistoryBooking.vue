@@ -581,7 +581,7 @@ const confirmCancellation = async () => {
       data: { cancellation_reason: cancellationReason.value }
     });
 
-    alert('Hủy thành công');
+    alert('Yêu cầu hủy đặt phòng đã được gửi thành công!');
     showCancelPopup.value = false; // Đóng popup
     cancellationReason.value = ''; // Reset lý do
     getHistoryBooking(); // Cập nhật lịch sử đặt phòng
