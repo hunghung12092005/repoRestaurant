@@ -62,7 +62,7 @@
                 Chi tiết
               </button>
               <br>
-              <a href="#" class="action-link" @click.prevent="checkoutRoom(room.room_id)"><button>Thanh toán</button></a>
+              <a href="#" class="action-link" @click.prevent="checkoutRoom(room.room_id)"><button>Trả phòng</button></a>
               <br>
               <a href="#" class="action-link" @click.prevent="showExtendForm(room.room_id)"><button>Gia hạn</button></a>
             </div>
@@ -175,7 +175,7 @@
       </div>
     </div>
 
-    <!-- Modal Chọn Dịch Vụ Khi Thanh Toán -->
+    <!-- Modal Chọn Dịch Vụ Khi Trả phòng -->
     <div v-if="showServiceModal" class="modal-overlay">
       <div class="modal-content">
         <h2>Chọn dịch vụ sử dụng</h2>
@@ -205,7 +205,7 @@
           </div>
         </div>
         <div class="form-actions">
-          <button @click="confirmPayment">Xác nhận thanh toán</button>
+          <button @click="confirmPayment">Xác nhận trả phòng</button>
           <button @click="showServiceModal = false">Hủy</button>
         </div>
       </div>

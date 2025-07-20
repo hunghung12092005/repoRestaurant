@@ -23,7 +23,7 @@
           <li class="nav-item"><router-link class="nav-link" to="/admin/dashboard"><i class="bi bi-grid"></i>
               Trang thống kê</router-link></li>
           <li class="nav-item"><router-link class="nav-link" to="/admin/occupancy"><i class="bi bi-house-door"></i>
-              QL tình trạng phòng <span class="badge bg-danger">5</span></router-link></li>
+              QL tình trạng phòng</router-link></li>
           <ul class="nav">
             <li class="nav-item">
               <router-link class="nav-link" to="/admin/bookings">
