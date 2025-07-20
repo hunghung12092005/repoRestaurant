@@ -600,7 +600,7 @@
         <div id="recaptcha-container"></div> <!-- ReCAPTCHA -->
 
         <!-- Modal for hotel details -->
-        <div v-if="showModal" class="modal fade show mt-5"
+        <!-- <div v-if="showModal" class="modal fade show mt-5"
             style="display: block; background-color: rgba(0, 0, 0, 0.7);">
             <div class="modal-dialog modal-dialog-centered modal-xl">
                 <div class="modal-content shadow-lg border-0 rounded-4">
@@ -713,7 +713,7 @@
                 </div>
             </div>
         </div>
-        
+         -->
     </div>
 </template>
 
@@ -1277,10 +1277,14 @@ const closeModalOtp = async () => {
     isOtp.value = false;
 }
 //xem chi tiết hạng phòng
-function viewHotelDetails(hotel) {
-    selectedHotel.value = hotel;
-    showModal.value = true;
-}
+// function viewHotelDetails(hotel) {
+    
+//     selectedHotel.value = hotel;
+//     showModal.value = true;
+// }
+const viewHotelDetails = (hotel) => {
+      router.push({ name: 'RoomTypeDetail', params: { id: hotel.id } });
+    };  
 function closeModal() {
     showModal.value = false;
     showModalBooking.value = false; // Đóng modal sau khi xác nhận

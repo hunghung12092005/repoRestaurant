@@ -390,9 +390,49 @@ body {
 }
 .btn-outline-custom:hover { background-color: #f8f9fa; color: #333; }
 .btn-solid-custom {
-  background-color: #0d6efd; color: white; padding: 9px 20px; border-radius: 4px; border: 1px solid #0d6efd;
-  text-decoration: none; display: inline-block; font-weight: 500;
-  transition: background-color 0.2s ease-in-out, border-color 0.2s ease-in-out;
+  /* Nền và màu chữ */
+  background: linear-gradient(135deg, #307bea, #f6abf1); /* Gradient xanh dương đẹp mắt */
+  color: #ffffff; /* Màu chữ trắng tinh khiết */
+
+  /* Kích thước và hình dạng */
+  padding: 12px 25px; /* Tăng padding để nút lớn và dễ bấm hơn */
+  border-radius: 8px; /* Bo góc mềm mại hơn */
+  border: none; /* Loại bỏ border mặc định để gradient nổi bật */
+
+  /* Chữ và căn chỉnh */
+  text-decoration: none;
+  display: inline-flex; /* Sử dụng flexbox để căn giữa icon và text nếu có */
+  align-items: center; /* Căn giữa theo chiều dọc */
+  justify-content: center; /* Căn giữa theo chiều ngang */
+  font-weight: 600; /* Đậm hơn cho chữ nổi bật */
+  font-size: 1rem; /* Kích thước font chuẩn */
+  gap: 8px; /* Khoảng cách giữa icon và text (nếu có) */
+
+  /* Hiệu ứng và bóng đổ */
+  cursor: pointer; /* Biểu tượng con trỏ khi di chuột */
+  box-shadow: 0 4px 12px rgba(0, 100, 255, 0.25); /* Bóng đổ tinh tế, nổi bật */
+  transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1); /* Transition mượt mà hơn */
+}
+
+.btn-solid-custom:hover {
+  background: linear-gradient(135deg, #0b5ed7, #0d6efd); /* Đổi hướng gradient hoặc màu sắc nhẹ khi hover */
+  transform: translateY(-2px); /* Nút nhích lên một chút */
+  box-shadow: 0 8px 20px rgba(0, 100, 255, 0.35); /* Bóng đổ sâu hơn khi hover */
+}
+
+.btn-solid-custom:active {
+  transform: translateY(0); /* Nút trở về vị trí ban đầu hoặc lún xuống */
+  box-shadow: 0 2px 8px rgba(0, 100, 255, 0.2); /* Bóng đổ nhỏ hơn, tạo cảm giác bấm */
+  background: #0b5ed7; /* Màu đơn sắc khi bấm */
+}
+
+.btn-solid-custom:disabled {
+  background: #cccccc; /* Nền xám khi disabled */
+  color: #999999; /* Chữ xám khi disabled */
+  cursor: not-allowed;
+  box-shadow: none;
+  transform: none;
+  opacity: 0.7; /* Làm mờ nhẹ */
 }
 .btn-solid-custom:hover { background-color: #0b5ed7; border-color: #0b5ed7; }
 .dropdown-item {
