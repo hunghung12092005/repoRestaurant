@@ -37,10 +37,10 @@
         </thead>
         <tbody>
           <tr v-if="isLoading">
-            <td colspan="7" class="text-center">Đang tải dữ liệu...</td>
+            <td colspan="8" class="text-center">Đang tải dữ liệu...</td>
           </tr>
           <tr v-else-if="displayedPricings.length === 0">
-            <td colspan="7" class="text-center text-muted">
+            <td colspan="8" class="text-center text-muted">
               Không có giá phòng nào phù hợp
             </td>
           </tr>
@@ -54,16 +54,12 @@
             <td>{{ pricing.priority }}</td>
             <td>
               <button
-                class="btn btn-primary btn-sm me-2"
-                @click="openEditModal(pricing)"
+                class="btn btn-sm"
+                :class="pricing.is_active ? 'btn-warning' : 'btn-success'"
+                @click="toggleActivation(pricing)"
               >
-                <i class="bi bi-pencil"></i> Sửa
-              </button>
-              <button
-                class="btn btn-danger btn-sm"
-                @click="deletePricing(pricing.price_id)"
-              >
-                <i class="bi bi-trash"></i> Xóa
+                <i :class="pricing.is_active ? 'bi bi-pause-circle' : 'bi bi-play-circle'"></i>
+                {{ pricing.is_active ? 'Hủy kích hoạt' : 'Kích hoạt' }}
               </button>
             </td>
           </tr>
@@ -110,7 +106,7 @@
       </nav>
     </div>
 
-    <!-- Modal thêm/sửa -->
+    <!-- Modal thêm -->
     <div
       v-if="isModalOpen"
       class="modal fade show d-block"
@@ -120,9 +116,7 @@
       <div class="modal-dialog">
         <div class="modal-content">
           <div class="modal-header">
-            <h5 class="modal-title">
-              {{ currentPricing ? "Sửa Giá Phòng" : "Thêm Giá Phòng Mới" }}
-            </h5>
+            <h5 class="modal-title">Thêm Giá Phòng Mới</h5>
             <button type="button" class="btn-close" @click="closeModal"></button>
           </div>
           <div class="modal-body">
@@ -247,7 +241,6 @@ const roomTypes = ref([]);
 const searchKeyword = ref('');
 const isModalOpen = ref(false);
 const isLoading = ref(false);
-const currentPricing = ref(null);
 const newPricing = ref({
   type_id: '',
   start_date: '',
@@ -255,7 +248,8 @@ const newPricing = ref({
   description: '',
   price_per_night: 0,
   hourly_price: 0,
-  priority: 0
+  priority: 0,
+  is_active: true // Sử dụng boolean
 });
 const errors = ref({
   start_date: '',
@@ -295,19 +289,16 @@ const fetchPricings = async (page = 1) => {
   modalErrorMessage.value = '';
   try {
     const response = await apiClient.get(`/prices?page=${page}&per_page=${itemsPerPage.value}`);
-    console.log('Dữ liệu API trả về (prices):', JSON.stringify(response.data, null, 2));
-    seasonalPricings.value = Array.isArray(response.data.data) ? [...response.data.data] : [];
+    seasonalPricings.value = Array.isArray(response.data.data) ? response.data.data.map(item => ({
+      ...item,
+      is_active: Boolean(item.is_active) // Chuyển thành boolean
+    })) : [];
+    console.log('Updated seasonalPricings:', seasonalPricings.value);
     totalItems.value = response.data.total || 0;
     currentPage.value = response.data.current_page || 1;
-    console.log('Danh sách giá sau khi cập nhật:', seasonalPricings.value);
   } catch (error) {
-    console.error('Lỗi khi lấy danh sách giá:', {
-      message: error.message,
-      response: error.response?.data,
-      status: error.response?.status,
-      url: error.response?.config?.url
-    });
-    modalErrorMessage.value = error.response?.data?.message || 'Không thể tải danh sách giá phòng. Kiểm tra endpoint /prices.';
+    console.error('Lỗi khi lấy danh sách giá:', error);
+    modalErrorMessage.value = error.response?.data?.message || 'Không thể tải danh sách giá phòng.';
     seasonalPricings.value = [];
     totalItems.value = 0;
   } finally {
@@ -320,7 +311,6 @@ const fetchRoomTypes = async () => {
   try {
     const response = await apiClient.get('/room-types');
     roomTypes.value = Array.isArray(response.data.data) ? [...response.data.data] : [];
-    console.log('Danh sách loại phòng:', roomTypes.value);
   } catch (error) {
     console.error('Lỗi khi lấy danh sách loại phòng:', error);
     modalErrorMessage.value = error.response?.data?.message || 'Không thể tải danh sách loại phòng.';
@@ -347,7 +337,6 @@ watch(currentPage, (newPage) => {
 
 // Lọc giá
 const filteredPricings = computed(() => {
-  console.log('Tính toán filteredPricings, từ khóa:', searchKeyword.value, 'dữ liệu:', seasonalPricings.value);
   if (!Array.isArray(seasonalPricings.value)) return [];
   if (!searchKeyword.value.trim()) return seasonalPricings.value;
   return seasonalPricings.value.filter(pricing => {
@@ -357,11 +346,7 @@ const filteredPricings = computed(() => {
 });
 
 // Danh sách giá hiển thị
-const displayedPricings = computed(() => {
-  const result = filteredPricings.value || [];
-  console.log('Danh sách giá hiển thị:', result);
-  return result;
-});
+const displayedPricings = computed(() => filteredPricings.value);
 
 // Tính tổng số trang
 const totalPages = computed(() => Math.ceil(totalItems.value / itemsPerPage.value));
@@ -386,36 +371,12 @@ const openAddModal = () => {
     description: '',
     price_per_night: 0,
     hourly_price: 0,
-    priority: 0
+    priority: 0,
+    is_active: true
   };
   errors.value = {};
-  currentPricing.value = null;
   isModalOpen.value = true;
   modalErrorMessage.value = '';
-  console.log('Mở modal thêm, reset form:', { ...newPricing.value });
-};
-
-// Mở modal sửa
-const openEditModal = (pricing) => {
-  console.log('Mở modal sửa:', JSON.stringify(pricing, null, 2));
-  if (!pricing || typeof pricing !== 'object') {
-    modalErrorMessage.value = 'Dữ liệu giá không hợp lệ.';
-    return;
-  }
-  newPricing.value = {
-    type_id: String(pricing.type_id || ''),
-    start_date: pricing.start_date || '',
-    end_date: pricing.end_date || '',
-    description: String(pricing.description || ''),
-    price_per_night: Number(pricing.price_per_night) || 0,
-    hourly_price: Number(pricing.hourly_price) || 0,
-    priority: Number(pricing.priority) || 0
-  };
-  currentPricing.value = { ...pricing };
-  isModalOpen.value = true;
-  errors.value = {};
-  modalErrorMessage.value = '';
-  console.log('Form sửa:', { ...newPricing.value });
 };
 
 // Đóng modal
@@ -423,7 +384,6 @@ const closeModal = () => {
   isModalOpen.value = false;
   errors.value = {};
   modalErrorMessage.value = '';
-  currentPricing.value = null;
   newPricing.value = {
     type_id: '',
     start_date: '',
@@ -431,9 +391,9 @@ const closeModal = () => {
     description: '',
     price_per_night: 0,
     hourly_price: 0,
-    priority: 0
+    priority: 0,
+    is_active: true
   };
-  console.log('Đóng modal, reset form:', { ...newPricing.value });
 };
 
 // Kiểm tra form
@@ -470,13 +430,11 @@ const validateForm = () => {
     isValid = false;
   }
 
-  console.log('Kết quả kiểm tra form:', { isValid, form: { ...newPricing.value }, errors: errors.value });
   return isValid;
 };
 
 // Lưu giá
 const savePricing = async () => {
-  console.log('Dữ liệu form trước khi kiểm tra:', { ...newPricing.value });
   if (!validateForm()) {
     modalErrorMessage.value = 'Vui lòng kiểm tra thông tin nhập.';
     return;
@@ -491,32 +449,16 @@ const savePricing = async () => {
     description: newPricing.value.description.trim() || null,
     price_per_night: newPricing.value.price_per_night,
     hourly_price: newPricing.value.hourly_price,
-    priority: newPricing.value.priority
+    priority: newPricing.value.priority,
+    is_active: newPricing.value.is_active
   };
-  console.log('Gửi dữ liệu:', payload);
   try {
-    let response;
-    if (currentPricing.value) {
-      response = await apiClient.put(`/prices/${currentPricing.value.price_id}`, payload);
-      console.log('Kết quả cập nhật:', JSON.stringify(response.data, null, 2));
-      const index = seasonalPricings.value.findIndex(p => p.price_id === currentPricing.value.price_id);
-      if (index !== -1) {
-        seasonalPricings.value[index] = { ...response.data.data };
-      }
-    } else {
-      response = await apiClient.post('/prices', payload);
-      console.log('Kết quả thêm mới:', JSON.stringify(response.data, null, 2));
-      await fetchPricings(currentPage.value);
-    }
+    const response = await apiClient.post('/prices', payload);
+    await fetchPricings(currentPage.value);
     closeModal();
     modalErrorMessage.value = 'Lưu giá phòng thành công!';
   } catch (error) {
-    console.error('Lỗi khi lưu giá:', {
-      message: error.message,
-      response: error.response?.data,
-      status: error.response?.status,
-      url: error.response?.config?.url
-    });
+    console.error('Lỗi khi lưu giá:', error);
     modalErrorMessage.value = error.response?.data?.message || 'Lưu giá phòng thất bại.';
     if (error.response?.status === 422) {
       errors.value = { ...error.response.data?.errors };
@@ -527,29 +469,23 @@ const savePricing = async () => {
   }
 };
 
-// Xóa giá
-const deletePricing = async (id) => {
-  if (!confirm('Bạn có chắc chắn muốn xóa giá phòng này?')) return;
+// Kích hoạt/Hủy kích hoạt giá
+const toggleActivation = async (pricing) => {
+  if (!confirm(`Bạn có chắc chắn muốn ${pricing.is_active ? 'hủy kích hoạt' : 'kích hoạt'} giá phòng này?`)) return;
 
   isLoading.value = true;
   modalErrorMessage.value = '';
   try {
-    await apiClient.delete(`/prices/${id}`);
-    seasonalPricings.value = seasonalPricings.value.filter(p => p.price_id !== id);
-    totalItems.value = Math.max(0, totalItems.value - 1);
-    if (displayedPricings.value.length === 0 && currentPage.value > 1) {
-      currentPage.value--;
-    }
-    modalErrorMessage.value = 'Xóa giá phòng thành công!';
-    await fetchPricings(currentPage.value);
-  } catch (error) {
-    console.error('Lỗi khi xóa giá:', {
-      message: error.message,
-      response: error.response?.data,
-      status: error.response?.status,
-      url: error.response?.config?.url
+    console.log('Sending PUT request for price_id:', pricing.price_id, 'with is_active:', !pricing.is_active);
+    const response = await apiClient.put(`/prices/${pricing.price_id}`, {
+      is_active: !pricing.is_active // Gửi boolean
     });
-    modalErrorMessage.value = error.response?.data?.message || 'Xóa giá phòng thất bại.';
+    console.log('API response:', response.data);
+    await fetchPricings(currentPage.value); // Làm mới danh sách
+    modalErrorMessage.value = `${pricing.is_active ? 'Hủy kích hoạt' : 'Kích hoạt'} giá phòng thành công!`;
+  } catch (error) {
+    console.error('Lỗi khi thay đổi trạng thái:', error.response?.data || error);
+    modalErrorMessage.value = error.response?.data?.message || 'Thay đổi trạng thái giá phòng thất bại.';
   } finally {
     isLoading.value = false;
   }
@@ -586,19 +522,11 @@ th {
   transform: translateY(-2px);
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
 }
-.btn-danger {
-  background: linear-gradient(135deg, #dc3545, #bb2d3b);
+.btn-warning {
+  background: linear-gradient(135deg, #ffc107, #e0a800);
   border: none;
 }
-.btn-danger:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-}
-.btn-primary {
-  background: linear-gradient(135deg, #0d6efd, #0b5ed7);
-  border: none;
-}
-.btn-primary:hover {
+.btn-warning:hover {
   transform: translateY(-2px);
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
 }
