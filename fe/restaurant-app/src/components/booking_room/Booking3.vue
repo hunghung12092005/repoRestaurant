@@ -386,7 +386,7 @@
                         <i class="bi bi-door-open me-1"></i> {{ hotel.available_rooms }} Phòng
                     </span>
 
-                    <img src="http://127.0.0.1:5500/img/rooms/2.jpg" alt="Double Room" />
+                    <img src="https://www.ansonika.com/paradise/one-page-version/img/gallery/3.jpg" alt="Double Room" />
 
                     <div class="info-box d-flex flex-column">
                         <h2>
@@ -449,9 +449,9 @@
                 <div class="col-lg-6">
                     <div class="image-wrapper">
                         <!-- Ảnh chính -->
-                        <img src="http://127.0.0.1:5500/img/home_2.jpg" alt="Main" class="main-image" />
+                        <img src="https://www.ansonika.com/paradise/one-page-version/img/gallery/3.jpg" alt="Main" class="main-image" />
                         <!-- Ảnh overlay -->
-                        <img src="http://127.0.0.1:5500/img/home_1.jpg" alt="Overlay" class="overlay-image" />
+                        <img src="https://www.ansonika.com/paradise/one-page-version/img/local_amenities_1.jpg" alt="Overlay" class="overlay-image" />
                     </div>
                 </div>
             </div>
@@ -866,7 +866,7 @@ const delSelection = () => {
 //addBooking
 
 const addBooking = (hotel) => {
-console.log(hotel)
+//console.log(hotel)
     const maxRooms = hotel.available_rooms || 0;
     const currentRooms = selectedRooms.value.length;
 
@@ -1098,12 +1098,14 @@ const confirmBooking = async () => {
         payment_method: paymentMethod.value,
         orderCode: orderCode.value || '', // Mã đơn hàng nếu có
         booking_type: 'online',
+        adult: totalAdults.value,
+        child: totalChildren.value,
         pricing_type: 'nghitly',
         payment_status: 'pending',
         status: 'pending_confirmation',
         note: orderNotes.value || 'Không có ghi chú',
     };
-    //console.log("Booking Details:", JSON.stringify(bookingDetails, null, 2)); // Log booking details as JSON
+    console.log("Booking Details:", JSON.stringify(bookingDetails, null, 2)); // Log booking details as JSON
     //return;
     // Xác thực và lấy token
     let token;
