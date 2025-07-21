@@ -101,7 +101,7 @@
       <div class="main-content">
         <div class="navbar-top" :class="{ 'scrolled': navbarSticky }">
           <div class="d-flex align-items-center">
-            <i class="bi bi-globe"></i>
+            <!-- <i class="bi bi-globe"></i> -->
             <i class="bi bi-bell mx-3"></i>
             <span>{{ userInfo.name || 'User' }}</span>
           </div>
