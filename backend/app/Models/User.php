@@ -1,4 +1,4 @@
-<?php
+<?php 
 // File: app/Models/User.php
 
 namespace App\Models;
@@ -12,23 +12,40 @@ class User extends Authenticatable implements JWTSubject
 {
     use HasFactory, Notifiable;
 
+    /**
+     * Các thuộc tính có thể gán hàng loạt.
+     *
+     * @var array<int, string>
+     */
     protected $fillable = [
         'name',
         'email',
         'password',
         'role',
+        'permissions', // <-- THÊM DÒNG NÀY
         'qr_code',
         'turnstileResponse',
     ];
 
+    /**
+     * Các thuộc tính nên được ẩn khi serialize.
+     *
+     * @var array<int, string>
+     */
     protected $hidden = [
         'password',
         'remember_token',
     ];
 
+    /**
+     * Các thuộc tính nên được cast.
+     *
+     * @var array<string, string>
+     */
     protected $casts = [
         'email_verified_at' => 'datetime',
         'password' => 'hashed',
+        'permissions' => 'array', // <-- THÊM DÒNG NÀY
     ];
 
     // Implement methods from JWTSubject
@@ -39,51 +56,29 @@ class User extends Authenticatable implements JWTSubject
 
     public function getJWTCustomClaims()
     {
+        // Trả về cả role và permissions trong token
         return [
-            'abilities' => $this->getAbilities(),
+            'role' => $this->role,
+            'permissions' => $this->permissions ?? [],
         ];
     }
 
-    // =================================================================
-    // CÁC PHƯƠNG THỨC HỖ TRỢ PHÂN QUYỀN (ĐẢM BẢO CÓ PHẦN NÀY)
-    // =================================================================
-
-    public function hasRole(string $role): bool
-    {
-        return $this->role === $role;
-    }
-
     /**
-     * Kiểm tra xem người dùng có quyền hạn cụ thể không.
-     * @param string $ability
+     * Kiểm tra xem người dùng có quyền cụ thể không.
+     * Admin luôn có tất cả các quyền.
+     *
+     * @param string $permission
      * @return bool
      */
-    public function hasAbility(string $ability): bool
+    public function hasPermissionTo(string $permission): bool
     {
-        $permissionsByRole = config('permissions.roles', []);
-        $userPermissions = $permissionsByRole[$this->role] ?? [];
-
-        if (in_array('*', $userPermissions, true)) {
+        // Admin có tất cả các quyền
+        if ($this->role === 'admin') {
             return true;
         }
 
-        return in_array($ability, $userPermissions, true);
+        // Kiểm tra trong mảng permissions
+        // Sử dụng ?? [] để tránh lỗi nếu permissions là null
+        return in_array($permission, $this->permissions ?? []);
     }
-
-    /**
-     * Lấy tất cả các quyền của người dùng.
-     * @return array
-     */
-    public function getAbilities(): array
-    {
-        $permissionsByRole = config('permissions.roles', []);
-        $userPermissions = $permissionsByRole[$this->role] ?? [];
-
-        if (in_array('*', $userPermissions, true)) {
-            return config('permissions.abilities', []);
-        }
-
-        return $userPermissions;
-    }
-
-} // <--- ĐẢM BẢO TẤT CẢ CODE NẰM TRÊN DẤU NGOẶC NÀY
+}

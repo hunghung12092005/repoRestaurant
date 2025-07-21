@@ -1,5 +1,6 @@
 import { createRouter, createWebHistory } from 'vue-router';
-import App from '../App.vue';
+
+// Import các components
 import HomeComponent from '../components/HomeComponent.vue';
 import Home2 from '../components/Home2.vue';
 import AboutComponent from '../components/AboutComponent.vue';
@@ -7,199 +8,63 @@ import ContactComponent from '../components/ContactComponent.vue';
 import ReservationComponent from '../components/booking/ReservationComponent.vue';
 import BookRoomComponent from '../components/booking/BookRoomComponent.vue';
 import BlogComponent from '../components/News/BlogComponent.vue';
-// import MenuComponent from '../components/menu_item/MenuComponent.vue';
-// import MenuListComponent from '../components/menu_item/MenuListComponent.vue';
 import LoginComponent from '../components/Login.vue';
 import TestJwtComponent from '../components/testTokenJwt.vue';
 import BlogDetailComponent from '../components/News/BlogDetailComponent.vue';
-// import ProductDetailComponent from '../components/ProductDetailComponent.vue';
-
-// import AdminDashboardComponent from '../components/AdminDashboardComponent.vue';
-// import AdminStaffsComponent from '../components/AdminStaffsComponent.vue';
-
-// AdmỉnRoom - Phòng
 import AdminRoomTypeComponent from '../components/AdminRoom/AdminRoomTypeComponent.vue';
 import AdminRoomComponent from '../components/AdminRoom/AdminRoomComponent.vue';
 import AdminPriceComponent from '../components/AdminRoom/AdminPriceComponent.vue';
-
 import AdminOccupancyComponent from '../components/AdminRoom/AdminOccupancy.vue';
-// Admin Amenities and Services - Tiện ích và Dịch vụ
 import AdminAmenitiesComponent from '../components/AdminSeAm/AdminAmenitiesComponent.vue';
 import AdminServicesComponent from '../components/AdminSeAm/AdminServicesComponent.vue';
-
-// AdminBooking - Đặt phòng
 import AdminBookingComponent from '../components/AdminBooking/AdminBookingComponent.vue';
-
 import AdminDashboardComponent from '../components/admin/AdminDashboardComponent.vue';
 import AdminUsersComponent from '../components/admin/AdminUsersComponent.vue';
 import AdminContacts from '../components/admin/AdminContacts.vue';
-// import Shop from '../components/Shop.vue';
-// import ghn from '../components/ghn/mainghn.vue';
-// import menu_online from '../components/ShopOnline/menu_online.vue';
-// import detailMenu from '../components/ShopOnline/detailMenu.vue';
 import test from '../components/booking_room/test.vue';
 import chatbot from '../components/booking_room/chatbot.vue';
-// import detailOrderMenu from '../components/menu_item/detailOrderMenu.vue';
 import page404 from '../components/404.vue';
-
 import ChatAdmin from '../components/ChatAdmin.vue';
 import Chat from '../components/Chat.vue';
 import qrCodeCCCD from '../components/qrCodeCCCD.vue';
-//đặt phòng
 import rooms from '../components/booking_room/BookRoomComponent.vue'
 import rooms2 from '../components/booking_room/Booking2.vue'
 import rooms3 from '../components/booking_room/Booking3.vue'
 import HistoryBooking from '../components/booking_room/HistoryBooking.vue';
 import ThanksBooking from '../components/booking_room/ThanksBooking.vue';
-//thông tin user
 import userprofile from '../components/user/userProfile.vue'
 import forgotPass from '../components/user/forgotPass.vue'
-//news
 import AdminNewsComponent from '../components/admin/news/AdminNewsComponent.vue';
 import AdminNewsCategoryComponent from '../components/admin/news/AdminNewsCategoryComponent.vue';
 import AdminNewsCommentComponent from '../components/admin/news/AdminNewsCommentComponent.vue';
-// AdminBookingComponent
-// import AdminBookingComponent from '../components/AdminBooking/AdminBookingComponent.vue';
 import RoomTypeDetail from '../components/RoomTypeDetail.vue';
-//admin AI
 import traningAI from '../components/admin/AI/traningAI.vue';
 import AdminBookingHistory from '../components/AdminBooking/AdminBookingHistory.vue';
+
 const routes = [
-  // {
-  //   path: '/home',
-  //   name: 'HomeComponent',
-  //   component: AboutComponent,
-  // },
-  {
-    path: '/',
-    name: 'Home2',
-    component: Home2,
-  },
-  {
-    path: '/about',
-    name: 'AboutComponent',
-    component: AboutComponent,
-  },
-  
-  {
-    path: '/contact',
-    name: 'ContactComponent',
-    component: ContactComponent,
-  },
-  {
-    path: '/reservation',
-    name: 'ReservationComponent',
-    component: ReservationComponent,
-  },
-  {
-    path: '/booking',
-    name: 'BookRoomComponent',
-    component: BookRoomComponent,
-  },
-  {
-    path: '/news', 
-    name: 'NewsList',
-    component: BlogComponent,
-  },
-  {
-    path: '/login',
-    name: 'LoginComponent',
-    component: LoginComponent,
-  },
-  {
-    path: '/testJwt',
-    name: 'TestJwtComponent',
-    component: TestJwtComponent,
-  },
-  {
-    path: '/news/:id', 
-    name: 'NewsDetail', 
-    component: BlogDetailComponent,
-  },
-  {
-    path: '/admin/ChatAdmin',
-    name: 'ChatAdmin',
-    component: ChatAdmin,
-  }, {
-    path: '/Chat',
-    name: 'Chat',
-    component: Chat,
-  },
-  //qr code cccd
-  {
-    path: '/cccd',
-    name: 'qrCodeCCCD',
-    component: qrCodeCCCD,
-  },
-  // đặt phòng
-  {
-    path: '/rooms',
-    name: 'rooms',
-    component: rooms,
-  },
-  {
-    path: '/rooms2',
-    name: 'rooms2',
-    component: rooms2,
-  },
-  {
-    path: '/room-types/:id',
-    name: 'RoomTypeDetail',
-    component: RoomTypeDetail,
-    props: true
-  },
-  {
-    path: '/rooms3',
-    name: 'rooms3',
-    component: rooms3,
-  },
-  {
-    path: '/HistoryBooking',
-    name: 'HistoryBooking',
-    component: HistoryBooking,
-  },
-  {
-    path: '/test',
-    name: 'test',
-    component: test,
-  },
-  {
-    path: '/chatbot',
-    name: 'chatbot',
-    component: chatbot,
-  },
-  {
-    path: '/ThanksBooking',
-    name: 'ThanksBooking',
-    component: ThanksBooking,
-  },
-  //quản lý thông tin user
-  {
-    path: '/userprofile',
-    name: 'userprofile',
-    component: userprofile,
-  },
-  {
-    path: '/forgotPass',
-    name: 'forgotPass',
-    component: forgotPass,
-  },
-   // Catch-all 404 route - MUST be the last route
-  {
-    path: '/:catchAll(.*)',
-    name: 'NotFound',
-    component: page404,
-  },
-  // Admin routes
-  {
-    path: '/admin',
-    redirect: '/admin/dashboard',
-  },
+  // --- PUBLIC ROUTES ---
+  { path: '/', name: 'Home2', component: Home2 },
+  { path: '/about', name: 'AboutComponent', component: AboutComponent },
+  { path: '/contact', name: 'ContactComponent', component: ContactComponent },
+  { path: '/news', name: 'NewsList', component: BlogComponent },
+  { path: '/news/:id', name: 'NewsDetail', component: BlogDetailComponent },
+  { path: '/room-types/:id', name: 'RoomTypeDetail', component: RoomTypeDetail, props: true },
+  { path: '/rooms3', name: 'rooms3', component: rooms3 },
+  { path: '/login', name: 'LoginComponent', component: LoginComponent },
+  { path: '/forgotPass', name: 'forgotPass', component: forgotPass },
+  { path: '/ThanksBooking', name: 'ThanksBooking', component: ThanksBooking },
+
+  // --- AUTHENTICATED USER ROUTES ---
+  { path: '/userprofile', name: 'userprofile', component: userprofile, meta: { requiresAuth: true } },
+  { path: '/HistoryBooking', name: 'HistoryBooking', component: HistoryBooking, meta: { requiresAuth: true } },
+
+  // --- ADMIN & STAFF ROUTES ---
+  { path: '/admin', redirect: '/admin/dashboard' },
   {
     path: '/admin/dashboard',
     name: 'AdminDashboard',
     component: AdminDashboardComponent,
-     meta: { requiresAuth: true, roles: ['admin', 'staff'] },
+    meta: { requiresAuth: true, roles: ['admin', 'staff'] },
   },
   {
     path: '/admin/occupancy',
@@ -207,6 +72,52 @@ const routes = [
     component: AdminOccupancyComponent,
     meta: { requiresAuth: true, roles: ['admin', 'staff'] },
   },
+  {
+    path: '/admin/bookings',
+    name: 'AdminBookingComponent',
+    component: AdminBookingComponent,
+    meta: { requiresAuth: true, roles: ['admin', 'staff'] },
+  },
+  {
+    path: '/admin/services',
+    name: 'AdminServices',
+    component: AdminServicesComponent,
+    meta: { requiresAuth: true, roles: ['admin', 'staff'] },
+  },
+  {
+    path: '/admin/amenities',
+    name: 'AdminAmenities',
+    component: AdminAmenitiesComponent,
+    meta: { requiresAuth: true, roles: ['admin', 'staff'] },
+  },
+
+  // --- PERMISSION-BASED ROUTES ---
+  {
+    path: '/admin/news',
+    name: 'AdminNews',
+    component: AdminNewsComponent,
+    meta: { requiresAuth: true, permission: 'manage_news' },
+  },
+  {
+    path: '/admin/news-categories',
+    name: 'AdminNewsCategories',
+    component: AdminNewsCategoryComponent,
+    meta: { requiresAuth: true, permission: 'manage_news' },
+  },
+  {
+    path: '/admin/news-comments',
+    name: 'AdminNewsComments',
+    component: AdminNewsCommentComponent,
+    meta: { requiresAuth: true, permission: 'manage_news' },
+  },
+  {
+    path: '/admin/contacts',
+    name: 'AdminContacts',
+    component: AdminContacts,
+    meta: { requiresAuth: true, permission: 'manage_contacts' },
+  },
+  
+  // --- ADMIN-ONLY ROUTES ---
   {
     path: '/admin/room-types',
     name: 'AdminRoomType',
@@ -226,58 +137,9 @@ const routes = [
     meta: { requiresAdmin: true },
   },
   {
-    path: '/admin/services',
-    name: 'AdminServices',
-    component: AdminServicesComponent,
-    meta: { requiresAuth: true, roles: ['admin', 'staff'] },
-  },
-  {
-    path: '/admin/amenities',
-    name: 'AdminAmenities',
-    component: AdminAmenitiesComponent,
-    meta: { requiresAuth: true, roles: ['admin', 'staff'] },
-  },
-  {
-    path: '/admin/news',
-    name: 'AdminNews',
-    component: AdminNewsComponent,
-    meta: { requiresAdmin: true },
-  },
-  {
-    path: '/admin/news-categories',
-    name: 'AdminNewsCategories',
-    component: AdminNewsCategoryComponent,
-    meta: { requiresAdmin: true },
-  },
-  {
-    path: '/admin/news-comments',
-    name: 'AdminNewsComments',
-    component: AdminNewsCommentComponent,
-    meta: { requiresAdmin: true },
-  },
-  
-  {
     path: '/admin/users',
     name: 'AdminUsers',
     component: AdminUsersComponent,
-    meta: { requiresAdmin: true },
-  },
-  {
-    path: '/admin/contacts',
-    name: 'AdminContacts',
-    component: AdminContacts,
-    meta: { requiresAdmin: true },
-  },
-  {
-    path: '/admin/bookings',
-    name: 'AdminBookingComponent',
-    component: AdminBookingComponent,
-    meta: { requiresAuth: true, roles: ['admin', 'staff'] },
-  },
-  {
-    path: '/admin/bookings',
-    name: 'AdminBookingComponent',
-    component: AdminBookingComponent,
     meta: { requiresAdmin: true },
   },
   {
@@ -292,6 +154,16 @@ const routes = [
     component: traningAI,
     meta: { requiresAdmin: true },
   },
+   {
+    path: '/admin/ChatAdmin',
+    name: 'ChatAdmin',
+    component: ChatAdmin,
+    meta: { requiresAdmin: true },
+  },
+
+  // --- MISC & 404 ---
+  { path: '/test', name: 'test', component: test },
+  { path: '/:catchAll(.*)', name: 'NotFound', component: page404 },
 ];
 
 const router = createRouter({
@@ -304,20 +176,53 @@ router.afterEach(() => {
   window.scrollTo(0, 0);
 });
 
-// Route Guard để kiểm tra quyền admin và staff
+// Route Guard để kiểm tra quyền truy cập
 router.beforeEach((to, from, next) => {
-  const userInfo = JSON.parse(localStorage.getItem('userInfo') || '{}');
-  const isAdmin = userInfo.role === 'admin';
-  const isStaff = userInfo.role === 'staff';
   const isAuthenticated = !!localStorage.getItem('tokenJwt');
+  
+  // Kiểm tra xem route có yêu cầu bất kỳ loại xác thực nào không
+  const requiresAuth = to.matched.some(record => record.meta.requiresAuth || record.meta.requiresAdmin || record.meta.permission || record.meta.roles);
 
-  if (to.meta.requiresAdmin && (!isAuthenticated || !isAdmin)) {
-    next('/login'); // Chuyển hướng về login nếu không phải admin
-  } else if (to.meta.requiresStaff && (!isAuthenticated || !isStaff)) {
-    next('/login'); // Chuyển hướng về login nếu không phải staff
-  } else {
-    next(); // Cho phép truy cập
+  // 1. Nếu route yêu cầu xác thực nhưng người dùng chưa đăng nhập
+  if (requiresAuth && !isAuthenticated) {
+    return next({ name: 'LoginComponent', query: { redirect: to.fullPath } });
   }
+  
+  // 2. Nếu người dùng đã đăng nhập, tiến hành kiểm tra quyền
+  if (isAuthenticated) {
+    const userInfo = JSON.parse(localStorage.getItem('userInfo') || '{}');
+    const isAdmin = userInfo.role === 'admin';
+    const isStaff = userInfo.role === 'staff';
+    const userPermissions = userInfo.permissions || [];
+
+    // 2.1. Kiểm tra vai trò (dành cho các route meta.roles)
+    if (to.meta.roles && !to.meta.roles.includes(userInfo.role)) {
+        // Nếu vai trò không được phép, về dashboard
+        return next('/admin/dashboard');
+    }
+
+    // 2.2. Kiểm tra quyền Admin
+    if (to.meta.requiresAdmin && !isAdmin) {
+      // Nếu yêu cầu admin mà không phải admin -> về dashboard
+      return next('/admin/dashboard'); 
+    }
+
+    // 2.3. Kiểm tra quyền cụ thể (permission)
+    if (to.meta.permission) {
+      // Admin luôn có quyền, cho qua
+      if (isAdmin) {
+        return next();
+      }
+      // Nếu không phải admin, kiểm tra trong mảng permissions
+      if (!userPermissions.includes(to.meta.permission)) {
+        // Không có quyền -> về dashboard
+        return next('/admin/dashboard');
+      }
+    }
+  }
+
+  // 3. Nếu tất cả các kiểm tra đều qua, cho phép truy cập
+  next();
 });
 
 export default router;
