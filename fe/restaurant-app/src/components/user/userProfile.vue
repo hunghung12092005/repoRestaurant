@@ -42,6 +42,9 @@
       <button class="action-button-enhanced secondary-action" @click="showUpdateProfileModal = true">
         <i class="fas fa-edit"></i> Chỉnh Sửa Hồ Sơ
       </button>
+      <button class="action-button-enhanced secondary-action">
+        <i class="fas fa-edit"></i> <router-link to="/forgotPass" class="text-dark">Quen MK</router-link>
+      </button>
     </div>
 
     <div v-if="showChangePasswordModal" class="fancy-modal-overlay">
