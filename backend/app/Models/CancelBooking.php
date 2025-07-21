@@ -10,10 +10,10 @@ class CancelBooking extends Model
     use HasFactory;
 
     protected $table = 'cancelBooking';
-    protected $primaryKey = 'cancel_id'; // 🛠 Bắt buộc khai báo nếu không phải "id"
+    protected $primaryKey = 'cancel_id'; 
     protected $fillable = [
     'cancel_id',
-    'booking_id', // Xóa khoảng trắng ở đây
+    'booking_id', 
     'customer_id',
     'cancellation_reason',
     'cancellation_date',

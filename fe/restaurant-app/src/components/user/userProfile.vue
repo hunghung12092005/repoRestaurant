@@ -1,9 +1,9 @@
 <template>
   <main class="profile-card-enhanced">
     <div class="card-bg-decoration"></div>
-    <button class="close-button" @click="closeProfile">
+    <!-- <button class="close-button" @click="closeProfile">
       <i class="fas fa-times"></i>
-    </button>
+    </button> -->
 
     <div class="profile-header-enhanced">
       <div class="profile-avatar-enhanced">
@@ -320,7 +320,7 @@
 }
 
 .action-button-enhanced.primary-action {
-  background: linear-gradient(45deg, #4CAF50, #66BB6A); /* Gradient xanh lá cho nút chính */
+  background: linear-gradient(45deg, #1d7bd9, #66BB6A); /* Gradient xanh lá cho nút chính */
   color: #fff;
   box-shadow: 0 6px 18px rgba(76, 175, 80, 0.3);
 }

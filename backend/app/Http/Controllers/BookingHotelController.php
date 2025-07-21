@@ -382,8 +382,11 @@ class BookingHotelController extends Controller
             return response()->json(['message' => 'Đơn đặt phòng không tồn tại'], 404);
         }
 
-        if ($booking->status !== 'pending_confirmation' && $booking->status !== 'confirmed') {
-            return response()->json(['message' => 'Chỉ có thể hủy đơn ở trạng thái chờ xác nhận hoặc đã xác nhận'], 400);
+        // if ($booking->status !== 'pending_confirmation') {
+        //     return response()->json(['message' => 'Chỉ có thể hủy đơn cho xác nhận'], 400);
+        // }
+        if ($booking->status == 'cancelled') {
+            return response()->json(['message' => 'Don Da Huy'], 400);
         }
 
         $now = Carbon::today();
