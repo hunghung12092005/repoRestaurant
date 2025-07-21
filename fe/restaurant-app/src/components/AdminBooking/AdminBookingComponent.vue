@@ -1,5 +1,28 @@
 <template>
   <div class="page-container">
+    <!-- Toast thông báo -->
+    <div class="toast-container position-fixed top-0 end-0 p-3">
+      <div 
+        id="successToast" 
+        class="toast align-items-center text-white bg-success border-0" 
+        role="alert" 
+        aria-live="assertive" 
+        aria-atomic="true"
+      >
+        <div class="d-flex">
+          <div class="toast-body">
+            {{ thongBaoToast }}
+          </div>
+          <button 
+            type="button" 
+            class="btn-close btn-close-white me-2 m-auto" 
+            data-bs-dismiss="toast" 
+            aria-label="Close"
+          ></button>
+        </div>
+      </div>
+    </div>
+
     <!-- Tiêu đề trang -->
     <div class="page-header mb-4">
       <h1 class="page-title">Quản Lý Đặt Phòng</h1>
@@ -43,7 +66,7 @@
       </div>
     </div>
 
-    <!-- Hiển thị thông báo -->
+    <!-- Hiển thị thông báo lỗi -->
     <div v-if="thongBaoLoi" class="alert alert-danger" role="alert">
       {{ thongBaoLoi }}
     </div>
@@ -101,23 +124,23 @@
 
     <!-- Phân trang -->
     <nav aria-label="Page navigation" class="mt-4" v-if="tongSoTrang > 1">
-        <ul class="pagination justify-content-center">
-            <li class="page-item" :class="{ disabled: trangHienTai === 1 }">
-              <a class="page-link" href="#" @click.prevent="chuyenTrang(1)">««</a>
-            </li>
-            <li class="page-item" :class="{ disabled: trangHienTai === 1 }">
-              <a class="page-link" href="#" @click.prevent="chuyenTrang(trangHienTai - 1)">«</a>
-            </li>
-            <li class="page-item" v-for="trang in danhSachTrang" :key="trang" :class="{ active: trang === trangHienTai }">
-              <a class="page-link" href="#" @click.prevent="chuyenTrang(trang)">{{ trang }}</a>
-            </li>
-            <li class="page-item" :class="{ disabled: trangHienTai === tongSoTrang }">
-              <a class="page-link" href="#" @click.prevent="chuyenTrang(trangHienTai + 1)">»</a>
-            </li>
-            <li class="page-item" :class="{ disabled: trangHienTai === tongSoTrang }">
-              <a class="page-link" href="#" @click.prevent="chuyenTrang(tongSoTrang)">»»</a>
-            </li>
-        </ul>
+      <ul class="pagination justify-content-center">
+        <li class="page-item" :class="{ disabled: trangHienTai === 1 }">
+          <a class="page-link" href="#" @click.prevent="chuyenTrang(1)">««</a>
+        </li>
+        <li class="page-item" :class="{ disabled: trangHienTai === 1 }">
+          <a class="page-link" href="#" @click.prevent="chuyenTrang(trangHienTai - 1)">«</a>
+        </li>
+        <li class="page-item" v-for="trang in danhSachTrang" :key="trang" :class="{ active: trang === trangHienTai }">
+          <a class="page-link" href="#" @click.prevent="chuyenTrang(trang)">{{ trang }}</a>
+        </li>
+        <li class="page-item" :class="{ disabled: trangHienTai === tongSoTrang }">
+          <a class="page-link" href="#" @click.prevent="chuyenTrang(trangHienTai + 1)">»</a>
+        </li>
+        <li class="page-item" :class="{ disabled: trangHienTai === tongSoTrang }">
+          <a class="page-link" href="#" @click.prevent="chuyenTrang(tongSoTrang)">»»</a>
+        </li>
+      </ul>
     </nav>
 
     <!-- Modal chi tiết đặt phòng -->
@@ -141,21 +164,21 @@
               <!-- Thông tin chung -->
               <div class="row g-4 mb-4">
                 <div class="col-lg-6">
-                    <h6 class="info-title">Thông tin khách hàng</h6>
-                    <ul class="info-list">
-                      <li><span>Họ tên:</span><strong>{{ datPhongDuocChon.customer?.customer_name || 'N/A' }}</strong></li>
-                      <li><span>Điện thoại:</span><strong>0{{ datPhongDuocChon.customer?.customer_phone || 'N/A' }}</strong></li>
-                      <li><span>Email:</span><strong>{{ datPhongDuocChon.customer?.customer_email || 'N/A' }}</strong></li>
-                    </ul>
+                  <h6 class="info-title">Thông tin khách hàng</h6>
+                  <ul class="info-list">
+                    <li><span>Họ tên:</span><strong>{{ datPhongDuocChon.customer?.customer_name || 'N/A' }}</strong></li>
+                    <li><span>Điện thoại:</span><strong>0{{ datPhongDuocChon.customer?.customer_phone || 'N/A' }}</strong></li>
+                    <li><span>Email:</span><strong>{{ datPhongDuocChon.customer?.customer_email || 'N/A' }}</strong></li>
+                  </ul>
                 </div>
                 <div class="col-lg-6">
-                    <h6 class="info-title">Thông tin đặt phòng</h6>
-                    <ul class="info-list">
-                      <li><span>Nhận phòng:</span><strong>{{ dinhDangNgay(datPhongDuocChon.check_in_date) }}</strong></li>
-                      <li><span>Trả phòng:</span><strong>{{ dinhDangNgay(datPhongDuocChon.check_out_date) }}</strong></li>
-                      <li><span>Loại đặt:</span><strong>{{ dinhDangLoaiDatPhong(datPhongDuocChon.booking_type) }}</strong></li>
-                      <li><span>Ghi chú:</span><strong>{{ datPhongDuocChon.note || 'Không có' }}</strong></li>
-                    </ul>
+                  <h6 class="info-title">Thông tin đặt phòng</h6>
+                  <ul class="info-list">
+                    <li><span>Nhận phòng:</span><strong>{{ dinhDangNgay(datPhongDuocChon.check_in_date) }}</strong></li>
+                    <li><span>Trả phòng:</span><strong>{{ dinhDangNgay(datPhongDuocChon.check_out_date) }}</strong></li>
+                    <li><span>Loại đặt:</span><strong>{{ dinhDangLoaiDatPhong(datPhongDuocChon.booking_type) }}</strong></li>
+                    <li><span>Ghi chú:</span><strong>{{ datPhongDuocChon.note || 'Không có' }}</strong></li>
+                  </ul>
                 </div>
               </div>
 
@@ -208,7 +231,7 @@
                   </thead>
                   <tbody>
                     <tr v-if="chiTietDatPhongHopLe.length === 0">
-                        <td colspan="4" class="text-center text-muted py-3">Không có chi tiết phòng để hiển thị.</td>
+                      <td colspan="4" class="text-center text-muted py-3">Không có chi tiết phòng để hiển thị.</td>
                     </tr>
                     <tr v-for="chiTiet in chiTietDatPhongHopLe" :key="chiTiet.booking_detail_id">
                       <td>{{ chiTiet.type_name || 'Không xác định' }}</td>
@@ -247,7 +270,7 @@
           </div>
           <div v-if="!dangTai && datPhongDuocChon.booking_id" class="modal-footer modal-footer-custom">
             <div class="me-auto" v-if="datPhongDuocChon.status === 'pending_confirmation' && coPhongChuaXep">
-                <small class="text-danger">Vui lòng xếp tất cả các phòng để xác nhận.</small>
+              <small class="text-danger">Vui lòng xếp tất cả các phòng để xác nhận.</small>
             </div>
             <button @click="dongModal" class="btn btn-secondary" data-dismiss="modal">Đóng</button>
             <button
@@ -275,6 +298,7 @@
 <script setup>
 import { ref, onMounted, computed } from 'vue';
 import axios from 'axios';
+import { Toast } from 'bootstrap';
 import Loading from '../loading.vue';
 
 const danhSachDatPhong = ref([]);
@@ -284,7 +308,8 @@ const chiTietDatPhong = ref([]);
 const phongTrong = ref({});
 const thongBaoLoi = ref('');
 const dangTai = ref(false);
-const thongTinHuy = ref(null); // Thêm biến để lưu thông tin hủy
+const thongTinHuy = ref(null);
+const thongBaoToast = ref('');
 
 const tuKhoaTimKiem = ref('');
 const locTrangThai = ref('');
@@ -445,31 +470,44 @@ const xacNhanDatPhong = async () => {
     await axios.patch(`/api/bookings/${datPhongDuocChon.value.booking_id}`, { 
       status: 'confirmed' 
     }, { headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' } });
-    await layDanhSachDatPhong();
-    alert('Xác nhận đặt phòng thành công!');
+    // Cập nhật trạng thái trong danh sách mà không cần tải lại
+    const index = danhSachDatPhong.value.findIndex(item => item.booking_id === datPhongDuocChon.value.booking_id);
+    if (index !== -1) {
+      danhSachDatPhong.value[index].status = 'confirmed';
+    }
+    thongBaoToast.value = 'Xác nhận đặt phòng thành công!';
+    showToast();
     dongModal();
   } catch (err) {
     console.error('Lỗi khi xác nhận đặt phòng:', err);
-    alert('Lỗi khi xác nhận đặt phòng!');
+    thongBaoLoi.value = 'Lỗi khi xác nhận đặt phòng!';
   }
 };
 
 const xacNhanHuyDatPhong = async () => {
   try {
-    const cancelId = thongTinHuy.value?.cancel_id; // Lấy cancel_id từ thongTinHuy
+    const cancelId = thongTinHuy.value?.cancel_id;
     if (!cancelId) {
       thongBaoLoi.value = 'Không tìm thấy thông tin hủy để xác nhận.';
       return;
     }
 
-    const response = await axios.patch(`/api/booking-cancel/${cancelId}`, {
-      status: 'processed', // Có thể thay bằng 'failed' tùy logic
-      refund_bank: '',
-      refund_account_number: '',
-      refund_account_name: ''
-    });
+    await axios.patch(`/api/booking-cancel/${cancelId}`, {
+      status: 'processed',
+      refund_bank: 'Ngân hàng ABC',
+      refund_account_number: '123456789',
+      refund_account_name: 'Nguyen Van A'
+    }, { headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' } });
 
-    thongBaoLoi.value = 'Xác nhận hủy thành công!';
+    // Cập nhật trạng thái trong danh sách mà không cần tải lại
+    const index = danhSachDatPhong.value.findIndex(item => item.booking_id === datPhongDuocChon.value.booking_id);
+    if (index !== -1) {
+      danhSachDatPhong.value[index].status = 'cancelled';
+    }
+    // Cập nhật thông tin hủy trong modal
+    thongTinHuy.value.status = 'processed';
+    thongBaoToast.value = 'Xác nhận hủy đặt phòng thành công!';
+    showToast();
     hienModal.value = false;
   } catch (err) {
     console.error('Lỗi khi xác nhận hủy:', {
@@ -479,6 +517,12 @@ const xacNhanHuyDatPhong = async () => {
     });
     thongBaoLoi.value = `Lỗi khi xác nhận hủy: ${err.response?.data?.message || err.message}`;
   }
+};
+
+const showToast = () => {
+  const toastElement = document.getElementById('successToast');
+  const toast = new Toast(toastElement, { autohide: true, delay: 3000 });
+  toast.show();
 };
 
 const dongModal = () => {
@@ -539,17 +583,17 @@ const layLopTrangThaiThanhToan = (trangThai) => {
   }
 };
 
-onMounted(layDanhSachDatPhong);
+onMounted(() => {
+  layDanhSachDatPhong();
+});
 </script>
+
 <style scoped>
 @import url('https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@300;400;500;600;700&display=swap');
 
-
-/* Đảm bảo toàn bộ component dùng chung một font */
 .page-container {
   font-family: 'monospace', sans-serif;
   background-color: #f4f7f9;
-  /* padding: 5rem; */
   color: #34495e;
 }
 
@@ -588,15 +632,14 @@ onMounted(layDanhSachDatPhong);
 }
 
 .table-container {
-    background-color: #ffffff;
-    border-radius: 12px;
-    box-shadow: 0 4px 15px rgba(0,0,0,0.05);
-    overflow: hidden;
+  background-color: #ffffff;
+  border-radius: 12px;
+  box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+  overflow: hidden;
 }
 
-/* Giảm kích thước font của bảng chính */
 .booking-table {
-  font-size: 0.9rem; /* Giảm từ 0.95rem */
+  font-size: 0.9rem;
   border-collapse: separate;
   border-spacing: 0;
   width: 100%;
@@ -608,19 +651,19 @@ onMounted(layDanhSachDatPhong);
   text-transform: uppercase;
   letter-spacing: 0.5px;
   border-bottom: 2px solid #e5eaee;
-  padding: 0.8rem 1rem; /* Giảm padding */
+  padding: 0.8rem 1rem;
   cursor: pointer;
 }
 .booking-table td {
-  padding: 1rem 1rem; /* Giảm padding */
+  padding: 1rem 1rem;
   border-bottom: 1px solid #e5eaee;
   vertical-align: middle;
 }
 .booking-table tbody tr:last-child td {
-    border-bottom: none;
+  border-bottom: none;
 }
 .booking-table tbody tr:hover {
-    background-color: #f9fafb;
+  background-color: #f9fafb;
 }
 
 .booking-id {
@@ -632,8 +675,8 @@ onMounted(layDanhSachDatPhong);
   font-weight: 600;
 }
 .customer-phone {
-    font-size: 0.9em;
-    color: #7f8c8d;
+  font-size: 0.9em;
+  color: #7f8c8d;
 }
 
 .badge {
@@ -648,33 +691,32 @@ onMounted(layDanhSachDatPhong);
 .badge-success { background-color: #27ae60; color: white; }
 .badge-danger { background-color: #e74c3c; color: white; }
 .badge-secondary { background-color: #bdc3c7; color: #34495e; }
-.btn-danger { background-color: #e74c3c; border-color: #e74c3c;}
-
+.btn-danger { background-color: #e74c3c; border-color: #e74c3c; }
 .btn-danger:hover {
   background-color: #c0392b;
   border-color: #c0392b;
 }
 
 .pagination .page-link {
-    border: none;
-    border-radius: 8px;
-    margin: 0 4px;
-    color: #7f8c8d;
-    font-weight: 600;
-    transition: all 0.2s ease;
+  border: none;
+  border-radius: 8px;
+  margin: 0 4px;
+  color: #7f8c8d;
+  font-weight: 600;
+  transition: all 0.2s ease;
 }
 .pagination .page-link:hover {
-    background-color: #e9ecef;
-    color: #34495e;
+  background-color: #e9ecef;
+  color: #34495e;
 }
 .pagination .page-item.active .page-link {
-    background-color: #3498db;
-    color: white;
-    box-shadow: 0 2px 5px rgba(52, 152, 219, 0.3);
+  background-color: #3498db;
+  color: white;
+  box-shadow: 0 2px 5px rgba(52, 152, 219, 0.3);
 }
 .pagination .page-item.disabled .page-link {
-    background-color: transparent;
-    color: #cccccc;
+  background-color: transparent;
+  color: #cccccc;
 }
 
 .modal-backdrop { background-color: rgba(0,0,0,0.4); }
@@ -689,38 +731,38 @@ onMounted(layDanhSachDatPhong);
   padding: 1.5rem;
 }
 .modal-header-custom .modal-title {
-    font-weight: 600;
-    font-size: 1.25rem;
+  font-weight: 600;
+  font-size: 1.25rem;
 }
 .modal-footer-custom {
-    background-color: #f4f7f9;
-    border-top: 1px solid #e5eaee;
-    padding: 1rem 1.5rem;
-    display: flex;
-    align-items: center;
+  background-color: #f4f7f9;
+  border-top: 1px solid #e5eaee;
+  padding: 1rem 1.5rem;
+  display: flex;
+  align-items: center;
 }
 
 .btn-outline-primary {
-    color: #3498db;
-    border-color: #3498db;
+  color: #3498db;
+  border-color: #3498db;
 }
 .btn-outline-primary:hover {
-    background-color: #3498db;
-    color: #ffffff;
+  background-color: #3498db;
+  color: #ffffff;
 }
 .btn-primary {
-    background-color: #3498db;
-    border-color: #3498db;
+  background-color: #3498db;
+  border-color: #3498db;
 }
 .btn-primary:hover {
-    background-color: #2980b9;
-    border-color: #2980b9;
+  background-color: #2980b9;
+  border-color: #2980b9;
 }
 .btn-primary:disabled {
-    background-color: #3498db;
-    border-color: #3498db;
-    opacity: 0.5;
-    cursor: not-allowed;
+  background-color: #3498db;
+  border-color: #3498db;
+  opacity: 0.5;
+  cursor: not-allowed;
 }
 
 .info-title {
@@ -738,32 +780,27 @@ onMounted(layDanhSachDatPhong);
   padding: 0;
   margin: 0;
 }
-/* Sửa layout của danh sách thông tin trong Modal */
 .info-list li {
   display: flex;
   justify-content: space-between;
-  align-items: baseline; /* Căn theo baseline của chữ, giúp nhãn và dòng đầu tiên của nội dung thẳng hàng */
-  gap: 1rem; /* Tạo khoảng cách giữa nhãn và nội dung */
+  align-items: baseline;
+  gap: 1rem;
   padding: 0.6rem 0.5rem;
   border-bottom: 1px solid #e5eaee;
-  font-size: 0.9rem; /* Giảm kích thước font */
+  font-size: 0.9rem;
 }
 .info-list li:hover {
   background-color: #fdfdfe;
 }
 .info-list li:last-child { border-bottom: none; }
-
-/* Nhãn (Họ tên:, Điện thoại:,...) */
 .info-list li span { 
   color: #7f8c8d;
-  flex-shrink: 0; /* Không cho phép nhãn bị co lại */
+  flex-shrink: 0;
 }
-
-/* Nội dung (Tên khách hàng, số điện thoại,...) */
 .info-list li strong { 
-    color: #34495e;
-    text-align: left;
-    word-break: break-word; /* Quan trọng: Cho phép từ dài tự động xuống dòng */
+  color: #34495e;
+  text-align: left;
+  word-break: break-word;
 }
 
 .status-bar {
@@ -781,18 +818,22 @@ onMounted(layDanhSachDatPhong);
 .status-bar > div { font-weight: 500; }
 .status-bar .total-price { font-size: 1.2rem; color: #3498db; }
 
-/* Giảm kích thước font của bảng xếp phòng */
 .room-assignment-table {
-    font-size: 0.85rem; /* Giảm từ 0.9rem */
-    width: 100%;
+  font-size: 0.85rem;
+  width: 100%;
 }
 .room-assignment-table thead th {
-    background-color: #f8f9fa;
-    color: #7f8c8d;
-    font-weight: 600;
-    border-bottom: 2px solid #e5eaee;
+  background-color: #f8f9fa;
+  color: #7f8c8d;
+  font-weight: 600;
+  border-bottom: 2px solid #e5eaee;
 }
 .room-assignment-table td, .room-assignment-table th {
-    vertical-align: middle;
+  vertical-align: middle;
+}
+
+/* Toast styling */
+.toast-container {
+  z-index: 1055;
 }
 </style>
