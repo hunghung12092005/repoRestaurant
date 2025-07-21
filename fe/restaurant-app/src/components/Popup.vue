@@ -75,24 +75,18 @@
                     <ul class="policy-list">
                         <li class="policy-item">
                             <span class="bullet-icon">•</span>
-                            <span class="item-text">Báo hủy từ 1 tháng trở lên không thu phí.</span>
+                            <span class="item-text">Báo hủy từ 7 ngày trở lên không thu phí.</span>
                         </li>
                         <li class="policy-item">
                             <span class="bullet-icon">•</span>
-                            <span class="item-text">Báo hủy từ 10 ngày đến dưới 1 tháng bồi thường 20% tổng giá trị hợp đồng.</span>
+                            <span class="item-text">Báo hủy từ 1 ngày đến 3 ngày  bồi thường 50% tổng giá trị hợp đồng.</span>
                         </li>
                         <li class="policy-item">
                             <span class="bullet-icon">•</span>
-                            <span class="item-text">Báo hủy từ 3 đến dưới 10 ngày bồi thường 50% giá trị hợp đồng.</span>
+                            <span class="item-text">Báo hủy từ 3 đến dưới 7 ngày bồi thường 30% giá trị hợp đồng.</span>
                         </li>
-                        <li class="policy-item">
-                            <span class="bullet-icon">•</span>
-                            <span class="item-text">Báo hủy dưới 3 ngày bồi thường 100% tổng giá trị hợp đồng.</span>
-                        </li>
-                        <li class="policy-item">
-                            <span class="bullet-icon">•</span>
-                            <span class="item-text">Khách đặt trong ngày và báo hủy trước check-in thu phí 50% tổng tiền đêm đầu tiên.</span>
-                        </li>
+                       
+                       
                     </ul>
                 </div>
             </section>
