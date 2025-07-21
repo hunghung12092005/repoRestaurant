@@ -472,7 +472,7 @@ const getHistoryBooking = async () => {
   try {
     isLoading.value = true;
     const res = await axiosInstance.get(`${apiUrl}/api/booking-history`);
-    console.log('Lịch sử đặt phòng:', res.data);
+    //console.log('Lịch sử đặt phòng:', res.data);
     if (res.data?.status === 'success') {
       bookings.value = res.data.data;
       // Lấy chi tiết huỷ cho các đơn đang pending_cancel
@@ -502,7 +502,7 @@ const getCancelBookingDetail = async (bookingId) => {
     if (res.data?.status === 'success') {
       cancelDetails.value[bookingId] = res.data.data;
       await loadBankList();
-      console.log(`Thông tin hủy cho booking ${bookingId}:`, cancelDetails.value[bookingId]);
+      //console.log(`Thông tin hủy cho booking ${bookingId}:`, cancelDetails.value[bookingId]);
     }
   } catch (e) {
     console.error(`Không thể lấy thông tin hủy cho booking ${bookingId}`, e);
@@ -634,7 +634,7 @@ const formatPaymentStatus = (status) => {
 };
 
 const canCancelBooking = (booking) => {
-  //if (booking.status !== 'pending_confirmation') return false;
+if (booking.status !== 'cancelled') return false;
   const checkInDate = new Date(booking.check_in_date);
   const now = new Date();
   checkInDate.setDate(checkInDate.getDate() - 1);

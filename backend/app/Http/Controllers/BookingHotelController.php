@@ -387,6 +387,9 @@ class BookingHotelController extends Controller
         // if ($booking->status !== 'pending_confirmation') {
         //     return response()->json(['message' => 'Chỉ có thể hủy đơn cho xác nhận'], 400);
         // }
+        if ($booking->status !== 'cancelled') {
+            return response()->json(['message' => 'Don Da Huy'], 400);
+        }
 
         $now = now();
         $checkInDate = Carbon::parse($booking->check_in_date);
