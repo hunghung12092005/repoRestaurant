@@ -53,6 +53,7 @@ class PriceController extends Controller
             'price_per_night' => 'required|numeric|min:0',
             'hourly_price' => 'required|numeric|min:0',
             'priority' => 'required|integer|min:0|max:10',
+            'is_active' => 'in:0,1' // Kiểm tra is_active là '0' hoặc '1'
         ]);
 
         if ($validator->fails()) {
@@ -61,8 +62,9 @@ class PriceController extends Controller
         }
 
         try {
-            $data = $request->only(['type_id', 'start_date', 'end_date', 'description', 'price_per_night', 'hourly_price', 'priority']);
+            $data = $request->only(['type_id', 'start_date', 'end_date', 'description', 'price_per_night', 'hourly_price', 'priority', 'is_active']);
             $data['description'] = $data['description'] ?: null;
+            $data['is_active'] = $request->input('is_active', '1'); // Mặc định '1' nếu không gửi
 
             // Kiểm tra xung đột ngày và ưu tiên
             $conflictingPrice = Price::where('type_id', $data['type_id'])
@@ -95,15 +97,24 @@ class PriceController extends Controller
     public function update(Request $request, $price_id)
     {
         Log::info('Update price request:', ['price_id' => $price_id, 'data' => $request->all()]);
-        $validator = Validator::make($request->all(), [
-            'type_id' => 'required|exists:room_types,type_id',
-            'start_date' => 'required|date',
-            'end_date' => 'required|date|after_or_equal:start_date',
-            'description' => 'nullable|string',
-            'price_per_night' => 'required|numeric|min:0',
-            'hourly_price' => 'required|numeric|min:0',
-            'priority' => 'required|integer|min:0|max:10',
-        ]);
+
+        // Kiểm tra nếu chỉ cập nhật is_active
+        if ($request->has('is_active') && count($request->all()) === 1) {
+            $validator = Validator::make($request->all(), [
+                'is_active' => 'required|boolean',
+            ]);
+        } else {
+            $validator = Validator::make($request->all(), [
+                'type_id' => 'required|exists:room_types,type_id',
+                'start_date' => 'required|date',
+                'end_date' => 'required|date|after_or_equal:start_date',
+                'description' => 'nullable|string',
+                'price_per_night' => 'required|numeric|min:0',
+                'hourly_price' => 'required|numeric|min:0',
+                'priority' => 'required|integer|min:0|max:10',
+                'is_active' => 'boolean',
+            ]);
+        }
 
         if ($validator->fails()) {
             Log::warning('Validation failed:', $validator->errors()->toArray());
@@ -112,30 +123,38 @@ class PriceController extends Controller
 
         try {
             $price = Price::findOrFail($price_id);
-            $data = $request->only(['type_id', 'start_date', 'end_date', 'description', 'price_per_night', 'hourly_price', 'priority']);
-            $data['description'] = $data['description'] ?: null;
 
-            // Kiểm tra xung đột ngày và ưu tiên (loại trừ bản thân)
-            $conflictingPrice = Price::where('type_id', $data['type_id'])
-                ->where('price_id', '!=', $price_id)
-                ->where(function ($query) use ($data) {
-                    $query->where(function ($q) use ($data) {
-                        $q->where('start_date', '<=', $data['end_date'])
-                            ->where('end_date', '>=', $data['start_date']);
-                    });
-                })
-                ->orderBy('priority', 'desc')
-                ->first();
+            // Nếu chỉ cập nhật is_active
+            if ($request->has('is_active') && count($request->all()) === 1) {
+                $price->update(['is_active' => $request->input('is_active')]);
+            } else {
+                $data = $request->only(['type_id', 'start_date', 'end_date', 'description', 'price_per_night', 'hourly_price', 'priority', 'is_active']);
+                $data['description'] = $data['description'] ?: null;
+                $data['is_active'] = $request->input('is_active', $price->is_active ?? true);
 
-            if ($conflictingPrice && $conflictingPrice->priority >= $data['priority']) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'Ngày đã có giá với mức ưu tiên cao hơn hoặc bằng. Vui lòng tăng mức ưu tiên.',
-                    'errors' => ['priority' => ['Mức ưu tiên phải cao hơn ' . $conflictingPrice->priority]]
-                ], 422);
+                // Kiểm tra xung đột ngày và ưu tiên
+                $conflictingPrice = Price::where('type_id', $data['type_id'])
+                    ->where('price_id', '!=', $price_id)
+                    ->where(function ($query) use ($data) {
+                        $query->where(function ($q) use ($data) {
+                            $q->where('start_date', '<=', $data['end_date'])
+                                ->where('end_date', '>=', $data['start_date']);
+                        });
+                    })
+                    ->orderBy('priority', 'desc')
+                    ->first();
+
+                if ($conflictingPrice && $conflictingPrice->priority >= $data['priority']) {
+                    return response()->json([
+                        'success' => false,
+                        'message' => 'Ngày đã có giá với mức ưu tiên cao hơn hoặc bằng. Vui lòng tăng mức ưu tiên.',
+                        'errors' => ['priority' => ['Mức ưu tiên phải cao hơn ' . $conflictingPrice->priority]]
+                    ], 422);
+                }
+
+                $price->update($data);
             }
 
-            $price->update($data);
             Log::info('Price updated:', $price->toArray());
             return response()->json(['success' => true, 'data' => $price], 200);
         } catch (\Exception $e) {
@@ -157,7 +176,7 @@ class PriceController extends Controller
             return response()->json(['success' => false, 'message' => 'Lỗi: ' . $e->getMessage()], 500);
         }
     }
-    //lấy giá ra clietn dựa vào ngày
+
     public function getPrice(Request $request)
     {
         $checkin = $request->input('checkin');
@@ -193,16 +212,16 @@ class PriceController extends Controller
             $totalDays = (strtotime($checkout) - strtotime($checkin)) / (60 * 60 * 24) + 0;
 
             // Tính tổng giá 1 ngày 1 phòng
-        $pricePerNight = $priorityPriceRecord ? $priorityPriceRecord->price_per_night : ($standardPriceRecord ? $standardPriceRecord->price_per_night : 0);
+            $pricePerNight = $priorityPriceRecord ? $priorityPriceRecord->price_per_night : ($standardPriceRecord ? $standardPriceRecord->price_per_night : 0);
             $surcharges = 0;
 
             // Nếu có bản ghi ưu tiên, thêm phụ phí
             if ($priorityPriceRecord) {
                 $surcharges = 100000 * $bookrooms; // Phụ phí
             }
-            $so_tien1phong =  ($pricePerNight * $totalDays) ;
+            $so_tien1phong = ($pricePerNight * $totalDays);
             // Cộng phụ phí và tổng phòng vào tổng giá và nhân với số ngày khách ở
-            $totalPrice =  $so_tien1phong * $bookrooms + $surcharges;
+            $totalPrice = $so_tien1phong * $bookrooms + $surcharges;
 
             // Thêm thông tin vào kết quả
             $result = [
