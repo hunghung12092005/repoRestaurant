@@ -594,7 +594,7 @@
 
                 <div class="form-group">
                     <label for="email">Mã OTP</label>
-                    <input v-model="otpInputs" type="number" placeholder="Nhập OTP" required="">
+                    <input v-model="otpInputs" type="text" placeholder="Nhập OTP" required="">
                 </div>
 
                 <button class="form-submit-btn" type="submit" @click="verifyCode">Xác Nhận</button>
@@ -1278,7 +1278,8 @@ const verifyCode = async () => {
         router.push('/thanksBooking');
     } catch (error) {
         console.error('Lỗi xác minh mã:', error.message || error);
-        alert(`Lỗi xác minh mã: ${error.message || error}`);
+               alert(`Lỗi gửi mã xác nhận: OTP không hợp lệ . Vui lòng thử lại.`);
+
     } finally {
         isLoading.value = false;
     }
