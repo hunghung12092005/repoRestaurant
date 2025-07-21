@@ -494,9 +494,9 @@ const xacNhanHuyDatPhong = async () => {
 
     await axios.patch(`/api/booking-cancel/${cancelId}`, {
       status: 'processed',
-      refund_bank: 'Ngân hàng ABC',
-      refund_account_number: '123456789',
-      refund_account_name: 'Nguyen Van A'
+      refund_bank: '',
+      refund_account_number: '',
+      refund_account_name: ''
     }, { headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' } });
 
     // Cập nhật trạng thái trong danh sách mà không cần tải lại
