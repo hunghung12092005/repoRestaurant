@@ -1,293 +1,295 @@
 <template>
   <div class="page-container">
-    <!-- Toast thông báo -->
-    <div class="toast-container position-fixed top-0 end-0 p-3">
-      <div 
-        id="successToast" 
-        class="toast align-items-center text-white bg-success border-0" 
-        role="alert" 
-        aria-live="assertive" 
-        aria-atomic="true"
-      >
-        <div class="d-flex">
-          <div class="toast-body">
-            {{ thongBaoToast }}
-          </div>
-          <button 
-            type="button" 
-            class="btn-close btn-close-white me-2 m-auto" 
-            data-bs-dismiss="toast" 
-            aria-label="Close"
-          ></button>
-        </div>
-      </div>
-    </div>
-
-    <!-- Tiêu đề trang -->
-    <div class="page-header mb-4">
-      <h1 class="page-title">Quản Lý Đặt Phòng</h1>
-      <p class="page-subtitle">Tổng quan và quản lý các lượt đặt phòng của khách sạn.</p>
-    </div>
-
-    <!-- Bộ lọc và tìm kiếm -->
-    <div class="card filter-card mb-4">
-      <div class="card-body">
-        <div class="row g-3">
-          <div class="col-lg-4 col-md-12">
-            <label for="search-input" class="form-label">Tìm kiếm</label>
-            <input 
-              id="search-input"
-              v-model="tuKhoaTimKiem" 
-              type="text" 
-              class="form-control" 
-              placeholder="Mã đặt phòng, tên KH, SĐT..."
-              @input="timKiemDatPhong"
-            >
-          </div>
-          <div class="col-lg-2 col-md-4">
-            <label for="status-filter" class="form-label">Trạng thái</label>
-            <select id="status-filter" v-model="locTrangThai" class="form-select" @change="locDanhSach">
-              <option value="">Tất cả</option>
-              <option value="pending_confirmation">Chờ xác nhận</option>
-              <option value="confirmed">Đã xác nhận</option>
-              <option value="pending_cancel">Chờ xác nhận hủy</option>
-              <option value="cancelled">Đã hủy</option>
-            </select>
-          </div>
-          <div class="col-lg-3 col-md-4">
-            <label for="from-date" class="form-label">Từ ngày</label>
-            <input id="from-date" v-model="tuNgay" type="date" class="form-control" @change="locDanhSach">
-          </div>
-          <div class="col-lg-3 col-md-4">
-            <label for="to-date" class="form-label">Đến ngày</label>
-            <input id="to-date" v-model="denNgay" type="date" class="form-control" @change="locDanhSach">
+    <!-- Hiển thị loading khi đang tải trang -->
+    <Loading v-if="isLoading" />
+    
+    <!-- Nội dung trang khi đã tải xong -->
+    <div v-else>
+      <!-- Toast thông báo -->
+      <div class="toast-container position-fixed top-0 end-0 p-3">
+        <div 
+          id="successToast" 
+          class="toast align-items-center text-white bg-success border-0" 
+          role="alert" 
+          aria-live="assertive" 
+          aria-atomic="true"
+        >
+          <div class="d-flex">
+            <div class="toast-body">
+              {{ thongBaoToast }}
+            </div>
+            <button 
+              type="button" 
+              class="btn-close btn-close-white me-2 m-auto" 
+              data-bs-dismiss="toast" 
+              aria-label="Close"
+            ></button>
           </div>
         </div>
       </div>
-    </div>
 
-    <!-- Hiển thị thông báo lỗi -->
-    <div v-if="thongBaoLoi" class="alert alert-danger" role="alert">
-      {{ thongBaoLoi }}
-    </div>
+      <!-- Tiêu đề trang -->
+      <div class="page-header mb-4">
+        <h1 class="page-title">Quản Lý Đặt Phòng</h1>
+        <p class="page-subtitle">Tổng quan và quản lý các lượt đặt phòng của khách sạn.</p>
+      </div>
 
-    <!-- Bảng danh sách đặt phòng -->
-    <div class="table-container">
-      <table class="table booking-table" v-if="danhSachHienThi.length > 0">
-        <thead>
-          <tr>
-            <th scope="col" @click="sapXep('booking_id')">
-              Mã ĐP 
-              <i v-if="sapXepCot === 'booking_id'" :class="sapXepGiam ? 'fas fa-sort-down' : 'fas fa-sort-up'"></i>
-            </th>
-            <th scope="col">Khách Hàng</th>
-            <th scope="col" @click="sapXep('check_in_date')">
-              Nhận Phòng
-              <i v-if="sapXepCot === 'check_in_date'" :class="sapXepGiam ? 'fas fa-sort-down' : 'fas fa-sort-up'"></i>
-            </th>
-            <th scope="col" @click="sapXep('check_out_date')">
-              Trả Phòng
-              <i v-if="sapXepCot === 'check_out_date'" :class="sapXepGiam ? 'fas fa-sort-down' : 'fas fa-sort-up'"></i>
-            </th>
-            <th scope="col">Tổng Giá</th>
-            <th scope="col">Trạng Thái</th>
-            <th scope="col" class="text-center">Hành Động</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr v-for="datPhong in danhSachHienThi" :key="datPhong.booking_id">
-            <td><span class="booking-id">#{{ datPhong.booking_id }}</span></td>
-            <td>
-              <div class="customer-name">{{ datPhong.customer?.customer_name || 'Không xác định' }}</div>
-              <div class="customer-phone">0{{ datPhong.customer?.customer_phone || 'Không có SĐT' }}</div>
-            </td>
-            <td>{{ dinhDangNgay(datPhong.check_in_date) }}</td>
-            <td>{{ dinhDangNgay(datPhong.check_out_date) }}</td>
-            <td><span class="price-tag">{{ dinhDangTien(datPhong.total_price) }}</span></td>
-            <td>
-              <span class="badge" :class="layLopTrangThai(datPhong.status)">
-                {{ dinhDangTrangThai(datPhong.status) }}
-              </span>
-            </td>
-            <td class="text-center">
-              <button @click="moModalChiTiet(datPhong)" class="btn btn-outline-primary btn-sm">
-                Chi tiết
+      <!-- Bộ lọc và tìm kiếm -->
+      <div class="card filter-card mb-4">
+        <div class="card-body">
+          <div class="row g-3">
+            <div class="col-lg-4 col-md-12">
+              <label for="search-input" class="form-label">Tìm kiếm</label>
+              <input 
+                id="search-input"
+                v-model="tuKhoaTimKiem" 
+                type="text" 
+                class="form-control" 
+                placeholder="Mã đặt phòng, tên KH, SĐT..."
+                @input="timKiemDatPhong"
+              >
+            </div>
+            <div class="col-lg-2 col-md-4">
+              <label for="status-filter" class="form-label">Trạng thái</label>
+              <select id="status-filter" v-model="locTrangThai" class="form-select" @change="locDanhSach">
+                <option value="">Tất cả</option>
+                <option value="pending_confirmation">Chờ xác nhận</option>
+                <option value="confirmed">Đã xác nhận</option>
+                <option value="pending_cancel">Chờ xác nhận hủy</option>
+                <option value="cancelled">Đã hủy</option>
+              </select>
+            </div>
+            <div class="col-lg-3 col-md-4">
+              <label for="from-date" class="form-label">Từ ngày</label>
+              <input id="from-date" v-model="tuNgay" type="date" class="form-control" @change="locDanhSach">
+            </div>
+            <div class="col-lg-3 col-md-4">
+              <label for="to-date" class="form-label">Đến ngày</label>
+              <input id="to-date" v-model="denNgay" type="date" class="form-control" @change="locDanhSach">
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Hiển thị thông báo lỗi -->
+      <div v-if="thongBaoLoi" class="alert alert-danger" role="alert">
+        {{ thongBaoLoi }}
+      </div>
+
+      <!-- Bảng danh sách đặt phòng -->
+      <div class="table-container">
+        <table class="table booking-table" v-if="danhSachHienThi.length > 0">
+          <thead>
+            <tr>
+              <th scope="col" @click="sapXep('booking_id')">
+                Mã ĐP 
+                <i v-if="sapXepCot === 'booking_id'" :class="sapXepGiam ? 'fas fa-sort-down' : 'fas fa-sort-up'"></i>
+              </th>
+              <th scope="col">Khách Hàng</th>
+              <th scope="col" @click="sapXep('check_in_date')">
+                Nhận Phòng
+                <i v-if="sapXepCot === 'check_in_date'" :class="sapXepGiam ? 'fas fa-sort-down' : 'fas fa-sort-up'"></i>
+              </th>
+              <th scope="col" @click="sapXep('check_out_date')">
+                Trả Phòng
+                <i v-if="sapXepCot === 'check_out_date'" :class="sapXepGiam ? 'fas fa-sort-down' : 'fas fa-sort-up'"></i>
+              </th>
+              <th scope="col">Tổng Giá</th>
+              <th scope="col">Trạng Thái</th>
+              <th scope="col" class="text-center">Hành Động</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr v-for="datPhong in danhSachHienThi" :key="datPhong.booking_id">
+              <td><span class="booking-id">#{{ datPhong.booking_id }}</span></td>
+              <td>
+                <div class="customer-name">{{ datPhong.customer?.customer_name || 'Không xác định' }}</div>
+                <div class="customer-phone">0{{ datPhong.customer?.customer_phone || 'Không có SĐT' }}</div>
+              </td>
+              <td>{{ dinhDangNgay(datPhong.check_in_date) }}</td>
+              <td>{{ dinhDangNgay(datPhong.check_out_date) }}</td>
+              <td><span class="price-tag">{{ dinhDangTien(datPhong.total_price) }}</span></td>
+              <td>
+                <span class="badge" :class="layLopTrangThai(datPhong.status)">
+                  {{ dinhDangTrangThai(datPhong.status) }}
+                </span>
+              </td>
+              <td class="text-center">
+                <button @click="moModalChiTiet(datPhong)" class="btn btn-outline-primary btn-sm">
+                  Chi tiết
+                </button>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+        <div v-else class="alert alert-light text-center">
+          Không tìm thấy dữ liệu đặt phòng phù hợp.
+        </div>
+      </div>
+
+      <!-- Phân trang -->
+      <nav aria-label="Page navigation" class="mt-4" v-if="tongSoTrang > 1">
+        <ul class="pagination justify-content-center">
+          <li class="page-item" :class="{ disabled: trangHienTai === 1 }">
+            <a class="page-link" href="#" @click.prevent="chuyenTrang(1)">««</a>
+          </li>
+          <li class="page-item" :class="{ disabled: trangHienTai === 1 }">
+            <a class="page-link" href="#" @click.prevent="chuyenTrang(trangHienTai - 1)">«</a>
+          </li>
+          <li class="page-item" v-for="trang in danhSachTrang" :key="trang" :class="{ active: trang === trangHienTai }">
+            <a class="page-link" href="#" @click.prevent="chuyenTrang(trang)">{{ trang }}</a>
+          </li>
+          <li class="page-item" :class="{ disabled: trangHienTai === tongSoTrang }">
+            <a class="page-link" href="#" @click.prevent="chuyenTrang(trangHienTai + 1)">»</a>
+          </li>
+          <li class="page-item" :class="{ disabled: trangHienTai === tongSoTrang }">
+            <a class="page-link" href="#" @click.prevent="chuyenTrang(tongSoTrang)">»»</a>
+          </li>
+        </ul>
+      </nav>
+
+      <!-- Modal chi tiết đặt phòng -->
+      <div v-if="hienModal" class="modal-backdrop fade show"></div>
+      <div v-if="hienModal" class="modal fade show d-block" tabindex="-1" role="dialog">
+        <div class="modal-dialog modal-xl modal-dialog-centered" role="document">
+          <div class="modal-content modal-custom">
+            <div class="modal-header modal-header-custom">
+              <h5 class="modal-title">
+                Chi Tiết Đặt Phòng #{{ datPhongDuocChon.booking_id }}
+              </h5>
+              <button type="button" @click="dongModal" class="btn-close" aria-label="Close"></button>
+            </div>
+            <div class="modal-body p-4">
+              <Loading v-if="dangTai" />
+              <div v-else>
+                <!-- Thông tin chung -->
+                <div class="row g-4 mb-4">
+                  <div class="col-lg-6">
+                    <h6 class="info-title">Thông tin khách hàng</h6>
+                    <ul class="info-list">
+                      <li><span>Họ tên:</span><strong>{{ datPhongDuocChon.customer?.customer_name || 'N/A' }}</strong></li>
+                      <li><span>Điện thoại:</span><strong>0{{ datPhongDuocChon.customer?.customer_phone || 'N/A' }}</strong></li>
+                      <li><span>Email:</span><strong>{{ datPhongDuocChon.customer?.customer_email || 'N/A' }}</strong></li>
+                    </ul>
+                  </div>
+                  <div class="col-lg-6">
+                    <h6 class="info-title">Thông tin đặt phòng</h6>
+                    <ul class="info-list">
+                      <li><span>Nhận phòng:</span><strong>{{ dinhDangNgay(datPhongDuocChon.check_in_date) }}</strong></li>
+                      <li><span>Trả phòng:</span><strong>{{ dinhDangNgay(datPhongDuocChon.check_out_date) }}</strong></li>
+                      <li><span>Loại đặt:</span><strong>{{ dinhDangLoaiDatPhong(datPhongDuocChon.booking_type) }}</strong></li>
+                      <li><span>Ghi chú:</span><strong>{{ datPhongDuocChon.note || 'Không có' }}</strong></li>
+                    </ul>
+                  </div>
+                </div>
+
+                <!-- Thông tin hủy (nếu có) -->
+                <div v-if="thongTinHuy" class="row g-4 mb-4">
+                  <div class="col-12">
+                    <h6 class="info-title">Thông tin hủy đặt phòng</h6>
+                    <ul class="info-list">
+                      <li><span>Lý do hủy:</span><strong>{{ thongTinHuy.reason || 'Không có' }}</strong></li>
+                      <li><span>Số tiền hoàn lại:</span><strong>{{ dinhDangTien(thongTinHuy.refund_amount) }}</strong></li>
+                      <li><span>Ngân hàng:</span><strong>{{ thongTinHuy.refund_bank || 'N/A' }}</strong></li>
+                      <li><span>Số tài khoản:</span><strong>{{ thongTinHuy.refund_account_number || 'N/A' }}</strong></li>
+                      <li><span>Tên tài khoản:</span><strong>{{ thongTinHuy.refund_account_name || 'N/A' }}</strong></li>
+                      <li><span>Ngày yêu cầu hủy:</span><strong>{{ dinhDangNgay(thongTinHuy.cancellation_date) }}</strong></li>
+                      <li><span>Trạng thái:</span><strong>{{ dinhDangTrangThaiHuy(thongTinHuy.status) }}</strong></li>
+                    </ul>
+                  </div>
+                </div>
+
+                <!-- Status Bar -->
+                <div class="status-bar">
+                  <div>
+                    Trạng thái đặt phòng:
+                    <span class="badge ms-2" :class="layLopTrangThai(datPhongDuocChon.status)">
+                      {{ dinhDangTrangThai(datPhongDuocChon.status) }}
+                    </span>
+                  </div>
+                  <div>
+                    Trạng thái thanh toán:
+                    <span class="badge ms-2" :class="layLopTrangThaiThanhToan(datPhongDuocChon.payment_status)">
+                      {{ datPhongDuocChon.payment_status_display || dinhDangTrangThaiThanhToan(datPhongDuocChon.payment_status) }}
+                    </span>
+                  </div>
+                  <div class="total-price">
+                    Tổng cộng: <strong>{{ dinhDangTien(datPhongDuocChon.total_price) }}</strong>
+                  </div>
+                </div>
+
+                <!-- Bảng chi tiết phòng -->
+                <h6 class="info-title mt-4">Chi Tiết Các Phòng Đã Đặt</h6>
+                <div class="table-responsive">
+                  <table class="table room-assignment-table">
+                    <thead>
+                      <tr>
+                        <th>Loại Phòng Đặt</th>
+                        <th>Phòng Được Xếp</th>
+                        <th class="text-end">Giá</th>
+                        <th style="width: 35%;">Xếp Phòng</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr v-if="chiTietDatPhongHopLe.length === 0">
+                        <td colspan="4" class="text-center text-muted py-3">Không có chi tiết phòng để hiển thị.</td>
+                      </tr>
+                      <tr v-for="chiTiet in chiTietDatPhongHopLe" :key="chiTiet.booking_detail_id">
+                        <td>{{ chiTiet.type_name || 'Không xác định' }}</td>
+                        <td>
+                          <span v-if="chiTiet.room?.room_name && chiTiet.room.room_name !== 'Chưa xếp'" class="text-success fw-bold">{{ chiTiet.room.room_name }}</span>
+                          <span v-else class="text-muted">Chưa xếp</span>
+                        </td>
+                        <td class="text-end">{{ dinhDangTien(chiTiet.total_price) }}</td>
+                        <td>
+                          <div v-if="datPhongDuocChon.status === 'pending_confirmation' && !chiTiet.room_id">
+                            <select
+                              v-if="phongTrong[chiTiet.booking_detail_id]?.length > 0"
+                              v-model="chiTiet.room_id"
+                              @change="xepPhong(chiTiet)"
+                              class="form-select form-select-sm"
+                            >
+                              <option value="">-- Chọn phòng --</option>
+                              <option v-for="phong in phongTrong[chiTiet.booking_detail_id]" :key="phong.room_id" :value="phong.room_id">
+                                {{ phong.room_name }}
+                              </option>
+                            </select>
+                            <div v-else class="text-warning small">Hết phòng trống loại này</div>
+                          </div>
+                          <div v-else-if="chiTiet.room_id" class="text-muted small">
+                            Đã xếp phòng
+                          </div>
+                          <div v-else-if="datPhongDuocChon.status !== 'pending_confirmation'" class="text-muted small">
+                            Quá hạn xếp phòng
+                          </div>
+                        </td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+            <div v-if="!dangTai && datPhongDuocChon.booking_id" class="modal-footer modal-footer-custom">
+              <div class="me-auto" v-if="datPhongDuocChon.status === 'pending_confirmation' && coPhongChuaXep">
+                <small class="text-danger">Vui lòng xếp tất cả các phòng để xác nhận.</small>
+              </div>
+              <button @click="dongModal" class="btn btn-secondary" data-dismiss="modal">Đóng</button>
+              <button
+                v-if="datPhongDuocChon.status === 'pending_confirmation'"
+                @click="xacNhanDatPhong"
+                class="btn btn-primary"
+                :disabled="coPhongChuaXep"
+              >
+                Xác Nhận Đặt Phòng
               </button>
-            </td>
-          </tr>
-        </tbody>
-      </table>
-      <div v-else class="alert alert-light text-center">
-        Không tìm thấy dữ liệu đặt phòng phù hợp.
-      </div>
-    </div>
-
-    <!-- Phân trang -->
-    <nav aria-label="Page navigation" class="mt-4" v-if="tongSoTrang > 1">
-      <ul class="pagination justify-content-center">
-        <li class="page-item" :class="{ disabled: trangHienTai === 1 }">
-          <a class="page-link" href="#" @click.prevent="chuyenTrang(1)">««</a>
-        </li>
-        <li class="page-item" :class="{ disabled: trangHienTai === 1 }">
-          <a class="page-link" href="#" @click.prevent="chuyenTrang(trangHienTai - 1)">«</a>
-        </li>
-        <li class="page-item" v-for="trang in danhSachTrang" :key="trang" :class="{ active: trang === trangHienTai }">
-          <a class="page-link" href="#" @click.prevent="chuyenTrang(trang)">{{ trang }}</a>
-        </li>
-        <li class="page-item" :class="{ disabled: trangHienTai === tongSoTrang }">
-          <a class="page-link" href="#" @click.prevent="chuyenTrang(trangHienTai + 1)">»</a>
-        </li>
-        <li class="page-item" :class="{ disabled: trangHienTai === tongSoTrang }">
-          <a class="page-link" href="#" @click.prevent="chuyenTrang(tongSoTrang)">»»</a>
-        </li>
-      </ul>
-    </nav>
-
-    <!-- Modal chi tiết đặt phòng -->
-    <div v-if="hienModal" class="modal-backdrop fade show"></div>
-    <div v-if="hienModal" class="modal fade show d-block" tabindex="-1" role="dialog">
-      <div class="modal-dialog modal-xl modal-dialog-centered" role="document">
-        <div class="modal-content modal-custom">
-          <div class="modal-header modal-header-custom">
-            <h5 class="modal-title">
-              Chi Tiết Đặt Phòng #{{ datPhongDuocChon.booking_id }}
-            </h5>
-            <button type="button" @click="dongModal" class="btn-close" aria-label="Close"></button>
-          </div>
-          <div class="modal-body p-4">
-            <div v-if="dangTai" class="text-center py-5">
-              <div class="spinner-border text-primary" role="status"></div>
-              <p class="mt-3 text-muted">Đang tải dữ liệu chi tiết...</p>
+              <button
+                v-if="datPhongDuocChon.status === 'pending_cancel' && thongTinHuy?.status === 'requested'"
+                @click="xacNhanHuyDatPhong"
+                class="btn btn-danger"
+              >
+                Xác Nhận Hủy
+              </button>
             </div>
-            
-            <div v-else>
-              <!-- Thông tin chung -->
-              <div class="row g-4 mb-4">
-                <div class="col-lg-6">
-                  <h6 class="info-title">Thông tin khách hàng</h6>
-                  <ul class="info-list">
-                    <li><span>Họ tên:</span><strong>{{ datPhongDuocChon.customer?.customer_name || 'N/A' }}</strong></li>
-                    <li><span>Điện thoại:</span><strong>0{{ datPhongDuocChon.customer?.customer_phone || 'N/A' }}</strong></li>
-                    <li><span>Email:</span><strong>{{ datPhongDuocChon.customer?.customer_email || 'N/A' }}</strong></li>
-                  </ul>
-                </div>
-                <div class="col-lg-6">
-                  <h6 class="info-title">Thông tin đặt phòng</h6>
-                  <ul class="info-list">
-                    <li><span>Nhận phòng:</span><strong>{{ dinhDangNgay(datPhongDuocChon.check_in_date) }}</strong></li>
-                    <li><span>Trả phòng:</span><strong>{{ dinhDangNgay(datPhongDuocChon.check_out_date) }}</strong></li>
-                    <li><span>Loại đặt:</span><strong>{{ dinhDangLoaiDatPhong(datPhongDuocChon.booking_type) }}</strong></li>
-                    <li><span>Ghi chú:</span><strong>{{ datPhongDuocChon.note || 'Không có' }}</strong></li>
-                  </ul>
-                </div>
-              </div>
-
-              <!-- Thông tin hủy (nếu có) -->
-              <div v-if="thongTinHuy" class="row g-4 mb-4">
-                <div class="col-12">
-                  <h6 class="info-title">Thông tin hủy đặt phòng</h6>
-                  <ul class="info-list">
-                    <li><span>Lý do hủy:</span><strong>{{ thongTinHuy.reason || 'Không có' }}</strong></li>
-                    <li><span>Số tiền hoàn lại:</span><strong>{{ dinhDangTien(thongTinHuy.refund_amount) }}</strong></li>
-                    <li><span>Ngân hàng:</span><strong>{{ thongTinHuy.refund_bank || 'N/A' }}</strong></li>
-                    <li><span>Số tài khoản:</span><strong>{{ thongTinHuy.refund_account_number || 'N/A' }}</strong></li>
-                    <li><span>Tên tài khoản:</span><strong>{{ thongTinHuy.refund_account_name || 'N/A' }}</strong></li>
-                    <li><span>Ngày yêu cầu hủy:</span><strong>{{ dinhDangNgay(thongTinHuy.cancellation_date) }}</strong></li>
-                    <li><span>Trạng thái:</span><strong>{{ dinhDangTrangThaiHuy(thongTinHuy.status) }}</strong></li>
-                  </ul>
-                </div>
-              </div>
-
-              <!-- Status Bar -->
-              <div class="status-bar">
-                <div>
-                  Trạng thái đặt phòng:
-                  <span class="badge ms-2" :class="layLopTrangThai(datPhongDuocChon.status)">
-                    {{ dinhDangTrangThai(datPhongDuocChon.status) }}
-                  </span>
-                </div>
-                <div>
-                  Trạng thái thanh toán:
-                  <span class="badge ms-2" :class="layLopTrangThaiThanhToan(datPhongDuocChon.payment_status)">
-                    {{ datPhongDuocChon.payment_status_display || dinhDangTrangThaiThanhToan(datPhongDuocChon.payment_status) }}
-                  </span>
-                </div>
-                <div class="total-price">
-                  Tổng cộng: <strong>{{ dinhDangTien(datPhongDuocChon.total_price) }}</strong>
-                </div>
-              </div>
-
-              <!-- Bảng chi tiết phòng -->
-              <h6 class="info-title mt-4">Chi Tiết Các Phòng Đã Đặt</h6>
-              <div class="table-responsive">
-                <table class="table room-assignment-table">
-                  <thead>
-                    <tr>
-                      <th>Loại Phòng Đặt</th>
-                      <th>Phòng Được Xếp</th>
-                      <th class="text-end">Giá</th>
-                      <th style="width: 35%;">Xếp Phòng</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    <tr v-if="chiTietDatPhongHopLe.length === 0">
-                      <td colspan="4" class="text-center text-muted py-3">Không có chi tiết phòng để hiển thị.</td>
-                    </tr>
-                    <tr v-for="chiTiet in chiTietDatPhongHopLe" :key="chiTiet.booking_detail_id">
-                      <td>{{ chiTiet.type_name || 'Không xác định' }}</td>
-                      <td>
-                        <span v-if="chiTiet.room?.room_name && chiTiet.room.room_name !== 'Chưa xếp'" class="text-success fw-bold">{{ chiTiet.room.room_name }}</span>
-                        <span v-else class="text-muted">Chưa xếp</span>
-                      </td>
-                      <td class="text-end">{{ dinhDangTien(chiTiet.total_price) }}</td>
-                      <td>
-                        <div v-if="datPhongDuocChon.status === 'pending_confirmation' && !chiTiet.room_id">
-                          <select
-                            v-if="phongTrong[chiTiet.booking_detail_id]?.length > 0"
-                            v-model="chiTiet.room_id"
-                            @change="xepPhong(chiTiet)"
-                            class="form-select form-select-sm"
-                          >
-                            <option value="">-- Chọn phòng --</option>
-                            <option v-for="phong in phongTrong[chiTiet.booking_detail_id]" :key="phong.room_id" :value="phong.room_id">
-                              {{ phong.room_name }}
-                            </option>
-                          </select>
-                          <div v-else class="text-warning small">Hết phòng trống loại này</div>
-                        </div>
-                        <div v-else-if="chiTiet.room_id" class="text-muted small">
-                          Đã xếp phòng
-                        </div>
-                        <div v-else-if="datPhongDuocChon.status !== 'pending_confirmation'" class="text-muted small">
-                          Quá hạn xếp phòng
-                        </div>
-                      </td>
-                    </tr>
-                  </tbody>
-                </table>
-              </div>
-            </div>
-          </div>
-          <div v-if="!dangTai && datPhongDuocChon.booking_id" class="modal-footer modal-footer-custom">
-            <div class="me-auto" v-if="datPhongDuocChon.status === 'pending_confirmation' && coPhongChuaXep">
-              <small class="text-danger">Vui lòng xếp tất cả các phòng để xác nhận.</small>
-            </div>
-            <button @click="dongModal" class="btn btn-secondary" data-dismiss="modal">Đóng</button>
-            <button
-              v-if="datPhongDuocChon.status === 'pending_confirmation'"
-              @click="xacNhanDatPhong"
-              class="btn btn-primary"
-              :disabled="coPhongChuaXep"
-            >
-              Xác Nhận Đặt Phòng
-            </button>
-            <button
-              v-if="datPhongDuocChon.status === 'pending_cancel' && thongTinHuy?.status === 'requested'"
-              @click="xacNhanHuyDatPhong"
-              class="btn btn-danger"
-            >
-              Xác Nhận Hủy
-            </button>
           </div>
         </div>
       </div>
@@ -308,6 +310,7 @@ const chiTietDatPhong = ref([]);
 const phongTrong = ref({});
 const thongBaoLoi = ref('');
 const dangTai = ref(false);
+const isLoading = ref(true); // Biến trạng thái loading cho toàn trang
 const thongTinHuy = ref(null);
 const thongBaoToast = ref('');
 
@@ -379,20 +382,25 @@ const coPhongChuaXep = computed(() => {
 });
 
 const layDanhSachDatPhong = async () => {
+  isLoading.value = true; // Bật loading khi bắt đầu tải trang
   try {
-    const res = await axios.get('/api/bookings?status[]=pending_confirmation&status[]=confirmed&status[]=cancelled&status[]=pending_cancel', { headers: { 'Accept': 'application/json' } });
+    const res = await axios.get('/api/bookings?status[]=pending_confirmation&status[]=confirmed&status[]=cancelled&status[]=pending_cancel', {
+      headers: { 'Accept': 'application/json' }
+    });
     danhSachDatPhong.value = Array.isArray(res.data) ? res.data : [];
     thongBaoLoi.value = '';
   } catch (err) {
     console.error('Lỗi khi lấy danh sách đặt phòng:', err);
     thongBaoLoi.value = 'Không thể kết nối đến server để lấy dữ liệu đặt phòng.';
     danhSachDatPhong.value = [];
+  } finally {
+    isLoading.value = false; // Tắt loading sau khi hoàn tất
   }
 };
 
 const moModalChiTiet = async (datPhong) => {
   datPhongDuocChon.value = datPhong;
-  dangTai.value = true;
+  dangTai.value = true; // Bật loading cho modal
   hienModal.value = true;
   thongBaoLoi.value = '';
   phongTrong.value = {};
@@ -444,7 +452,7 @@ const moModalChiTiet = async (datPhong) => {
     thongBaoLoi.value = `Không thể tải chi tiết đặt phòng. Lỗi: ${err.response?.data?.error || err.message}`;
     hienModal.value = false;
   } finally {
-    dangTai.value = false;
+    dangTai.value = false; // Tắt loading modal
   }
 };
 
@@ -470,6 +478,7 @@ const xacNhanDatPhong = async () => {
     await axios.patch(`/api/bookings/${datPhongDuocChon.value.booking_id}`, { 
       status: 'confirmed' 
     }, { headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' } });
+    
     // Cập nhật trạng thái trong danh sách mà không cần tải lại
     const index = danhSachDatPhong.value.findIndex(item => item.booking_id === datPhongDuocChon.value.booking_id);
     if (index !== -1) {
@@ -498,8 +507,8 @@ const xacNhanHuyDatPhong = async () => {
       refund_account_number: '',
       refund_account_name: ''
     }, { headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' } });
-
-    // Cập nhật trạng thái trong danh sách mà không cần tải lại
+    
+  // Cập nhật trạng thái trong danh sách mà không cần tải lại
     const index = danhSachDatPhong.value.findIndex(item => item.booking_id === datPhongDuocChon.value.booking_id);
     if (index !== -1) {
       danhSachDatPhong.value[index].status = 'cancelled';
@@ -832,7 +841,6 @@ onMounted(() => {
   vertical-align: middle;
 }
 
-/* Toast styling */
 .toast-container {
   z-index: 1055;
 }

@@ -48,7 +48,7 @@
     <div v-else-if="bookings.length === 0" class="alert alert-info text-center shadow-sm py-4 animate__animated animate__fadeIn" role="alert">
       <p class="lead mb-3"><i class="bi bi-info-circle-fill me-2"></i> Bạn chưa có lịch sử đặt phòng nào.</p>
       <p class="mb-0">Hãy khám phá các phòng của chúng tôi để bắt đầu đặt phòng ngay!</p>
-      <router-link to="/rooms" class="btn btn-primary mt-3 animate__animated animate__pulse animate__infinite">
+      <router-link to="/rooms3" class="btn btn-primary mt-3 animate__animated animate__pulse animate__infinite">
         <i class="bi bi-house-door-fill me-2"></i> Xem phòng ngay
       </router-link>
     </div>
