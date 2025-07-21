@@ -1043,8 +1043,8 @@ const getRoomPrices = async () => {
                 gia1h: roomPrice.gia1h
             };
         });
-            console.log("Bắt đầu lấy giá phòng...");
-            console.log("Giá phòng đã lấy:", hotels.value); // Kiểm tra dữ liệu phòng đã lấy
+            //console.log("Bắt đầu lấy giá phòng...");
+            //console.log("Giá phòng đã lấy:", hotels.value); // Kiểm tra dữ liệu phòng đã lấy
 
         calculateTotalDays();
     } catch (error) {
