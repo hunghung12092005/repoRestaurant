@@ -409,7 +409,6 @@ const toggleForm = () => {
 };
 const submitForm = async () => {
     isLoading.value = true;
-
     // Lấy giá trị Turnstile response
     const turnstileResponse = document.querySelector('input[name="cf-turnstile-response"]').value; console.log("Turnstile response:", turnstileResponse); // In giá trị ra console
     if (!turnstileResponse) {
@@ -417,7 +416,6 @@ const submitForm = async () => {
         isLoading.value = false;
         return;
     }
-
     try {
         if (isLogin.value) {
             const response = await axios.post(`${apiUrl}/api/login`, {
@@ -565,14 +563,12 @@ onMounted(() => {
     const script = document.createElement('script');
     script.src = 'https://challenges.cloudflare.com/turnstile/v0/api.js';
     script.async = true;
-
     script.onload = () => {
         console.log("Turnstile script loaded successfully."); // Kiểm tra xem script đã tải
         // Kiểm tra xem widget có tồn tại không
         const turnstileWidget = document.querySelector('.cf-turnstile');
-        console.log("Turnstile widget:", turnstileWidget); // In ra widget
+        //console.log("Turnstile widget:", turnstileWidget); // In ra widget
     };
-
     document.body.appendChild(script);
 });
 onBeforeUnmount(() => {
