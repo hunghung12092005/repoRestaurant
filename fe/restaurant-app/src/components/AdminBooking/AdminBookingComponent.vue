@@ -464,9 +464,9 @@ const xacNhanHuyDatPhong = async () => {
 
     const response = await axios.patch(`/api/booking-cancel/${cancelId}`, {
       status: 'processed', // Có thể thay bằng 'failed' tùy logic
-      refund_bank: 'Ngân hàng ABC',
-      refund_account_number: '123456789',
-      refund_account_name: 'Nguyen Van A'
+      refund_bank: '',
+      refund_account_number: '',
+      refund_account_name: ''
     });
 
     thongBaoLoi.value = 'Xác nhận hủy thành công!';
