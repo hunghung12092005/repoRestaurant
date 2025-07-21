@@ -199,9 +199,10 @@ class PriceController extends Controller
             foreach ($group as $price) {
                 // Lưu bản ghi ưu tiên
                 if ($price->priority === 1 && $price->start_date <= $checkout && $price->end_date >= $checkin) {
-                    $priorityPriceRecord = $price;
+                    if($price->is_active === 1) {
+                          $priorityPriceRecord = $price;
+                    }
                 }
-
                 // Lưu bản ghi tiêu chuẩn
                 if ($price->start_date <= $checkout && $price->end_date >= $checkin) {
                     $standardPriceRecord = $price;
