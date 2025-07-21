@@ -386,7 +386,7 @@
                         <i class="bi bi-door-open me-1"></i> {{ hotel.available_rooms }} Phòng
                     </span>
 
-                    <img src="https://www.ansonika.com/paradise/one-page-version/img/gallery/3.jpg" alt="Double Room" />
+                    <img :src="hotel.image" alt="Double Room" />
 
                     <div class="info-box d-flex flex-column">
                         <h2>
@@ -995,7 +995,7 @@ const getRoomTypes = async () => {
                     'https://img.lottehotel.com/cms/asset/2025/07/01/29403/438-2-1920-roo-LTHA.webp',
                     room.images
                 ],
-                //image: "https://i.postimg.cc/d3pNGXPN/7c6764b8-de90-474c-9b98-05019aef3193.png",
+                image: room.images || "https://img.lottehotel.com/cms/asset/2025/07/01/29403/438-2-1920-roo-LTHA.webp",
                 youtube_link: room.youtube_link || "https://www.youtube.com/embed/kXaLkZPlYyo?si=Pw0ywUB6VmhsW5XC",
                 price: 0,
                 rating: room.rate,
