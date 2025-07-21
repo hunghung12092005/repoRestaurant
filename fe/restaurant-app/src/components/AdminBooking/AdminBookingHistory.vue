@@ -16,7 +16,7 @@
     <div v-if="allBookings.length === 0">
       <p>Không có lịch sử đặt phòng cho ngày này.</p>
     </div>
-
+    
     <table>
       <thead>
         <tr>
