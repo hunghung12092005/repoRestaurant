@@ -45,7 +45,10 @@
             <td>
               <div class="occupancy-info">
                 <span class="me-3">
-                  <i class="bi bi-people-fill me-1"></i>{{ type.max_occupancy || 0 }} Người
+                  <i class="bi bi-people-fill me-1"></i>{{ type.max_occupancy || 0 }} Người lớn
+                </span>
+                <span class="me-3">
+                  <i class="bi bi-people-fill me-1"></i>{{ type.max_occupancy_child || 0 }} Trẻ em
                 </span>
                 <span>
                   <i class="bi bi-hdd-stack-fill me-1"></i>{{ type.bed_count || 0 }} Giường
@@ -130,8 +133,12 @@
                 <input type="number" v-model.number="newType.bed_count" class="form-control" min="1" required />
               </div>
               <div class="col-md-6">
-                <label class="form-label">Sức Chứa Tối Đa</label>
+                <label class="form-label">Sức Chứa Người Lớn</label>
                 <input type="number" v-model.number="newType.max_occupancy" class="form-control" min="1" required />
+              </div>
+              <div class="col-md-6">
+                <label class="form-label">Sức Chứa Trẻ Em</label>
+                <input type="number" v-model.number="newType.max_occupancy_child" class="form-control" min="1" required />
               </div>
               <div class="col-12">
                 <label class="form-label">Mô Tả</label>
@@ -226,6 +233,7 @@ const newType = ref({
   description: '',
   bed_count: 1,
   max_occupancy: 1,
+  max_occupancy_child: 1,
   images: null,
   amenity_ids: [],
 });
@@ -342,6 +350,7 @@ const moModalThem = () => {
     description: '',
     bed_count: 1,
     max_occupancy: 1,
+    max_occupancy_child: 1,
     images: null,
     amenity_ids: [],
   };
@@ -357,6 +366,7 @@ const moModalSua = (type) => {
     description: type.description,
     bed_count: type.bed_count,
     max_occupancy: type.max_occupancy,
+    max_occupancy_child: type.max_occupancy_child,
     images: null,
     amenity_ids: type.amenities ? type.amenities.map((a) => a.amenity_id) : [],
   };
@@ -386,6 +396,7 @@ const saveType = async () => {
   formData.append('description', newType.value.description || '');
   formData.append('bed_count', newType.value.bed_count);
   formData.append('max_occupancy', newType.value.max_occupancy);
+  formData.append('max_occupancy_child', newType.value.max_occupancy_child);
 
   // Xử lý ảnh
   if (newType.value.images && isFile(newType.value.images)) {
