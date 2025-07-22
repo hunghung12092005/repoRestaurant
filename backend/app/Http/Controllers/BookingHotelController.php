@@ -286,6 +286,8 @@ class BookingHotelController extends Controller
                 'total_price' => 'required|numeric',
                 'payment_method' => 'required',
                 'booking_type' => 'required|string',
+                'adult' => 'required|integer',
+                'child' => 'required|integer',
                 'note' => 'nullable|string',
                 'orderCode' => 'nullable',
             ]);
@@ -314,6 +316,8 @@ class BookingHotelController extends Controller
                 'customer_id' => $customerId,
                 'payment_method' => $bookingDetails['payment_method'],
                 'booking_type' => $bookingDetails['booking_type'],
+                'adult' => $bookingDetails['adult'],
+                'child' => $bookingDetails['child'],
                 'orderCode' => $bookingDetails['orderCode'],
                 'check_in_date' => $bookingDetails['check_in_date'],
                 'check_out_date' => $bookingDetails['check_out_date'],

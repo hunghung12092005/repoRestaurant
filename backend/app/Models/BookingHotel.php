@@ -13,6 +13,8 @@ class BookingHotel extends Model
         'payment_method',
         'orderCode',
         'booking_type',
+        'adult',
+        'child',
         'pricing_type',
         'check_in_date',
         'check_out_date',
