@@ -84,11 +84,11 @@ io.on('connection', (socket) => {
     socket.on('chat message', (data) => {
         // Kiểm tra xem có file không
         console.log('Received message:', data);
-        if (data.file) {
-            //console.log('Received file:');
-            const filePath = saveFile(data.file); // Lưu file và lấy đường dẫn
-            data.file = `http://localhost:6001/uploads/${path.basename(filePath)}`; // Cập nhật đường dẫn HTTP
-        }
+        // if (data.file) {
+        //     //console.log('Received file:');
+        //     const filePath = saveFile(data.file); // Lưu file và lấy đường dẫn
+        //     data.file = `http://localhost:6001/uploads/${path.basename(filePath)}`; // Cập nhật đường dẫn HTTP
+        // }
         // Gửi lại thông điệp cho client
         io.to(data.socketId).emit('chat messageSend', {
             user: data.user,
@@ -127,26 +127,35 @@ io.on('connection', (socket) => {
     });
     //phần admin
     socket.on('chat messageToUser', (data) => {
-        const socketId = socketIds[data.userId]; // Lấy socketId từ userId
-        //console.log('socketID gửi tới người dùng',socketId);
         //console.log(data);
+        const socketId = socketIds[data.userId]; // Lấy socketId từ userId
+
         if (socketId) {
-            io.to(socketId).emit('chat messageSend', {
+            const messagePayload = {
                 user: data.user,
                 message: data.message,
-                userId: data.userId
-            });
-            io.emit('chat messageSendAdmin', data); // Trả về cho admin
+                userId: data.userId,
+                file: data.file || null // 👈 gửi luôn ảnh nếu có
+            };
+
+            // Gửi tới user
+            io.to(socketId).emit('chat messageSend', messagePayload);
+
+            // Gửi lại cho admin để cập nhật chat UI
+            io.emit('chat messageSendAdmin', messagePayload);
+
+            // Lưu Redis (vẫn là chuỗi JSON)
             const recipientId = '6'; // ID của admin
             const key = `chat:${data.userId}:${recipientId}`;
-            //console.log('Redis key:', key);
-            redisClient.lPush(key, JSON.stringify(data)).catch(err => {
+            redisClient.lPush(key, JSON.stringify(messagePayload)).catch(err => {
                 console.error('Error saving message to Redis:', err);
             });
+
         } else {
             console.log(`User with ID ${data.userId} is not connected.`);
         }
     });
+
     //thong báo người dùng mới
     socket.on('getUserList', async () => {
         await updateUserList(); // Phản hồi cho client

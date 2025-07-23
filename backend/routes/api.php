@@ -26,6 +26,7 @@ use App\Http\Controllers\api\AdminDashboardController;
 use App\Http\Controllers\api\ContactController;
 use App\Http\Controllers\BookingHistoryController;
 use App\Http\Controllers\ChatAIController;
+use App\Http\Controllers\FileController;
 use App\Http\Controllers\WebhookController;
 use App\Models\BookingHistory;
 use Illuminate\Support\Facades\Storage;
@@ -191,3 +192,5 @@ Route::get('/hotel-infos', [ChatAIController::class, 'index']);
 Route::post('/hotel-infos', [ChatAIController::class, 'store']);
 Route::put('/hotel-infos/{id}', [ChatAIController::class, 'update']);
 Route::delete('/hotel-infos/{id}', [ChatAIController::class, 'destroy']);
+//gui anh socket
+Route::post('/upload', [FileController::class, 'upload']);
