@@ -554,7 +554,7 @@
                                     <div class="mb-1">
                                         <div class="radio-input">
                                             <input value="value-1" name="value-radio" id="value-1" type="radio"
-                                                @click="sendOtpSMS" />
+                                                @click="checkAndSendOtp" />
                                             <label for="value-1">
                                                 <div class="text">
                                                     <span class="circle"></span>
@@ -564,7 +564,7 @@
                                             </label>
 
                                             <input value="value-2" name="value-radio" id="value-2" type="radio"
-                                                @click="payQr" />
+                                                @click="checkAndSendOtpPayos" />
                                             <label for="value-2">
                                                 <div class="text">
                                                     <span class="circle"></span>
@@ -1226,7 +1226,79 @@ const payQr = async () => {
         isLoading.value = false; // Kết thúc quá trình tải
     }
 }
-//sms
+//check de gui sms
+function checkAndSendOtpPayos() {
+  try {
+    //console.log('📞 Bắt đầu chạy checkAndSendOtp');
+
+    const phone = String(phoneNumber.value || '').trim();
+    //console.log('📱 Số điện thoại:', phone);
+
+    const storageKey = 'sentOtpPhones';
+
+    if (!phone) {
+      //console.warn('⚠️ Số điện thoại rỗng hoặc không hợp lệ.');
+      return;
+    }
+
+    const sentPhones = JSON.parse(localStorage.getItem(storageKey)) || [];
+    const isDuplicate = sentPhones.includes(phone);
+    paymentMethod.value = 'thanh_toan_qr';
+    if (isDuplicate) {
+      console.log('⚠️ Số đã tồn tại trong localStorage, không gửi OTP lại:', phone);
+      payQr();
+      //router.push('/thanksBooking');
+      return;
+    }
+     sendOtpSMS();
+     payQr();
+
+
+    sentPhones.push(phone);
+    localStorage.setItem(storageKey, JSON.stringify(sentPhones));
+    //console.log('✅ OTP đã được gửi & lưu số:', phone);
+
+  } catch (error) {
+    console.error('❌ Lỗi trong checkAndSendOtp:', error);
+  }
+}
+function checkAndSendOtp() {
+  try {
+    //console.log('📞 Bắt đầu chạy checkAndSendOtp');
+
+    const phone = String(phoneNumber.value || '').trim();
+    //console.log('📱 Số điện thoại:', phone);
+
+    const storageKey = 'sentOtpPhones';
+
+    if (!phone) {
+      //console.warn('⚠️ Số điện thoại rỗng hoặc không hợp lệ.');
+      return;
+    }
+
+    const sentPhones = JSON.parse(localStorage.getItem(storageKey)) || [];
+    const isDuplicate = sentPhones.includes(phone);
+     paymentMethod.value = 'thanh_toan_sau';
+    if (isDuplicate) {
+      //console.log('⚠️ Số đã tồn tại trong localStorage, không gửi OTP lại:', phone);
+      confirmBooking();
+      router.push('/thanksBooking');
+      return;
+    }
+
+     sendOtpSMS();
+     confirmBooking();
+    router.push('/thanksBooking');
+
+    sentPhones.push(phone);
+    localStorage.setItem(storageKey, JSON.stringify(sentPhones));
+    //console.log('✅ OTP đã được gửi & lưu số:', phone);
+
+  } catch (error) {
+    console.error('❌ Lỗi trong checkAndSendOtp:', error);
+  }
+}
+
 const verificationId = ref(null);
 const sendOtpSMS = async () => {
     isLoading.value = true; // Bắt đầu quá trình tải
@@ -1280,8 +1352,8 @@ const verifyCode = async () => {
         paymentMethod.value = 'thanh_toan_sau';
         //confirmBooking.value = true; // Đặt trạng thái đơn hàng đã được xác nhận
         // Thực hiện hành động tiếp theo
-        await confirmBooking();
-        router.push('/thanksBooking');
+        //await confirmBooking();
+        //router.push('/thanksBooking');
     } catch (error) {
         console.error('Lỗi xác minh mã:', error.message || error);
         alert(`Lỗi gửi mã xác nhận: OTP không hợp lệ . Vui lòng thử lại.`);
