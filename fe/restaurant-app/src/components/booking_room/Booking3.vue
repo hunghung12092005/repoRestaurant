@@ -89,7 +89,7 @@
                                                     <h6
                                                         class="mb-0 fw-semibold d-flex align-items-center gap-2 text-dark">
                                                         <i class="bi bi-door-closed text-primary fs-5"></i> Phòng {{
-                                                        index + 1 }}
+                                                            index + 1 }}
                                                     </h6>
                                                     <button v-if="rooms.length > 1" type="button"
                                                         class="btn btn-outline-danger btn-sm rounded-pill px-3"
@@ -128,7 +128,7 @@
                                                                 :disabled="room.children <= 0">−</button>
                                                             <span class="fw-bold fs-5"
                                                                 style="width: 32px; text-align: center;">{{
-                                                                room.children }}</span>
+                                                                    room.children }}</span>
                                                             <button
                                                                 class="btn btn-outline-secondary rounded-circle px-3 py-1 fs-5"
                                                                 type="button"
@@ -410,10 +410,11 @@
                             </div>
                             <div>
                                 <img src="https://img.icons8.com/ios-filled/50/000000/tv.png" />
-                                {{ hotel.max_occupancy }} người lớn, 2 trẻ em / Phòng
+                                {{ hotel.max_occupancy }} người lớn, {{ hotel.max_occupancy_child }} trẻ em / Phòng
                             </div>
                             <div>
-                                <img src="https://media.istockphoto.com/id/1346028094/vi/vec-to/bi%E1%BB%83u-t%C6%B0%E1%BB%A3ng-th%C3%B4ng-tin-ph%C3%A1c-th%E1%BA%A3o-m%C3%A9t-vu%C3%B4ng.jpg?s=1024x1024&w=is&k=20&c=vPR7HFKEmPUCYAOQOxqpyNgWXfusGobjlkLiBZc0NNI=" />
+                                <img
+                                    src="https://media.istockphoto.com/id/1346028094/vi/vec-to/bi%E1%BB%83u-t%C6%B0%E1%BB%A3ng-th%C3%B4ng-tin-ph%C3%A1c-th%E1%BA%A3o-m%C3%A9t-vu%C3%B4ng.jpg?s=1024x1024&w=is&k=20&c=vPR7HFKEmPUCYAOQOxqpyNgWXfusGobjlkLiBZc0NNI=" />
                                 {{ hotel.m2 }} m2
                             </div>
                         </div>
@@ -449,9 +450,11 @@
                 <div class="col-lg-6">
                     <div class="image-wrapper">
                         <!-- Ảnh chính -->
-                        <img src="https://www.ansonika.com/paradise/one-page-version/img/gallery/3.jpg" alt="Main" class="main-image" />
+                        <img src="https://www.ansonika.com/paradise/one-page-version/img/gallery/3.jpg" alt="Main"
+                            class="main-image" />
                         <!-- Ảnh overlay -->
-                        <img src="https://www.ansonika.com/paradise/one-page-version/img/local_amenities_1.jpg" alt="Overlay" class="overlay-image" />
+                        <img src="https://www.ansonika.com/paradise/one-page-version/img/local_amenities_1.jpg"
+                            alt="Overlay" class="overlay-image" />
                     </div>
                 </div>
             </div>
@@ -510,7 +513,7 @@
                                         <div class="total">
                                             <p>Phòng {{ index + 1 }} :
                                                 <span class="text-secondary fw-normal">{{ room.name
-                                                    }}</span>
+                                                }}</span>
                                             </p>
                                             <p>{{
                                                 formatPrice(room.price) }}</p>
@@ -866,7 +869,7 @@ const delSelection = () => {
 //addBooking
 
 const addBooking = (hotel) => {
-//console.log(hotel)
+    //console.log(hotel)
     const maxRooms = hotel.available_rooms || 0;
     const currentRooms = selectedRooms.value.length;
 
@@ -991,6 +994,7 @@ const getRoomTypes = async () => {
                 amenities: room.amenities || [],
                 services: room.services || [],
                 max_occupancy: room.max_occupancy,
+                max_occupancy_child: room.max_occupancy_child,
                 images: [
                     'https://img.lottehotel.com/cms/asset/2025/07/01/29403/438-2-1920-roo-LTHA.webp',
                     room.images
@@ -1003,7 +1007,7 @@ const getRoomTypes = async () => {
                 available_rooms: availabilityMap[typeId] || 0
             };
         });
-        console.log("Hotels:", hotels.value); // Kiểm tra dữ liệu phòng đã lấy
+        //console.log("Hotels:", hotels.value); // Kiểm tra dữ liệu phòng đã lấy
         // showPopup.value = true;
 
     } catch (error) {
@@ -1280,7 +1284,7 @@ const verifyCode = async () => {
         router.push('/thanksBooking');
     } catch (error) {
         console.error('Lỗi xác minh mã:', error.message || error);
-               alert(`Lỗi gửi mã xác nhận: OTP không hợp lệ . Vui lòng thử lại.`);
+        alert(`Lỗi gửi mã xác nhận: OTP không hợp lệ . Vui lòng thử lại.`);
 
     } finally {
         isLoading.value = false;
