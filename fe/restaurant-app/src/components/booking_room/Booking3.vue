@@ -5,8 +5,8 @@
         <!-- Hero Section -->
         <header class="hero-section d-flex align-items-center">
             <div class="container text-center">
-                <h1 class="display-3 fw-bold">Booking Rooms</h1>
-                <p class="lead">Hồ Xuân Hương Hotel </p>
+                <h1 class="display-3 fw-bold " style="margin: 0 auto;">Hồ Xuân Hương Hotel </h1>
+
             </div>
         </header>
         <Popup v-if="showPopup" :isVisible="showPopup" @close="showPopup = false"></Popup>
@@ -67,76 +67,81 @@
 
                             <div class="modal fade" id="guestSelectionModal" tabindex="-1"
                                 aria-labelledby="guestSelectionModalLabel" aria-hidden="true">
-                                <div class="modal-dialog modal-lg ">
-                                    <div class="modal-content rounded-4 shadow-lg border-0">
+                                <div class="modal-dialog modal-lg">
+                                    <div class="modal-content rounded-4 border-0 shadow-lg overflow-hidden">
                                         <!-- Header -->
-                                        <div
-                                            class="modal-header bg-primary text-white border-bottom-0 pt-4 pb-4 px-4 rounded-top-4">
+                                        <div class="modal-header bg-primary text-white border-0 py-4 px-4">
                                             <h5 class="modal-title fs-5 fw-bold d-flex align-items-center gap-2"
                                                 id="guestSelectionModalLabel">
-                                                <i class="bi bi-person-fill fs-4"></i> Chọn Số Lượng Khách
+                                                <i class="bi bi-people-fill fs-4"></i> Chọn Số Lượng Khách
                                             </h5>
                                             <button type="button" class="btn-close btn-close-white"
                                                 data-bs-dismiss="modal" aria-label="Đóng"></button>
                                         </div>
 
                                         <!-- Body -->
-                                        <div class="modal-body px-4 pt-4 pb-2">
+                                        <div class="modal-body px-4 pt-4">
                                             <div v-for="(room, index) in rooms" :key="index"
-                                                class="mb-5 pb-4 border-bottom">
-                                                <!-- Header phòng -->
+                                                class="mb-4 pb-4 border-bottom">
+
+                                                <!-- Tiêu đề phòng -->
                                                 <div class="d-flex justify-content-between align-items-center mb-3">
-                                                    <h6 class="mb-0 fw-semibold d-flex align-items-center gap-2">
-                                                        <i class="bi bi-door-closed text-primary"></i> Phòng <!-- {{ index +
-                                                        1 }} -->
+                                                    <h6
+                                                        class="mb-0 fw-semibold d-flex align-items-center gap-2 text-dark">
+                                                        <i class="bi bi-door-closed text-primary fs-5"></i> Phòng {{
+                                                            index + 1 }}
                                                     </h6>
                                                     <button v-if="rooms.length > 1" type="button"
                                                         class="btn btn-outline-danger btn-sm rounded-pill px-3"
                                                         @click="removeRoomFromModal(index)">
-                                                        <i class="bi bi-trash me-1"></i> Xóa Phòng
+                                                        <i class="bi bi-trash me-1"></i> Xóa
                                                     </button>
                                                 </div>
 
                                                 <!-- Người lớn -->
-                                                <div class="d-flex justify-content-between align-items-center mb-4">
-                                                    <label :for="'adults_' + index"
-                                                        class="form-label mb-0 text-muted fs-6">Người lớn:</label>
-                                                    <div class="d-flex align-items-center gap-3">
-                                                        <button
-                                                            class="btn btn-outline-secondary rounded-circle px-3 py-1 fs-5"
-                                                            type="button" @click="decreaseAdults(index)"
-                                                            :disabled="room.adults <= 1">−</button>
-                                                        <span class="fw-bold fs-5"
-                                                            style="min-width: 32px; text-align: center;">{{ room.adults
-                                                            }}</span>
-                                                        <button
-                                                            class="btn btn-outline-secondary rounded-circle px-3 py-1 fs-5"
-                                                            type="button" @click="increaseAdults(index)">+</button>
+                                                <div class="row align-items-center mb-3">
+                                                    <div class="col-6 text-muted">Người lớn:</div>
+                                                    <div class="col-6 text-end">
+                                                        <div class="d-inline-flex align-items-center gap-2">
+                                                            <button
+                                                                class="btn btn-outline-secondary rounded-circle px-3 py-1 fs-5"
+                                                                type="button" @click="decreaseAdults(index)"
+                                                                :disabled="room.adults <= 1">−</button>
+                                                            <span class="fw-bold fs-5"
+                                                                style="width: 32px; text-align: center;">{{ room.adults
+                                                                }}</span>
+                                                            <button
+                                                                class="btn btn-outline-secondary rounded-circle px-3 py-1 fs-5"
+                                                                type="button" @click="increaseAdults(index)">+</button>
+                                                        </div>
                                                     </div>
                                                 </div>
 
                                                 <!-- Trẻ em -->
-                                                <div class="d-flex justify-content-between align-items-center">
-                                                    <label :for="'children_' + index"
-                                                        class="form-label mb-0 text-muted fs-6">Trẻ em:</label>
-                                                    <div class="d-flex align-items-center gap-3">
-                                                        <button
-                                                            class="btn btn-outline-secondary rounded-circle px-3 py-1 fs-5"
-                                                            type="button" @click="decreaseChildren(index)"
-                                                            :disabled="room.children <= 0">−</button>
-                                                        <span class="fw-bold fs-5"
-                                                            style="min-width: 32px; text-align: center;">{{
-                                                                room.children }}</span>
-                                                        <button
-                                                            class="btn btn-outline-secondary rounded-circle px-3 py-1 fs-5"
-                                                            type="button" @click="increaseChildren(index)">+</button>
+                                                <div class="row align-items-center">
+                                                    <div class="col-6 text-muted">Trẻ em:</div>
+                                                    <div class="col-6 text-end">
+                                                        <div class="d-inline-flex align-items-center gap-2">
+                                                            <button
+                                                                class="btn btn-outline-secondary rounded-circle px-3 py-1 fs-5"
+                                                                type="button" @click="decreaseChildren(index)"
+                                                                :disabled="room.children <= 0">−</button>
+                                                            <span class="fw-bold fs-5"
+                                                                style="width: 32px; text-align: center;">{{
+                                                                    room.children }}</span>
+                                                            <button
+                                                                class="btn btn-outline-secondary rounded-circle px-3 py-1 fs-5"
+                                                                type="button"
+                                                                @click="increaseChildren(index)">+</button>
+                                                        </div>
                                                     </div>
                                                 </div>
+
                                             </div>
                                         </div>
 
                                         <!-- Footer -->
-                                        <div class="modal-footer justify-content-between border-top-0 px-4 pb-4 pt-0">
+                                        <div class="modal-footer justify-content-between border-0 px-4 pb-4 pt-0">
                                             <button type="button"
                                                 class="btn btn-outline-secondary rounded-pill px-4 py-2"
                                                 data-bs-dismiss="modal" @click="delSelection">
@@ -144,12 +149,13 @@
                                             </button>
                                             <button type="button" class="btn btn-primary rounded-pill px-4 py-2"
                                                 data-bs-dismiss="modal" @click="confirmSelection">
-                                                <i class="bi bi-check2-circle me-1"></i> Xác Nhận
+                                                <i class="bi bi-check2-circle me-1"></i> Xác nhận
                                             </button>
                                         </div>
                                     </div>
                                 </div>
                             </div>
+
 
                         </div>
 
@@ -184,7 +190,7 @@
             </div>
         </div>
         <!-- Featured Hotels -->
-        <section class="container my-5 py-lg-4">
+        <!-- <section class="container my-5 py-lg-4">
 
             <div class="row g-5">
                 <div class="col-lg-8">
@@ -193,8 +199,6 @@
                             <div
                                 class="card border-0 shadow rounded-4 overflow-hidden bg-white hover:shadow-lg transition-all">
                                 <div class="row g-0">
-
-                                    <!-- Media / Video -->
                                     <div class="col-12 col-md-5">
                                         <div class="position-relative h-100" style="min-height: 280px;">
                                             <iframe class="w-100 h-100 rounded-start-4 object-fit-cover"
@@ -206,43 +210,36 @@
                                         </div>
                                     </div>
 
-                                    <!-- Nội dung phòng -->
                                     <div class="col-12 col-md-7 d-flex flex-column p-4 bg-light">
-                                        <!-- Tên hạng phòng -->
                                         <h4 class="fw-bold text-dark mb-4">{{ hotel.name }}</h4>
 
                                         <span
                                             class="position-absolute top-0 end-0 m-3 badge bg-primary text-white px-3 py-2 rounded-pill shadow-sm">
                                             <i class="bi bi-door-open me-1"></i> {{ hotel.available_rooms }} Phòng
                                         </span>
-                                        <!-- Thông tin tiện nghi -->
                                         <div class="d-flex flex-wrap gap-4 text-muted fs-6 mb-2">
                                             <span><i class="bi bi-arrows-move"></i> {{ hotel.m2
-                                                }} m²</span>
+                                            }} m²</span>
                                             <span><i class="bi bi-buildings-fill"></i> Hướng: Thành phố</span>
                                             <span><i class="bi bi-app-indicator"></i> {{ hotel.bed_count }}
                                                 Giường</span>
                                             <span><i class="bi bi-people me-1 text-secondary"></i>{{ hotel.max_occupancy
-                                                }} người lớn, 2 trẻ em / Phòng</span>
+                                            }} người lớn, 2 trẻ em / Phòng</span>
                                         </div>
 
-                                        <!-- Mô tả ngắn -->
                                         <p class="text-dark  mb-3"
                                             style="line-height: 1.5; max-height: 4.5em; overflow: hidden;">
                                             {{ hotel.description.substring(0, 160) }}...
                                         </p>
 
-                                        <!-- Phụ thu -->
                                         <p v-if="hotel.surcharges > 0" class="text-warning  mb-2">
                                             <i class="bi bi-exclamation-triangle me-1"></i> Phụ thu: {{
                                                 formatPrice(hotel.surcharges) }}
                                         </p>
 
-                                        <!-- Giá & nút hành động -->
                                         <div
                                             class="mt-auto pt-3 border-top border-light d-flex flex-column flex-sm-row justify-content-between align-items-center gap-3">
                                             <div>
-                                                <!-- <div class="text-muted  mb-1">Giá chỉ từ</div> -->
                                                 <div class="fs-4 fw-bold text-primary">
                                                     {{ formatPrice(hotel.price) }}
                                                     <small class="text-muted fs-6">/ {{ hotel.total_days }} đêm / {{
@@ -270,7 +267,6 @@
                         </div>
                     </div>
                 </div>
-                <!-- Vị trí góc trái trên -->
 
                 <div class="col-lg-4 d-none d-lg-block">
                     <div class="card booking-sidebar-card sticky-top shadow-lg border-0 rounded-4" style="top: 100px;">
@@ -289,7 +285,7 @@
                                         <div>
                                             <h6 class="mb-1 text-charcoal fw-bold">{{ room.name }}</h6>
                                             <p class="mb-1 text-muted-dark small">{{ room.description.substring(0, 50)
-                                            }}...</p>
+                                                }}...</p>
                                             <p class="mb-0 text-gold fw-bold">
                                                 {{ formatPrice(room.price) }} <span class="small text-charcoal-light">/
                                                     {{ room.total_days }} Đêm / {{ room.so_phong }} Phòng</span>
@@ -318,7 +314,6 @@
                     </div>
                 </div>
 
-                <!-- Fixed Footer for Mobile -->
                 <div class="d-lg-none fixed-bottom bg-primary border-top shadow-sm py-3" style="z-index: 999;">
                     <div class="container text-center">
                         <strong class="text-charcoal">{{ selectedRooms.length }} Phòng Đã Thêm</strong>
@@ -331,121 +326,139 @@
                     </div>
                 </div>
             </div>
-        </section>
-        <!-- Special Deals & Offers -->
-        <section class="bg-light py-5" id="deals">
-            <div class="container">
-                <h2 class="text-center mb-4">Special Deals & Offers</h2>
-                <div class="row g-4">
-                    <div class="col-md-4">
-                        <div class="card text-center h-100">
-                            <div class="card-body">
-                                <span class="badge bg-danger mb-3">Limited Time</span>
-                                <h3 class="card-title">Weekend Escape</h3>
-                                <p class="card-text">
-                                    Get 25% off on weekend bookings at select hotels
-                                </p>
-                                <p class="fs-4 text-primary fw-bold">25% OFF</p>
-                                <button class="btn btn-outline-primary">View Deal</button>
-                            </div>
-                            <div class="card-footer text-muted">Valid until May 31, 2025</div>
-                        </div>
+        </section> -->
+        <!-- adjb -->
+
+        <div class="container">
+            <div class="left">
+                <div class="card-body p-4">
+                    <h4 class="card-title text-center mb-4 text-gold fw-bold">Thông Tin Đặt Phòng</h4>
+                    <hr class="mb-4 border-gold">
+                    <h5 class="card-title text-center mb-3 text-charcoal">Phòng Đã Thêm</h5>
+                    <hr class="mb-3 border-gold">
+
+                    <div v-if="selectedRooms.length === 0" class="text-center text-muted-subtle py-3">
+                        <p class="mb-0 small">Chưa có phòng nào được thêm vào.</p>
                     </div>
-                    <div class="col-md-4">
-                        <div class="card text-center h-100 border-primary">
-                            <div class="card-header bg-primary text-white">MOST POPULAR</div>
-                            <div class="card-body">
-                                <span class="badge bg-success mb-3">Best Value</span>
-                                <h3 class="card-title">Stay 3, Pay 2</h3>
-                                <p class="card-text">
-                                    Book 3 nights and only pay for 2 at participating luxury
-                                    hotels
-                                </p>
-                                <p class="fs-4 text-primary fw-bold">1 FREE NIGHT</p>
-                                <button class="btn btn-primary">View Deal</button>
-                            </div>
-                            <div class="card-footer text-muted">
-                                Valid until June 30, 2025
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col-md-4">
-                        <div class="card text-center h-100">
-                            <div class="card-body">
-                                <span class="badge bg-info mb-3">Member Exclusive</span>
-                                <h3 class="card-title">Early Booking Discount</h3>
-                                <p class="card-text">
-                                    Book 30 days in advance and save up to 15% on your stay
-                                </p>
-                                <p class="fs-4 text-primary fw-bold">UP TO 15% OFF</p>
-                                <button class="btn btn-outline-primary">View Deal</button>
-                            </div>
-                            <div class="card-footer text-muted">Always available</div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </section>
-        <!-- Newsletter -->
-        <section class="bg-primary text-white py-5">
-            <div class="container">
-                <div class="row align-items-center">
-                    <div class="col-lg-6">
-                        <h5>Để lại thông tin để bộ phận CSKH HXH hotel liên hệ hỗ trợ bạn ngay hoặc liên hệ chatbox CSKH
-                            Online Hotel <router-link class="dropdown-item " to="/chat">tại đây</router-link></h5>
-                    </div>
-                    <div class="col-lg-6">
-                        <form id="newsletterForm" class="row g-3">
-                            <div class="col-md-8">
-                                <input type="email" class="form-control form-control-lg"
-                                    placeholder="Your email address" required />
-                            </div>
-                            <div class="col-md-4">
-                                <button type="submit" class="btn btn-light btn-lg w-100">
-                                    Subscribe
+
+                    <div v-else>
+                        <transition-group name="list" tag="div">
+                            <div v-for="(room, index) in selectedRooms" :key="index"
+                                class="d-flex align-items-center justify-content-between mb-3 p-3 bg-light-gold rounded-3 shadow-sm">
+                                <div>
+                                    <h6 class="mb-1 text-charcoal fw-bold">{{ room.name }}</h6>
+                                    <p class="mb-1 text-muted-dark small">{{ room.description.substring(0, 50) }}...
+                                    </p>
+                                    <p class="mb-0 text-gold fw-bold">
+                                        {{ formatPrice(room.price) }}
+                                        <span class="small text-charcoal-light">/ {{ room.total_days }} Đêm / {{
+                                            room.so_phong }} Phòng</span>
+                                    </p>
+                                </div>
+                                <button @click="removeRoom(index)"
+                                    class="btn btn-outline-danger btn-sm rounded-circle ms-3" title="Xóa phòng">
+                                    <i class="bi bi-x-lg"></i>
                                 </button>
                             </div>
-                        </form>
+                        </transition-group>
+                    </div>
+
+                    <div class="d-flex justify-content-between mt-4 pt-3 border-top border-gold-light">
+                        <strong class="text-charcoal">{{ totalAdults }} Người lớn, {{ totalChildren }} Trẻ
+                            em</strong>
+                    </div>
+
+                    <div class="mt-3 text-gold fw-bold">
+                        Tổng Giá (Tạm Tính): {{ formatPrice(totalPrice) }}
+                    </div>
+
+                    <button @click="openPopupshowModalBooking"
+                        class="btn btn-gold w-100 py-2 rounded-pill fw-bold fs-5 mt-4 btn-outline-dark">
+                        Tiến Hành Thanh Toán <i class="bi bi-arrow-right ms-2"></i>
+                    </button>
+                </div>
+            </div>
+
+            <div class="right">
+                <div class="room-card position-relative" v-for="hotel in hotels" :key="hotel.id">
+                    <span
+                        class="position-absolute top-0 end-0 badge bg-primary text-white m-2 px-3 py-2 rounded-pill shadow-sm">
+                        <i class="bi bi-door-open me-1"></i> {{ hotel.available_rooms }} Phòng
+                    </span>
+
+                    <img :src="hotel.image" alt="Double Room" />
+
+                    <div class="info-box d-flex flex-column">
+                        <h2>
+                            {{ formatPrice(hotel.price) }}
+                            <small class="text-muted fs-6">/ {{ hotel.total_days }} đêm / {{ hotel.so_phong }}
+                                phòng</small>
+                        </h2>
+
+                        <p v-if="hotel.surcharges > 0" class="text-warning mb-2">
+                            <i class="bi bi-exclamation-triangle me-1"></i>
+                            Phụ thu: {{ formatPrice(hotel.surcharges) }}
+                        </p>
+
+                        <h3>{{ hotel.name }}</h3>
+                        <p>{{ hotel.description.substring(0, 160) }}...</p>
+
+                        <div class="icons mb-3">
+                            <div>
+                                <img src="https://img.icons8.com/ios-filled/50/000000/bed.png" />
+                                {{ hotel.bed_count }} Giường
+                            </div>
+                            <div>
+                                <img src="https://img.icons8.com/ios-filled/50/000000/tv.png" />
+                                {{ hotel.max_occupancy }} người lớn, {{ hotel.max_occupancy_child }} trẻ em / Phòng
+                            </div>
+                            <div>
+                                <img
+                                    src="https://media.istockphoto.com/id/1346028094/vi/vec-to/bi%E1%BB%83u-t%C6%B0%E1%BB%A3ng-th%C3%B4ng-tin-ph%C3%A1c-th%E1%BA%A3o-m%C3%A9t-vu%C3%B4ng.jpg?s=1024x1024&w=is&k=20&c=vPR7HFKEmPUCYAOQOxqpyNgWXfusGobjlkLiBZc0NNI=" />
+                                {{ hotel.m2 }} m2
+                            </div>
+                        </div>
+
+                        <div class="mt-auto d-flex gap-2">
+                            <button class="btn btn-outline-dark rounded-pill px-3 py-2 w-100"
+                                @click="viewHotelDetails(hotel)">
+                                <i class="bi bi-info-circle me-1"></i> Chi tiết
+                            </button>
+                            <button class="btn btn-primary rounded-pill px-3 py-2 w-100" @click="addBooking(hotel)">
+                                <i class="bi bi-bookmark-check me-1"></i> Thêm phòng
+                            </button>
+                        </div>
                     </div>
                 </div>
             </div>
-        </section>
-        <!-- Why Choose Us -->
-        <section class="bg-light py-5" id="about">
-            <h2 class="text-center mb-5">Why Choose Ho Xuan Huong Hotel</h2>
-            <div class="row g-4">
-                <div class="col-md-4 text-center">
-                    <div class="feature-icon mb-3">
-                        <i class="bi bi-patch-check"></i>
-                    </div>
-                    <h3>Best Price Guarantee</h3>
-                    <p>
-                        Find a lower price elsewhere? We'll match it and give you an
-                        additional 10% off.
-                    </p>
+
+        </div>
+        <div class="container about-section mt-5">
+            <div class="row align-items-center">
+                <!-- LEFT TEXT -->
+                <div class="col-lg-6 about-text">
+                    <div class="subheading">Về chúng tôi</div>
+                    <h1>Hãy cảm thấy như ở nhà<br>và tận hưởng trải nghiệm độc đáo</h1>
+                    <p>Chúng tôi mang đến không gian thoải mái, ấm cúng và đầy đủ tiện nghi để bạn có thể thư giãn trọn
+                        vẹn.</p>
+                    <p>Chúng tôi tin rằng mỗi chuyến đi là một kỷ niệm. Vì vậy, mọi chi tiết đều được chăm chút tỉ mỉ để
+                        mang lại trải nghiệm đáng nhớ cho bạn.</p>
+                    <div class="signature">HXHHOTEL... </div>
                 </div>
-                <div class="col-md-4 text-center">
-                    <div class="feature-icon mb-3">
-                        <i class="bi bi-shield-check"></i>
+
+                <!-- RIGHT IMAGE -->
+                <div class="col-lg-6">
+                    <div class="image-wrapper">
+                        <!-- Ảnh chính -->
+                        <img src="https://www.ansonika.com/paradise/one-page-version/img/gallery/3.jpg" alt="Main"
+                            class="main-image" />
+                        <!-- Ảnh overlay -->
+                        <img src="https://www.ansonika.com/paradise/one-page-version/img/local_amenities_1.jpg"
+                            alt="Overlay" class="overlay-image" />
                     </div>
-                    <h3>Secure Booking</h3>
-                    <p>
-                        Your payment and personal information are always protected with our
-                        advanced security system.
-                    </p>
-                </div>
-                <div class="col-md-4 text-center">
-                    <div class="feature-icon mb-3">
-                        <i class="bi bi-headset"></i>
-                    </div>
-                    <h3>24/7 Support</h3>
-                    <p>
-                        Our customer service team is available around the clock to assist
-                        you with any questions or issues.
-                    </p>
                 </div>
             </div>
-        </section>
+        </div>
         <!-- Booking Modal -->
         <div v-show="showModalBooking" class="modal-backdrop" @click="closeModal">
             <div class="modal-dialog modal-lg" @click.stop>
@@ -541,7 +554,7 @@
                                     <div class="mb-1">
                                         <div class="radio-input">
                                             <input value="value-1" name="value-radio" id="value-1" type="radio"
-                                                @click="sendOtpSMS" />
+                                                @click="checkAndSendOtp" />
                                             <label for="value-1">
                                                 <div class="text">
                                                     <span class="circle"></span>
@@ -551,7 +564,7 @@
                                             </label>
 
                                             <input value="value-2" name="value-radio" id="value-2" type="radio"
-                                                @click="payQr" />
+                                                @click="checkAndSendOtpPayos" />
                                             <label for="value-2">
                                                 <div class="text">
                                                     <span class="circle"></span>
@@ -584,7 +597,7 @@
 
                 <div class="form-group">
                     <label for="email">Mã OTP</label>
-                    <input v-model="otpInputs" type="number" placeholder="Nhập OTP" required="">
+                    <input v-model="otpInputs" type="text" placeholder="Nhập OTP" required="">
                 </div>
 
                 <button class="form-submit-btn" type="submit" @click="verifyCode">Xác Nhận</button>
@@ -856,6 +869,7 @@ const delSelection = () => {
 //addBooking
 
 const addBooking = (hotel) => {
+    //console.log(hotel)
     const maxRooms = hotel.available_rooms || 0;
     const currentRooms = selectedRooms.value.length;
 
@@ -980,12 +994,12 @@ const getRoomTypes = async () => {
                 amenities: room.amenities || [],
                 services: room.services || [],
                 max_occupancy: room.max_occupancy,
+                max_occupancy_child: room.max_occupancy_child,
                 images: [
                     'https://img.lottehotel.com/cms/asset/2025/07/01/29403/438-2-1920-roo-LTHA.webp',
-                    'https://img.lottehotel.com/cms/asset/2025/06/20/29060/405-2-1920-roo-LTHA.webp',
-                    'link_to_image_3.jpg'
+                    room.images
                 ],
-                image: "https://i.postimg.cc/d3pNGXPN/7c6764b8-de90-474c-9b98-05019aef3193.png",
+                image: room.images || "https://img.lottehotel.com/cms/asset/2025/07/01/29403/438-2-1920-roo-LTHA.webp",
                 youtube_link: room.youtube_link || "https://www.youtube.com/embed/kXaLkZPlYyo?si=Pw0ywUB6VmhsW5XC",
                 price: 0,
                 rating: room.rate,
@@ -1010,10 +1024,10 @@ const getRoomPrices = async () => {
     isLoading.value = true; // Bắt đầu tải dữ liệu (spinner hiện ra)
 
     // --- DÒNG CODE MỚI: Giả lập độ trễ 5 giây cho mục đích test ---
-   // await new Promise(resolve => setTimeout(resolve, 5000));
+    // await new Promise(resolve => setTimeout(resolve, 5000));
     // -----------------------------------------------------------------
 
-    await getRoomTypes(); 
+    await getRoomTypes();
 
     try {
         // Dữ liệu cần gửi (phần này sẽ chạy sau độ trễ 5s)
@@ -1025,16 +1039,16 @@ const getRoomPrices = async () => {
 
         // Gọi API lấy giá phòng thực tế
         const roomPricesResponse = await axios.post(`${apiUrl}/api/prices/prices_client`, requestData);
-        const roomPrices = roomPricesResponse.data || []; 
+        const roomPrices = roomPricesResponse.data || [];
 
         // Cập nhật dữ liệu phòng
         hotels.value = hotels.value.map(room => {
-            const roomPrice = roomPrices.find(price => price.type_id === room.id); 
+            const roomPrice = roomPrices.find(price => price.type_id === room.id);
 
             return {
-                ...room, 
-                price_per_night: roomPrice ? roomPrice.gia_tien1ngay : 0, 
-                total_days: roomPrice ? roomPrice.total_days : 0, 
+                ...room,
+                price_per_night: roomPrice ? roomPrice.gia_tien1ngay : 0,
+                total_days: roomPrice ? roomPrice.total_days : 0,
                 surcharges: roomPrice ? roomPrice.surcharges : 0,
                 price: roomPrice.total_price,
                 so_phong: roomPrice.so_phong,
@@ -1043,8 +1057,8 @@ const getRoomPrices = async () => {
                 gia1h: roomPrice.gia1h
             };
         });
-            //console.log("Bắt đầu lấy giá phòng...");
-            //console.log("Giá phòng đã lấy:", hotels.value); // Kiểm tra dữ liệu phòng đã lấy
+        //console.log("Bắt đầu lấy giá phòng...");
+        //console.log("Giá phòng đã lấy:", hotels.value); // Kiểm tra dữ liệu phòng đã lấy
 
         calculateTotalDays();
     } catch (error) {
@@ -1088,12 +1102,14 @@ const confirmBooking = async () => {
         payment_method: paymentMethod.value,
         orderCode: orderCode.value || '', // Mã đơn hàng nếu có
         booking_type: 'online',
+        adult: totalAdults.value,
+        child: totalChildren.value,
         pricing_type: 'nghitly',
         payment_status: 'pending',
         status: 'pending_confirmation',
         note: orderNotes.value || 'Không có ghi chú',
     };
-    //console.log("Booking Details:", JSON.stringify(bookingDetails, null, 2)); // Log booking details as JSON
+    console.log("Booking Details:", JSON.stringify(bookingDetails, null, 2)); // Log booking details as JSON
     //return;
     // Xác thực và lấy token
     let token;
@@ -1210,7 +1226,79 @@ const payQr = async () => {
         isLoading.value = false; // Kết thúc quá trình tải
     }
 }
-//sms
+//check de gui sms
+function checkAndSendOtpPayos() {
+  try {
+    //console.log('📞 Bắt đầu chạy checkAndSendOtp');
+
+    const phone = String(phoneNumber.value || '').trim();
+    //console.log('📱 Số điện thoại:', phone);
+
+    const storageKey = 'sentOtpPhones';
+
+    if (!phone) {
+      //console.warn('⚠️ Số điện thoại rỗng hoặc không hợp lệ.');
+      return;
+    }
+
+    const sentPhones = JSON.parse(localStorage.getItem(storageKey)) || [];
+    const isDuplicate = sentPhones.includes(phone);
+    paymentMethod.value = 'thanh_toan_qr';
+    if (isDuplicate) {
+      console.log('⚠️ Số đã tồn tại trong localStorage, không gửi OTP lại:', phone);
+      payQr();
+      //router.push('/thanksBooking');
+      return;
+    }
+     sendOtpSMS();
+     payQr();
+
+
+    sentPhones.push(phone);
+    localStorage.setItem(storageKey, JSON.stringify(sentPhones));
+    //console.log('✅ OTP đã được gửi & lưu số:', phone);
+
+  } catch (error) {
+    console.error('❌ Lỗi trong checkAndSendOtp:', error);
+  }
+}
+function checkAndSendOtp() {
+  try {
+    //console.log('📞 Bắt đầu chạy checkAndSendOtp');
+
+    const phone = String(phoneNumber.value || '').trim();
+    //console.log('📱 Số điện thoại:', phone);
+
+    const storageKey = 'sentOtpPhones';
+
+    if (!phone) {
+      //console.warn('⚠️ Số điện thoại rỗng hoặc không hợp lệ.');
+      return;
+    }
+
+    const sentPhones = JSON.parse(localStorage.getItem(storageKey)) || [];
+    const isDuplicate = sentPhones.includes(phone);
+     paymentMethod.value = 'thanh_toan_sau';
+    if (isDuplicate) {
+      //console.log('⚠️ Số đã tồn tại trong localStorage, không gửi OTP lại:', phone);
+      confirmBooking();
+      router.push('/thanksBooking');
+      return;
+    }
+
+     sendOtpSMS();
+     confirmBooking();
+    router.push('/thanksBooking');
+
+    sentPhones.push(phone);
+    localStorage.setItem(storageKey, JSON.stringify(sentPhones));
+    //console.log('✅ OTP đã được gửi & lưu số:', phone);
+
+  } catch (error) {
+    console.error('❌ Lỗi trong checkAndSendOtp:', error);
+  }
+}
+
 const verificationId = ref(null);
 const sendOtpSMS = async () => {
     isLoading.value = true; // Bắt đầu quá trình tải
@@ -1264,11 +1352,12 @@ const verifyCode = async () => {
         paymentMethod.value = 'thanh_toan_sau';
         //confirmBooking.value = true; // Đặt trạng thái đơn hàng đã được xác nhận
         // Thực hiện hành động tiếp theo
-        await confirmBooking();
-        router.push('/thanksBooking');
+        //await confirmBooking();
+        //router.push('/thanksBooking');
     } catch (error) {
         console.error('Lỗi xác minh mã:', error.message || error);
-        alert(`Lỗi xác minh mã: ${error.message || error}`);
+        alert(`Lỗi gửi mã xác nhận: OTP không hợp lệ . Vui lòng thử lại.`);
+
     } finally {
         isLoading.value = false;
     }
@@ -1278,13 +1367,13 @@ const closeModalOtp = async () => {
 }
 //xem chi tiết hạng phòng
 // function viewHotelDetails(hotel) {
-    
+
 //     selectedHotel.value = hotel;
 //     showModal.value = true;
 // }
 const viewHotelDetails = (hotel) => {
-      router.push({ name: 'RoomTypeDetail', params: { id: hotel.id } });
-    };  
+    router.push({ name: 'RoomTypeDetail', params: { id: hotel.id } });
+};
 function closeModal() {
     showModal.value = false;
     showModalBooking.value = false; // Đóng modal sau khi xác nhận
@@ -1298,93 +1387,249 @@ onMounted(() => {
     checkin.value = today.toISOString().split('T')[0];
     checkOut.value = tomorrow.toISOString().split('T')[0];
     bookrooms.value = 1;
-    showPopup.value = true; 
-   // getRoomTypes();
+    showPopup.value = true;
+    // getRoomTypes();
     getRoomPrices();
     calculateTotalDays();
 });
 </script>
 
 <style scoped>
-/* General Card Styling */
-.booking-sidebar-card {
-    position: relative;
-    /* Hoặc absolute nếu cần */
-    z-index: 1;
-    /* Thay đổi giá trị nếu cần */
-    /* Thêm margin-top nếu cần tạo khoảng cách với phần tử phía trên */
+* {
+    box-sizing: border-box;
+    font-family: 'Montserrat', sans-serif;
+}
+
+body {
+    margin: 0;
+    background-color: #f9f7f4;
+    padding: 40px;
+}
+
+.container {
+    display: flex;
+    gap: 40px;
+    max-width: 1300px;
+    margin: auto;
+}
+
+.left {
+    flex: 0 0 35%;
+    position: sticky;
+    top: 100px;
+    height: fit-content;
+}
+
+.left h5 {
+    letter-spacing: 2px;
+    font-size: 14px;
+    color: #a28c5c;
+    text-transform: uppercase;
+    margin-bottom: 10px;
+}
+
+.left h2 {
+    font-size: 40px;
+    font-weight: 700;
+    margin-bottom: 20px;
+    color: #333;
+}
+
+.left p {
+    font-size: 16px;
+    color: #555;
+    line-height: 1.6;
+}
+
+.left p strong {
+    color: #000;
 }
 
 
+
+.right {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 100px;
+}
+
+.room-card {
+    position: relative;
+    border-radius: 14px;
+    /* overflow: hidden; */
+}
+
+
+.room-card img {
+    width: 100%;
+    border-radius: 14px;
+    height: auto;
+    display: block;
+    z-index: 9;
+}
+
+.info-box {
+    background-color: white;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+    padding: 40px;
+    /* width: 100%; */
+    max-width: 600px;
+    border-radius: 10px;
+    overflow: visible;
+    position: absolute;
+    bottom: -100px;
+    /* Âm xuống */
+    left: 30px;
+    margin-bottom: 40px;
+    z-index: 10;
+}
+
+.info-box h2 {
+    color: #a28c5c;
+    font-size: 24px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-bottom: 10px;
+}
+
+.info-box h3 {
+    font-size: 24px;
+    margin-bottom: 10px;
+}
+
+.info-box p {
+    font-size: 14px;
+    color: #555;
+    margin-bottom: 20px;
+}
+
+.icons {
+    display: flex;
+    gap: 25px;
+    font-size: 14px;
+    align-items: center;
+}
+
+.icons div {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.icons img {
+    width: 20px;
+    height: 20px;
+}
+
+/* Optional: for smaller screens */
+@media (max-width: 992px) {
+    .container {
+        flex-direction: column;
+    }
+
+    .left {
+        position: static;
+        text-align: center;
+    }
+
+    .info-box {
+        position: relative;
+        bottom: unset;
+        left: unset;
+        margin-top: 10px;
+    }
+}
+
+/* about */
+.about-section {
+    padding: 80px 0;
+}
+
+.about-text h1 {
+    font-weight: 700;
+    font-size: 2.5rem;
+    line-height: 1.3;
+}
+
+.about-text p {
+    color: #555;
+    line-height: 1.7;
+}
+
+.about-text .subheading {
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    color: #999;
+    font-size: 0.85rem;
+    margin-bottom: 1rem;
+}
+
+.about-text .signature {
+    font-family: 'Dancing Script', cursive;
+    font-size: 1.5rem;
+    margin-top: 1.5rem;
+    color: #333;
+}
+
+.image-wrapper {
+    position: relative;
+    width: 100%;
+    max-width: 500px;
+    margin-left: auto;
+}
+
+.main-image {
+    border-radius: 12px;
+    width: 100%;
+    height: auto;
+    display: block;
+}
+
+.overlay-image {
+    position: absolute;
+    bottom: -20px;
+    left: -40px;
+    width: 200px;
+    border-radius: 12px;
+    border: 5px solid #fff;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+}
+
+@media (max-width: 768px) {
+    .overlay-image {
+        bottom: -10px;
+        left: 0;
+        width: 150px;
+    }
+}
+
+/* General Card Styling */
 .hero-section {
-    background: linear-gradient(rgba(99, 208, 248, 0.6), rgba(0, 0, 0, 0.6)),
-        url("https://images.unsplash.com/photo-1542314831-068cd1dbfeeb?ixlib=rb-4.0.3&auto=format&fit=crop&w=1470&q=80");
+    background: linear-gradient(rgba(247, 253, 255, 0.2), rgba(0, 0, 0, 0.3)),
+        url("https://www.ansonika.com/paradise/html-menu-1/img/rooms/2.jpg");
     background-size: cover;
     background-position: center;
     height: 600px;
     color: white;
-}
-
-/* css cái nút tăng giảm */
-.room-selector-custom {
+    position: relative;
     display: flex;
     align-items: center;
-    margin-left: 10px;
-    background-color: #2780d3;
-    /* Màu nền */
-    padding: 10px;
-    border-radius: 8px;
-    color: white;
-    /* Màu chữ */
+    /* Canh giữa chiều dọc */
+    justify-content: center;
+    /* Canh giữa chiều ngang */
 }
 
-.counter-custom {
-    /* width: 100%; */
-    display: flex;
-    align-items: center;
-    margin-left: 10px;
+.search-box {
+    background-color: rgba(255, 255, 255, 0.95);
+    border-radius: 16px;
+    width: 100%;
+    /* max-width: 1000px; */
+    padding: 30px;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15);
+    /* z-index: 2; */
 }
 
-.decrement-button,
-.increment-button {
-    background-color: white;
-    color: #b03030;
-    /* Màu chữ nút */
-    border: none;
-    border-radius: 5px;
-    width: 30px;
-    height: 30px;
-    cursor: pointer;
-}
-
-/* Media Query */
-@media screen and (max-width: 400px) {
-
-    .decrement-button,
-    .increment-button {
-        width: 25px;
-        /* Kích thước nút nhỏ hơn trên màn hình nhỏ */
-        height: 25px;
-    }
-
-
-}
-
-.decrement-button:disabled,
-.increment-button:disabled {
-    background-color: #ccc;
-    /* Màu nền nút bị vô hiệu hóa */
-    cursor: not-allowed;
-}
-
-input[type="number"] {
-    text-align: center;
-    border: none;
-    background-color: white;
-    color: #b03030;
-    /* Màu chữ */
-    margin: 0 5px;
-}
 
 /* form otp */
 .popup-overlay {
@@ -1648,9 +1893,4 @@ input[type="number"] {
 
 
 /* Show tooltip on hover */
-.search-box {
-    background-color: rgba(255, 255, 255, 0.9);
-    border-radius: 10px;
-    margin-top: -120px;
-}
 </style>

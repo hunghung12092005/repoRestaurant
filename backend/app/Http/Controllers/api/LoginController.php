@@ -43,7 +43,7 @@ class LoginController extends Controller
         $credentials = $request->only('email', 'password');
 
         if (!$token = JWTAuth::attempt($credentials)) {
-            return response()->json(['message' => 'Invalid credentials'], 401);
+            return response()->json(['message' => 'Sai tai khoan hoac mat khau'], 401);
         }
 
         $user = Auth::user();

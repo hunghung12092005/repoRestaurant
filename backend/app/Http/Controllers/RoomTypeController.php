@@ -35,6 +35,7 @@ class RoomTypeController extends Controller
             'description' => 'nullable|string',
             'bed_count' => 'required|integer|min:1',
             'max_occupancy' => 'required|integer|min:1',
+            'max_occupancy_child' => 'required|integer|min:1',
             'images.*' => 'nullable|image|mimes:jpeg,png,jpg|max:2048',
             'amenity_ids' => 'nullable|array',
             'amenity_ids.*' => 'exists:amenities,amenity_id'
@@ -64,6 +65,7 @@ class RoomTypeController extends Controller
                 'description' => $request->description,
                 'bed_count' => $request->bed_count,
                 'max_occupancy' => $request->max_occupancy,
+                'max_occupancy_child' => $request->max_occupancy_child,
                 'images' => $imagePath ? json_encode([$imagePath]) : null,
             ]);
 
@@ -107,6 +109,7 @@ class RoomTypeController extends Controller
             'description' => 'nullable|string',
             'bed_count' => 'required|integer|min:1',
             'max_occupancy' => 'required|integer|min:1',
+            'max_occupancy_child' => 'required|integer|min:1',
             'images.*' => 'nullable|image|mimes:jpeg,png,jpg|max:2048',
             'amenity_ids' => 'nullable|array',
             'amenity_ids.*' => 'exists:amenities,amenity_id'
@@ -148,6 +151,7 @@ class RoomTypeController extends Controller
                 'description' => $request->description,
                 'bed_count' => $request->bed_count,
                 'max_occupancy' => $request->max_occupancy,
+                'max_occupancy_child' => $request->max_occupancy_child,
                 'images' => !empty($newImages) ? json_encode($newImages) : null,
             ]);
 
@@ -306,6 +310,7 @@ class RoomTypeController extends Controller
                 'description' => $roomType->description,
                 'bed_count' => $roomType->bed_count,
                 'max_occupancy' => $roomType->max_occupancy,
+                'max_occupancy_child' => $roomType->max_occupancy_child,
                 'images' => $roomType->images ?? [],
                 'amenities' => $roomType->amenities,
                 'price' => $priceData,

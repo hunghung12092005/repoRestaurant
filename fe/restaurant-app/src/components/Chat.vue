@@ -11,18 +11,20 @@
         </div>
       </div>
     </div>
- <!-- Nút mở/đóng chat-container -->
+    <!-- Nút mở/đóng chat-container -->
     <button @click="toggleChatContainer" class="toggle-chat-btn">
       <small>CHATBOT HXH </small>
-      <img src="https://img.freepik.com/free-vector/chatbot-conversation-vectorart_78370-4107.jpg?semt=ais_hybrid&w=740" alt="Toggle Chat" />
+      <img src="https://img.freepik.com/free-vector/chatbot-conversation-vectorart_78370-4107.jpg?semt=ais_hybrid&w=740"
+        alt="Toggle Chat" />
     </button>
     <!-- Chat Container -->
     <div v-if="showChat" class="chat-container">
       <div class="chat-card">
         <!-- Header -->
         <div class="chat-header">
-          <img src="https://img.freepik.com/free-vector/chatbot-conversation-vectorart_78370-4107.jpg?semt=ais_hybrid&w=740" class="avatar"
-            alt="Support" />
+          <img
+            src="https://img.freepik.com/free-vector/chatbot-conversation-vectorart_78370-4107.jpg?semt=ais_hybrid&w=740"
+            class="avatar" alt="Support" />
           <div>
             <h6>{{ activeTab === 'ai' ? 'Hỏi đáp cùng ChatBot AI 🤖' : 'Admin Support' }}</h6>
             <small>{{ activeTab === 'ai' ? 'Hệ thống hỗ trợ tự động 24/7' : 'Online Gần Đây' }}</small>
@@ -32,7 +34,7 @@
 
         <!-- Tabs -->
         <div class="chat-tabs d-flex border-bottom">
-          
+
           <button :class="['tab-btn', { active: activeTab === 'ai' }]" @click="switchTab('ai')">Chat với AI</button>
           <button :class="['tab-btn', { active: activeTab === 'human' }]" @click="switchTab('human')">Chat với Nhân
             viên</button>
@@ -54,11 +56,12 @@
             <div v-for="(msg, index) in currentMessages" :key="'msg-' + index"
               :class="['message', msg.user === user ? 'user' : 'admin']">
               <img v-if="msg.user !== user"
-                src="https://img.freepik.com/free-vector/chatbot-conversation-vectorart_78370-4107.jpg?semt=ais_hybrid&w=740" class="avatar-sm" />
+                src="https://img.freepik.com/free-vector/chatbot-conversation-vectorart_78370-4107.jpg?semt=ais_hybrid&w=740"
+                class="avatar-sm" />
               <div class="bubble">
                 <div class="meta">{{ msg.user === user ? msg.user : (activeTab === 'ai' ? 'AI' : 'Admin') }}</div>
                 <div class="text">{{ msg.message }}</div>
-                <img v-if="msg.file" :src="msg.file" class="image-preview" />
+<img v-if="msg.file" :src="msg.file" class="image-preview mt-2" />
               </div>
               <img v-if="msg.user === user"
                 src="https://jbagy.me/wp-content/uploads/2025/03/Hinh-anh-avatar-nam-cute-2.jpg" class="avatar-sm" />
@@ -209,14 +212,35 @@ const sendMessage = async (suggestion = null) => {
     return;
   }
 
-  const fileBase64 = file.value ? await convertFileToBase64(file.value) : null;
-  const messageData = {
-    user,
-    userId,
-    message: msg,
-    socketId: socketId.value,
-    file: fileBase64,
-  };
+  // const fileBase64 = file.value ? await convertFileToBase64(file.value) : null;
+  // const messageData = {
+  //   user,
+  //   userId,
+  //   message: msg,
+  //   socketId: socketId.value,
+  //   file: fileBase64,
+  // };
+  let fileUrl = null;
+
+if (file.value) {
+  const formData = new FormData();
+  formData.append('file', file.value);
+  try {
+    const response = await axios.post(`${apiUrl}/api/upload`, formData);
+    fileUrl = response.data.url;
+  } catch (error) {
+    alert('Upload file thất bại!');
+    return;
+  }
+}
+
+const messageData = {
+  user,
+  userId,
+  message: msg,
+  socketId: socketId.value,
+  file: fileUrl, // 👈 Gửi URL file thay vì base64
+};
 
   if (activeTab.value === 'ai') {
     aiMessages.value.push(messageData);
@@ -258,7 +282,7 @@ const sendMessage = async (suggestion = null) => {
   } else {
     // messageSend.value.push(messageData);
     socket.emit('chat message', messageData);
-    //console.log('Sent message:', messageData);
+    console.log('Sent message:', messageData);
   }
 
   message.value = '';
@@ -318,6 +342,7 @@ const getMessages = () => {
 
 const listenForMessages = () => {
   socket.on('chat messageSend', (data) => {
+    //console.log(data);
     if (activeTab.value === 'human') {
       const messageObject = { user: data.user, message: data.message, userId: data.userId };
       if (data.file) {
@@ -327,7 +352,6 @@ const listenForMessages = () => {
       scrollToBottom();
     }
   });
-
 
 };
 socket.on('chat history', (chatMessages) => {
@@ -353,17 +377,27 @@ onMounted(() => {
   background: none;
   border: none;
   cursor: pointer;
-  position: fixed; /* Đặt ở vị trí bạn muốn */
-  bottom: 20px; /* Ví dụ: gần đáy */
-  right: 20px; /* Ví dụ: gần bên phải */
-  z-index: 1001; /* Đảm bảo nó nằm trên cùng */
+  position: fixed;
+  /* Đặt ở vị trí bạn muốn */
+  bottom: 20px;
+  /* Ví dụ: gần đáy */
+  right: 20px;
+  /* Ví dụ: gần bên phải */
+  z-index: 1001;
+  /* Đảm bảo nó nằm trên cùng */
 }
-.toggle-chat-btn > img{
-  width: 50px; /* Kích thước hình ảnh */
-  height: 50px; /* Kích thước hình ảnh */
-  border-radius: 50%; /* Làm tròn hình ảnh */
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2); /* Thêm bóng đổ */
+
+.toggle-chat-btn>img {
+  width: 50px;
+  /* Kích thước hình ảnh */
+  height: 50px;
+  /* Kích thước hình ảnh */
+  border-radius: 50%;
+  /* Làm tròn hình ảnh */
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+  /* Thêm bóng đổ */
 }
+
 .popup {
   position: fixed;
   top: 0;

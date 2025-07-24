@@ -1,149 +1,148 @@
 <template>
-  <main class="profile-card-enhanced">
-    <div class="card-bg-decoration"></div>
-    <!-- <button class="close-button" @click="closeProfile">
-      <i class="fas fa-times"></i>
-    </button> -->
+  <div class="profile-page-wrapper">
+    <main class="profile-card-enhanced">
+      <div class="card-bg-decoration"></div>
 
-    <div class="profile-header-enhanced">
-      <div class="profile-avatar-enhanced">
-        <img v-if="userInfo.avatar" :src="userInfo.avatar" alt="User Avatar" />
-        <i v-else class="fas fa-user-circle"></i>
-        <span class="avatar-badge" v-if="userInfo.isPro"><i class="fas fa-check-circle"></i></span>
+      <div class="profile-header-enhanced">
+        <div class="profile-avatar-enhanced">
+          <img v-if="userInfo.avatar" :src="userInfo.avatar" alt="User Avatar" />
+          <i v-else class="fas fa-user-circle"></i>
+          <span class="avatar-badge" v-if="userInfo.isPro"><i class="fas fa-check-circle"></i></span>
+        </div>
+        <h1 class="user-name-enhanced">{{ userInfo.name }}</h1>
+        <p class="user-role-enhanced">{{ userInfo.role }}</p>
       </div>
-      <h1 class="user-name-enhanced">{{ userInfo.name }}</h1>
-      <p class="user-role-enhanced">{{ userInfo.role }}</p>
-    </div>
 
-    <div class="profile-details-enhanced">
-      <div class="detail-item-enhanced">
-        <i class="fas fa-id-badge detail-icon-enhanced"></i>
-        <span class="detail-label-enhanced">ID</span>
-        <span class="detail-value-enhanced">{{ userInfo.id }}</span>
+      <div class="profile-details-enhanced">
+        <div class="detail-item-enhanced">
+          <i class="fas fa-id-badge detail-icon-enhanced"></i>
+          <span class="detail-label-enhanced">ID</span>
+          <span class="detail-value-enhanced">{{ userInfo.id }}</span>
+        </div>
+        <div class="detail-item-enhanced">
+          <i class="fas fa-envelope detail-icon-enhanced"></i>
+          <span class="detail-label-enhanced">Email</span>
+          <span class="detail-value-enhanced">{{ userInfo.email }}</span>
+        </div>
+        <div class="detail-item-enhanced bio-section">
+          <i class="fas fa-info-circle detail-icon-enhanced"></i>
+          <span class="detail-label-enhanced">Giới thiệu</span>
+          <p class="detail-value-enhanced bio-text-enhanced">
+            Chào bạn, 🌼 🌱 Rất vui được ở đây! 🌿 Luôn sẵn sàng kết nối và chia sẻ.
+          </p>
+        </div>
       </div>
-      <div class="detail-item-enhanced">
-        <i class="fas fa-envelope detail-icon-enhanced"></i>
-        <span class="detail-label-enhanced">Email</span>
-        <span class="detail-value-enhanced">{{ userInfo.email }}</span>
-      </div>
-      <div class="detail-item-enhanced bio-section">
-        <i class="fas fa-info-circle detail-icon-enhanced"></i>
-        <span class="detail-label-enhanced">Giới thiệu</span>
-        <p class="detail-value-enhanced bio-text-enhanced">
-          Chào bạn, 🌼 🌱 Rất vui được ở đây! 🌿 Luôn sẵn sàng kết nối và chia sẻ.
-        </p>
-      </div>
-    </div>
 
-    <div class="profile-actions-enhanced">
-      <button class="action-button-enhanced primary-action" @click="showChangePasswordModal = true">
-        <i class="fas fa-key"></i> Thay Mật Khẩu
-      </button>
-      <button class="action-button-enhanced secondary-action" @click="showUpdateProfileModal = true">
-        <i class="fas fa-edit"></i> Chỉnh Sửa Hồ Sơ
-      </button>
-      <button class="action-button-enhanced secondary-action">
-        <i class="fas fa-edit"></i> <router-link to="/forgotPass" class="text-dark">Quen MK</router-link>
-      </button>
-    </div>
-
-    <div v-if="showChangePasswordModal" class="fancy-modal-overlay">
-      <div class="fancy-modal-content">
-        <button class="fancy-close-button" @click="closePasswordModal">
-          <i class="fas fa-times"></i>
+      <div class="profile-actions-enhanced">
+        <button class="action-button-enhanced primary-action" @click="showChangePasswordModal = true">
+          <i class="fas fa-key"></i> Thay Mật Khẩu
         </button>
-        <h2 class="fancy-modal-title">Đổi Mật Khẩu</h2>
-
-        <form @submit.prevent="submitChangePassword" class="fancy-form">
-          <div class="fancy-form-group">
-            <label for="current_password_fancy">Mật khẩu hiện tại</label>
-            <input
-              type="password"
-              id="current_password_fancy"
-              v-model="passwordForm.current_password"
-              required
-              autocomplete="current-password"
-            />
-          </div>
-
-          <div class="fancy-form-group">
-            <label for="new_password_fancy">Mật khẩu mới</label>
-            <input
-              type="password"
-              id="new_password_fancy"
-              v-model="passwordForm.new_password"
-              required
-              minlength="6"
-              autocomplete="new-password"
-            />
-            <p v-if="passwordErrors.new_password" class="fancy-error-message">{{ passwordErrors.new_password }}</p>
-          </div>
-
-          <div class="fancy-form-group">
-            <label for="new_password_confirmation_fancy">Xác nhận mật khẩu mới</label>
-            <input
-              type="password"
-              id="new_password_confirmation_fancy"
-              v-model="passwordForm.new_password_confirmation"
-              required
-              autocomplete="new-password"
-            />
-            <p v-if="passwordErrors.new_password_confirmation" class="fancy-error-message">{{ passwordErrors.new_password_confirmation }}</p>
-          </div>
-
-          <div v-if="passwordMessage" :class="['fancy-response-message', isPasswordError ? 'error' : 'success']">
-            {{ passwordMessage }}
-          </div>
-
-          <button type="submit" :disabled="isLoadingPasswordChange" class="fancy-submit-button">
-            <span v-if="isLoadingPasswordChange"><i class="fas fa-spinner fa-spin"></i> Đang gửi...</span>
-            <span v-else><i class="fas fa-check-circle"></i> Xác nhận đổi</span>
-          </button>
-        </form>
-      </div>
-    </div>
-
-    <div v-if="showUpdateProfileModal" class="fancy-modal-overlay">
-      <div class="fancy-modal-content">
-        <button class="fancy-close-button" @click="closeUpdateProfileModal">
-          <i class="fas fa-times"></i>
+        <button class="action-button-enhanced secondary-action" @click="showUpdateProfileModal = true">
+          <i class="fas fa-edit"></i> Chỉnh Sửa Hồ Sơ
         </button>
-        <h2 class="fancy-modal-title">Cập Nhật Hồ Sơ</h2>
-
-        <form @submit.prevent="submitUpdateProfile" class="fancy-form">
-          <div class="fancy-form-group">
-            <label for="profile_name">Tên của bạn</label>
-            <input
-              type="text"
-              id="profile_name"
-              v-model="profileForm.name"
-              required
-            />
-          </div>
-
-          <div class="fancy-form-group">
-            <label for="profile_email">Email</label>
-            <input
-              type="email"
-              id="profile_email"
-              v-model="profileForm.email"
-              required
-            />
-            <p v-if="profileErrors.email" class="fancy-error-message">{{ profileErrors.email }}</p>
-          </div>
-
-          <div v-if="profileMessage" :class="['fancy-response-message', isProfileError ? 'error' : 'success']">
-            {{ profileMessage }}
-          </div>
-
-          <button type="submit" :disabled="isLoadingProfileUpdate" class="fancy-submit-button">
-            <span v-if="isLoadingProfileUpdate"><i class="fas fa-spinner fa-spin"></i> Đang cập nhật...</span>
-            <span v-else><i class="fas fa-save"></i> Lưu thay đổi</span>
-          </button>
-        </form>
+        <button class="action-button-enhanced secondary-action">
+          <i class="fas fa-edit"></i> <router-link to="/forgotPass" class="text-dark">Quên MK</router-link>
+        </button>
       </div>
-    </div>
-  </main>
+
+      <div v-if="showChangePasswordModal" class="fancy-modal-overlay">
+        <div class="fancy-modal-content">
+          <button class="fancy-close-button" @click="closePasswordModal">
+            <i class="fas fa-times"></i>
+          </button>
+          <h2 class="fancy-modal-title">Đổi Mật Khẩu</h2>
+
+          <form @submit.prevent="submitChangePassword" class="fancy-form">
+            <div class="fancy-form-group">
+              <label for="current_password_fancy">Mật khẩu hiện tại</label>
+              <input
+                type="password"
+                id="current_password_fancy"
+                v-model="passwordForm.current_password"
+                required
+                autocomplete="current-password"
+              />
+            </div>
+
+            <div class="fancy-form-group">
+              <label for="new_password_fancy">Mật khẩu mới</label>
+              <input
+                type="password"
+                id="new_password_fancy"
+                v-model="passwordForm.new_password"
+                required
+                minlength="6"
+                autocomplete="new-password"
+              />
+              <p v-if="passwordErrors.new_password" class="fancy-error-message">{{ passwordErrors.new_password }}</p>
+            </div>
+
+            <div class="fancy-form-group">
+              <label for="new_password_confirmation_fancy">Xác nhận mật khẩu mới</label>
+              <input
+                type="password"
+                id="new_password_confirmation_fancy"
+                v-model="passwordForm.new_password_confirmation"
+                required
+                autocomplete="new-password"
+              />
+              <p v-if="passwordErrors.new_password_confirmation" class="fancy-error-message">{{ passwordErrors.new_password_confirmation }}</p>
+            </div>
+
+            <div v-if="passwordMessage" :class="['fancy-response-message', isPasswordError ? 'error' : 'success']">
+              {{ passwordMessage }}
+            </div>
+
+            <button type="submit" :disabled="isLoadingPasswordChange" class="fancy-submit-button">
+              <span v-if="isLoadingPasswordChange"><i class="fas fa-spinner fa-spin"></i> Đang gửi...</span>
+              <span v-else><i class="fas fa-check-circle"></i> Xác nhận đổi</span>
+            </button>
+          </form>
+        </div>
+      </div>
+
+      <div v-if="showUpdateProfileModal" class="fancy-modal-overlay">
+        <div class="fancy-modal-content">
+          <button class="fancy-close-button" @click="closeUpdateProfileModal">
+            <i class="fas fa-times"></i>
+          </button>
+          <h2 class="fancy-modal-title">Cập Nhật Hồ Sơ</h2>
+
+          <form @submit.prevent="submitUpdateProfile" class="fancy-form">
+            <div class="fancy-form-group">
+              <label for="profile_name">Tên của bạn</label>
+              <input
+                type="text"
+                id="profile_name"
+                v-model="profileForm.name"
+                required
+              />
+            </div>
+
+            <div class="fancy-form-group">
+              <label for="profile_email">Email</label>
+              <input
+                type="email"
+                id="profile_email"
+                v-model="profileForm.email"
+                required
+              />
+              <p v-if="profileErrors.email" class="fancy-error-message">{{ profileErrors.email }}</p>
+            </div>
+
+            <div v-if="profileMessage" :class="['fancy-response-message', isProfileError ? 'error' : 'success']">
+              {{ profileMessage }}
+            </div>
+
+            <button type="submit" :disabled="isLoadingProfileUpdate" class="fancy-submit-button">
+              <span v-if="isLoadingProfileUpdate"><i class="fas fa-spinner fa-spin"></i> Đang cập nhật...</span>
+              <span v-else><i class="fas fa-save"></i> Lưu thay đổi</span>
+            </button>
+          </form>
+        </div>
+      </div>
+    </main>
+  </div>
 </template>
 
 <style scoped>
@@ -151,19 +150,31 @@
 @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap');
 @import url('https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css');
 
-/* --- PROFILE CARD CHÍNH: ĐẸP VÀ CHỈNH CHU HƠN --- */
+/* --- WRAPPER MỚI CHO TRANG PROFILE --- */
+.profile-page-wrapper {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh; /* Đảm bảo wrapper chiếm toàn bộ chiều cao viewport */
+  background-color: #f0f2f5; /* Màu nền nhẹ nhàng cho toàn trang */
+  padding: 20px;
+  box-sizing: border-box; /* Bao gồm padding trong chiều rộng/cao */
+}
+
+/* --- PROFILE CARD CHÍNH: ĐẸP VÀ CHỈNH CHU HƠN, RỘNG HƠN --- */
 .profile-card-enhanced {
   font-family: 'Poppins', sans-serif;
   background-color: #ffffff;
-  border-radius: 16px; /* Bo góc mềm mại */
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1); /* Bóng đổ sâu hơn, chuyên nghiệp */
-  max-width: 420px;
-  margin: 60px auto;
+  border-radius: 16px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+  max-width: 750px; /* **Tăng chiều rộng tối đa** */
+  width: 100%; /* Đảm bảo nó chiếm đủ không gian trên màn hình lớn */
+  margin: 0 auto; /* Căn giữa */
   padding: 30px;
   text-align: center;
   position: relative;
   overflow: hidden;
-  animation: fadeInScaleUp 0.6s ease-out forwards; /* Hiệu ứng mượt mà */
+  animation: fadeInScaleUp 0.6s ease-out forwards;
 }
 
 .card-bg-decoration {
@@ -172,7 +183,6 @@
   left: 0;
   width: 100%;
   height: 120px;
-  /* //background: linear-gradient(135deg, #10d6ec, #8BC34A); Gradient xanh lá cây tươi mới */
   border-top-left-radius: 16px;
   border-top-right-radius: 16px;
   z-index: 0;
@@ -183,7 +193,7 @@
   z-index: 1;
   margin-top: 20px;
   padding-bottom: 25px;
-  border-bottom: 1px solid #e0e0e0; /* Đường kẻ tinh tế */
+  border-bottom: 1px solid #e0e0e0;
   margin-bottom: 25px;
 }
 
@@ -191,18 +201,18 @@
   width: 100px;
   height: 100px;
   border-radius: 50%;
-  background-color: #f8f8f8; /* Nền avatar sáng */
+  background-color: #f8f8f8;
   margin: -60px auto 15px;
   display: flex;
   justify-content: center;
   align-items: center;
   font-size: 50px;
   color: #a0a0a0;
-  border: 5px solid #ffffff; /* Viền trắng dày hơn */
-  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15); /* Bóng đổ nổi bật hơn */
+  border: 5px solid #ffffff;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
   overflow: hidden;
-  position: relative; /* Quan trọng cho badge */
-  transition: transform 0.3s ease-out, box-shadow 0.3s ease-out; /* Hiệu ứng mượt mà */
+  position: relative;
+  transition: transform 0.3s ease-out, box-shadow 0.3s ease-out;
 }
 
 .profile-avatar-enhanced:hover {
@@ -220,19 +230,19 @@
 /* BADGE CHO AVATAR */
 .avatar-badge {
   position: absolute;
-  bottom: 0px; /* Điều chỉnh vị trí */
-  right: 0px;  /* Điều chỉnh vị trí */
-  background-color: #FFC107; /* Màu vàng Gold cho badge */
+  bottom: 0px;
+  right: 0px;
+  background-color: #FFC107;
   color: #fff;
   border-radius: 50%;
-  width: 30px; /* Kích thước badge */
-  height: 30px; /* Kích thước badge */
+  width: 30px;
+  height: 30px;
   display: flex;
   justify-content: center;
   align-items: center;
   font-size: 1rem;
-  border: 3px solid #ffffff; /* Viền trắng cho badge */
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2); /* Bóng đổ cho badge */
+  border: 3px solid #ffffff;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
   transition: transform 0.2s ease-out;
 }
 
@@ -241,89 +251,99 @@
 }
 
 .user-name-enhanced {
-  font-size: 1.8rem; /* Tên lớn hơn */
-  font-weight: 700; /* Đậm hơn */
-  color: #2c3e50; /* Màu chữ tối hơn, chuyên nghiệp */
+  font-size: 1.8rem;
+  font-weight: 700;
+  color: #2c3e50;
   margin-bottom: 5px;
-  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.05); /* Bóng chữ nhẹ */
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
 }
 
 .user-role-enhanced {
-  font-size: 1rem; /* Kích thước role */
-  color: #7f8c8d; /* Màu xám dịu */
+  font-size: 1rem;
+  color: #7f8c8d;
   font-weight: 500;
   margin-bottom: 0;
 }
 
+/* --- CHỈNH SỬA LAYOUT CHO CHI TIẾT THEO CHIỀU NGANG VỚI GRID --- */
 .profile-details-enhanced {
   text-align: left;
   margin-bottom: 30px;
-  padding: 0 10px; /* Thêm padding ngang */
+  padding: 0 10px;
+  display: grid; /* Sử dụng Grid */
+  grid-template-columns: repeat(2, 1fr); /* Chia thành 2 cột bằng nhau */
+  gap: 20px 40px; /* Khoảng cách giữa các hàng và cột */
 }
 
 .detail-item-enhanced {
   display: flex;
-  align-items: center; /* Căn giữa theo chiều dọc */
-  margin-bottom: 20px;
-  font-size: 0.95rem; /* Kích thước chi tiết */
+  align-items: center;
+  font-size: 0.95rem;
   color: #555;
   line-height: 1.5;
+  margin-bottom: 0; /* Loại bỏ margin-bottom mặc định nếu dùng grid */
 }
 
 .detail-icon-enhanced {
-  font-size: 1.2rem; /* Icon lớn hơn */
-  color: #4CAF50; /* Màu icon theo gradient */
-  margin-right: 15px; /* Khoảng cách icon */
-  width: 25px; /* Chiều rộng icon cố định */
+  font-size: 1.2rem;
+  color: #4CAF50;
+  margin-right: 15px;
+  width: 25px;
   text-align: center;
 }
 
 .detail-label-enhanced {
-  font-weight: 600; /* Đậm hơn */
+  font-weight: 600;
   color: #333;
-  min-width: 80px; /* Chiều rộng tối thiểu cho label */
+  min-width: 80px;
   flex-shrink: 0;
 }
 
 .detail-value-enhanced {
   flex: 1;
   color: #666;
+  word-break: break-word; /* Đảm bảo văn bản dài không bị tràn */
 }
 
 .bio-section {
+  grid-column: 1 / -1; /* **Kéo dài phần "Giới thiệu" để chiếm cả 2 cột** */
   align-items: flex-start;
+  margin-top: 10px; /* Thêm khoảng cách nếu cần */
 }
 
 .bio-text-enhanced {
   line-height: 1.6;
   margin-top: 0;
-  font-size: 0.9rem; /* Giới thiệu nhỏ hơn một chút */
+  font-size: 0.9rem;
   color: #777;
 }
 
+/* --- CHỈNH SỬA LAYOUT CHO ACTIONS THEO CHIỀU NGANG VỚI FLEXBOX --- */
 .profile-actions-enhanced {
   display: flex;
-  flex-direction: column;
+  flex-wrap: wrap; /* Cho phép các nút xuống dòng nếu không đủ chỗ */
+  justify-content: center; /* Căn giữa các nút */
   gap: 15px; /* Khoảng cách giữa các nút */
 }
 
 .action-button-enhanced {
-  padding: 14px 25px; /* Padding lớn hơn */
+  padding: 14px 25px;
   border: none;
-  border-radius: 10px; /* Bo góc mềm mại */
-  font-size: 1rem; /* Kích thước chữ nút */
-  font-weight: 600; /* Chữ nút đậm hơn */
+  border-radius: 10px;
+  font-size: 1rem;
+  font-weight: 600;
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 10px; /* Khoảng cách icon và chữ */
+  gap: 10px;
   transition: all 0.3s ease;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1); /* Bóng đổ cho nút */
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  min-width: 180px; /* Đảm bảo các nút có chiều rộng tối thiểu */
 }
 
 .action-button-enhanced.primary-action {
-  background: linear-gradient(45deg, #1d7bd9, #66BB6A); /* Gradient xanh lá cho nút chính */
+  background: linear-gradient(45deg, #1d7bd9, #66BB6A);
   color: #fff;
   box-shadow: 0 6px 18px rgba(76, 175, 80, 0.3);
 }
@@ -331,13 +351,13 @@
 .action-button-enhanced.primary-action:hover {
   transform: translateY(-3px);
   box-shadow: 0 8px 22px rgba(76, 175, 80, 0.4);
-  filter: brightness(1.1); /* Sáng hơn khi hover */
+  filter: brightness(1.1);
 }
 
 .action-button-enhanced.secondary-action {
-  background-color: #f5f7f9; /* Nền xám nhạt */
+  background-color: #f5f7f9;
   color: #555;
-  border: 1px solid #e0e6ec; /* Border tinh tế */
+  border: 1px solid #e0e6ec;
 }
 
 .action-button-enhanced.secondary-action:hover {
@@ -346,22 +366,9 @@
   box-shadow: 0 6px 18px rgba(0, 0, 0, 0.15);
 }
 
-.close-button {
-  position: absolute;
-  top: 15px;
-  right: 15px;
-  background: none;
-  border: none;
-  font-size: 1.8rem; /* Icon lớn hơn */
-  color: #f0f0f0; /* Màu trắng xám */
-  cursor: pointer;
-  z-index: 2;
-  transition: transform 0.3s ease, color 0.3s ease;
-}
-
-.close-button:hover {
-  color: #fff; /* Trắng tinh khi hover */
-  transform: rotate(90deg) scale(1.1);
+.text-dark {
+  color: inherit; /* Kế thừa màu từ nút cha */
+  text-decoration: none; /* Bỏ gạch chân mặc định của link */
 }
 
 /* Animations cho card chính */
@@ -377,10 +384,34 @@
 }
 
 /* Responsive adjustments */
-@media (max-width: 500px) {
+@media (max-width: 768px) {
   .profile-card-enhanced {
-    margin: 30px 15px;
-    padding: 25px;
+    max-width: 90%; /* Điều chỉnh lại max-width cho màn hình trung bình */
+  }
+  .profile-details-enhanced {
+    grid-template-columns: 1fr; /* Trở về 1 cột trên màn hình nhỏ hơn */
+    gap: 15px; /* Điều chỉnh khoảng cách */
+  }
+  .bio-section {
+    grid-column: auto; /* Bỏ kéo dài cột trên màn hình nhỏ */
+  }
+  .profile-actions-enhanced {
+    flex-direction: column; /* Các nút trở về xếp chồng lên nhau */
+    gap: 10px;
+  }
+  .action-button-enhanced {
+    min-width: unset; /* Bỏ chiều rộng tối thiểu */
+    width: 100%; /* Chiếm toàn bộ chiều rộng có sẵn */
+  }
+}
+
+@media (max-width: 500px) {
+  .profile-page-wrapper {
+    padding: 10px;
+  }
+  .profile-card-enhanced {
+    margin: 30px 0; /* Giảm margin trên di động */
+    padding: 20px;
   }
   .card-bg-decoration {
     height: 100px;
@@ -405,9 +436,8 @@
     font-size: 0.9rem;
   }
   .detail-item-enhanced {
-    flex-direction: column;
-    align-items: flex-start;
-    margin-bottom: 15px;
+    align-items: flex-start; /* Giữ nguyên căn chỉnh cho chi tiết */
+    margin-bottom: 0;
   }
   .detail-label-enhanced {
     margin-bottom: 5px;
@@ -416,12 +446,14 @@
   .detail-icon-enhanced {
     margin-right: 8px;
   }
-  .detail-label-enhanced, .detail-value-enhanced {
-    width: 100%;
+  .fancy-modal-content {
+    padding: 20px;
   }
-  .action-button-enhanced {
-    font-size: 0.9rem;
-    padding: 12px 18px;
+  .fancy-modal-title {
+    font-size: 1.5rem;
+  }
+  .fancy-form input {
+    padding: 10px;
   }
 }
 
@@ -432,23 +464,23 @@
   left: 0;
   width: 100%;
   height: 100%;
-  background-color: rgba(0, 0, 0, 0.6); /* Nền tối hơn, làm nổi bật popup */
+  /* background-color: rgba(0, 0, 0, 0.6); */
   display: flex;
   justify-content: center;
   align-items: center;
-  z-index: 1000; /* Cao hơn các thành phần khác */
+  z-index: 1000;
   animation: fadeIn 0.3s ease-out forwards;
 }
 
 .fancy-modal-content {
   background-color: #fff;
   padding: 30px;
-  border-radius: 12px; /* Bo góc mềm mại */
-  box-shadow: 0 15px 45px rgba(0, 0, 0, 0.25); /* Bóng đổ sâu, cao cấp */
+  border-radius: 12px;
+  box-shadow: 0 15px 45px rgba(0, 0, 0, 0.25);
   width: 90%;
-  max-width: 450px; /* Chiều rộng rộng hơn một chút */
+  max-width: 500px; /* Tăng nhẹ chiều rộng tối đa của modal */
   position: relative;
-  animation: slideIn 0.3s cubic-bezier(0.25, 0.8, 0.25, 1) forwards; /* Hiệu ứng slide in mượt mà */
+  animation: slideIn 0.3s cubic-bezier(0.25, 0.8, 0.25, 1) forwards;
 }
 
 .fancy-close-button {
@@ -457,21 +489,21 @@
   right: 15px;
   background: none;
   border: none;
-  font-size: 1.5rem; /* Icon đóng lớn hơn */
-  color: #999; /* Màu xám dịu */
+  font-size: 1.5rem;
+  color: #999;
   cursor: pointer;
   transition: color 0.2s ease, transform 0.2s ease;
 }
 
 .fancy-close-button:hover {
-  color: #333; /* Tối hơn khi hover */
+  color: #333;
   transform: rotate(90deg);
 }
 
 .fancy-modal-title {
-  font-size: 1.8rem; /* Tiêu đề lớn và rõ ràng */
+  font-size: 1.8rem;
   font-weight: 700;
-  color: #34495e; /* Màu chữ tối hơn */
+  color: #34495e;
   margin-bottom: 25px;
   text-align: center;
   position: relative;
@@ -486,7 +518,7 @@
   bottom: 0;
   width: 60px;
   height: 3px;
-  background-color: #4CAF50; /* Đường gạch chân màu xanh lá */
+  background-color: #4CAF50;
   border-radius: 2px;
 }
 
@@ -497,19 +529,19 @@
 
 .fancy-form label {
   display: block;
-  font-size: 0.95rem; /* Label rõ ràng */
+  font-size: 0.95rem;
   color: #555;
   margin-bottom: 8px;
-  font-weight: 600; /* Đậm hơn */
+  font-weight: 600;
 }
 
 .fancy-form input[type="password"],
 .fancy-form input[type="text"],
 .fancy-form input[type="email"] {
-  width: calc(100% - 20px); /* Kích thước input với padding */
-  padding: 12px 10px; /* Padding lớn hơn */
+  width: calc(100% - 20px);
+  padding: 12px 10px;
   border: 1px solid #ccc;
-  border-radius: 8px; /* Bo góc mềm mại */
+  border-radius: 8px;
   font-size: 1rem;
   color: #333;
   transition: border-color 0.2s ease, box-shadow 0.2s ease;
@@ -518,13 +550,13 @@
 .fancy-form input[type="password"]:focus,
 .fancy-form input[type="text"]:focus,
 .fancy-form input[type="email"]:focus {
-  border-color: #4CAF50; /* Màu border khi focus */
+  border-color: #4CAF50;
   outline: none;
-  box-shadow: 0 0 0 3px rgba(76, 175, 80, 0.2); /* Box-shadow tinh tế */
+  box-shadow: 0 0 0 3px rgba(76, 175, 80, 0.2);
 }
 
 .fancy-error-message {
-  color: #e74c3c; /* Màu đỏ nổi bật cho lỗi */
+  color: #e74c3c;
   font-size: 0.85rem;
   margin-top: 5px;
   font-weight: 500;
@@ -533,34 +565,34 @@
 .fancy-response-message {
   padding: 12px;
   border-radius: 8px;
-  margin-top: 25px; /* Khoảng cách trên */
-  margin-bottom: 20px; /* Khoảng cách dưới */
+  margin-top: 25px;
+  margin-bottom: 20px;
   font-size: 0.95rem;
   text-align: center;
   font-weight: 500;
-  border-left: 5px solid; /* Border bên trái cho hiệu ứng nổi bật */
+  border-left: 5px solid;
 }
 
 .fancy-response-message.success {
-  background-color: #e8f5e9; /* Nền xanh lá nhạt */
-  color: #2e7d32; /* Chữ xanh lá đậm */
-  border-color: #4CAF50; /* Border xanh lá */
+  background-color: #e8f5e9;
+  color: #2e7d32;
+  border-color: #4CAF50;
 }
 
 .fancy-response-message.error {
-  background-color: #ffebee; /* Nền đỏ nhạt */
-  color: #c62828; /* Chữ đỏ đậm */
-  border-color: #e74c3c; /* Border đỏ */
+  background-color: #ffebee;
+  color: #c62828;
+  border-color: #e74c3c;
 }
 
 .fancy-submit-button {
   width: 100%;
   padding: 14px 20px;
-  background: linear-gradient(45deg, #4CAF50, #66BB6A); /* Gradient xanh lá */
+  background: linear-gradient(45deg, #4CAF50, #66BB6A);
   color: #fff;
   border: none;
   border-radius: 8px;
-  font-size: 1.1rem; /* Nút lớn hơn */
+  font-size: 1.1rem;
   font-weight: 600;
   cursor: pointer;
   display: flex;
@@ -572,13 +604,13 @@
 }
 
 .fancy-submit-button:hover:not(:disabled) {
-  background: linear-gradient(45deg, #66BB6A, #4CAF50); /* Đổi gradient khi hover */
+  background: linear-gradient(45deg, #66BB6A, #4CAF50);
   transform: translateY(-2px);
   box-shadow: 0 8px 20px rgba(76, 175, 80, 0.4);
 }
 
 .fancy-submit-button:disabled {
-  background-color: #a5d6a7; /* Màu nhạt hơn khi disabled */
+  background-color: #a5d6a7;
   cursor: not-allowed;
   opacity: 0.8;
   box-shadow: none;
@@ -815,7 +847,7 @@ const fetchUserInfo = () => {
         .then(response => {
             userInfo.value = {
                 ...response.data.user,
-                avatar: response.data.user.avatar || 'https://jbagy.me/wp-content/uploads/2025/03/anh-avatar-zalo-cute-4.jpg'
+                avatar: response.data.user.avatar || 'https://i.postimg.cc/d3pNGXPN/7c6764b8-de90-474c-9b98-05019aef3193.png'
             };
             // Khi lấy được thông tin user, gán vào form update profile
             profileForm.name = userInfo.value.name;
