@@ -51,20 +51,27 @@
             </div>
           </div>
         </div>
-        <!-- Room Status (Monthly) -->
+        
+        <!-- Room Status (Monthly) - GIAO DIỆN MỚI -->
         <div class="col">
           <div class="card h-100 border-left-info shadow-sm py-2">
             <div class="card-body">
               <div class="row no-gutters align-items-center">
                 <div class="col mr-2">
                   <div class="text-xs font-weight-bold text-info text-uppercase mb-1">Tình trạng phòng (Tháng)</div>
-                  <div class="room-status-layout">
-                    <div class="status-item">
-                      <span class="text-danger">Đã đặt: <b>{{ overviewData.statWidgets?.roomStatusMonthly?.occupied || 0 }}</b></span>
-                      <span class="mx-1">/</span>
-                      <span class="text-success">Trống: <b>{{ overviewData.statWidgets?.roomStatusMonthly?.available || 0 }}</b></span>
+                  <div class="room-status-vertical">
+                    <div class="status-line text-danger">
+                      <span>Đã đặt:</span>
+                      <b>{{ overviewData.statWidgets?.roomStatusMonthly?.occupied || 0 }}</b>
                     </div>
-                    <div class="total-item">Tổng: {{ overviewData.statWidgets?.roomStatusMonthly?.total || 0 }} phòng</div>
+                    <div class="status-line text-success">
+                      <span>Trống:</span>
+                      <b>{{ overviewData.statWidgets?.roomStatusMonthly?.available || 0 }}</b>
+                    </div>
+                     <div class="status-line total">
+                      <span>Tổng:</span>
+                      <b>{{ overviewData.statWidgets?.roomStatusMonthly?.total || 0 }}</b>
+                    </div>
                   </div>
                 </div>
                 <div class="col-auto"><i class="fas fa-bed fa-2x text-gray-300"></i></div>
@@ -72,6 +79,7 @@
             </div>
           </div>
         </div>
+
         <!-- Total Room Types -->
         <div class="col">
           <div class="card h-100 border-left-warning shadow-sm py-2">
@@ -192,6 +200,7 @@
 </template>
 
 <script setup>
+// ... (PHẦN SCRIPT GIỮ NGUYÊN NHƯ CŨ) ...
 import { ref, onMounted, onBeforeUnmount, inject } from 'vue';
 import axios from 'axios';
 import Chart from 'chart.js/auto';
@@ -301,16 +310,17 @@ onBeforeUnmount(() => {
 </script>
 
 <style scoped>
+/* CSS cũ giữ nguyên */
 .card.border-left-primary { border-left: .25rem solid #4e73df !important; }
 .text-primary { color: #4e73df !important; }
 .card.border-left-success { border-left: .25rem solid #1cc88a !important; }
-.text-success { color: #1cc88a !important; font-size: 0.9rem;}
+.text-success { color: #1cc88a !important; }
 .card.border-left-info { border-left: .25rem solid #36b9cc !important; }
 .text-info { color: #36b9cc !important; }
 .card.border-left-warning { border-left: .25rem solid #f6c23e !important; }
 .text-warning { color: #f6c23e !important; }
 .card.border-left-danger { border-left: .25rem solid #e74a3b !important; }
-.text-danger { color: #e74a3b !important; font-size: 0.9rem;}
+.text-danger { color: #e74a3b !important; }
 .text-xs { font-size: .7rem; }
 .text-gray-300 { color: #dddfeb !important; }
 .text-gray-800 { color: #5a5c69 !important; }
@@ -331,24 +341,31 @@ onBeforeUnmount(() => {
 .item-meta a:hover { text-decoration: underline; }
 .empty-state { display: flex; flex-direction: column; justify-content: center; align-items: center; height: 100%; min-height: 200px; color: #858796; }
 
-/* === CSS ĐIỀU CHỈNH FONT & BỐ CỤC WIDGET === */
+/* === CSS MỚI: ĐIỀU CHỈNH LẠI FONT & BỐ CỤC WIDGET === */
 .stat-number {
   font-size: 1.25rem;
   font-weight: 700;
   color: #5a5c69;
   line-height: 1.2;
 }
-.room-status-layout {
-  font-weight: 700;
-  color: #5a5c69;
+.room-status-vertical {
+  /* Container for vertical status display */
 }
-.status-item {
+.status-line {
+  display: flex;
+  justify-content: space-between;
   font-size: 0.9rem;
-  line-height: 1.4;
+  font-weight: 500;
+  line-height: 1.5;
 }
-.total-item {
-  font-size: 0.75rem;
-  margin-top: 0.1rem;
+.status-line.total {
+  font-size: 0.8rem;
   color: #858796;
+  border-top: 1px solid #e3e6f0;
+  margin-top: 0.2rem;
+  padding-top: 0.2rem;
+}
+.status-line b {
+  font-weight: 700;
 }
 </style>

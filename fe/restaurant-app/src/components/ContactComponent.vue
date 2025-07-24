@@ -17,8 +17,7 @@
                 <h2 class="display-5 serif-font">Chúng tôi luôn sẵn sàng lắng nghe!</h2>
             </div>
             
-            <div v-if="successMessage" class="alert alert-success mt-4">{{ successMessage }}</div>
-            <div v-if="errorMessage" class="alert alert-danger mt-4">{{ errorMessage }}</div>
+            <!-- ĐÃ XÓA CÁC THÔNG BÁO ALERT TĨNH Ở ĐÂY -->
 
             <form @submit.prevent="submitForm" novalidate>
               <div class="mb-3">
@@ -37,7 +36,6 @@
                 </div>
               </div>
               
-              <!-- ===== TRƯỜNG SỐ ĐIỆN THOẠI MỚI ===== -->
               <div class="mb-3">
                 <label for="contactPhone" class="form-label">Số điện thoại (Không bắt buộc)</label>
                 <div class="input-group">
@@ -45,7 +43,6 @@
                     <input v-model="form.phone" type="tel" class="form-control" id="contactPhone" placeholder="Nhập số điện thoại của bạn">
                 </div>
               </div>
-              <!-- ======================================= -->
 
               <div class="mb-4">
                 <label for="contactMessage" class="form-label">Lời nhắn của bạn</label>
@@ -115,6 +112,17 @@
       </div>
     </section>
 
+    <!-- KHU VỰC HIỂN THỊ THÔNG BÁO TOAST TÙY CHỈNH -->
+    <transition-group name="toast" tag="div" class="toast-container">
+      <div v-for="toast in toasts" :key="toast.id" :class="['toast-notification', `toast--${toast.type}`]">
+        <i :class="['toast-icon', toast.icon]"></i>
+        <div class="toast-content">
+          <p class="toast-message">{{ toast.message }}</p>
+          <div class="toast-progress"></div>
+        </div>
+      </div>
+    </transition-group>
+
   </div>
 </template>
 
@@ -127,20 +135,42 @@ const apiUrl = inject('apiUrl');
 const form = ref({
   name: '',
   email: '',
-  phone: '', // Thêm trường phone
+  phone: '',
   message: ''
 });
 
 const isLoading = ref(false);
-const successMessage = ref('');
-const errorMessage = ref('');
+
+// --- HỆ THỐNG THÔNG BÁO TOAST TÙY CHỈNH ---
+const toasts = ref([]);
+let toastIdCounter = 0;
+
+const triggerToast = (message, type = 'success') => {
+  const id = toastIdCounter++;
+  const toastDetails = {
+    id,
+    message,
+    type,
+    icon: type === 'success' ? 'bi bi-check-circle-fill' : 'bi bi-exclamation-triangle-fill'
+  };
+  toasts.value.push(toastDetails);
+
+  setTimeout(() => {
+    removeToast(id);
+  }, 4000);
+};
+
+const removeToast = (id) => {
+  const index = toasts.value.findIndex(toast => toast.id === id);
+  if (index !== -1) {
+    toasts.value.splice(index, 1);
+  }
+};
+// --- KẾT THÚC HỆ THỐNG TOAST ---
 
 const submitForm = async () => {
-  successMessage.value = '';
-  errorMessage.value = '';
-
   if (!form.value.name || !form.value.email || !form.value.message) {
-      errorMessage.value = 'Vui lòng điền đầy đủ các trường bắt buộc.';
+      triggerToast('Vui lòng điền đầy đủ các trường bắt buộc.', 'error');
       return;
   }
 
@@ -148,20 +178,16 @@ const submitForm = async () => {
   try {
     const response = await axiosConfig.post(`${apiUrl}/api/contacts`, form.value);
     if (response.data.status) {
-      successMessage.value = response.data.message;
+      triggerToast(response.data.message, 'success');
       // Reset form sau khi gửi thành công
-      form.value.name = '';
-      form.value.email = '';
-      form.value.phone = ''; // Reset cả phone
-      form.value.message = '';
+      form.value = { name: '', email: '', phone: '', message: '' };
     }
   } catch (error) {
-    if (error.response && error.response.data && error.response.data.errors) {
-      const errors = error.response.data.errors;
-      const firstError = Object.values(errors)[0][0];
-      errorMessage.value = firstError;
+    if (error.response?.data?.errors) {
+      const firstError = Object.values(error.response.data.errors)[0][0];
+      triggerToast(firstError, 'error');
     } else {
-      errorMessage.value = 'Đã có lỗi xảy ra. Vui lòng thử lại sau.';
+      triggerToast('Đã có lỗi xảy ra. Vui lòng thử lại sau.', 'error');
     }
     console.error('Lỗi khi gửi liên hệ:', error);
   } finally {
@@ -173,9 +199,9 @@ const submitForm = async () => {
 <style scoped>
 @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&family=Roboto:wght@400&display=swap');
 
+/* STYLES CỦA TRANG LIÊN HỆ */
 .serif-font { font-family: 'Playfair Display', serif; }
 .contact-us-page { font-family: 'Roboto', sans-serif; color: #333; }
-
 .hero-section {
   position: relative;
   height: 60vh;
@@ -189,7 +215,6 @@ const submitForm = async () => {
   background: rgba(0, 0, 0, 0.5);
 }
 .hero-content { position: relative; z-index: 1; }
-
 .form-control { padding: 0.75rem 1rem; border-left: 0; }
 .input-group-text { background-color: #fff; border-right: 0; }
 .form-control:focus { box-shadow: none; border-color: #a07d5a; }
@@ -203,7 +228,6 @@ const submitForm = async () => {
   transition: border-color .15s ease-in-out,box-shadow .15s ease-in-out;
 }
 textarea.form-control { height: auto; }
-
 .text-primary { color: #a07d5a !important; }
 .btn-primary {
   background-color: #a07d5a;
@@ -211,6 +235,22 @@ textarea.form-control { height: auto; }
   padding: 0.75rem;
 }
 .btn-primary:hover { background-color: #866849; border-color: #866849; }
-
 .bg-light { background-color: #fdfaf6 !important; }
+
+/* CUSTOM TOAST NOTIFICATION STYLES */
+.toast-container { position: fixed; top: 20px; right: 20px; z-index: 9999; width: 350px; }
+.toast-notification { display: flex; align-items: flex-start; background: #fff; border-radius: 8px; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15); padding: 16px; margin-bottom: 1rem; overflow: hidden; position: relative; border-left: 5px solid; }
+.toast--success { border-color: #4CAF50; }
+.toast--error { border-color: #F44336; }
+.toast-icon { font-size: 1.5rem; margin-right: 12px; }
+.toast--success .toast-icon { color: #4CAF50; }
+.toast--error .toast-icon { color: #F44336; }
+.toast-content { flex-grow: 1; }
+.toast-message { margin: 0; font-weight: 500; color: #333; }
+.toast-progress { position: absolute; bottom: 0; left: 0; height: 4px; width: 100%; animation: progress-bar-animation 4s linear forwards; }
+.toast--success .toast-progress { background-color: #4CAF50; }
+.toast--error .toast-progress { background-color: #F44336; }
+@keyframes progress-bar-animation { from { width: 100%; } to { width: 0%; } }
+.toast-enter-active, .toast-leave-active { transition: all 0.5s cubic-bezier(0.68, -0.55, 0.27, 1.55); }
+.toast-enter-from, .toast-leave-to { opacity: 0; transform: translateX(100%); }
 </style>
