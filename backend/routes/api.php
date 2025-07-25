@@ -58,6 +58,8 @@ Route::post('/rooms/{room_id}/add-guest', [OccupancyController::class, 'addGuest
 Route::post('/rooms/preview-price', [OccupancyController::class, 'previewPrice']); //xem trước giá
 Route::post('/rooms/{room_id}/extend', [OccupancyController::class, 'extendStay']); //gia hạn phòng
 Route::post('/customers/{id}/update-name', [OccupancyController::class, 'updateCustomerName']);
+Route::post('/bookings/{booking_id}/request-cancellation', [OccupancyController::class, 'requestCancellation']);
+Route::post('/bookings/{booking_id}/confirm-cancellation', [OccupancyController::class, 'confirmCancellation']);
 // Cập nhật thông tin khách hàng
 
 Route::post('/contacts', [ContactController::class, 'store']);

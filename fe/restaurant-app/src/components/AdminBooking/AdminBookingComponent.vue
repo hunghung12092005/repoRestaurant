@@ -40,14 +40,13 @@
           <div class="row g-3">
             <div class="col-lg-4 col-md-12">
               <label for="search-input" class="form-label">Tìm kiếm</label>
-              <input 
-                id="search-input"
-                v-model="tuKhoaTimKiem" 
-                type="text" 
-                class="form-control" 
-                placeholder="Mã đặt phòng, tên KH, SĐT..."
-                @input="timKiemDatPhong"
-              >
+              <input
+                type="text"
+                class="form-control"
+                v-model="tuKhoaTimKiem"
+                placeholder="Tìm kiếm theo mã đặt phòng, tên khách hàng, số điện thoại..."
+                @keyup.enter="timKiemDatPhong"
+              />
             </div>
             <div class="col-lg-2 col-md-4">
               <label for="status-filter" class="form-label">Trạng thái</label>
@@ -302,6 +301,7 @@ import { ref, onMounted, computed } from 'vue';
 import axios from 'axios';
 import { Toast } from 'bootstrap';
 import loading from '../loading.vue';
+import { debounce } from 'lodash'; // Thêm lodash để dùng debounce
 
 const danhSachDatPhong = ref([]);
 const hienModal = ref(false);
@@ -310,68 +310,90 @@ const chiTietDatPhong = ref([]);
 const phongTrong = ref({});
 const thongBaoLoi = ref('');
 const dangTai = ref(false);
-const isLoading = ref(true); // Biến trạng thái loading cho toàn trang
-const thongTinHuy = ref(null);
+const isLoading = ref(true);
 const thongBaoToast = ref('');
+const thongTinHuy = ref(null);
 
 const tuKhoaTimKiem = ref('');
 const locTrangThai = ref('');
 const tuNgay = ref('');
 const denNgay = ref('');
 const trangHienTai = ref(1);
-const soBanGhiTrenTrang = ref(10);
+const soBanGhiTrenTrang = ref(10); // Giảm số bản ghi để tăng tốc
 const sapXepCot = ref('booking_id');
 const sapXepGiam = ref(true);
+const tongSoTrang = ref(1);
+const tongSoBanGhi = ref(0);
 
-const danhSachLoc = computed(() => {
-  let ketQua = [...danhSachDatPhong.value];
-  if (tuKhoaTimKiem.value) {
-    const tuKhoa = tuKhoaTimKiem.value.toLowerCase();
-    ketQua = ketQua.filter(item => 
-      (item.booking_id && item.booking_id.toString().includes(tuKhoa)) ||
-      (item.customer?.customer_name && item.customer.customer_name.toLowerCase().includes(tuKhoa)) ||
-      (item.customer?.customer_phone && item.customer.customer_phone.includes(tuKhoa))
-    );
+// Hàm tìm kiếm
+const timKiemDatPhong = async () => {
+  if (!tuKhoaTimKiem.value.trim()) {
+    // Nếu ô tìm kiếm rỗng, tải lại toàn bộ danh sách
+    taiDanhSachDatPhong();
+    return;
   }
-  if (locTrangThai.value) {
-    ketQua = ketQua.filter(item => item.status === locTrangThai.value);
-  }
-  if (tuNgay.value) {
-    const ngayBatDau = new Date(tuNgay.value);
-    ngayBatDau.setHours(0, 0, 0, 0);
-    ketQua = ketQua.filter(item => new Date(item.check_in_date) >= ngayBatDau);
-  }
-  if (denNgay.value) {
-    const ngayKetThuc = new Date(denNgay.value);
-    ngayKetThuc.setHours(23, 59, 59, 999);
-    ketQua = ketQua.filter(item => new Date(item.check_in_date) <= ngayKetThuc);
-  }
-  ketQua.sort((a, b) => {
-    const giaTriA = a[sapXepCot.value];
-    const giaTriB = b[sapXepCot.value];
-    if (sapXepCot.value.includes('date')) {
-      return sapXepGiam.value ? new Date(giaTriB) - new Date(giaTriA) : new Date(giaTriA) - new Date(giaTriB);
+
+  dangTai.value = true;
+  thongBaoLoi.value = '';
+
+  try {
+    const response = await axios.get('/api/bookings', {
+      params: {
+        search: tuKhoaTimKiem.value.trim(),
+      },
+      headers: { 'Accept': 'application/json' },
+      timeout: 10000,
+    });
+
+    danhSachDatPhong.value = Array.isArray(response.data.data) ? response.data.data : [];
+    if (danhSachDatPhong.value.length === 0) {
+      thongBaoLoi.value = 'Không tìm thấy đặt phòng nào phù hợp.';
     }
-    return sapXepGiam.value ? Number(giaTriB) - Number(giaTriA) : Number(giaTriA) - Number(giaTriB);
-  });
-  return ketQua;
-});
+  } catch (err) {
+    console.error('Lỗi khi tìm kiếm đặt phòng:', err);
+    thongBaoLoi.value = `Lỗi khi tìm kiếm: ${err.response?.data?.message || err.message}`;
+    danhSachDatPhong.value = [];
+  } finally {
+    dangTai.value = false;
+  }
+};
 
-const tongSoTrang = computed(() => Math.ceil(danhSachLoc.value.length / soBanGhiTrenTrang.value));
+// Hàm tải danh sách đặt phòng (gọi khi khởi tạo hoặc khi ô tìm kiếm rỗng)
+const taiDanhSachDatPhong = async () => {
+  dangTai.value = true;
+  isLoading.value = true;
+  thongBaoLoi.value = '';
+
+  try {
+    const response = await axios.get('/api/bookings', {
+      headers: { 'Accept': 'application/json' },
+      timeout: 10000,
+    });
+
+    danhSachDatPhong.value = Array.isArray(response.data.data) ? response.data.data : [];
+    if (danhSachDatPhong.value.length === 0) {
+      thongBaoLoi.value = 'Không có đặt phòng nào trong hệ thống.';
+    }
+  } catch (err) {
+    console.error('Lỗi khi tải danh sách đặt phòng:', err);
+    thongBaoLoi.value = `Lỗi khi tải danh sách: ${err.response?.data?.message || err.message}`;
+    danhSachDatPhong.value = [];
+  } finally {
+    dangTai.value = false;
+    isLoading.value = false;
+  }
+};
+
+const danhSachHienThi = computed(() => danhSachDatPhong.value);
 
 const danhSachTrang = computed(() => {
-  const maxPages = 5, halfPages = Math.floor(maxPages / 2);
+  const maxPages = 10, halfPages = Math.floor(maxPages / 2);
   let start = Math.max(1, trangHienTai.value - halfPages);
   let end = Math.min(tongSoTrang.value, start + maxPages - 1);
   if (end - start + 1 < maxPages) {
     start = Math.max(1, end - maxPages + 1);
   }
   return Array.from({ length: end - start + 1 }, (_, i) => start + i);
-});
-
-const danhSachHienThi = computed(() => {
-  const batDau = (trangHienTai.value - 1) * soBanGhiTrenTrang.value;
-  return danhSachLoc.value.slice(batDau, batDau + soBanGhiTrenTrang.value);
 });
 
 const chiTietDatPhongHopLe = computed(() => chiTietDatPhong.value.filter(c => c && c.booking_detail_id));
@@ -381,78 +403,128 @@ const coPhongChuaXep = computed(() => {
   return chiTietDatPhong.value.some(c => !c.room_id);
 });
 
+// Debounce tìm kiếm
+const timKiemDatPhongDebounced = debounce(() => {
+  trangHienTai.value = 1;
+  layDanhSachDatPhong();
+}, 500);
+
 const layDanhSachDatPhong = async () => {
-  isLoading.value = true; // Bật loading khi bắt đầu tải trang
+  isLoading.value = true;
   try {
-    const res = await axios.get('/api/bookings?status[]=pending_confirmation&status[]=confirmed&status[]=cancelled&status[]=pending_cancel', {
-      headers: { 'Accept': 'application/json' }
+    const params = {
+      page: trangHienTai.value,
+      per_page: soBanGhiTrenTrang.value,
+      sort_by: sapXepCot.value,
+      sort_order: sapXepGiam.value ? 'desc' : 'asc',
+      search: tuKhoaTimKiem.value,
+      status: locTrangThai.value,
+      from_date: tuNgay.value,
+      to_date: denNgay.value,
+    };
+
+    const res = await axios.get('/api/bookings', {
+      headers: { 'Accept': 'application/json' },
+      params,
     });
-    danhSachDatPhong.value = Array.isArray(res.data) ? res.data : [];
-    thongBaoLoi.value = '';
+
+    if (res.data && Array.isArray(res.data.data)) {
+      danhSachDatPhong.value = res.data.data;
+      tongSoTrang.value = res.data.last_page || 1;
+      tongSoBanGhi.value = res.data.total || 0;
+      thongBaoLoi.value = '';
+    } else {
+      throw new Error('Dữ liệu trả về không đúng định dạng');
+    }
   } catch (err) {
     console.error('Lỗi khi lấy danh sách đặt phòng:', err);
-    thongBaoLoi.value = 'Không thể kết nối đến server để lấy dữ liệu đặt phòng.';
+    thongBaoLoi.value = err.response?.data?.details 
+      ? `Lỗi: ${err.response.data.error} - ${err.response.data.details}`
+      : 'Không thể kết nối đến server để lấy dữ liệu đặt phòng.';
     danhSachDatPhong.value = [];
+    tongSoTrang.value = 1;
+    tongSoBanGhi.value = 0;
   } finally {
-    isLoading.value = false; // Tắt loading sau khi hoàn tất
+    isLoading.value = false;
   }
 };
-
 const moModalChiTiet = async (datPhong) => {
   datPhongDuocChon.value = datPhong;
-  dangTai.value = true; // Bật loading cho modal
+  dangTai.value = true;
   hienModal.value = true;
   thongBaoLoi.value = '';
   phongTrong.value = {};
-  thongTinHuy.value = null;
+  thongTinHuy.value = null; // Gán giá trị null cho thongTinHuy
 
   try {
-    const resDetails = await axios.get(`/api/booking-details/${datPhong.booking_id}`);
-    chiTietDatPhong.value = Array.isArray(resDetails.data) ? resDetails.data.map(c => ({
-      ...c,
-      room: c.room || { room_id: null, room_name: 'Chưa xếp' },
-      type_name: c.roomType?.type_name || 'N/A'
-    })) : [];
+    // Tải chi tiết đặt phòng
+    const resDetails = await axios.get(`/api/booking-details/${datPhong.booking_id}`, {
+      headers: { 'Accept': 'application/json' },
+      timeout: 10000, // Timeout 10 giây
+    });
 
+    chiTietDatPhong.value = Array.isArray(resDetails.data)
+      ? resDetails.data.map(c => ({
+          ...c,
+          room: c.room || { room_id: null, room_name: 'Chưa xếp', status: null },
+          type_name: c.roomType?.type_name || 'N/A'
+        }))
+      : [];
+
+    // Tải thông tin hủy nếu cần
     if (datPhong.status === 'pending_cancel' || datPhong.status === 'cancelled') {
       try {
-        const cancelRes = await axios.get(`/api/booking-cancel/${datPhong.booking_id}`);
+        const cancelRes = await axios.get(`/api/booking-cancel/${datPhong.booking_id}`, {
+          headers: { 'Accept': 'application/json' },
+          timeout: 5000,
+        });
         thongTinHuy.value = cancelRes.data.data || null;
       } catch (err) {
-        console.error('Lỗi chi tiết khi lấy thông tin hủy:', err.response ? err.response.data : err.message);
-        thongTinHuy.value = null;
-        thongBaoLoi.value = 'Không thể tải thông tin hủy do lỗi server.';
+        console.error('Lỗi khi lấy thông tin hủy:', err);
+        thongBaoLoi.value = 'Không thể tải thông tin hủy.';
         hienModal.value = false;
+        dangTai.value = false;
         return;
       }
     }
 
+    // Tải phòng trống nếu trạng thái là pending_confirmation
     if (datPhong.status === 'pending_confirmation') {
-      await Promise.all(
-        chiTietDatPhong.value.map(async (chiTiet) => {
-          if (!chiTiet.room_id && chiTiet.room_type) {
-            try {
-              const resPhong = await axios.post('/api/available-rooms', {
-                room_type: Number(chiTiet.room_type),
-                check_in_date: datPhong.check_in_date,
-                check_out_date: datPhong.check_out_date
-              });
-              phongTrong.value[chiTiet.booking_detail_id] = Array.isArray(resPhong.data) ? resPhong.data : [];
-            } catch (err) {
-              console.error(`Lỗi lấy phòng trống cho loại ${chiTiet.room_type}:`, err);
-              phongTrong.value[chiTiet.booking_detail_id] = [];
-            }
-          }
-        })
-      );
+      const chiTietCanPhongTrong = chiTietDatPhong.value.filter(c => !c.room_id && c.room_type);
+      if (chiTietCanPhongTrong.length > 0) {
+        try {
+          const roomTypes = [...new Set(chiTietCanPhongTrong.map(c => c.room_type))];
+          const phongTrongPromises = roomTypes.map(roomType =>
+            axios.post('/api/available-rooms', {
+              room_type: Number(roomType),
+              check_in_date: datPhong.check_in_date,
+              check_out_date: datPhong.check_out_date
+            }, {
+              headers: { 'Accept': 'application/json' },
+              timeout: 5000,
+            })
+          );
+
+          const phongTrongResponses = await Promise.all(phongTrongPromises);
+          chiTietCanPhongTrong.forEach(chiTiet => {
+            const resPhong = phongTrongResponses.find(resp =>
+              resp.config.data.includes(`"room_type":${chiTiet.room_type}`)
+            );
+            phongTrong.value[chiTiet.booking_detail_id] = Array.isArray(resPhong?.data) ? resPhong.data : [];
+          });
+        } catch (err) {
+          console.error('Lỗi khi lấy phòng trống:', err);
+          thongBaoLoi.value = 'Không thể tải danh sách phòng trống.';
+        }
+      }
     }
   } catch (err) {
     console.error('Lỗi khi lấy chi tiết đặt phòng:', err);
-    chiTietDatPhong.value = [];
-    thongBaoLoi.value = `Không thể tải chi tiết đặt phòng. Lỗi: ${err.response?.data?.error || err.message}`;
+    thongBaoLoi.value = `Không thể tải chi tiết đặt phòng: ${err.response?.data?.error || err.message}`;
     hienModal.value = false;
+    chiTietDatPhong.value = [];
   } finally {
-    dangTai.value = false; // Tắt loading modal
+    dangTai.value = false;
   }
 };
 
@@ -479,7 +551,6 @@ const xacNhanDatPhong = async () => {
       status: 'confirmed' 
     }, { headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' } });
     
-    // Cập nhật trạng thái trong danh sách mà không cần tải lại
     const index = danhSachDatPhong.value.findIndex(item => item.booking_id === datPhongDuocChon.value.booking_id);
     if (index !== -1) {
       danhSachDatPhong.value[index].status = 'confirmed';
@@ -508,13 +579,10 @@ const xacNhanHuyDatPhong = async () => {
       refund_account_name: ''
     }, { headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' } });
     
-  // Cập nhật trạng thái trong danh sách mà không cần tải lại
     const index = danhSachDatPhong.value.findIndex(item => item.booking_id === datPhongDuocChon.value.booking_id);
     if (index !== -1) {
       danhSachDatPhong.value[index].status = 'cancelled';
     }
-    // Cập nhật thông tin hủy trong modal
-    thongTinHuy.value.status = 'processed';
     thongBaoToast.value = 'Xác nhận hủy đặt phòng thành công!';
     showToast();
     hienModal.value = false;
@@ -542,14 +610,22 @@ const dongModal = () => {
 };
 
 const chuyenTrang = (trang) => { 
-  if (trang >= 1 && trang <= tongSoTrang.value) trangHienTai.value = trang; 
+  if (trang >= 1 && trang <= tongSoTrang.value) {
+    trangHienTai.value = trang;
+    layDanhSachDatPhong();
+  }
 };
-const timKiemDatPhong = () => { trangHienTai.value = 1; };
-const locDanhSach = () => { trangHienTai.value = 1; };
+
+const locDanhSach = () => {
+  trangHienTai.value = 1;
+  layDanhSachDatPhong();
+};
+
 const sapXep = (cot) => {
   sapXepGiam.value = sapXepCot.value === cot ? !sapXepGiam.value : true;
   sapXepCot.value = cot;
   trangHienTai.value = 1;
+  layDanhSachDatPhong();
 };
 
 const dinhDangNgay = (ngay) => ngay ? new Date(ngay).toLocaleDateString('vi-VN') : 'N/A';
