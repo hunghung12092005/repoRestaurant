@@ -321,7 +321,7 @@ class OccupancyController extends Controller
             if ($now->lt($checkInDate)) {
                 return response()->json([
                     'success' => false,
-                    'message' => 'Chưa thể thanh toán vì chưa đến ngày nhận phòng (' . $checkInDate->format('d-m-Y') . ').'
+                    'message' => 'Chưa thể thanh toán và trả phòng vì chưa đến ngày nhận phòng (' . $checkInDate->format('d-m-Y') . ').'
                 ], 422);
             }
 

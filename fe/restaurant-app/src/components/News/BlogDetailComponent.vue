@@ -63,7 +63,14 @@
                 <!-- Danh sách bình luận -->
                 <ul v-if="visibleComments.length" class="list-unstyled">
                   <li v-for="comment in visibleComments" :key="comment.id" class="comment-item d-flex mb-4">
-                    <img src="https://i.pravatar.cc/60" alt="avatar" class="rounded-circle me-3" style="width: 60px; height: 60px;">
+                    
+                    <!-- [THAY ĐỔI] Thay thế <img> bằng <div> cho avatar dạng chữ -->
+                    <div 
+                      class="initials-avatar d-flex align-items-center justify-content-center rounded-circle me-3" 
+                      :style="{ backgroundColor: getAvatarColor(comment.user ? comment.user.name : 'Khách') }">
+                      <span>{{ getInitials(comment.user ? comment.user.name : 'Khách') }}</span>
+                    </div>
+
                     <div class="comment-body">
                       <div class="comment-header">
                         <h6 class="comment-author">{{ comment.user ? comment.user.name : 'Khách' }}</h6>
@@ -146,7 +153,7 @@
                 </div>
               </div>
 
-              <!-- [THAY ĐỔI] Widget Bài viết nổi bật MỚI -->
+              <!-- Widget Bài viết nổi bật MỚI -->
               <div v-if="pinnedPosts.length > 0" class="sidebar-widget p-4 rounded mb-4">
                 <h4 class="widget-title mb-3">Bài Viết Nổi Bật</h4>
                 <div v-for="post in pinnedPosts" :key="post.id" class="recent-post-item d-flex align-items-center mb-3">
@@ -174,7 +181,7 @@
 import { ref, onMounted, inject, watch, computed } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import axios from 'axios';
-import AdPlaceholder from '../AdPlaceholder.vue';// Giả định bạn có một component quảng cáo
+import AdPlaceholder from '../AdPlaceholder.vue';
 
 const route = useRoute();
 const router = useRouter();
@@ -194,7 +201,7 @@ const isCommentsExpanded = ref(false);
 // State cho Sidebar
 const categories = ref([]);
 const recentPosts = ref([]);
-const pinnedPosts = ref([]); // [THAY ĐỔI] State mới cho bài viết ghim
+const pinnedPosts = ref([]);
 const searchQuery = ref('');
 
 // Computed Properties
@@ -245,6 +252,37 @@ const formatTimeAgo = (dateString) => {
     return `${years} năm trước`;
 };
 
+// [THÊM MỚI] Hàm tạo tên viết tắt cho avatar
+const getInitials = (name) => {
+  if (!name || typeof name !== 'string' || name.trim() === '') {
+    return '?';
+  }
+  const words = name.trim().split(/\s+/).filter(Boolean);
+  if (words.length === 0) {
+    return '?';
+  }
+  if (words.length === 1) {
+    return words[0].charAt(0).toUpperCase();
+  }
+  const firstInitial = words[0].charAt(0);
+  const lastInitial = words[words.length - 1].charAt(0);
+  return (firstInitial + lastInitial).toUpperCase();
+};
+
+// [THÊM MỚI] Hàm tạo màu nền động cho avatar
+const getAvatarColor = (name) => {
+  if (!name || name.trim() === '') {
+    return '#6c757d'; // Màu mặc định
+  }
+  let hash = 0;
+  for (let i = 0; i < name.length; i++) {
+    hash = name.charCodeAt(i) + ((hash << 5) - hash);
+  }
+  const hue = hash % 360;
+  return `hsl(${hue}, 60%, 45%)`;
+};
+
+
 // API Functions
 const fetchNewsDetail = async (id) => {
   loading.value = true;
@@ -283,22 +321,18 @@ const fetchCategories = async () => {
 
 const fetchRecentPosts = async () => {
   try {
-    // Lấy 5 bài viết gần nhất
     const response = await axios.get(`${apiUrl}/api/news?per_page=5`);
     const currentPostId = parseInt(route.params.id, 10);
-    // Lọc ra bài viết hiện tại khỏi danh sách "gần đây"
     recentPosts.value = response.data.data.filter(post => post.id !== currentPostId);
   } catch (error) {
     console.error("Lỗi khi tải bài viết gần đây:", error);
   }
 };
 
-// [THAY ĐỔI] Hàm mới để lấy bài viết được ghim
 const fetchPinnedPosts = async () => {
   try {
     const response = await axios.get(`${apiUrl}/api/news/pinned`);
     const currentPostId = parseInt(route.params.id, 10);
-     // Lọc ra bài viết hiện tại khỏi danh sách "nổi bật" (nếu có)
     pinnedPosts.value = response.data.filter(post => post.id !== currentPostId);
   } catch (error) {
     console.error("Lỗi khi tải bài viết nổi bật:", error);
@@ -359,18 +393,16 @@ onMounted(() => {
   const newsId = route.params.id;
   if (newsId) {
     fetchNewsDetail(newsId);
-    // Fetch sidebar data
     fetchCategories();
     fetchRecentPosts();
-    fetchPinnedPosts(); // [THAY ĐỔI] Gọi hàm lấy bài viết ghim
+    fetchPinnedPosts();
   }
 });
 
 watch(() => route.params.id, (newId, oldId) => {
     if (newId && newId !== oldId) {
-        window.scrollTo(0, 0); // Cuộn lên đầu trang khi chuyển bài viết
+        window.scrollTo(0, 0);
         fetchNewsDetail(newId);
-        // Cập nhật lại danh sách sidebar để loại trừ bài viết mới
         fetchRecentPosts();
         fetchPinnedPosts();
     }
@@ -494,5 +526,19 @@ watch(() => route.params.id, (newId, oldId) => {
 }
 .btn-outline-primary {
     font-weight: 600;
+}
+
+/* [THÊM MỚI] Style cho avatar dạng chữ */
+.initials-avatar {
+  width: 60px;
+  height: 60px;
+  color: white;
+  font-weight: 600;
+  font-size: 1.5rem;
+  flex-shrink: 0; /* Đảm bảo avatar không bị co lại khi nội dung dài */
+}
+
+.initials-avatar span {
+  line-height: 1; /* Căn chỉnh chiều cao dòng tốt hơn */
 }
 </style>
