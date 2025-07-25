@@ -3,7 +3,7 @@ import http from 'http';
 import { Server } from 'socket.io';
 import { createClient } from 'redis';
 import { createAdapter } from 'socket.io-redis';
-import cors from 'cors'; // Sử dụng default export
+import cors from 'cors'; // Sử dụng default export`
 const app = express();
 // Cấu hình CORS cho Express
 app.use(cors({

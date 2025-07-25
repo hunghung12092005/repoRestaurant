@@ -335,6 +335,16 @@ socket.on('connect', () => {
   socket.emit('join', user);
   socket.emit('register', userId);
 });
+ // Sự kiện khi kết nối thành công
+  // Sự kiện khi mất kết nối
+  socket.on('disconnect', (reason) => {
+    console.warn('⚠️ Socket.IO bị ngắt kết nối:', reason)
+  });
+
+  // Sự kiện lỗi kết nối
+  socket.on('connect_error', (error) => {
+    console.error('❌ Lỗi kết nối Socket.IO:', error.message)
+  });
 const getMessages = () => {
   socket.emit('get user messages', userId);
 };
