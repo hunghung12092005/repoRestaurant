@@ -398,7 +398,7 @@ footer { background-color: var(--second-color); color: #fff; }
 }
 .sidebar .profile .icons i:hover { color: #0a75f7; }
 .sidebar .nav-link {
-  color: #6c757d; padding: 10px 20px; display: flex; align-items: center; transition: all 0.3s ease;
+  color: #0c0c0c; padding: 10px 20px; display: flex; align-items: center; transition: all 0.3s ease;
 }
 .sidebar .nav-link:hover,
 .sidebar .nav-link.router-link-active {
