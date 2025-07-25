@@ -185,7 +185,7 @@ const servicesAmenitiesOpen = ref(false);
 const roomManagementOpen = ref(false);
 const newsManagementOpen = ref(false); // State cho dropdown Tin tức
 
-const apiUrl = 'http://localhost:8000';
+const apiUrl = 'http://localhost:8000';//link api back end tong
 provide('apiUrl', apiUrl);
 
 const setUserRoles = (user) => {
@@ -278,7 +278,6 @@ const handleOutsideClick = (event) => {
     }
   }
 };
-
 const handleUrlParams = () => {
   const urlParams = new URLSearchParams(window.location.search);
   const token = urlParams.get('token');
@@ -299,11 +298,11 @@ const handleUrlParams = () => {
       console.error('Error parsing user from URL:', e);
     }
   }
-};
-
+}; 
 onMounted(() => {
   restoreUserSession();
   fetchUserInfo();
+  handleUrlParams();
   fetchRoomTypes();
   handleUrlParams();
   window.addEventListener('scroll', handleScroll);

@@ -155,9 +155,9 @@
   display: flex;
   justify-content: center;
   align-items: center;
-  min-height: 100vh; /* Đảm bảo wrapper chiếm toàn bộ chiều cao viewport */
+  min-height: 90vh; /* Đảm bảo wrapper chiếm toàn bộ chiều cao viewport */
   background-color: #f0f2f5; /* Màu nền nhẹ nhàng cho toàn trang */
-  padding: 20px;
+  /* padding: 40px; */
   box-sizing: border-box; /* Bao gồm padding trong chiều rộng/cao */
 }
 
@@ -167,10 +167,10 @@
   background-color: #ffffff;
   border-radius: 16px;
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
-  max-width: 750px; /* **Tăng chiều rộng tối đa** */
+  max-width: 850px; /* **Tăng chiều rộng tối đa** */
   width: 100%; /* Đảm bảo nó chiếm đủ không gian trên màn hình lớn */
   margin: 0 auto; /* Căn giữa */
-  padding: 30px;
+  padding: 80px;
   text-align: center;
   position: relative;
   overflow: hidden;

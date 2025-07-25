@@ -305,7 +305,8 @@ const filteredRooms = computed(() => {
     const matchesRoomType = !filterRoomType.value || room.type_id == parseInt(filterRoomType.value);
     const statusMapping = {
       'available': 'Trống',
-      'occupied': 'Đã đặt'
+      'occupied': 'Đã đặt',
+      'pending_cancel': 'Đang chờ hủy'
     };
     const displayStatus = statusMapping[room.status] || room.status;
     const matchesStatus = !filterStatus.value || displayStatus === filterStatus.value;
@@ -357,7 +358,8 @@ const openEditModal = (room) => {
   }
   const statusMapping = {
     'available': 'Trống',
-    'occupied': 'Đã đặt'
+    'occupied': 'Đã đặt',
+    'pending_cancel': 'Đang chờ hủy'
   };
   form.value = {
     room_name: String(room.room_name || ''),
@@ -447,7 +449,8 @@ const saveRoom = async () => {
   modalErrorMessage.value = '';
   const statusMapping = {
     'Trống': 'available',
-    'Đã đặt': 'occupied'
+    'Đã đặt': 'occupied',
+    'Đang chờ hủy': 'pending_cancel'
   };
   const payload = {
     room_name: form.value.room_name.trim(),

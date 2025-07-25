@@ -518,31 +518,43 @@ class BookingHotelController extends Controller
 
     public function showBookingCancel($bookingId)
     {
-        $cancel = CancelBooking::where('booking_id', $bookingId)->first();
+        try {
+            $cancel = CancelBooking::where('booking_id', $bookingId)->first();
+            if (!$cancel) {
+                Log::warning('Không tìm thấy bản ghi hủy cho booking_id', ['booking_id' => $bookingId]);
+                return response()->json([
+                    'status' => 'error',
+                    'message' => 'Không tìm thấy thông tin hủy đặt phòng.'
+                ], 404);
+            }
 
-        if (!$cancel) {
+            return response()->json([
+                'status' => 'success',
+                'data' => [
+                    'cancel_id' => $cancel->cancel_id,
+                    'booking_id' => $cancel->booking_id,
+                    'customer_id' => $cancel->customer_id,
+                    'reason' => $cancel->cancellation_reason,
+                    'refund_amount' => $cancel->refund_amount,
+                    'refund_bank' => $cancel->refund_bank,
+                    'refund_account_number' => $cancel->refund_account_number,
+                    'refund_account_name' => $cancel->refund_account_name,
+                    'cancellation_date' => $cancel->cancellation_date,
+                    'status' => $cancel->status,
+                    'created_at' => $cancel->created_at,
+                ]
+            ], 200);
+        } catch (\Exception $e) {
+            Log::error('Lỗi khi lấy thông tin hủy: ' . $e->getMessage(), [
+                'booking_id' => $bookingId,
+                'trace' => $e->getTraceAsString()
+            ]);
             return response()->json([
                 'status' => 'error',
-                'message' => 'Không tìm thấy thông tin hủy đặt phòng.'
-            ], 404);
+                'message' => 'Lỗi server, vui lòng thử lại sau',
+                'details' => $e->getMessage()
+            ], 500);
         }
-
-        return response()->json([
-            'status' => 'success',
-            'data' => [
-                'cancel_id' => $cancel->cancel_id,
-                'booking_id' => $cancel->booking_id,
-                'customer_id' => $cancel->customer_id,
-                'reason' => $cancel->cancellation_reason,
-                'refund_amount' => $cancel->refund_amount,
-                'refund_bank' => $cancel->refund_bank,
-                'refund_account_number' => $cancel->refund_account_number,
-                'refund_account_name' => $cancel->refund_account_name,
-                'cancellation_date' => $cancel->cancellation_date,
-                'status' => $cancel->status,
-                'created_at' => $cancel->created_at,
-            ]
-        ]);
     }
     public function updateBankInfo(Request $request, $bookingId)
     {
@@ -630,59 +642,125 @@ class BookingHotelController extends Controller
     }
 
     /**
-     * Lấy danh sách booking
+     * Lấy danh sách booking với phân trang và bộ lọc
      */
     public function getBookings(Request $request)
     {
         try {
-            $statuses = $request->query('status', ['pending_confirmation', 'confirmed', 'completed', 'pending_cancel', 'cancelled']);
-            $statuses = is_array($statuses) ? $statuses : [$statuses];
+            $perPage = $request->query('per_page', 5);
+            $page = $request->query('page', 1);
+            $sortBy = $request->query('sort_by', 'booking_id');
+            $sortOrder = $request->query('sort_order', 'desc');
+            $search = $request->query('search');
+            $status = $request->query('status');
+            $fromDate = $request->query('from_date');
+            $toDate = $request->query('to_date');
 
-            $bookings = BookingHotel::with(['customer', 'details.roomType'])
-                ->whereIn('status', $statuses)
-                ->get()
-                ->map(function ($booking) {
-                    $booking->details->each(function ($detail) {
-                        $detail->type_name = $detail->roomType ? $detail->roomType->type_name : 'Loại phòng không xác định';
-                    });
+            // Xây dựng truy vấn
+            $query = BookingHotel::select([
+                'booking_hotel.booking_id',
+                'booking_hotel.customer_id',
+                'booking_hotel.check_in_date',
+                'booking_hotel.check_out_date',
+                'booking_hotel.total_price',
+                'booking_hotel.status',
+                'booking_hotel.payment_status',
+                'booking_hotel.payment_method',
+                'booking_hotel.orderCode',
+                'booking_hotel.booking_type',
+                'booking_hotel.note'
+            ])
+            ->leftJoin('customers', 'booking_hotel.customer_id', '=', 'customers.customer_id')
+            ->with([
+                'customer' => function ($query) {
+                    $query->select('customer_id', 'customer_name', 'customer_phone', 'customer_email');
+                },
+                'details' => function ($query) {
+                    $query->select('booking_hotel_detail.booking_detail_id', 'booking_hotel_detail.booking_id', 'booking_hotel_detail.room_type', 'booking_hotel_detail.total_price', 'booking_hotel_detail.room_id')
+                          ->with(['roomType' => function ($q) {
+                              $q->select('type_id', 'type_name');
+                          }]);
+                }
+            ]);
 
-                    $paymentStatusDisplay = 'Chưa xác định';
-                    if ($booking->payment_method === 'thanh_toan_qr' && !empty($booking->orderCode)) {
-                        try {
-                            $client = new Client();
-                            $response = $client->get("https://api-merchant.payos.vn/v2/payment-requests/{$booking->orderCode}", [
-                                'headers' => [
-                                    'x-client-id' => env('PAYOS_CLIENT_ID'),
-                                    'x-api-key' => env('PAYOS_API_KEY'),
-                                ]
-                            ]);
-                            $paymentInfo = json_decode($response->getBody()->getContents(), true);
-                            $status = isset($paymentInfo['data']['status']) ? strtoupper($paymentInfo['data']['status']) : 'UNKNOWN';
-                            $paymentStatusDisplay = $this->formatPaymentStatus($status);
-                        } catch (RequestException $e) {
-                            Log::warning('Lỗi khi kiểm tra trạng thái thanh toán PayOS: ' . $e->getMessage(), [
-                                'orderCode' => $booking->orderCode,
-                                'booking_id' => $booking->booking_id
-                            ]);
-                            $paymentStatusDisplay = 'Lỗi kiểm tra thanh toán';
-                        }
-                    } else if ($booking->payment_method !== 'thanh_toan_qr') {
-                        $paymentStatusDisplay = 'Thanh toán trực tiếp';
-                    }
-                    $booking->payment_status_display = $paymentStatusDisplay;
+            // Áp dụng bộ lọc trạng thái
+            if ($status) {
+                $statuses = is_array($status) ? $status : [$status];
+                $query->whereIn('booking_hotel.status', $statuses);
+            } else {
+                $query->whereIn('booking_hotel.status', ['pending_confirmation', 'confirmed', 'pending_cancel', 'cancelled']);
+            }
 
-                    return $booking;
+            // Áp dụng tìm kiếm
+            if ($search) {
+                $query->where(function ($q) use ($search) {
+                    $q->where('booking_hotel.booking_id', 'like', "%$search%")
+                      ->orWhere('customers.customer_name', 'like', "%$search%")
+                      ->orWhere('customers.customer_phone', 'like', "%$search%");
+                });
+            }
+
+            // Áp dụng bộ lọc ngày
+            if ($fromDate) {
+                $query->where('booking_hotel.check_in_date', '>=', $fromDate);
+            }
+            if ($toDate) {
+                $query->where('booking_hotel.check_in_date', '<=', $toDate . ' 23:59:59');
+            }
+
+            // Sắp xếp
+            $allowedSortColumns = ['booking_id', 'check_in_date', 'check_out_date'];
+            $sortColumn = in_array($sortBy, $allowedSortColumns) ? $sortBy : 'booking_id';
+            $sortDirection = $sortOrder === 'asc' ? 'asc' : 'desc';
+            $query->orderBy("booking_hotel.$sortColumn", $sortDirection);
+
+            // Phân trang
+            $bookings = $query->paginate($perPage, ['*'], 'page', $page);
+
+            // Xử lý trạng thái thanh toán
+            $bookings->getCollection()->transform(function ($booking) {
+                $booking->details->each(function ($detail) {
+                    $detail->type_name = $detail->roomType ? $detail->roomType->type_name : 'N/A';
                 });
 
-            Log::info('Lấy danh sách booking thành công', [
-                'statuses' => $statuses,
-                'count' => $bookings->count()
-            ]);
-            return response()->json($bookings, 200);
+                $paymentStatusDisplay = 'Chưa xác định';
+                if ($booking->payment_method === 'thanh_toan_qr' && !empty($booking->orderCode)) {
+                    try {
+                        $client = new Client();
+                        $response = $client->get("https://api-merchant.payos.vn/v2/payment-requests/{$booking->orderCode}", [
+                            'headers' => [
+                                'x-client-id' => env('PAYOS_CLIENT_ID'),
+                                'x-api-key' => env('PAYOS_API_KEY'),
+                            ]
+                        ]);
+                        $paymentInfo = json_decode($response->getBody()->getContents(), true);
+                        $status = isset($paymentInfo['data']['status']) ? strtoupper($paymentInfo['data']['status']) : 'UNKNOWN';
+                        $paymentStatusDisplay = $this->formatPaymentStatus($status);
+                    } catch (RequestException $e) {
+                        Log::warning('Lỗi khi kiểm tra trạng thái thanh toán PayOS: ' . $e->getMessage(), [
+                            'orderCode' => $booking->orderCode,
+                            'booking_id' => $booking->booking_id
+                        ]);
+                        $paymentStatusDisplay = 'Lỗi kiểm tra thanh toán';
+                    }
+                } else if ($booking->payment_method !== 'thanh_toan_qr') {
+                    $paymentStatusDisplay = 'Thanh toán trực tiếp';
+                }
+                $booking->payment_status_display = $paymentStatusDisplay;
+
+                return $booking;
+            });
+
+            return response()->json([
+                'data' => $bookings->items(),
+                'current_page' => $bookings->currentPage(),
+                'last_page' => $bookings->lastPage(),
+                'total' => $bookings->total(),
+            ], 200);
         } catch (\Exception $e) {
             Log::error('Lỗi khi lấy danh sách booking: ' . $e->getMessage(), [
                 'trace' => $e->getTraceAsString(),
-                'statuses' => $statuses
+                'params' => $request->all()
             ]);
             return response()->json([
                 'error' => 'Không thể lấy danh sách booking',
@@ -713,8 +791,35 @@ class BookingHotelController extends Controller
     public function getBookingDetails($bookingId)
     {
         try {
+            // Kiểm tra booking_id tồn tại trước
+            $bookingExists = BookingHotel::where('booking_id', $bookingId)->exists();
+            if (!$bookingExists) {
+                Log::warning('Không tìm thấy booking', ['booking_id' => $bookingId]);
+                return response()->json(['message' => 'Booking không tồn tại'], 404);
+            }
+
             $bookingDetails = BookingHotelDetail::where('booking_id', $bookingId)
-                ->with(['room', 'booking.customer', 'roomType'])
+                ->with([
+                    'room' => function ($query) {
+                        $query->select('room_id', 'room_name', 'status');
+                    },
+                    'booking.customer' => function ($query) {
+                        $query->select('customer_id', 'customer_name', 'customer_phone', 'customer_email');
+                    },
+                    'roomType' => function ($query) {
+                        $query->select('type_id', 'type_name');
+                    }
+                ])
+                ->select([
+                    'booking_detail_id',
+                    'booking_id',
+                    'room_type',
+                    'room_id',
+                    'gia_phong',
+                    'gia_dich_vu',
+                    'total_price',
+                    'note'
+                ])
                 ->get()
                 ->map(function ($detail) {
                     return [
@@ -730,11 +835,11 @@ class BookingHotelController extends Controller
                             'room_id' => $detail->room->room_id,
                             'room_name' => $detail->room->room_name,
                             'status' => $detail->room->status,
-                        ] : null,
+                        ] : ['room_id' => null, 'room_name' => 'Chưa xếp', 'status' => null],
                         'roomType' => $detail->roomType ? [
                             'type_id' => $detail->roomType->type_id,
                             'type_name' => $detail->roomType->type_name,
-                        ] : null,
+                        ] : ['type_id' => null, 'type_name' => 'N/A'],
                         'booking' => [
                             'customer' => $detail->booking->customer ? [
                                 'customer_id' => $detail->booking->customer->customer_id,
@@ -746,12 +851,17 @@ class BookingHotelController extends Controller
                     ];
                 });
 
-            Log::info('Lấy chi tiết booking thành công', ['booking_id' => $bookingId]);
+            if ($bookingDetails->isEmpty()) {
+                Log::info('Không tìm thấy chi tiết booking', ['booking_id' => $bookingId]);
+                return response()->json([], 200);
+            }
+
+            Log::info('Lấy chi tiết booking thành công', ['booking_id' => $bookingId, 'count' => $bookingDetails->count()]);
             return response()->json($bookingDetails, 200);
         } catch (\Exception $e) {
             Log::error('Lỗi khi lấy chi tiết booking: ' . $e->getMessage(), [
+                'booking_id' => $bookingId,
                 'trace' => $e->getTraceAsString(),
-                'booking_id' => $bookingId
             ]);
             return response()->json([
                 'error' => 'Không thể lấy chi tiết booking',
@@ -807,192 +917,4 @@ class BookingHotelController extends Controller
             ], 500);
         }
     }
-
-    // /**
-    //  * Hoàn thành booking
-    //  */
-    // public function completeBooking(Request $request, $bookingId)
-    // {
-    //     try {
-    //         $booking = BookingHotel::findOrFail($bookingId);
-    //         if ($booking->status !== 'confirmed') {
-    //             Log::warning('Không thể hoàn thành booking vì trạng thái không phải confirmed', [
-    //                 'booking_id' => $bookingId,
-    //                 'current_status' => $booking->status
-    //             ]);
-    //             return response()->json([
-    //                 'error' => 'Chỉ có thể hoàn thành booking ở trạng thái confirmed'
-    //             ], 400);
-    //         }
-
-    //         $serviceIds = $request->input('service_ids', []);
-    //         $bookingDetails = BookingHotelDetail::where('booking_id', $bookingId)
-    //             ->whereNotNull('room_id')
-    //             ->get();
-
-    //         if ($bookingDetails->isEmpty()) {
-    //             Log::warning('Không tìm thấy chi tiết booking hoặc phòng chưa được gán', [
-    //                 'booking_id' => $bookingId
-    //             ]);
-    //             return response()->json([
-    //                 'error' => 'Không tìm thấy chi tiết booking hoặc phòng chưa được gán'
-    //             ], 404);
-    //         }
-
-    //         $totalPrice = 0;
-    //         $totalServiceFee = 0;
-    //         $note = '';
-
-    //         foreach ($bookingDetails as $detail) {
-    //             $room = Room::find($detail->room_id);
-    //             if (!$room || !$room->type_id) {
-    //                 Log::warning('Phòng không hợp lệ hoặc thiếu type_id', [
-    //                     'room_id' => $detail->room_id,
-    //                     'booking_id' => $bookingId
-    //                 ]);
-    //                 return response()->json([
-    //                     'error' => "Phòng không hợp lệ hoặc thiếu type_id cho room_id: {$detail->room_id}"
-    //                 ], 400);
-    //             }
-
-    //             $now = Carbon::now();
-    //             $price = DB::table('prices')
-    //                 ->where('type_id', $room->type_id)
-    //                 ->where('start_date', '<=', $now)
-    //                 ->where('end_date', '>=', $now)
-    //                 ->orderByDesc('priority')
-    //                 ->first();
-
-    //             if (!$price) {
-    //                 Log::warning('Không tìm thấy bảng giá phù hợp', [
-    //                     'type_id' => $room->type_id,
-    //                     'booking_id' => $bookingId
-    //                 ]);
-    //                 return response()->json([
-    //                     'error' => 'Không tìm thấy bảng giá phù hợp'
-    //                 ], 400);
-    //             }
-
-    //             $checkIn = Carbon::parse($booking->check_in_date);
-    //             $actualCheckout = Carbon::now();
-    //             $totalHours = $checkIn->floatDiffInHours($actualCheckout);
-    //             $roomPrice = 0;
-
-    //             if ($totalHours <= 2) {
-    //                 $roomPrice = 2 * $price->hourly_price;
-    //                 $note .= "Phòng {$room->room_name}: Khách trả trong 2 giờ đầu. Tính phí cố định 2 giờ. ";
-    //             } elseif ($totalHours <= 6) {
-    //                 $hours = ceil($totalHours);
-    //                 $roomPrice = $hours * $price->hourly_price;
-    //                 $note .= "Phòng {$room->room_name}: Tính theo giờ ($hours giờ). ";
-    //             } else {
-    //                 $fullDays = floor($totalHours / 24);
-    //                 $remainingHours = $totalHours - ($fullDays * 24);
-    //                 if ($remainingHours > 6) {
-    //                     $fullDays += 1;
-    //                     $remainingHours = 0;
-    //                 }
-    //                 $roomPrice = ($fullDays * $price->price_per_night) + (ceil($remainingHours) * $price->hourly_price);
-    //                 $note .= "Phòng {$room->room_name}: Tính theo ngày ($fullDays ngày, $remainingHours giờ). ";
-    //             }
-
-    //             $serviceFee = 0;
-    //             if (!empty($serviceIds)) {
-    //                 $serviceFee = DB::table('services')
-    //                     ->whereIn('service_id', $serviceIds)
-    //                     ->sum('price');
-
-    //                 foreach ($serviceIds as $serviceId) {
-    //                     DB::table('booking_hotel_service')->insert([
-    //                         'booking_detail_id' => $detail->booking_detail_id,
-    //                         'service_id' => $serviceId,
-    //                         'created_at' => $now,
-    //                         'updated_at' => $now,
-    //                     ]);
-    //                 }
-    //             }
-
-    //             $detail->gia_phong = number_format($roomPrice, 2, '.', '');
-    //             $detail->gia_dich_vu = number_format($serviceFee, 2, '.', '');
-    //             $detail->total_price = number_format($roomPrice + $serviceFee, 2, '.', '');
-    //             $detail->save();
-
-    //             $totalPrice += ($roomPrice + $serviceFee);
-    //             $totalServiceFee += $serviceFee;
-
-    //             $room->status = 'available';
-    //             $room->save();
-    //             Log::info('Cập nhật trạng thái phòng về available', [
-    //                 'room_id' => $room->room_id,
-    //                 'booking_id' => $bookingId
-    //             ]);
-    //         }
-
-    //         $expectedCheckout = Carbon::parse($booking->check_out_date);
-    //         $expectedHours = $checkIn->floatDiffInHours($expectedCheckout);
-    //         $expectedTotal = 0;
-
-    //         foreach ($bookingDetails as $detail) {
-    //             $room = Room::find($detail->room_id);
-    //             $price = DB::table('prices')
-    //                 ->where('type_id', $room->type_id)
-    //                 ->where('start_date', '<=', $now)
-    //                 ->where('end_date', '>=', $now)
-    //                 ->orderByDesc('priority')
-    //                 ->first();
-
-    //             if ($expectedHours <= 6) {
-    //                 $expectedTotal += ceil($expectedHours) * $price->hourly_price;
-    //             } else {
-    //                 $fullDays = floor($expectedHours / 24);
-    //                 $remainingHours = $expectedHours - ($fullDays * 24);
-    //                 if ($remainingHours > 6) {
-    //                     $fullDays += 1;
-    //                     $remainingHours = 0;
-    //                 }
-    //                 $expectedTotal += ($fullDays * $price->price_per_night) + (ceil($remainingHours) * $price->hourly_price);
-    //             }
-    //         }
-
-    //         $difference = $expectedTotal - ($totalPrice - $totalServiceFee);
-    //         if ($difference > 0) {
-    //             $note .= "Khách trả sớm, hoàn lại " . number_format($difference, 0, ',', '.') . " VND.";
-    //         } elseif ($difference < 0) {
-    //             $note .= "Khách ở quá giờ, phụ thu thêm " . number_format(abs($difference), 0, ',', '.') . " VND.";
-    //         } else {
-    //             $note .= "Thanh toán đúng như dự kiến.";
-    //         }
-
-    //         $booking->total_price = number_format($totalPrice, 2, '.', '');
-    //         $booking->status = 'completed';
-    //         $booking->payment_status = 'completed';
-    //         $booking->note = $note;
-    //         $booking->actual_check_out_time = $now;
-    //         $booking->save();
-
-    //         Log::info('Hoàn thành booking thành công', [
-    //             'booking_id' => $bookingId,
-    //             'total_price' => $totalPrice,
-    //             'service_total' => $totalServiceFee,
-    //             'note' => $note
-    //         ]);
-
-    //         return response()->json([
-    //             'message' => 'Hoàn thành booking thành công',
-    //             'actual_total' => $totalPrice,
-    //             'room_total' => $totalPrice - $totalServiceFee,
-    //             'service_total' => $totalServiceFee,
-    //             'note' => $note
-    //         ], 200);
-    //     } catch (\Exception $e) {
-    //         Log::error('Lỗi khi hoàn thành booking: ' . $e->getMessage(), [
-    //             'trace' => $e->getTraceAsString(),
-    //             'booking_id' => $bookingId
-    //         ]);
-    //         return response()->json([
-    //             'error' => 'Không thể hoàn thành booking',
-    //             'details' => $e->getMessage()
-    //         ], 500);
-    //     }
-    // }
 }
