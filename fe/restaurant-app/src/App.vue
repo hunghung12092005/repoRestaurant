@@ -304,6 +304,7 @@ onMounted(() => {
   fetchUserInfo();
   handleUrlParams();
   fetchRoomTypes();
+  handleUrlParams();
   window.addEventListener('scroll', handleScroll);
   document.addEventListener('click', handleOutsideClick);
 });
