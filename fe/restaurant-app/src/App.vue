@@ -279,10 +279,33 @@ const handleOutsideClick = (event) => {
   }
 };
 
+const handleUrlParams = () => {
+  const urlParams = new URLSearchParams(window.location.search);
+  const token = urlParams.get('token');
+  const user = urlParams.get('user');
+
+  if (token && user) {
+    localStorage.setItem('tokenJwt', token);
+    localStorage.setItem('userInfo', user);
+    try {
+      const parsedUser = JSON.parse(user);
+      localStorage.setItem('userInfo', user);
+      userInfo.value = parsedUser;
+      isLogin.value = true;
+      isAdmin.value = parsedUser.role === 'admin';
+      
+      router.replace({ query: {} });
+    } catch (e) {
+      console.error('Error parsing user from URL:', e);
+    }
+  }
+};
+
 onMounted(() => {
   restoreUserSession();
   fetchUserInfo();
   fetchRoomTypes();
+  handleUrlParams();
   window.addEventListener('scroll', handleScroll);
   document.addEventListener('click', handleOutsideClick);
 });

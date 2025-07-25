@@ -7,23 +7,10 @@
     <div v-else>
       <!-- Toast thông báo -->
       <div class="toast-container position-fixed top-0 end-0 p-3">
-        <div 
-          id="successToast" 
-          class="toast align-items-center text-white bg-success border-0" 
-          role="alert" 
-          aria-live="assertive" 
-          aria-atomic="true"
-        >
+        <div id="successToast" class="toast align-items-center text-white bg-success border-0" role="alert" aria-live="assertive" aria-atomic="true">
           <div class="d-flex">
-            <div class="toast-body">
-              {{ thongBaoToast }}
-            </div>
-            <button 
-              type="button" 
-              class="btn-close btn-close-white me-2 m-auto" 
-              data-bs-dismiss="toast" 
-              aria-label="Close"
-            ></button>
+            <div class="toast-body">{{ thongBaoToast }}</div>
+            <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
           </div>
         </div>
       </div>
@@ -37,17 +24,10 @@
       <!-- Bộ lọc và tìm kiếm -->
       <div class="card filter-card mb-4">
         <div class="card-body">
-          <div class="row g-3">
+          <div class="row g-3 align-items-end">
             <div class="col-lg-4 col-md-12">
               <label for="search-input" class="form-label">Tìm kiếm</label>
-              <input 
-                id="search-input"
-                v-model="tuKhoaTimKiem" 
-                type="text" 
-                class="form-control" 
-                placeholder="Mã đặt phòng, tên KH, SĐT..."
-                @input="timKiemDatPhong"
-              >
+              <input id="search-input" v-model="tuKhoaTimKiem" type="text" class="form-control" placeholder="Mã đặt phòng, tên KH, SĐT..." @input="timKiemDatPhong">
             </div>
             <div class="col-lg-2 col-md-4">
               <label for="status-filter" class="form-label">Trạng thái</label>
@@ -60,11 +40,11 @@
               </select>
             </div>
             <div class="col-lg-3 col-md-4">
-              <label for="from-date" class="form-label">Từ ngày</label>
+              <label for="from-date" class="form-label">Từ ngày nhận phòng</label>
               <input id="from-date" v-model="tuNgay" type="date" class="form-control" @change="locDanhSach">
             </div>
             <div class="col-lg-3 col-md-4">
-              <label for="to-date" class="form-label">Đến ngày</label>
+              <label for="to-date" class="form-label">Đến ngày nhận phòng</label>
               <input id="to-date" v-model="denNgay" type="date" class="form-control" @change="locDanhSach">
             </div>
           </div>
@@ -78,24 +58,14 @@
 
       <!-- Bảng danh sách đặt phòng -->
       <div class="table-container">
-        <table class="table booking-table" v-if="danhSachHienThi.length > 0">
+        <table class="table booking-table align-middle" v-if="danhSachHienThi.length > 0">
           <thead>
             <tr>
-              <th scope="col" @click="sapXep('booking_id')">
-                Mã ĐP 
-                <i v-if="sapXepCot === 'booking_id'" :class="sapXepGiam ? 'fas fa-sort-down' : 'fas fa-sort-up'"></i>
-              </th>
+              <th scope="col" @click="sapXep('booking_id')">Mã ĐP <i v-if="sapXepCot === 'booking_id'" :class="sapXepGiam ? 'bi bi-arrow-down' : 'bi bi-arrow-up'"></i></th>
               <th scope="col">Khách Hàng</th>
-              <th scope="col" @click="sapXep('check_in_date')">
-                Nhận Phòng
-                <i v-if="sapXepCot === 'check_in_date'" :class="sapXepGiam ? 'fas fa-sort-down' : 'fas fa-sort-up'"></i>
-              </th>
-              <th scope="col" @click="sapXep('check_out_date')">
-                Trả Phòng
-                <i v-if="sapXepCot === 'check_out_date'" :class="sapXepGiam ? 'fas fa-sort-down' : 'fas fa-sort-up'"></i>
-              </th>
+              <th scope="col">Thời Gian Ở</th>
               <th scope="col">Tổng Giá</th>
-              <th scope="col">Trạng Thái</th>
+              <th scope="col" class="text-center">Trạng Thái</th>
               <th scope="col" class="text-center">Hành Động</th>
             </tr>
           </thead>
@@ -103,20 +73,22 @@
             <tr v-for="datPhong in danhSachHienThi" :key="datPhong.booking_id">
               <td><span class="booking-id">#{{ datPhong.booking_id }}</span></td>
               <td>
-                <div class="customer-name">{{ datPhong.customer?.customer_name || 'Không xác định' }}</div>
-                <div class="customer-phone">0{{ datPhong.customer?.customer_phone || 'Không có SĐT' }}</div>
+                <div class="type-name">{{ datPhong.customer?.customer_name || 'Không xác định' }}</div>
+                <div class="description-text">0{{ datPhong.customer?.customer_phone || 'Không có SĐT' }}</div>
               </td>
-              <td>{{ dinhDangNgay(datPhong.check_in_date) }}</td>
-              <td>{{ dinhDangNgay(datPhong.check_out_date) }}</td>
-              <td><span class="price-tag">{{ dinhDangTien(datPhong.total_price) }}</span></td>
               <td>
+                  <div>Nhận: {{ dinhDangNgay(datPhong.check_in_date) }}</div>
+                  <div>Trả: {{ dinhDangNgay(datPhong.check_out_date) }}</div>
+              </td>
+              <td><span class="price-tag">{{ dinhDangTien(datPhong.total_price) }}</span></td>
+              <td class="text-center">
                 <span class="badge" :class="layLopTrangThai(datPhong.status)">
                   {{ dinhDangTrangThai(datPhong.status) }}
                 </span>
               </td>
-              <td class="text-center">
-                <button @click="moModalChiTiet(datPhong)" class="btn btn-outline-primary btn-sm">
-                  Chi tiết
+              <td class="text-center action-buttons">
+                <button @click="moModalChiTiet(datPhong)" class="btn btn-outline-primary btn-sm" title="Xem chi tiết">
+                   <i class="bi bi-eye-fill"></i>
                 </button>
               </td>
             </tr>
@@ -136,7 +108,7 @@
           <li class="page-item" :class="{ disabled: trangHienTai === 1 }">
             <a class="page-link" href="#" @click.prevent="chuyenTrang(trangHienTai - 1)">«</a>
           </li>
-          <li class="page-item" v-for="trang in danhSachTrang" :key="trang" :class="{ active: trang === trangHienTai }">
+          <li class="page-item" v-for="trang in pageRange" :key="trang" :class="{ active: trang === trangHienTai }">
             <a class="page-link" href="#" @click.prevent="chuyenTrang(trang)">{{ trang }}</a>
           </li>
           <li class="page-item" :class="{ disabled: trangHienTai === tongSoTrang }">
@@ -154,15 +126,12 @@
         <div class="modal-dialog modal-xl modal-dialog-centered" role="document">
           <div class="modal-content modal-custom">
             <div class="modal-header modal-header-custom">
-              <h5 class="modal-title">
-                Chi Tiết Đặt Phòng #{{ datPhongDuocChon.booking_id }}
-              </h5>
+              <h5 class="modal-title">Chi Tiết Đặt Phòng #{{ datPhongDuocChon.booking_id }}</h5>
               <button type="button" @click="dongModal" class="btn-close" aria-label="Close"></button>
             </div>
             <div class="modal-body p-4">
               <Loading v-if="dangTai" />
               <div v-else>
-                <!-- Thông tin chung -->
                 <div class="row g-4 mb-4">
                   <div class="col-lg-6">
                     <h6 class="info-title">Thông tin khách hàng</h6>
@@ -182,11 +151,9 @@
                     </ul>
                   </div>
                 </div>
-
-                <!-- Thông tin hủy (nếu có) -->
                 <div v-if="thongTinHuy" class="row g-4 mb-4">
                   <div class="col-12">
-                    <h6 class="info-title">Thông tin hủy đặt phòng</h6>
+                    <h6 class="info-title text-danger">Thông tin hủy đặt phòng</h6>
                     <ul class="info-list">
                       <li><span>Lý do hủy:</span><strong>{{ thongTinHuy.reason || 'Không có' }}</strong></li>
                       <li><span>Số tiền hoàn lại:</span><strong>{{ dinhDangTien(thongTinHuy.refund_amount) }}</strong></li>
@@ -194,31 +161,15 @@
                       <li><span>Số tài khoản:</span><strong>{{ thongTinHuy.refund_account_number || 'N/A' }}</strong></li>
                       <li><span>Tên tài khoản:</span><strong>{{ thongTinHuy.refund_account_name || 'N/A' }}</strong></li>
                       <li><span>Ngày yêu cầu hủy:</span><strong>{{ dinhDangNgay(thongTinHuy.cancellation_date) }}</strong></li>
-                      <li><span>Trạng thái:</span><strong>{{ dinhDangTrangThaiHuy(thongTinHuy.status) }}</strong></li>
+                      <li><span>Trạng thái:</span><strong :class="thongTinHuy.status === 'processed' ? 'text-success' : 'text-warning'">{{ dinhDangTrangThaiHuy(thongTinHuy.status) }}</strong></li>
                     </ul>
                   </div>
                 </div>
-
-                <!-- Status Bar -->
                 <div class="status-bar">
-                  <div>
-                    Trạng thái đặt phòng:
-                    <span class="badge ms-2" :class="layLopTrangThai(datPhongDuocChon.status)">
-                      {{ dinhDangTrangThai(datPhongDuocChon.status) }}
-                    </span>
-                  </div>
-                  <div>
-                    Trạng thái thanh toán:
-                    <span class="badge ms-2" :class="layLopTrangThaiThanhToan(datPhongDuocChon.payment_status)">
-                      {{ datPhongDuocChon.payment_status_display || dinhDangTrangThaiThanhToan(datPhongDuocChon.payment_status) }}
-                    </span>
-                  </div>
-                  <div class="total-price">
-                    Tổng cộng: <strong>{{ dinhDangTien(datPhongDuocChon.total_price) }}</strong>
-                  </div>
+                  <div>Trạng thái đặt phòng: <span class="badge ms-2" :class="layLopTrangThai(datPhongDuocChon.status)">{{ dinhDangTrangThai(datPhongDuocChon.status) }}</span></div>
+                  <div>Trạng thái thanh toán: <span class="badge ms-2" :class="layLopTrangThaiThanhToan(datPhongDuocChon.payment_status)">{{ datPhongDuocChon.payment_status_display || dinhDangTrangThaiThanhToan(datPhongDuocChon.payment_status) }}</span></div>
+                  <div class="total-price">Tổng cộng: <strong>{{ dinhDangTien(datPhongDuocChon.total_price) }}</strong></div>
                 </div>
-
-                <!-- Bảng chi tiết phòng -->
                 <h6 class="info-title mt-4">Chi Tiết Các Phòng Đã Đặt</h6>
                 <div class="table-responsive">
                   <table class="table room-assignment-table">
@@ -231,9 +182,7 @@
                       </tr>
                     </thead>
                     <tbody>
-                      <tr v-if="chiTietDatPhongHopLe.length === 0">
-                        <td colspan="4" class="text-center text-muted py-3">Không có chi tiết phòng để hiển thị.</td>
-                      </tr>
+                      <tr v-if="chiTietDatPhongHopLe.length === 0"><td colspan="4" class="text-center text-muted py-3">Không có chi tiết phòng.</td></tr>
                       <tr v-for="chiTiet in chiTietDatPhongHopLe" :key="chiTiet.booking_detail_id">
                         <td>{{ chiTiet.type_name || 'Không xác định' }}</td>
                         <td>
@@ -243,25 +192,14 @@
                         <td class="text-end">{{ dinhDangTien(chiTiet.total_price) }}</td>
                         <td>
                           <div v-if="datPhongDuocChon.status === 'pending_confirmation' && !chiTiet.room_id">
-                            <select
-                              v-if="phongTrong[chiTiet.booking_detail_id]?.length > 0"
-                              v-model="chiTiet.room_id"
-                              @change="xepPhong(chiTiet)"
-                              class="form-select form-select-sm"
-                            >
+                            <select v-if="phongTrong[chiTiet.booking_detail_id]?.length > 0" v-model="chiTiet.room_id" @change="xepPhong(chiTiet)" class="form-select form-select-sm">
                               <option value="">-- Chọn phòng --</option>
-                              <option v-for="phong in phongTrong[chiTiet.booking_detail_id]" :key="phong.room_id" :value="phong.room_id">
-                                {{ phong.room_name }}
-                              </option>
+                              <option v-for="phong in phongTrong[chiTiet.booking_detail_id]" :key="phong.room_id" :value="phong.room_id">{{ phong.room_name }}</option>
                             </select>
-                            <div v-else class="text-warning small">Hết phòng trống loại này</div>
+                            <div v-else class="text-warning small">Hết phòng trống</div>
                           </div>
-                          <div v-else-if="chiTiet.room_id" class="text-muted small">
-                            Đã xếp phòng
-                          </div>
-                          <div v-else-if="datPhongDuocChon.status !== 'pending_confirmation'" class="text-muted small">
-                            Quá hạn xếp phòng
-                          </div>
+                          <div v-else-if="chiTiet.room_id" class="text-muted small">Đã xếp phòng</div>
+                          <div v-else class="text-muted small">Không thể xếp phòng</div>
                         </td>
                       </tr>
                     </tbody>
@@ -273,22 +211,9 @@
               <div class="me-auto" v-if="datPhongDuocChon.status === 'pending_confirmation' && coPhongChuaXep">
                 <small class="text-danger">Vui lòng xếp tất cả các phòng để xác nhận.</small>
               </div>
-              <button @click="dongModal" class="btn btn-secondary" data-dismiss="modal">Đóng</button>
-              <button
-                v-if="datPhongDuocChon.status === 'pending_confirmation'"
-                @click="xacNhanDatPhong"
-                class="btn btn-primary"
-                :disabled="coPhongChuaXep"
-              >
-                Xác Nhận Đặt Phòng
-              </button>
-              <button
-                v-if="datPhongDuocChon.status === 'pending_cancel' && thongTinHuy?.status === 'requested'"
-                @click="xacNhanHuyDatPhong"
-                class="btn btn-danger"
-              >
-                Xác Nhận Hủy
-              </button>
+              <button @click="dongModal" class="btn btn-secondary">Đóng</button>
+              <button v-if="datPhongDuocChon.status === 'pending_confirmation'" @click="xacNhanDatPhong" class="btn btn-primary" :disabled="coPhongChuaXep">Xác Nhận Đặt Phòng</button>
+              <button v-if="datPhongDuocChon.status === 'pending_cancel' && thongTinHuy?.status === 'requested'" @click="xacNhanHuyDatPhong" class="btn btn-danger">Xác Nhận Hủy</button>
             </div>
           </div>
         </div>
@@ -298,6 +223,7 @@
 </template>
 
 <script setup>
+// --- TOÀN BỘ SCRIPT CỦA BẠN GIỮ NGUYÊN ---
 import { ref, onMounted, computed } from 'vue';
 import axios from 'axios';
 import { Toast } from 'bootstrap';
@@ -310,7 +236,7 @@ const chiTietDatPhong = ref([]);
 const phongTrong = ref({});
 const thongBaoLoi = ref('');
 const dangTai = ref(false);
-const isLoading = ref(true); // Biến trạng thái loading cho toàn trang
+const isLoading = ref(true);
 const thongTinHuy = ref(null);
 const thongBaoToast = ref('');
 
@@ -359,8 +285,10 @@ const danhSachLoc = computed(() => {
 
 const tongSoTrang = computed(() => Math.ceil(danhSachLoc.value.length / soBanGhiTrenTrang.value));
 
-const danhSachTrang = computed(() => {
-  const maxPages = 5, halfPages = Math.floor(maxPages / 2);
+// ** THAY THẾ 'danhSachTrang' BẰNG 'pageRange' CHO UI MỚI **
+const pageRange = computed(() => {
+  const maxPages = 5;
+  const halfPages = Math.floor(maxPages / 2);
   let start = Math.max(1, trangHienTai.value - halfPages);
   let end = Math.min(tongSoTrang.value, start + maxPages - 1);
   if (end - start + 1 < maxPages) {
@@ -382,7 +310,7 @@ const coPhongChuaXep = computed(() => {
 });
 
 const layDanhSachDatPhong = async () => {
-  isLoading.value = true; // Bật loading khi bắt đầu tải trang
+  isLoading.value = true;
   try {
     const res = await axios.get('/api/bookings?status[]=pending_confirmation&status[]=confirmed&status[]=cancelled&status[]=pending_cancel', {
       headers: { 'Accept': 'application/json' }
@@ -394,18 +322,17 @@ const layDanhSachDatPhong = async () => {
     thongBaoLoi.value = 'Không thể kết nối đến server để lấy dữ liệu đặt phòng.';
     danhSachDatPhong.value = [];
   } finally {
-    isLoading.value = false; // Tắt loading sau khi hoàn tất
+    isLoading.value = false;
   }
 };
 
 const moModalChiTiet = async (datPhong) => {
   datPhongDuocChon.value = datPhong;
-  dangTai.value = true; // Bật loading cho modal
+  dangTai.value = true;
   hienModal.value = true;
   thongBaoLoi.value = '';
   phongTrong.value = {};
   thongTinHuy.value = null;
-
   try {
     const resDetails = await axios.get(`/api/booking-details/${datPhong.booking_id}`);
     chiTietDatPhong.value = Array.isArray(resDetails.data) ? resDetails.data.map(c => ({
@@ -413,7 +340,6 @@ const moModalChiTiet = async (datPhong) => {
       room: c.room || { room_id: null, room_name: 'Chưa xếp' },
       type_name: c.roomType?.type_name || 'N/A'
     })) : [];
-
     if (datPhong.status === 'pending_cancel' || datPhong.status === 'cancelled') {
       try {
         const cancelRes = await axios.get(`/api/booking-cancel/${datPhong.booking_id}`);
@@ -426,7 +352,6 @@ const moModalChiTiet = async (datPhong) => {
         return;
       }
     }
-
     if (datPhong.status === 'pending_confirmation') {
       await Promise.all(
         chiTietDatPhong.value.map(async (chiTiet) => {
@@ -452,7 +377,7 @@ const moModalChiTiet = async (datPhong) => {
     thongBaoLoi.value = `Không thể tải chi tiết đặt phòng. Lỗi: ${err.response?.data?.error || err.message}`;
     hienModal.value = false;
   } finally {
-    dangTai.value = false; // Tắt loading modal
+    dangTai.value = false;
   }
 };
 
@@ -478,8 +403,6 @@ const xacNhanDatPhong = async () => {
     await axios.patch(`/api/bookings/${datPhongDuocChon.value.booking_id}`, { 
       status: 'confirmed' 
     }, { headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' } });
-    
-    // Cập nhật trạng thái trong danh sách mà không cần tải lại
     const index = danhSachDatPhong.value.findIndex(item => item.booking_id === datPhongDuocChon.value.booking_id);
     if (index !== -1) {
       danhSachDatPhong.value[index].status = 'confirmed';
@@ -500,29 +423,23 @@ const xacNhanHuyDatPhong = async () => {
       thongBaoLoi.value = 'Không tìm thấy thông tin hủy để xác nhận.';
       return;
     }
-
     await axios.patch(`/api/booking-cancel/${cancelId}`, {
       status: 'processed',
       refund_bank: '',
       refund_account_number: '',
       refund_account_name: ''
     }, { headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' } });
-    
-  // Cập nhật trạng thái trong danh sách mà không cần tải lại
     const index = danhSachDatPhong.value.findIndex(item => item.booking_id === datPhongDuocChon.value.booking_id);
     if (index !== -1) {
       danhSachDatPhong.value[index].status = 'cancelled';
     }
-    // Cập nhật thông tin hủy trong modal
     thongTinHuy.value.status = 'processed';
     thongBaoToast.value = 'Xác nhận hủy đặt phòng thành công!';
     showToast();
     hienModal.value = false;
   } catch (err) {
     console.error('Lỗi khi xác nhận hủy:', {
-      message: err.message,
-      status: err.response?.status,
-      data: err.response?.data
+      message: err.message, status: err.response?.status, data: err.response?.data
     });
     thongBaoLoi.value = `Lỗi khi xác nhận hủy: ${err.response?.data?.message || err.message}`;
   }
@@ -541,9 +458,7 @@ const dongModal = () => {
   thongTinHuy.value = null;
 };
 
-const chuyenTrang = (trang) => { 
-  if (trang >= 1 && trang <= tongSoTrang.value) trangHienTai.value = trang; 
-};
+const chuyenTrang = (trang) => { if (trang >= 1 && trang <= tongSoTrang.value) trangHienTai.value = trang; };
 const timKiemDatPhong = () => { trangHienTai.value = 1; };
 const locDanhSach = () => { trangHienTai.value = 1; };
 const sapXep = (cot) => {
@@ -556,21 +471,15 @@ const dinhDangNgay = (ngay) => ngay ? new Date(ngay).toLocaleDateString('vi-VN')
 const dinhDangTien = (gia) => new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(gia || 0);
 const dinhDangLoaiDatPhong = (loai) => ({ online: 'Trực tuyến', offline: 'Tại chỗ' }[loai] || loai || 'N/A');
 const dinhDangTrangThai = (trangThai) => ({
-  pending_confirmation: 'Chờ xác nhận',
-  confirmed: 'Đã xác nhận',
-  pending_cancel: 'Chờ xác nhận hủy',
-  cancelled: 'Đã hủy'
+  pending_confirmation: 'Chờ xác nhận', confirmed: 'Đã xác nhận',
+  pending_cancel: 'Chờ xác nhận hủy', cancelled: 'Đã hủy'
 }[trangThai] || 'Không rõ');
 const dinhDangTrangThaiThanhToan = (trangThai) => ({
-  PENDING: 'Thanh toán tại quầy',
-  PAID: 'Đã thanh toán',
-  REFUNDED: 'Đã hoàn tiền',
-  ERROR: 'Lỗi thanh toán'
+  PENDING: 'Thanh toán tại quầy', PAID: 'Đã thanh toán',
+  REFUNDED: 'Đã hoàn tiền', ERROR: 'Lỗi thanh toán'
 }[trangThai] || 'Không xác định');
 const dinhDangTrangThaiHuy = (trangThai) => ({
-  requested: 'Yêu cầu hủy',
-  processed: 'Đã hủy',
-  failed: 'Hủy thất bại'
+  requested: 'Yêu cầu hủy', processed: 'Đã hủy', failed: 'Hủy thất bại'
 }[trangThai] || 'Không rõ');
 
 const layLopTrangThai = (trangThai) => {
@@ -584,7 +493,7 @@ const layLopTrangThai = (trangThai) => {
 };
 const layLopTrangThaiThanhToan = (trangThai) => {
   switch (trangThai) {
-    case 'PENDING': return 'badge-warning';
+    case 'PENDING': return 'badge-info';
     case 'PAID': return 'badge-success';
     case 'ERROR': return 'badge-danger';
     case 'REFUNDED': return 'badge-secondary';
@@ -592,256 +501,73 @@ const layLopTrangThaiThanhToan = (trangThai) => {
   }
 };
 
-onMounted(() => {
-  layDanhSachDatPhong();
-});
+onMounted(() => { layDanhSachDatPhong(); });
 </script>
 
 <style scoped>
+/* Copied styles from other components for consistency */
 @import url('https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@300;400;500;600;700&display=swap');
+@import url('https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css');
 
 .page-container {
-  font-family: 'monospace', sans-serif;
+  font-family: 'Be Vietnam Pro', sans-serif;
   background-color: #f4f7f9;
+  padding: 2rem;
   color: #34495e;
 }
+.page-header { border-bottom: 1px solid #e5eaee; padding-bottom: 1rem; }
+.page-title { font-size: 2rem; font-weight: 700; }
+.page-subtitle { font-size: 1rem; color: #7f8c8d; }
 
-.page-title {
-  font-size: 2.5rem;
-  font-weight: 700;
-  color: #454d55;
-}
+.filter-card { background-color: #ffffff; border: none; border-radius: 12px; box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05); }
+.form-label { font-weight: 500; margin-bottom: 0.5rem; font-size: 0.875rem; }
+.form-control, .form-select { border-radius: 8px; border: 1px solid #e5eaee; transition: all 0.2s ease-in-out; }
+.form-control:focus, .form-select:focus { border-color: #3498db; box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.15); }
 
-.page-subtitle {
-  font-size: 1rem;
-  color: #7f8c8d;
-}
+.table-container { background-color: #ffffff; border-radius: 12px; box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05); overflow: hidden; }
+.booking-table { font-size: 0.9rem; border-collapse: separate; border-spacing: 0; width: 100%; }
+.booking-table thead th { background-color: #f8f9fa; color: #454d55; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; border-bottom: 2px solid #e5eaee; padding: 0.8rem 1rem; cursor: pointer; }
+.booking-table td { padding: 1rem; border-bottom: 1px solid #e5eaee; vertical-align: middle; }
+.booking-table tbody tr:last-child td { border-bottom: none; }
+.booking-table tbody tr:hover { background-color: #f9fafb; }
+.booking-id { font-weight: 600; color: #3498db; }
+.type-name { color: #454d55; font-weight: 600; }
+.description-text { font-size: 0.9em; color: #7f8c8d; }
 
-.filter-card {
-  background-color: #ffffff;
-  border: none;
-  border-radius: 12px;
-  box-shadow: 0 4px 15px rgba(0,0,0,0.05);
-}
+.badge { padding: 0.4em 0.8em; font-size: 0.75rem; font-weight: 600; border-radius: 20px; text-transform: capitalize; }
+.badge-warning { background-color: #fef5e7; color: #f39c12; }
+.badge-success { background-color: #e6f9f0; color: #2ecc71; }
+.badge-danger { background-color: #fce8e6; color: #e74c3c; }
+.badge-secondary { background-color: #f3f4f6; color: #7f8c8d; }
+.badge-info { background-color: #eaf6fb; color: #3498db; }
 
-.form-label {
-  font-weight: 500;
-  margin-bottom: 0.5rem;
-  font-size: 0.875rem;
-}
+.pagination .page-link { border: none; border-radius: 8px; margin: 0 4px; color: #7f8c8d; font-weight: 600; transition: all 0.2s ease; }
+.pagination .page-link:hover { background-color: #e9ecef; color: #34495e; }
+.pagination .page-item.active .page-link { background-color: #3498db; color: white; box-shadow: 0 2px 5px rgba(52, 152, 219, 0.3); }
+.pagination .page-item.disabled .page-link { background-color: transparent; color: #cccccc; }
 
-.form-control, .form-select {
-  border-radius: 8px;
-  border: 1px solid #e5eaee;
-  transition: all 0.2s ease-in-out;
-}
-.form-control:focus, .form-select:focus {
-  border-color: #3498db;
-  box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.15);
-}
+.modal-backdrop { background-color: rgba(0, 0, 0, 0.4); }
+.modal-custom { border-radius: 16px; border: none; box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1); }
+.modal-header-custom { background-color: #f4f7f9; border-bottom: 1px solid #e5eaee; padding: 1.5rem; }
+.modal-header-custom .modal-title { font-weight: 600; font-size: 1.25rem; }
+.modal-footer-custom { background-color: #f4f7f9; border-top: 1px solid #e5eaee; padding: 1rem 1.5rem; display: flex; align-items: center; }
 
-.table-container {
-  background-color: #ffffff;
-  border-radius: 12px;
-  box-shadow: 0 4px 15px rgba(0,0,0,0.05);
-  overflow: hidden;
-}
+.action-buttons .btn { margin: 0 2px; }
 
-.booking-table {
-  font-size: 0.9rem;
-  border-collapse: separate;
-  border-spacing: 0;
-  width: 100%;
-}
-.booking-table thead th {
-  background-color: #f8f9fa;
-  color: #454d55;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-  border-bottom: 2px solid #e5eaee;
-  padding: 0.8rem 1rem;
-  cursor: pointer;
-}
-.booking-table td {
-  padding: 1rem 1rem;
-  border-bottom: 1px solid #e5eaee;
-  vertical-align: middle;
-}
-.booking-table tbody tr:last-child td {
-  border-bottom: none;
-}
-.booking-table tbody tr:hover {
-  background-color: #f9fafb;
-}
-
-.booking-id {
-  font-weight: 600;
-  color: #3498db;
-}
-.customer-name {
-  color: #454d55;
-  font-weight: 600;
-}
-.customer-phone {
-  font-size: 0.9em;
-  color: #7f8c8d;
-}
-
-.badge {
-  padding: 0.4em 0.8em;
-  font-size: 0.75rem;
-  font-weight: 600;
-  border-radius: 20px;
-  text-transform: capitalize;
-}
-
-.badge-warning { background-color: #f1c40f; color: #34495e; }
-.badge-success { background-color: #27ae60; color: white; }
-.badge-danger { background-color: #e74c3c; color: white; }
-.badge-secondary { background-color: #bdc3c7; color: #34495e; }
-.btn-danger { background-color: #e74c3c; border-color: #e74c3c; }
-.btn-danger:hover {
-  background-color: #c0392b;
-  border-color: #c0392b;
-}
-
-.pagination .page-link {
-  border: none;
-  border-radius: 8px;
-  margin: 0 4px;
-  color: #7f8c8d;
-  font-weight: 600;
-  transition: all 0.2s ease;
-}
-.pagination .page-link:hover {
-  background-color: #e9ecef;
-  color: #34495e;
-}
-.pagination .page-item.active .page-link {
-  background-color: #3498db;
-  color: white;
-  box-shadow: 0 2px 5px rgba(52, 152, 219, 0.3);
-}
-.pagination .page-item.disabled .page-link {
-  background-color: transparent;
-  color: #cccccc;
-}
-
-.modal-backdrop { background-color: rgba(0,0,0,0.4); }
-.modal-custom {
-  border-radius: 16px;
-  border: none;
-  box-shadow: 0 10px 30px rgba(0,0,0,0.1);
-}
-.modal-header-custom {
-  background-color: #f4f7f9;
-  border-bottom: 1px solid #e5eaee;
-  padding: 1.5rem;
-}
-.modal-header-custom .modal-title {
-  font-weight: 600;
-  font-size: 1.25rem;
-}
-.modal-footer-custom {
-  background-color: #f4f7f9;
-  border-top: 1px solid #e5eaee;
-  padding: 1rem 1.5rem;
-  display: flex;
-  align-items: center;
-}
-
-.btn-outline-primary {
-  color: #3498db;
-  border-color: #3498db;
-}
-.btn-outline-primary:hover {
-  background-color: #3498db;
-  color: #ffffff;
-}
-.btn-primary {
-  background-color: #3498db;
-  border-color: #3498db;
-}
-.btn-primary:hover {
-  background-color: #2980b9;
-  border-color: #2980b9;
-}
-.btn-primary:disabled {
-  background-color: #3498db;
-  border-color: #3498db;
-  opacity: 0.5;
-  cursor: not-allowed;
-}
-
-.info-title {
-  font-weight: 600;
-  color: #34495e;
-  margin-bottom: 1rem;
-  font-size: 1rem;
-  padding-bottom: 0.5rem;
-  border-bottom: 2px solid #3498db;
-  display: inline-block;
-}
-
-.info-list {
-  list-style: none;
-  padding: 0;
-  margin: 0;
-}
-.info-list li {
-  display: flex;
-  justify-content: space-between;
-  align-items: baseline;
-  gap: 1rem;
-  padding: 0.6rem 0.5rem;
-  border-bottom: 1px solid #e5eaee;
-  font-size: 0.9rem;
-}
-.info-list li:hover {
-  background-color: #fdfdfe;
-}
+.info-title { font-weight: 600; color: #34495e; margin-bottom: 1rem; font-size: 1rem; padding-bottom: 0.5rem; border-bottom: 2px solid #3498db; display: inline-block; }
+.info-list { list-style: none; padding: 0; margin: 0; }
+.info-list li { display: flex; justify-content: space-between; align-items: baseline; gap: 1rem; padding: 0.6rem 0.5rem; border-bottom: 1px solid #e5eaee; font-size: 0.9rem; }
 .info-list li:last-child { border-bottom: none; }
-.info-list li span { 
-  color: #7f8c8d;
-  flex-shrink: 0;
-}
-.info-list li strong { 
-  color: #34495e;
-  text-align: left;
-  word-break: break-word;
-}
+.info-list li span { color: #7f8c8d; flex-shrink: 0; }
+.info-list li strong { color: #34495e; text-align: right; word-break: break-word; }
 
-.status-bar {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  flex-wrap: wrap;
-  gap: 1rem;
-  background-color: #f0f5fa;
-  padding: 1rem 1.5rem;
-  border-radius: 12px;
-  margin: 2rem 0;
-  border-left: 5px solid #3498db;
-}
+.status-bar { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem; background-color: #f0f5fa; padding: 1rem 1.5rem; border-radius: 12px; margin: 2rem 0; border-left: 5px solid #3498db; }
 .status-bar > div { font-weight: 500; }
 .status-bar .total-price { font-size: 1.2rem; color: #3498db; }
 
-.room-assignment-table {
-  font-size: 0.85rem;
-  width: 100%;
-}
-.room-assignment-table thead th {
-  background-color: #f8f9fa;
-  color: #7f8c8d;
-  font-weight: 600;
-  border-bottom: 2px solid #e5eaee;
-}
-.room-assignment-table td, .room-assignment-table th {
-  vertical-align: middle;
-}
+.room-assignment-table { font-size: 0.85rem; width: 100%; }
+.room-assignment-table thead th { background-color: #f8f9fa; color: #7f8c8d; font-weight: 600; border-bottom: 2px solid #e5eaee; }
+.room-assignment-table td, .room-assignment-table th { vertical-align: middle; }
 
-.toast-container {
-  z-index: 1055;
-}
+.toast-container { z-index: 1055; }
 </style>

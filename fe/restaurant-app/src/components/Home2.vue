@@ -200,28 +200,6 @@
         </div>
     </section>
 
-    <!-- 7. Thư viện ảnh -->
-    <section class="gallery-section">
-      <div class="container">
-        <p class="section-subtitle">Thư Viện Ảnh</p>
-        <h2 class="section-title">Thư Viện Ảnh Của Chúng Tôi</h2>
-        <div class="row g-3 mt-4">
-          <div class="col-lg-3 col-md-6 col-6"><img
-              src="https://images.trvl-media.com/lodging/42000000/41830000/41826900/41826852/ff9dfc7c.jpg?impolicy=resizecrop&rw=575&rh=575&ra=fill"
-              class="img-fluid rounded" alt="Ảnh thư viện 1"></div>
-          <div class="col-lg-3 col-md-6 col-6"><img
-              src="https://www.vietnambooking.com/wp-content/uploads/2018/06/co-nhung-loai-phong-khach-san-nao-02-06-18-1.jpg"
-              class="img-fluid rounded" alt="Ảnh thư viện 2"></div>
-          <div class="col-lg-3 col-md-6 col-6"><img
-              src="https://www.vietnambooking.com/wp-content/uploads/2018/06/co-nhung-loai-phong-khach-san-nao-02-06-18-3.jpg"
-              class="img-fluid rounded" alt="Ảnh thư viện 3"></div>
-          <div class="col-lg-3 col-md-6 col-6"><img
-              src="https://images.trvl-media.com/lodging/42000000/41830000/41826900/41826852/ff9dfc7c.jpg?impolicy=resizecrop&rw=575&rh=575&ra=fill"
-              class="img-fluid rounded" alt="Ảnh thư viện 4"></div>
-        </div>
-      </div>
-    </section>
-
     <!-- KHU VỰC HIỂN THỊ THÔNG BÁO TOAST TÙY CHỈNH -->
     <transition-group name="toast" tag="div" class="toast-container">
       <div v-for="toast in toasts" :key="toast.id" :class="['toast-notification', `toast--${toast.type}`]">
