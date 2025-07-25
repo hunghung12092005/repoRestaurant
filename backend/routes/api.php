@@ -49,6 +49,7 @@ Route::post('/rooms/{room_id}/extend', [OccupancyController::class, 'extendStay'
 Route::post('/customers/{id}/update-name', [OccupancyController::class, 'updateCustomerName']);
 Route::post('/bookings/{booking_id}/request-cancellation', [OccupancyController::class, 'requestCancellation']);
 Route::post('/bookings/{booking_id}/confirm-cancellation', [OccupancyController::class, 'confirmCancellation']);
+
 // Cập nhật thông tin khách hàng
 Route::post('/contacts', [ContactController::class, 'store']);
 Route::get('/admin/contacts', [ContactController::class, 'index']);
