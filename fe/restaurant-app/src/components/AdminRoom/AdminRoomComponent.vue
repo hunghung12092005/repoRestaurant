@@ -32,6 +32,7 @@
           <option value="">Tất cả trạng thái</option>
           <option value="Trống">Trống</option>
           <option value="Đã đặt">Đã đặt</option>
+          <option value="Đang chờ hủy">Đang chờ hủy</option>
         </select>
       </div>
     </div>
@@ -59,10 +60,11 @@
               <span
                 :class="{
                   'badge bg-success': room.status === 'available',
-                  'badge bg-danger': room.status === 'occupied'
+                  'badge bg-danger': room.status === 'occupied',
+                  'badge bg-warning': room.status === 'pending_cancel',
                 }"
               >
-                {{ room.status === 'available' ? 'Trống' : room.status === 'occupied' ? 'Đã đặt' : room.status }}
+                {{ room.status === 'available' ? 'Trống' : room.status === 'occupied' ? 'Đã đặt' : room.status === 'pending_cancel' ? 'Đang chờ hủy' : 'N/A' }}
               </span>
             </td>
             <td>
@@ -196,6 +198,7 @@
                   <option value="">-- Chọn trạng thái --</option>
                   <option value="Trống">Trống</option>
                   <option value="Đã đặt">Đã đặt</option>
+                  <option value="Đang chờ hủy">Đang chờ hủy</option>
                 </select>
                 <div v-if="errors.status" class="invalid-feedback">{{ errors.status }}</div>
               </div>
@@ -338,7 +341,8 @@ const filteredRooms = computed(() => {
     const matchesRoomType = !filterRoomType.value || room.type_id === parseInt(filterRoomType.value);
     const statusMapping = {
       'available': 'Trống',
-      'occupied': 'Đã đặt'
+      'occupied': 'Đã đặt',
+      'pending_cancel': 'Đang chờ hủy'
     };
     const displayStatus = statusMapping[room.status] || room.status;
     const matchesStatus = !filterStatus.value || displayStatus === filterStatus.value;
@@ -388,7 +392,8 @@ const openEditModal = (room) => {
   }
   const statusMapping = {
     'available': 'Trống',
-    'occupied': 'Đã đặt'
+    'occupied': 'Đã đặt',
+    'pending_cancel': 'Đang chờ hủy'
   };
   form.value = {
     room_name: String(room.room_name || ''),
@@ -478,7 +483,8 @@ const saveRoom = async () => {
   modalErrorMessage.value = '';
   const statusMapping = {
     'Trống': 'available',
-    'Đã đặt': 'occupied'
+    'Đã đặt': 'occupied',
+    'Đang chờ hủy': 'pending_cancel'
   };
   const payload = {
     room_name: form.value.room_name.trim(),
