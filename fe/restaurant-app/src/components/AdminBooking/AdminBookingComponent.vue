@@ -1,7 +1,7 @@
 <template>
   <div class="page-container">
     <!-- Hiển thị loading khi đang tải trang -->
-    <Loading v-if="isLoading" />
+    <loading v-if="isLoading"></loading>
     
     <!-- Nội dung trang khi đã tải xong -->
     <div v-else>
@@ -160,7 +160,7 @@
               <button type="button" @click="dongModal" class="btn-close" aria-label="Close"></button>
             </div>
             <div class="modal-body p-4">
-              <Loading v-if="dangTai" />
+              <loading v-if="dangTai" />
               <div v-else>
                 <!-- Thông tin chung -->
                 <div class="row g-4 mb-4">
@@ -301,7 +301,7 @@
 import { ref, onMounted, computed } from 'vue';
 import axios from 'axios';
 import { Toast } from 'bootstrap';
-import Loading from '../loading.vue';
+import loading from '../loading.vue';
 
 const danhSachDatPhong = ref([]);
 const hienModal = ref(false);
