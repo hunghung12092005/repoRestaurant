@@ -80,7 +80,7 @@
               <td><span class="booking-id">#{{ datPhong.booking_id }}</span></td>
               <td>
                 <div class="type-name">{{ datPhong.customer?.customer_name || 'Không xác định' }}</div>
-                <div class="description-text">0{{ datPhong.customer?.customer_phone || 'Không có SĐT' }}</div>
+                <div class="description-text">{{ datPhong.customer?.customer_phone || 'Không có SĐT' }}</div>
               </td>
               <td>
                   <div>Nhận: {{ dinhDangNgay(datPhong.check_in_date) }}</div>
@@ -143,7 +143,7 @@
                     <h6 class="info-title">Thông tin khách hàng</h6>
                     <ul class="info-list">
                       <li><span>Họ tên:</span><strong>{{ datPhongDuocChon.customer?.customer_name || 'N/A' }}</strong></li>
-                      <li><span>Điện thoại:</span><strong>0{{ datPhongDuocChon.customer?.customer_phone || 'N/A' }}</strong></li>
+                      <li><span>Điện thoại:</span><strong>{{ datPhongDuocChon.customer?.customer_phone || 'N/A' }}</strong></li>
                       <li><span>Email:</span><strong>{{ datPhongDuocChon.customer?.customer_email || 'N/A' }}</strong></li>
                     </ul>
                   </div>
