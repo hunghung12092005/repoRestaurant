@@ -513,7 +513,7 @@
                                         <div class="total">
                                             <p>Phòng {{ index + 1 }} :
                                                 <span class="text-secondary fw-normal">{{ room.name
-                                                }}</span>
+                                                    }}</span>
                                             </p>
                                             <p>{{
                                                 formatPrice(room.price) }}</p>
@@ -1215,6 +1215,7 @@ const payQr = async () => {
             // Chuyển hướng đến link thanh toán
             await confirmBooking();
             window.location.href = response.data.checkoutUrl;
+            //window.open(response.data.checkoutUrl, '_blank'); // Mở trong tab mới
         } else {
             alert('Đã xảy ra lỗi trong quá trình thanh toán.');
         }
@@ -1227,77 +1228,43 @@ const payQr = async () => {
     }
 }
 //check de gui sms
-function checkAndSendOtpPayos() {
-  try {
-    //console.log('📞 Bắt đầu chạy checkAndSendOtp');
-
+const checkAndSendOtp = () => {
     const phone = String(phoneNumber.value || '').trim();
-    //console.log('📱 Số điện thoại:', phone);
-
     const storageKey = 'sentOtpPhones';
-
-    if (!phone) {
-      //console.warn('⚠️ Số điện thoại rỗng hoặc không hợp lệ.');
-      return;
-    }
+    if (!phone) return;
 
     const sentPhones = JSON.parse(localStorage.getItem(storageKey)) || [];
     const isDuplicate = sentPhones.includes(phone);
+
+    paymentMethod.value = 'thanh_toan_sau';
+
+    if (isDuplicate) {
+        // Nếu đã xác thực rồi thì thực hiện luôn
+        confirmBooking();
+        router.push('/thanksBooking');
+    } else {
+        // Gửi OTP rồi đợi xác thực mới thực hiện
+        sendOtpSMS();
+    }
+};
+
+const checkAndSendOtpPayos = () => {
+    const phone = String(phoneNumber.value || '').trim();
+    const storageKey = 'sentOtpPhones';
+    if (!phone) return;
+
+    const sentPhones = JSON.parse(localStorage.getItem(storageKey)) || [];
+    const isDuplicate = sentPhones.includes(phone);
+
     paymentMethod.value = 'thanh_toan_qr';
+
     if (isDuplicate) {
-      console.log('⚠️ Số đã tồn tại trong localStorage, không gửi OTP lại:', phone);
-      payQr();
-      //router.push('/thanksBooking');
-      return;
+        payQr();
+    } else {
+        sendOtpSMS();
     }
-     sendOtpSMS();
-     payQr();
+};
 
-
-    sentPhones.push(phone);
-    localStorage.setItem(storageKey, JSON.stringify(sentPhones));
-    //console.log('✅ OTP đã được gửi & lưu số:', phone);
-
-  } catch (error) {
-    console.error('❌ Lỗi trong checkAndSendOtp:', error);
-  }
-}
-function checkAndSendOtp() {
-  try {
-    //console.log('📞 Bắt đầu chạy checkAndSendOtp');
-
-    const phone = String(phoneNumber.value || '').trim();
-    //console.log('📱 Số điện thoại:', phone);
-
-    const storageKey = 'sentOtpPhones';
-
-    if (!phone) {
-      //console.warn('⚠️ Số điện thoại rỗng hoặc không hợp lệ.');
-      return;
-    }
-
-    const sentPhones = JSON.parse(localStorage.getItem(storageKey)) || [];
-    const isDuplicate = sentPhones.includes(phone);
-     paymentMethod.value = 'thanh_toan_sau';
-    if (isDuplicate) {
-      //console.log('⚠️ Số đã tồn tại trong localStorage, không gửi OTP lại:', phone);
-      confirmBooking();
-      router.push('/thanksBooking');
-      return;
-    }
-
-     sendOtpSMS();
-     confirmBooking();
-    router.push('/thanksBooking');
-
-    sentPhones.push(phone);
-    localStorage.setItem(storageKey, JSON.stringify(sentPhones));
-    //console.log('✅ OTP đã được gửi & lưu số:', phone);
-
-  } catch (error) {
-    console.error('❌ Lỗi trong checkAndSendOtp:', error);
-  }
-}
 
 const verificationId = ref(null);
 const sendOtpSMS = async () => {
@@ -1346,22 +1313,34 @@ const verifyCode = async () => {
     try {
         const credential = PhoneAuthProvider.credential(verificationId.value, otpInputs.value);
         const result = await signInWithCredential(auth, credential);
-        //alert('Xác nhận thành công!');
-        //closePopup(); // Đóng popup sau khi xác nhận thành công
-        isOtp.value = false; //ẩn form  hiển thị otp
-        paymentMethod.value = 'thanh_toan_sau';
-        //confirmBooking.value = true; // Đặt trạng thái đơn hàng đã được xác nhận
-        // Thực hiện hành động tiếp theo
-        //await confirmBooking();
-        //router.push('/thanksBooking');
+
+        // ✅ Xác thực OTP thành công
+        isOtp.value = false;
+        const phone = String(phoneNumber.value || '').trim();
+        const storageKey = 'sentOtpPhones';
+        const sentPhones = JSON.parse(localStorage.getItem(storageKey)) || [];
+
+        if (!sentPhones.includes(phone)) {
+            sentPhones.push(phone);
+            localStorage.setItem(storageKey, JSON.stringify(sentPhones));
+        }
+
+        //  Sau xác thực thì tiếp tục hành động: bạn chọn 1 trong 2 bên dưới
+        if (paymentMethod.value === 'thanh_toan_sau') {
+            await confirmBooking();
+            router.push('/thanksBooking');
+        } else if (paymentMethod.value === 'thanh_toan_qr') {
+            await payQr();
+        }
+
     } catch (error) {
         console.error('Lỗi xác minh mã:', error.message || error);
-        alert(`Lỗi gửi mã xác nhận: OTP không hợp lệ . Vui lòng thử lại.`);
-
+        alert(`OTP không hợp lệ. Vui lòng thử lại.`);
     } finally {
         isLoading.value = false;
     }
 };
+
 const closeModalOtp = async () => {
     isOtp.value = false;
 }

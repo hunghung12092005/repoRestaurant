@@ -441,7 +441,7 @@ const xoaLoaiPhong = async (id) => {
 };
 
 const onImageError = (event) => {
-  event.target.src = 'https://via.placeholder.com/80x60.png?text=Lỗi';
+  // event.target.src = 'https://via.placeholder.com/80x60.png?text=Lỗi';
 };
 
 const handleApiError = (message, error) => {

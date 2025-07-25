@@ -136,15 +136,15 @@
 </template>
 
 <script setup>
+import axios from 'axios';
 import { ref, onMounted, inject } from 'vue';
-import axiosConfig from '../axiosConfig.js';
-const apiUrl = ref('http://localhost:8000');
+//import axiosConfig from '../axiosConfig.js';
+const apiUrl = inject('apiUrl');
 const roomTypes = ref([]);
 const loading = ref(true);
 
 const staticImages = [
-  'https://images.trvl-media.com/lodging/42000000/41830000/41826900/41826852/ff9dfc7c.jpg?impolicy=resizecrop&rw=575&rh=575&ra=fill',
-
+  // 'https://images.trvl-media.com/lodging/42000000/41830000/41826900/41826852/ff9dfc7c.jpg?impolicy=resizecrop&rw=575&rh=575&ra=fill',
 ];
 
 const getRoomImage = (roomType, index) => {
@@ -158,7 +158,7 @@ const getRoomImage = (roomType, index) => {
 const fetchRoomTypes = async () => {
   loading.value = true;
   try {
-    const response = await axiosConfig.get(`${apiUrl.value}/api/room-types`);
+    const response = await axios.get(`${apiUrl.value}/api/room-types`);
     if (response.data && response.data.status === true) {
       roomTypes.value = response.data.data.map(roomType => ({
         ...roomType,

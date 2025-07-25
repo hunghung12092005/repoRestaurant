@@ -1,4 +1,5 @@
 <?php
+// File: app/Http/Controllers/api/UsersController.php
 
 namespace App\Http\Controllers\api;
 
@@ -6,6 +7,7 @@ use App\Models\User;
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Validation\Rule;
 
 class UsersController extends Controller
 {
@@ -13,7 +15,6 @@ class UsersController extends Controller
     {
         $query = User::query();
 
-        // Lấy tham số tìm kiếm từ query string
         $search = $request->input('q');
 
         if ($search) {
@@ -23,10 +24,7 @@ class UsersController extends Controller
                   ->orWhere('role', 'like', "%{$search}%");
             });
         }
-
-        // Lấy danh sách người dùng
         $users = $query->get();
-
         return response()->json(['data' => $users], 200);
     }
 
@@ -36,18 +34,33 @@ class UsersController extends Controller
         return response()->json(['data' => $user], 200);
     }
 
+    // --- MODIFIED ---
     public function update(Request $request, $id)
     {
         $user = User::findOrFail($id);
 
         $validated = $request->validate([
-            'role' => 'required|in:admin,staff,client', // Chỉ cho phép chỉnh sửa vai trò
+            'role' => 'required|in:admin,staff,client',
+            // permissions phải là một mảng và có thể null
+            'permissions' => 'nullable|array',
+            // Mỗi item trong mảng permissions phải là một trong các giá trị hợp lệ
+            'permissions.*' => [
+                'string',
+                Rule::in(['manage_news', 'manage_contacts']), // <-- DANH SÁCH QUYỀN HỢP LỆ
+            ],
         ]);
+        
+        // Nếu vai trò là admin, permissions sẽ bị xóa để đảm bảo admin luôn có mọi quyền
+        $permissionsToUpdate = $validated['permissions'] ?? [];
+        if ($validated['role'] === 'admin') {
+            $permissionsToUpdate = []; // Admin không cần lưu permissions cụ thể
+        }
 
         $user->update([
             'role' => $validated['role'],
+            'permissions' => $permissionsToUpdate,
         ]);
 
-        return response()->json(['message' => 'Vai trò đã được cập nhật', 'data' => $user], 200);
+        return response()->json(['message' => 'Vai trò và quyền đã được cập nhật', 'data' => $user], 200);
     }
 }
