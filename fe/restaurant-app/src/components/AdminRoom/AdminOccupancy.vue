@@ -285,7 +285,7 @@ const showExtendModal = ref(false);
 const extendForm = ref({ room_id: null, check_out_date: '' });
 const additionalFee = ref(0); // Số tiền phụ thu
 const surchargeReason = ref(''); // Lý do phụ thu
-const apiKey = 'XXjjI5g9j7gk4NcZE9Dh9PPLCrvrR6zJ';
+const apiKey = 'UIOieiMUjnqR7UCrJrtF30wQaw8Jc4ys';
 
 const serviceTotal = computed(() =>
   allServices.value.reduce((sum, s) => sum + s.price * s.quantity, 0)

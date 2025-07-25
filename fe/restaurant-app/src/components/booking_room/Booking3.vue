@@ -509,11 +509,19 @@
                                         <p>Số Phòng Book:</p>
                                         <p>{{ selectedRooms.length }} Phòng</p>
                                     </div>
+                                    <div class="total">
+                                        <p>Số khách:</p>
+                                        <p>{{ totalAdults }} Người lớn - {{ totalChildren }} Trẻ em</p>
+                                    </div>
+                                    <div class="total" v-if="surchargeSucChua > 0">
+                                        <p>Phụ thụ sức chứa:</p>
+                                        <p>{{ formatPrice(surchargeSucChua) }}</p>
+                                    </div>
                                     <div v-for="(room, index) in selectedRooms" :key="index">
                                         <div class="total">
                                             <p>Phòng {{ index + 1 }} :
                                                 <span class="text-secondary fw-normal">{{ room.name
-                                                    }}</span>
+                                                }}</span>
                                             </p>
                                             <p>{{
                                                 formatPrice(room.price) }}</p>
@@ -545,8 +553,8 @@
                                         <div
                                             class="d-flex flex-column flex-md-row justify-content-between align-items-md-center mt-4 py-4 px-4 border border-info rounded-3 shadow-lg">
                                             <h6 class="mb-2 mb-md-0 fw-bold text-uppercase text-dark">Tổng Cộng Thanh
-                                                Toán:</h6>
-                                            <p class="h4 mb-0 fw-bolder text-primary">{{
+                                                Toán:  </h6>
+                                            <p class="h4 mb-0 fw-bolder text-primary"> {{
                                                 formatPrice(totalCostForAllRooms) }}</p>
                                         </div>
                                     </div>
@@ -877,8 +885,6 @@ const addBooking = (hotel) => {
 
     if (currentRooms < maxRooms) {
         // toast.success("Đã thêm phòng thành công!");
-
-
         const roomData = {
             ...hotel,
             total_days: hotel.total_days || 1,
@@ -891,7 +897,9 @@ const addBooking = (hotel) => {
         };
 
         selectedRooms.value.push(roomData);
-        selectedRooms.totalRooms = selectedRooms.value.length;
+        selectedRooms.totalAdults = totalAdults.value;
+        selectedRooms.totalChildren = totalChildren.value;
+        selectedRooms.totalRooms = selectedRooms.value.length;// tong so phong
         // Hiển thị toast luôn
         const toastEl = document.getElementById('roomToast');
         if (toastEl) {
@@ -916,15 +924,51 @@ const removeRoomFromModal = (index) => {
     rooms.value.splice(index, 1); // Xóa phòng tại chỉ số index từ danh sách rooms
 };
 //hien thi popup chon dich vu
+const surchargeSucChua = ref(0);
 const openPopupshowModalBooking = () => {
     if (selectedRooms.value.length === 0) {
         alert('Vui lòng chọn ít nhất một phòng trước khi đặt.');
         return;
     }
+
+    // Tính tổng sức chứa của các phòng đã chọn
+    let totalAdultsRoom = 0;
+    let totalChildrenRoom = 0;
+
+    selectedRooms.value.forEach(room => {
+        const roomCount = room.so_phong || 1;
+        totalAdultsRoom += (room.max_occupancy || 0) * roomCount;
+        totalChildrenRoom += (room.max_occupancy_child || 0) * roomCount;
+    });
+
+    // Người dùng chọn bao nhiêu người
+    const selectedAdults = selectedRooms.totalAdults || 0;
+    const selectedChildren = selectedRooms.totalChildren || 0;
+
+    // Tính số người vượt
+    const extraAdults = Math.max(0, selectedAdults - totalAdultsRoom);
+    const extraChildren = Math.max(0, selectedChildren - totalChildrenRoom);
+
+    // Tính phí phụ thu
+    const feeAdult = 50000;  // 50k/người lớn vượt
+    const feeChild = 30000;  // 30k/trẻ em vượt
+    surchargeSucChua.value = (extraAdults * feeAdult) + (extraChildren * feeChild);
+
+    // In ra kiểm tra
+    console.log('selectedRooms:', selectedRooms.value);
+    console.log('Tổng người lớn của phòng:', totalAdultsRoom);
+    console.log('Tổng trẻ em của phòng:', totalChildrenRoom);
+    console.log('Số người lớn khách chọn:', selectedAdults);
+    console.log('Số trẻ em khách chọn:', selectedChildren);
+    console.log('Phụ thu:', surchargeSucChua.value.toLocaleString(), 'VND');
+
+    // Nếu bạn có formBooking hoặc booking_details, có thể gán:
+    // formBooking.value.additional_fee = surcharge;
+
     showModalBooking.value = true;
-    //console.log(selectedRooms);
-    // console.log("totalRooms:", selectedRooms.totalRooms);//lay cai nay for booking_details  
 };
+
+
 const updateRoomTotal = (room, selectedServiceId) => {
     // Kiểm tra và thêm hoặc xóa service id trong serviceChoose
     if (selectedServiceId) {
@@ -955,7 +999,7 @@ const calculateRoomTotal = (room) => {
 // tinh tien dich vu all room
 const totalCostForAllRooms = computed(() => {
     return selectedRooms.value.reduce((total, room) => {
-        return total + calculateRoomTotal(room); // Cộng tổng tiền từng phòng
+        return total + surchargeSucChua.value + calculateRoomTotal(room); // Cộng tổng tiền từng phòng
     }, 0);
 });
 //lấy loại phòng
@@ -1040,6 +1084,7 @@ const getRoomPrices = async () => {
         // Gọi API lấy giá phòng thực tế
         const roomPricesResponse = await axios.post(`${apiUrl}/api/prices/prices_client`, requestData);
         const roomPrices = roomPricesResponse.data || [];
+        //console.log(roomPrices);
 
         // Cập nhật dữ liệu phòng
         hotels.value = hotels.value.map(room => {
