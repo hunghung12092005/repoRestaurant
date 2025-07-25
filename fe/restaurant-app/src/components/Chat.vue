@@ -130,7 +130,6 @@ const aiSuggestions = ref([
 ]);
 const suggestions = ref([
   'Tôi cần hỗ trợ chuyển khoản lỗi/nhầm',
-  'Hỗ trợ đặt bàn nhanh',
   'Hỗ trợ đặt phòng nhanh',
 ]);
 const showSuggestions = ref(false);
@@ -274,7 +273,7 @@ const messageData = {
       aiMessages.value.push({ user: 'AI', message: reply });
       message.value = ''; // Clear input after sending
     } catch (err) {
-      aiMessages.value.push({ user: 'AI', message: '❌ Lỗi khi gọi Gemini: ' + err.message });
+      aiMessages.value.push({ user: 'AI', message: 'Error: ' + err.message });
     } finally {
       loading.value = false;
       scrollToBottom();

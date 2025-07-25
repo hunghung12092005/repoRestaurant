@@ -37,17 +37,6 @@ Route::get('/protected', [ApiLoginController::class, 'someProtectedRoute']);
 Route::post('/login', [ApiLoginController::class, 'login']);
 Route::post('/register', [ApiLoginController::class, 'register']);
 
-// Route::get('/menu-categories', [MenuCategoryController::class, 'index']);
-// Route::post('/menu-categories', [MenuCategoryController::class, 'store']);
-// Route::put('/menu-categories/{id}', [MenuCategoryController::class, 'update']);
-// Route::delete('/menu-categories/{id}', [MenuCategoryController::class, 'destroy']);
-
-// Route::get('/occupancy/rooms', [OccupancyController::class, 'index']);
-// Route::get('/menus', [MenuController::class, 'index']);
-// Route::post('/menus', [MenuController::class, 'store']);
-// Route::put('/menus/{id}', [MenuController::class, 'update']);
-// Route::delete('/menus/{id}', [MenuController::class, 'destroy']);
-
 Route::get('/occupancy/rooms', [OccupancyController::class, 'index']);
 // Route::post('/customers', [OccupancyController::class, 'storeCustomer']); //thêm dữ liệu khách vào bảng customer
 Route::get('/occupancy/by-date', [OccupancyController::class, 'getRoomsByDate']); //lọc theo ngày
@@ -59,17 +48,13 @@ Route::post('/rooms/preview-price', [OccupancyController::class, 'previewPrice']
 Route::post('/rooms/{room_id}/extend', [OccupancyController::class, 'extendStay']); //gia hạn phòng
 Route::post('/customers/{id}/update-name', [OccupancyController::class, 'updateCustomerName']);
 // Cập nhật thông tin khách hàng
-
 Route::post('/contacts', [ContactController::class, 'store']);
 Route::get('/admin/contacts', [ContactController::class, 'index']);
 Route::delete('/admin/contacts/{contact}', [ContactController::class, 'destroy']);
 Route::post('/admin/contacts/{contact}/reply', [ContactController::class, 'reply']);
 Route::get('/admin/contacts/new', [ContactController::class, 'fetchNew']);
 
-
-
 Route::apiResource('users', UsersController::class);
-
 //news
 Route::get('/news/pinned', [NewsController::class, 'getPinned']);
 Route::apiResource('news', NewsController::class);
@@ -80,11 +65,6 @@ Route::post('/news/{newsId}/comments', [NewsCommentController::class, 'store']);
 Route::get('/news-comments', [NewsCommentController::class, 'index']);
 Route::delete('/comments/{comment}', [NewsCommentController::class, 'destroy']);
 Route::patch('/comments/{comment}/toggle-visibility', [NewsCommentController::class, 'toggleVisibility']);
-
-// Route::get('/room-types', [RoomTypeController::class, 'index']);
-// Route::post('/room-types', [RoomTypeController::class, 'store']);
-// Route::put('/room-types/{id}', [RoomTypeController::class, 'update']);
-// Route::delete('/room-types/{id}', [RoomTypeController::class, 'destroy']);
 
 Route::prefix('amenities')->group(function () {
     Route::get('/', [AmenityController::class, 'index']);
@@ -121,25 +101,10 @@ Route::prefix('prices')->group(function () {
 
 Route::get('/admin/dashboard/overview', [AdminDashboardController::class, 'getSystemOverview']);
 
-
-
-// Route::post('/rooms', [RoomController::class, 'store']);
-// Route::put('/rooms/{id}', [RoomController::class, 'update']);
-// Route::delete('/rooms/{id}', [RoomController::class, 'destroy']);
-
 Route::get('/rooms', [RoomController::class, 'index']);
 Route::post('/rooms', [RoomController::class, 'store']);
 Route::put('/rooms/{id}', [RoomController::class, 'update']);
 Route::delete('/rooms/{id}', [RoomController::class, 'destroy']);
-
-// Route::get('/bookings/form-data', [BookingController::class, 'getFormData']);
-// Route::get('/bookings', [BookingController::class, 'index']);
-// Route::get('/bookings/{booking_id}', [BookingController::class, 'show']);
-// Route::post('/bookings', [BookingController::class, 'store']);
-// Route::put('/bookings/{booking_id}', [BookingController::class, 'update']);
-// Route::patch('/bookings/{booking_id}/confirm', [BookingController::class, 'confirm'])->name('bookings.confirm');
-// Route::delete('/bookings/{booking_id}', [BookingController::class, 'destroy']);
-// Route::post('/bookings/check-availability', [BookingController::class, 'checkAvailability']);
 
 Route::post('/bookings', [BookingHotelController::class, 'storeBooking']);
 Route::get('/bookings', [BookingHotelController::class, 'getBookings']);
@@ -155,12 +120,7 @@ Route::get('/booking-histories', [BookingHistoryController::class, 'index']);
 Route::get('/booking-histories/{status_id}', [BookingHistoryController::class, 'show']);
 
 Route::post('/qr-login', [ApiLoginController::class, 'qrLogin']); // Thêm dòng này
-// Route::get('/menu-items', [MenuItemController::class, 'index']);
-// Route::post('/menu-items/array/{ids}', [MenuItemController::class, 'getItemArray']);
 
-// Route::get('/items-online', [ShopOnlineController::class, 'index']);
-// Route::get('/items-online/{id}', [ShopOnlineController::class, 'show']);
-// Route::get('/items-online/50k', [ShopOnlineController::class, 'getItem50k']);
 //quên mk gửi mail
 Route::post('/send-otp', [ApiLoginController::class, 'sendOtp']);
 Route::post('/verify-otp', [ApiLoginController::class, 'verifyOtp']);
