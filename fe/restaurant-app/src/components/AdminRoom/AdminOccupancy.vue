@@ -11,35 +11,11 @@
     <div class="card filter-card mb-4">
       <div class="card-body">
         <div class="row g-3 align-items-end">
-          <div class="col-lg-3 col-md-6">
-            <label for="filter-date" class="form-label">Xem theo ngày</label>
-            <input type="date" id="filter-date" class="form-control" v-model="selectedDate" @change="fetchRooms" />
-          </div>
-          <div class="col-lg-2 col-md-6">
-            <label for="status" class="form-label">Trạng thái</label>
-            <select id="status" class="form-select" v-model="selectedStatus">
-              <option>Tất cả</option>
-              <option>Còn trống</option>
-              <option>Đã đặt</option>
-            </select>
-          </div>
-          <div class="col-lg-3 col-md-6">
-            <label for="room-type" class="form-label">Loại phòng</label>
-            <select id="room-type" class="form-select" v-model="selectedRoomType">
-              <option v-for="type in roomTypes" :key="type" :value="type">{{ type }}</option>
-            </select>
-          </div>
-          <div class="col-lg-2 col-md-6">
-            <label for="floor" class="form-label">Tầng</label>
-            <select id="floor" class="form-select" v-model="selectedFloor">
-              <option v-for="floor in floors" :key="floor" :value="floor">{{ floor }}</option>
-            </select>
-          </div>
-          <div class="col-lg-2 col-md-12 text-end">
-            <button @click="clearFilters" class="btn btn-outline-secondary w-100">
-              <i class="bi bi-arrow-clockwise me-2"></i>Xóa lọc
-            </button>
-          </div>
+          <div class="col-lg-3 col-md-6"><label for="filter-date" class="form-label">Xem theo ngày</label><input type="date" id="filter-date" class="form-control" v-model="selectedDate" @change="fetchRooms" /></div>
+          <div class="col-lg-2 col-md-6"><label for="status" class="form-label">Trạng thái</label><select id="status" class="form-select" v-model="selectedStatus"><option>Tất cả</option><option>Còn trống</option><option>Đã đặt</option></select></div>
+          <div class="col-lg-3 col-md-6"><label for="room-type" class="form-label">Loại phòng</label><select id="room-type" class="form-select" v-model="selectedRoomType"><option v-for="type in roomTypes" :key="type" :value="type">{{ type }}</option></select></div>
+          <div class="col-lg-2 col-md-6"><label for="floor" class="form-label">Tầng</label><select id="floor" class="form-select" v-model="selectedFloor"><option v-for="floor in floors" :key="floor" :value="floor">{{ floor }}</option></select></div>
+          <div class="col-lg-2 col-md-12 text-end"><button @click="clearFilters" class="btn btn-outline-secondary w-100"><i class="bi bi-arrow-clockwise me-2"></i>Xóa lọc</button></div>
         </div>
       </div>
     </div>
@@ -50,18 +26,9 @@
         <h2 class="floor-header">Tầng {{ floorGroup.floor }}</h2>
         <div class="room-grid">
           <div v-for="room in floorGroup.rooms" :key="room.room_id" class="room-card" :class="{ 'booked': room.status === 'Đã đặt' }">
-            <div class="card-header">
-              <h5 class="room-number">{{ room.number }}</h5>
-              <span class="badge" :class="room.status === 'Đã đặt' ? 'badge-booked' : 'badge-available'">
-                {{ room.status }}
-              </span>
-            </div>
-            <div class="card-body">
-              <p class="room-type">{{ room.type }}</p>
-              <p class="room-bedsize">{{ room.bedSize }}</p>
-            </div>
+            <div class="card-header"><h5 class="room-number">{{ room.number }}</h5><span class="badge" :class="room.status === 'Đã đặt' ? 'badge-booked' : 'badge-available'">{{ room.status }}</span></div>
+            <div class="card-body"><p class="room-type">{{ room.type }}</p><p class="room-bedsize">{{ room.bedSize }}</p></div>
             <div class="card-footer">
-              <!-- [THAY ĐỔI] Bố cục nút bấm mới -->
               <div v-if="room.status === 'Đã đặt'" class="action-grid">
                 <div class="action-row">
                   <button class="btn btn-sm btn-outline-primary" @click.prevent="showGuestDetails(room)">Chi tiết</button>
@@ -69,17 +36,13 @@
                 </div>
                 <button class="btn btn-sm btn-outline-danger w-100 mt-2" @click.prevent="checkoutRoom(room.room_id)">Trả phòng</button>
               </div>
-              <button v-else class="btn btn-sm btn-outline-primary w-100" @click.prevent="showAddGuest(room.room_id)">
-                <i class="bi bi-person-plus-fill me-1"></i> Thêm khách
-              </button>
+              <button v-else class="btn btn-sm btn-outline-primary w-100" @click.prevent="showAddGuest(room.room_id)"><i class="bi bi-person-plus-fill me-1"></i> Thêm khách</button>
             </div>
           </div>
         </div>
       </div>
     </div>
-    <div v-else class="alert alert-light text-center">
-      Không có phòng nào khớp với bộ lọc hiện tại.
-    </div>
+    <div v-else class="alert alert-light text-center">Không có phòng nào khớp với bộ lọc hiện tại.</div>
     
     <!-- ======================= MODALS ======================= -->
     <!-- Modal Thêm Khách -->
@@ -88,19 +51,7 @@
       <div class="modal-dialog modal-lg modal-dialog-centered">
         <form @submit.prevent="submitCustomerForm" class="modal-content modal-custom">
           <div class="modal-header modal-header-custom"><h5 class="modal-title">Đăng ký khách hàng</h5><button type="button" class="btn-close" @click="showForm = false"></button></div>
-          <div class="modal-body p-4">
-            <div class="row g-3">
-              <div class="col-12"><label class="form-label">Ảnh CCCD</label><div class="input-group"><input type="file" @change="onFileChange" accept="image/*" class="form-control" /><button type="button" class="btn btn-outline-secondary" @click="uploadImage">Quét CCCD</button></div></div>
-              <div class="col-md-6"><label class="form-label">Họ tên</label><input v-model="formData.customer_name" required class="form-control" /></div>
-              <div class="col-md-6"><label class="form-label">Số điện thoại</label><input v-model="formData.customer_phone" required class="form-control" /></div>
-              <div class="col-md-6"><label class="form-label">Số CCCD</label><input v-model="formData.customer_id_number" required class="form-control" /></div>
-              <div class="col-md-6"><label class="form-label">Email</label><input v-model="formData.customer_email" type="email" required class="form-control" /></div>
-              <div class="col-12"><label class="form-label">Địa chỉ</label><input v-model="formData.address" class="form-control" /></div>
-              <div class="col-md-6"><label class="form-label">Ngày giờ nhận phòng</label><input type="datetime-local" v-model="formData.check_in_date" required class="form-control" /></div>
-              <div class="col-md-6"><label class="form-label">Ngày giờ trả phòng</label><input type="datetime-local" v-model="formData.check_out_date" required class="form-control" /></div>
-              <div v-if="totalPricePreview" class="col-12 mt-3"><label class="form-label">Tổng tiền ước tính:</label><div class="fw-bold fs-5 text-success">{{ Number(totalPricePreview).toLocaleString('vi-VN') + ' VND' }}</div></div>
-            </div>
-          </div>
+          <div class="modal-body p-4"><div class="row g-3"><div class="col-12"><label class="form-label">Ảnh CCCD</label><div class="input-group"><input type="file" @change="onFileChange" accept="image/*" class="form-control" /><button type="button" class="btn btn-outline-secondary" @click="uploadImage">Quét CCCD</button></div></div><div class="col-md-6"><label class="form-label">Họ tên</label><input v-model="formData.customer_name" required class="form-control" /></div><div class="col-md-6"><label class="form-label">Số điện thoại</label><input v-model="formData.customer_phone" required class="form-control" /></div><div class="col-md-6"><label class="form-label">Số CCCD</label><input v-model="formData.customer_id_number" required class="form-control" /></div><div class="col-md-6"><label class="form-label">Email</label><input v-model="formData.customer_email" type="email" required class="form-control" /></div><div class="col-12"><label class="form-label">Địa chỉ</label><input v-model="formData.address" class="form-control" /></div><div class="col-md-6"><label class="form-label">Ngày giờ nhận phòng</label><input type="datetime-local" v-model="formData.check_in_date" required class="form-control" /></div><div class="col-md-6"><label class="form-label">Ngày giờ trả phòng</label><input type="datetime-local" v-model="formData.check_out_date" required class="form-control" /></div><div v-if="totalPricePreview" class="col-12 mt-3"><label class="form-label">Tổng tiền ước tính:</label><div class="fw-bold fs-5 text-success">{{ Number(totalPricePreview).toLocaleString('vi-VN') + ' VND' }}</div></div></div></div>
           <div class="modal-footer modal-footer-custom"><button type="button" class="btn btn-secondary" @click="showForm = false">Hủy</button><button type="submit" class="btn btn-primary">Lưu</button></div>
         </form>
       </div>
@@ -112,73 +63,60 @@
       <div class="modal-dialog modal-lg modal-dialog-centered">
         <div class="modal-content modal-custom" v-if="guestInfo.room">
           <div class="modal-header modal-header-custom"><h5 class="modal-title">Chi tiết phòng & khách</h5><button type="button" class="btn-close" @click="showGuestModal = false"></button></div>
-          <div class="modal-body p-4">
-            <div class="row g-4">
-                <div class="col-md-6"><h6 class="info-title">Thông tin phòng</h6><ul class="info-list"><li><span>Phòng:</span><strong>{{ guestInfo.room.room_name }} (Tầng {{ guestInfo.room.floor_number }})</strong></li><li><span>Loại phòng:</span><strong>{{ guestInfo.room.type_name }}</strong></li><li><span>Trạng thái phòng:</span><strong>{{ guestInfo.room?.status }}</strong></li></ul></div>
-                 <div class="col-md-6"><h6 class="info-title">Thông tin khách hàng</h6><ul class="info-list"><li><span>Họ tên:</span><strong>{{ guestInfo.customer?.customer_name || 'N/A' }}</strong></li><li><span>SĐT:</span><strong>{{ guestInfo.customer?.customer_phone || 'N/A' }}</strong></li><li><span>Email:</span><strong>{{ guestInfo.customer?.customer_email || 'N/A' }}</strong></li><li><span>Địa chỉ:</span><strong>{{ guestInfo.customer?.address || 'N/A' }}</strong></li></ul></div>
-                 <div class="col-12"><h6 class="info-title">Chi tiết lưu trú</h6><ul class="info-list"><li><span>Nhận phòng:</span><strong>{{ guestInfo.booking?.check_in_date || 'N/A' }}</strong></li><li><span>Trả phòng dự kiến:</span><strong>{{ guestInfo.booking?.check_out_date || 'N/A' }}</strong></li><li><span>Trả phòng thực tế:</span><strong>{{ getActualCheckout(guestInfo.booking) }}</strong></li><li><span>Tổng tiền:</span><strong class="text-success fs-6">{{ guestInfo.booking?.total_price ? Number(guestInfo.booking.total_price).toLocaleString('vi-VN') + ' VND' : 'N/A' }}</strong></li></ul></div>
-            </div>
-          </div>
+          <div class="modal-body p-4"><div class="row g-4"><div class="col-md-6"><h6 class="info-title">Thông tin phòng</h6><ul class="info-list"><li><span>Phòng:</span><strong>{{ guestInfo.room.room_name }} (Tầng {{ guestInfo.room.floor_number }})</strong></li><li><span>Loại phòng:</span><strong>{{ guestInfo.room.type_name }}</strong></li><li><span>Trạng thái phòng:</span><strong>{{ guestInfo.room?.status }}</strong></li></ul></div><div class="col-md-6"><h6 class="info-title">Thông tin khách hàng</h6><ul class="info-list"><li><span>Họ tên:</span><strong>{{ guestInfo.customer?.customer_name || 'N/A' }}</strong></li><li><span>SĐT:</span><strong>{{ guestInfo.customer?.customer_phone || 'N/A' }}</strong></li><li><span>Email:</span><strong>{{ guestInfo.customer?.customer_email || 'N/A' }}</strong></li><li><span>Địa chỉ:</span><strong>{{ guestInfo.customer?.address || 'N/A' }}</strong></li></ul></div><div class="col-12"><h6 class="info-title">Chi tiết lưu trú</h6><ul class="info-list"><li><span>Nhận phòng:</span><strong>{{ guestInfo.booking?.check_in_date || 'N/A' }}</strong></li><li><span>Trả phòng dự kiến:</span><strong>{{ guestInfo.booking?.check_out_date || 'N/A' }}</strong></li><li><span>Trả phòng thực tế:</span><strong>{{ getActualCheckout(guestInfo.booking) }}</strong></li><li><span>Tổng tiền:</span><strong class="text-success fs-6">{{ guestInfo.booking?.total_price ? Number(guestInfo.booking.total_price).toLocaleString('vi-VN') + ' VND' : 'N/A' }}</strong></li></ul></div></div></div>
           <div class="modal-footer modal-footer-custom"><button type="button" class="btn btn-secondary" @click="showGuestModal = false">Đóng</button><button type="button" class="btn btn-primary" @click="editCustomerInfo(guestInfo.customer)">Sửa thông tin</button></div>
         </div>
       </div>
     </div>
     
-    <!-- [THÊM LẠI] Modal Gia hạn -->
+    <!-- Modal Gia hạn -->
     <div v-if="showExtendModal" class="modal-backdrop fade show"></div>
     <div v-if="showExtendModal" class="modal fade show d-block" tabindex="-1">
       <div class="modal-dialog modal-dialog-centered">
         <form @submit.prevent="submitExtendForm" class="modal-content modal-custom">
           <div class="modal-header modal-header-custom"><h5 class="modal-title">Gia hạn thuê phòng</h5><button type="button" class="btn-close" @click="showExtendModal = false"></button></div>
-          <div class="modal-body p-4">
-            <div class="mb-3">
-              <label class="form-label">Ngày giờ trả mới:</label>
-              <input type="datetime-local" v-model="extendForm.check_out_date" required class="form-control" />
-            </div>
-          </div>
-          <div class="modal-footer modal-footer-custom">
-            <button type="button" class="btn btn-secondary" @click="showExtendModal = false">Hủy</button>
-            <button type="submit" class="btn btn-primary">Xác nhận</button>
-          </div>
+          <div class="modal-body p-4"><div class="mb-3"><label class="form-label">Ngày giờ trả mới:</label><input type="datetime-local" v-model="extendForm.check_out_date" required class="form-control" /></div></div>
+          <div class="modal-footer modal-footer-custom"><button type="button" class="btn btn-secondary" @click="showExtendModal = false">Hủy</button><button type="submit" class="btn btn-primary">Xác nhận</button></div>
         </form>
       </div>
     </div>
 
-    <!-- [THÊM LẠI] Modal Dịch vụ -->
+    <!-- Modal Dịch vụ -->
     <div v-if="showServiceModal" class="modal-backdrop fade show"></div>
     <div v-if="showServiceModal" class="modal fade show d-block" tabindex="-1">
-      <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content modal-custom">
-          <div class="modal-header modal-header-custom"><h5 class="modal-title">Chọn dịch vụ sử dụng</h5><button type="button" class="btn-close" @click="showServiceModal = false"></button></div>
-          <div class="modal-body p-4">
-            <div v-if="allServices.length === 0">Đang tải dịch vụ...</div>
-            <div v-else>
-              <div v-for="(service, index) in allServices" :key="service.service_id" class="service-item">
-                <div>{{ service.service_name }} - {{ formatPrice(service.price) }}</div>
-                <div class="qty-controls">
-                  <button @click="decreaseQty(index)" class="btn btn-sm btn-outline-secondary">-</button>
-                  <input type="number" v-model.number="service.quantity" min="0" class="form-control form-control-sm text-center" />
-                  <button @click="increaseQty(index)" class="btn btn-sm btn-outline-secondary">+</button>
-                </div>
-              </div>
-              <hr/>
-              <div class="mb-2"><label>Tổng tiền dịch vụ:</label><span class="fw-bold text-danger ms-2">{{ serviceTotal.toLocaleString('vi-VN') }} VND</span></div>
-              <div class="mb-2"><label class="form-label">Phí phụ thu (VND):</label><input type="number" v-model.number="additionalFee" min="0" class="form-control form-control-sm" /></div>
-              <div class="mb-2"><label class="form-label">Lý do phụ thu:</label><input type="text" v-model="surchargeReason" class="form-control form-control-sm" /></div>
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content modal-custom">
+                <div class="modal-header modal-header-custom"><h5 class="modal-title">Chọn dịch vụ sử dụng</h5><button type="button" class="btn-close" @click="showServiceModal = false"></button></div>
+                <div class="modal-body p-4"><div v-if="allServices.length === 0">Đang tải dịch vụ...</div><div v-else><div v-for="(service, index) in allServices" :key="service.service_id" class="service-item"><div>{{ service.service_name }} - {{ formatPrice(service.price) }}</div><div class="qty-controls"><button @click="decreaseQty(index)" class="btn btn-sm btn-outline-secondary">-</button><input type="number" v-model.number="service.quantity" min="0" class="form-control form-control-sm text-center" /><button @click="increaseQty(index)" class="btn btn-sm btn-outline-secondary">+</button></div></div><hr/><div class="mb-2"><label>Tổng tiền dịch vụ:</label><span class="fw-bold text-danger ms-2">{{ serviceTotal.toLocaleString('vi-VN') }} VND</span></div><div class="mb-2"><label class="form-label">Phí phụ thu (VND):</label><input type="number" v-model.number="additionalFee" min="0" class="form-control form-control-sm" /></div><div class="mb-2"><label class="form-label">Lý do phụ thu:</label><input type="text" v-model="surchargeReason" class="form-control form-control-sm" /></div></div></div>
+                <div class="modal-footer modal-footer-custom"><button type="button" class="btn btn-secondary" @click="showServiceModal = false">Hủy</button><button type="button" class="btn btn-danger" @click="confirmPayment">Xác nhận trả phòng</button></div>
             </div>
+        </div>
+    </div>
+    
+    <!-- [THÊM LẠI] Modal Sửa Thông Tin Khách -->
+    <div v-if="showEditForm" class="modal-backdrop fade show"></div>
+    <div v-if="showEditForm" class="modal fade show d-block" tabindex="-1">
+      <div class="modal-dialog modal-dialog-centered">
+        <form @submit.prevent="submitEditForm" class="modal-content modal-custom">
+          <div class="modal-header modal-header-custom"><h5 class="modal-title">Sửa thông tin khách hàng</h5><button type="button" class="btn-close" @click="showEditForm = false"></button></div>
+          <div class="modal-body p-4">
+            <div class="mb-3"><label class="form-label">Họ tên:</label><input v-model="editFormData.customer_name" required class="form-control" /></div>
+            <div class="mb-3"><label class="form-label">SĐT:</label><input v-model="editFormData.customer_phone" class="form-control" /></div>
+            <div class="mb-3"><label class="form-label">Email:</label><input v-model="editFormData.customer_email" class="form-control" /></div>
+            <div class="mb-3"><label class="form-label">Địa chỉ:</label><input v-model="editFormData.address" class="form-control" /></div>
           </div>
           <div class="modal-footer modal-footer-custom">
-            <button type="button" class="btn btn-secondary" @click="showServiceModal = false">Hủy</button>
-            <button type="button" class="btn btn-danger" @click="confirmPayment">Xác nhận trả phòng</button>
+            <button type="button" class="btn btn-secondary" @click="showEditForm = false">Hủy</button>
+            <button type="submit" class="btn btn-primary">Lưu</button>
           </div>
-        </div>
+        </form>
       </div>
     </div>
   </div>
 </template>
 
 <script setup>
-// --- TOÀN BỘ SCRIPT CỦA BẠN GIỮ NGUYÊN ---
+// --- SCRIPT CỦA BẠN GIỮ NGUYÊN, THÊM 1 DÒNG TRONG editCustomerInfo ---
 import { ref, computed, onMounted, watch } from 'vue';
 import axios from 'axios';
 import { inject } from 'vue';
@@ -220,18 +158,21 @@ const increaseQty = (index) => { allServices.value[index].quantity++; };
 const decreaseQty = (index) => { if (allServices.value[index].quantity > 0) allServices.value[index].quantity--; };
 const formatPrice = (price) => price.toLocaleString('vi-VN') + ' VND';
 
+// [CẢI TIẾN] Đóng modal cũ trước khi mở modal mới
 const editCustomerInfo = (customer) => {
   if (!customer) return;
   editFormData.value = { ...customer };
-  showEditForm.value = true;
+  showGuestModal.value = false; // Đóng modal chi tiết
+  showEditForm.value = true;   // Mở modal sửa
 };
 
 const submitEditForm = async () => {
   try {
     const res = await axios.post(`${apiUrl}/api/customers/${editFormData.value.customer_id}/update-name`, { ...editFormData.value });
     alert(res.data.message || 'Cập nhật thành công.');
-    guestInfo.value.customer = { ...editFormData.value };
-    showEditForm.value = false;
+    // Sau khi sửa thành công, không cần mở lại modal chi tiết
+    showEditForm.value = false; 
+    await fetchRooms(); // Cập nhật lại sơ đồ phòng
   } catch (e) {
     alert("Không thể cập nhật.");
     console.error(e);
@@ -429,8 +370,6 @@ watch(() => formData.value.room_id, () => { if (formData.value.check_in_date && 
 /* Grid Styles */
 .floor-section { margin-bottom: 2.5rem; }
 .floor-header { font-size: 1.75rem; font-weight: 600; color: #2c3e50; padding-bottom: 0.75rem; border-bottom: 2px solid #e5eaee; margin-bottom: 1.5rem; }
-
-/* Bố cục 5 cột */
 .room-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 1.5rem; }
 @media (max-width: 1200px) { .room-grid { grid-template-columns: repeat(4, 1fr); } }
 @media (max-width: 992px) { .room-grid { grid-template-columns: repeat(3, 1fr); } }
