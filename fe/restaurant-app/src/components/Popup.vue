@@ -31,6 +31,10 @@
                         </li>
                         <li class="policy-item">
                             <span class="bullet-icon">•</span>
+                            <span class="item-text">Mỗi phòng có sức chứa được niêm yết sẵn nếu số người vượt quá quy định sẽ tính thêm phụ thu theo số người .</span>
+                        </li>
+                        <li class="policy-item">
+                            <span class="bullet-icon">•</span>
                             <span class="item-text">Phòng nghỉ giờ: Lưu trú 6 tiếng trở xuống tính tiền theo giờ.</span>
                         </li>
                         <li class="policy-item">

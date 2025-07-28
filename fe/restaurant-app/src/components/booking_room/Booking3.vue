@@ -1063,9 +1063,9 @@ const getRoomTypes = async () => {
                 m2: room.m2,
                 available_rooms: availabilityMap[typeId] || 0
             };
-        });
+        }).reverse();
 
-        console.log("Hotels:", hotels.value); // Kiểm tra dữ liệu phòng đã lấy
+        //console.log("Hotels:", hotels.value); // Kiểm tra dữ liệu phòng đã lấy
         // showPopup.value = true;
 
     } catch (error) {
