@@ -9,23 +9,18 @@ use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\DB;
 use Carbon\Carbon;
+use Illuminate\Support\Facades\File;
 
 class RoomTypeController extends Controller
 {
-    public function index()
+     public function index()
     {
         try {
-            $roomTypes = RoomType::with(['amenities', 'services'])->get();
-            return response()->json([
-                'status' => true,
-                'data' => $roomTypes,
-            ], 200);
+            $roomTypes = RoomType::with(['amenities', 'services'])->orderBy('type_id', 'desc')->get();
+            return response()->json(['status' => true, 'data' => $roomTypes], 200);
         } catch (\Exception $e) {
             Log::error('Lỗi lấy danh sách loại phòng: ' . $e->getMessage());
-            return response()->json([
-                'status' => false,
-                'message' => 'Lấy danh sách loại phòng thất bại: ' . $e->getMessage(),
-            ], 500);
+            return response()->json(['status' => false, 'message' => 'Lấy danh sách thất bại'], 500);
         }
     }
 
@@ -36,29 +31,26 @@ class RoomTypeController extends Controller
             'description' => 'nullable|string',
             'bed_count' => 'required|integer|min:1',
             'max_occupancy' => 'required|integer|min:1',
-            'max_occupancy_child' => 'required|integer|min:1',
-            'images.*' => 'nullable|image|mimes:jpeg,png,jpg|max:2048',
+            'max_occupancy_child' => 'required|integer|min:0',
+            'images' => 'nullable|array',
+            'images.*' => 'image|mimes:jpeg,png,jpg,webp|max:2048',
             'amenity_ids' => 'nullable|array',
             'amenity_ids.*' => 'exists:amenities,amenity_id'
         ]);
 
         if ($validator->fails()) {
-            return response()->json([
-                'status' => false,
-                'message' => 'Dữ liệu không hợp lệ',
-                'errors' => $validator->errors(),
-            ], 422);
+            return response()->json(['status' => false, 'message' => 'Dữ liệu không hợp lệ', 'errors' => $validator->errors()], 422);
         }
 
+        DB::beginTransaction();
         try {
-            DB::beginTransaction();
-
-            $imagePath = null;
+            $imageNames = [];
             if ($request->hasFile('images')) {
-                $image = $request->file('images')[0]; // Chỉ lấy ảnh đầu tiên
-                $imageName = time() . '_' . uniqid() . '.' . $image->getClientOriginalExtension();
-                $image->move(public_path('images/room_type'), $imageName);
-                $imagePath = $imageName;
+                foreach ($request->file('images') as $image) {
+                    $imageName = time() . '_' . uniqid() . '.' . $image->getClientOriginalExtension();
+                    $image->move(public_path('images/room_type'), $imageName);
+                    $imageNames[] = $imageName;
+                }
             }
 
             $roomType = RoomType::create([
@@ -67,31 +59,19 @@ class RoomTypeController extends Controller
                 'bed_count' => $request->bed_count,
                 'max_occupancy' => $request->max_occupancy,
                 'max_occupancy_child' => $request->max_occupancy_child,
-                'images' => $imagePath ? json_encode([$imagePath]) : null,
+                'images' => !empty($imageNames) ? json_encode($imageNames) : null,
             ]);
 
             if ($request->has('amenity_ids')) {
                 $roomType->amenities()->sync($request->amenity_ids);
             }
-            if ($request->has('service_ids')) {
-                $roomType->services()->sync($request->service_ids);
-            }
-
             DB::commit();
 
-            $roomType->load(['amenities', 'services']);
-            return response()->json([
-                'status' => true,
-                'data' => $roomType,
-                'message' => 'Thêm loại phòng thành công',
-            ], 201);
+            return response()->json(['status' => true, 'data' => $roomType, 'message' => 'Thêm loại phòng thành công'], 201);
         } catch (\Exception $e) {
             DB::rollBack();
             Log::error('Lỗi thêm loại phòng: ' . $e->getMessage());
-            return response()->json([
-                'status' => false,
-                'message' => 'Thêm loại phòng thất bại: ' . $e->getMessage(),
-            ], 500);
+            return response()->json(['status' => false, 'message' => 'Thêm loại phòng thất bại'], 500);
         }
     }
 
@@ -99,10 +79,7 @@ class RoomTypeController extends Controller
     {
         $roomType = RoomType::find($type_id);
         if (!$roomType) {
-            return response()->json([
-                'status' => false,
-                'message' => 'Loại phòng không tồn tại',
-            ], 404);
+            return response()->json(['status' => false, 'message' => 'Loại phòng không tồn tại'], 404);
         }
 
         $validator = Validator::make($request->all(), [
@@ -110,42 +87,44 @@ class RoomTypeController extends Controller
             'description' => 'nullable|string',
             'bed_count' => 'required|integer|min:1',
             'max_occupancy' => 'required|integer|min:1',
-            'max_occupancy_child' => 'required|integer|min:1',
-            'images.*' => 'nullable|image|mimes:jpeg,png,jpg|max:2048',
+            'max_occupancy_child' => 'required|integer|min:0',
+            'images' => 'nullable|array',
+            'images.*' => 'image|mimes:jpeg,png,jpg,webp|max:2048',
+            'existing_images' => 'nullable|array',
             'amenity_ids' => 'nullable|array',
             'amenity_ids.*' => 'exists:amenities,amenity_id'
         ]);
 
         if ($validator->fails()) {
-            return response()->json([
-                'status' => false,
-                'message' => 'Dữ liệu không hợp lệ',
-                'errors' => $validator->errors(),
-            ], 422);
+            return response()->json(['status' => false, 'message' => 'Dữ liệu không hợp lệ', 'errors' => $validator->errors()], 422);
         }
 
+        DB::beginTransaction();
         try {
-            DB::beginTransaction();
+            // Bước 1: Xử lý ảnh cũ
+            $oldImages = $roomType->images ? json_decode($roomType->images, true) : [];
+            $keptImages = $request->input('existing_images', []);
+            $imagesToDelete = array_diff($oldImages, $keptImages);
 
-            $existingImages = $roomType->images ? json_decode($roomType->images, true) : [];
-            if ($request->hasFile('images')) {
-                // Xóa ảnh cũ nếu có ảnh mới
-                if (!empty($existingImages)) {
-                    foreach ($existingImages as $oldImage) {
-                        $filePath = public_path('images/room_type/' . $oldImage);
-                        if (file_exists($filePath)) {
-                            unlink($filePath);
-                        }
-                    }
+            foreach ($imagesToDelete as $imageFile) {
+                $filePath = public_path('images/room_type/' . $imageFile);
+                if (File::exists($filePath)) {
+                    File::delete($filePath);
                 }
-                // Lưu chỉ 1 ảnh mới
-                $image = $request->file('images')[0];
-                $imageName = time() . '_' . uniqid() . '.' . $image->getClientOriginalExtension();
-                $image->move(public_path('images/room_type'), $imageName);
-                $newImages = [$imageName];
-            } else {
-                $newImages = $existingImages; // Giữ ảnh cũ nếu không có ảnh mới
             }
+
+            // Bước 2: Tải lên ảnh mới
+            $newImageNames = [];
+            if ($request->hasFile('images')) {
+                foreach ($request->file('images') as $image) {
+                    $imageName = time() . '_' . uniqid() . '.' . $image->getClientOriginalExtension();
+                    $image->move(public_path('images/room_type'), $imageName);
+                    $newImageNames[] = $imageName;
+                }
+            }
+
+            // Bước 3: Kết hợp ảnh cũ và mới để cập nhật DB
+            $finalImageNames = array_merge($keptImages, $newImageNames);
 
             $roomType->update([
                 'type_name' => $request->type_name,
@@ -153,27 +132,17 @@ class RoomTypeController extends Controller
                 'bed_count' => $request->bed_count,
                 'max_occupancy' => $request->max_occupancy,
                 'max_occupancy_child' => $request->max_occupancy_child,
-                'images' => !empty($newImages) ? json_encode($newImages) : null,
+                'images' => !empty($finalImageNames) ? json_encode($finalImageNames) : null,
             ]);
 
-            $roomType->amenities()->sync($request->amenity_ids ?? []);
-            $roomType->services()->sync($request->service_ids ?? []);
-
+            $roomType->amenities()->sync($request->input('amenity_ids', []));
             DB::commit();
 
-            $roomType->load(['amenities', 'services']);
-            return response()->json([
-                'status' => true,
-                'data' => $roomType,
-                'message' => 'Cập nhật loại phòng thành công',
-            ], 200);
+            return response()->json(['status' => true, 'data' => $roomType, 'message' => 'Cập nhật loại phòng thành công'], 200);
         } catch (\Exception $e) {
             DB::rollBack();
             Log::error('Lỗi cập nhật loại phòng: ' . $e->getMessage());
-            return response()->json([
-                'status' => false,
-                'message' => 'Cập nhật loại phòng thất bại: ' . $e->getMessage(),
-            ], 500);
+            return response()->json(['status' => false, 'message' => 'Cập nhật loại phòng thất bại'], 500);
         }
     }
 
@@ -181,45 +150,36 @@ class RoomTypeController extends Controller
     {
         $roomType = RoomType::find($type_id);
         if (!$roomType) {
-            return response()->json([
-                'status' => false,
-                'message' => 'Loại phòng không tồn tại',
-            ], 404);
+            return response()->json(['status' => false, 'message' => 'Loại phòng không tồn tại'], 404);
         }
 
+        DB::beginTransaction();
         try {
+            if ($roomType->rooms()->count() > 0) {
+                DB::rollBack();
+                return response()->json(['status' => false, 'message' => 'Không thể xóa loại phòng vì đang có phòng trực thuộc.'], 400);
+            }
+
             if ($roomType->images) {
                 $images = json_decode($roomType->images, true);
                 foreach ($images as $image) {
                     $filePath = public_path('images/room_type/' . $image);
-                    if (file_exists($filePath)) {
-                        unlink($filePath);
+                    if (File::exists($filePath)) {
+                        File::delete($filePath);
                     }
                 }
             }
 
-            if ($roomType->rooms()->count() > 0) {
-                return response()->json([
-                    'status' => false,
-                    'message' => 'Không thể xóa loại phòng vì có phòng đang sử dụng nó',
-                ], 400);
-            }
-
-            DB::beginTransaction();
+            $roomType->amenities()->detach();
+            $roomType->services()->detach();
             $roomType->delete();
-            DB::commit();
 
-            return response()->json([
-                'status' => true,
-                'message' => 'Xóa loại phòng thành công',
-            ], 200);
+            DB::commit();
+            return response()->json(['status' => true, 'message' => 'Xóa loại phòng thành công'], 200);
         } catch (\Exception $e) {
             DB::rollBack();
             Log::error('Lỗi xóa loại phòng: ' . $e->getMessage());
-            return response()->json([
-                'status' => false,
-                'message' => 'Xóa loại phòng thất bại: ' . $e->getMessage(),
-            ], 500);
+            return response()->json(['status' => false, 'message' => 'Xóa loại phòng thất bại'], 500);
         }
     }
 

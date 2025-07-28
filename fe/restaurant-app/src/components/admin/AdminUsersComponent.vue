@@ -49,7 +49,8 @@
             </td>
             <td>
                <div class="tags-container">
-                <span v-if="!user.permissions || user.permissions.length === 0" class="badge badge-secondary">Không có quyền</span>
+                <span v-if="user.role === 'admin'" class="badge badge-success">Tất cả quyền</span>
+                <span v-else-if="!user.permissions || !user.permissions.length" class="badge badge-secondary">Không có</span>
                 <span v-else v-for="permission in user.permissions.slice(0, 2)" :key="permission" class="badge badge-info">
                   {{ getPermissionLabel(permission) }}
                 </span>
@@ -124,7 +125,8 @@
                 </div>
                  <div class="col-12">
                     <p class="mb-1 text-muted">Quyền cụ thể</p>
-                    <ul class="list-group list-group-flush" v-if="selectedUser.permissions && selectedUser.permissions.length > 0">
+                    <p v-if="selectedUser.role === 'admin'" class="fst-italic text-success">Admin có tất cả các quyền.</p>
+                    <ul class="list-group list-group-flush" v-else-if="selectedUser.permissions && selectedUser.permissions.length > 0">
                          <li class="list-group-item px-0" v-for="permission in selectedUser.permissions" :key="permission">
                             <i class="bi bi-check-circle-fill text-success me-2"></i>{{ getPermissionLabel(permission) }}
                         </li>
@@ -163,7 +165,7 @@
 
                 <div class="col-12">
                   <label class="form-label">Quyền cụ thể</label>
-                  <div class="checkbox-list" :class="{ 'disabled-list': form.role === 'client' }">
+                  <div class="checkbox-list" :class="{ 'disabled-list': form.role !== 'staff' }">
                     <div class="form-check form-switch" v-for="permission in availablePermissions" :key="permission.value">
                        <input
                         class="form-check-input"
@@ -171,13 +173,14 @@
                         role="switch"
                         :value="permission.value"
                         v-model="form.permissions"
-                        :disabled="form.role === 'client'"
+                        :disabled="form.role !== 'staff'"
                         :id="'perm-' + permission.value"
                       >
                       <label class="form-check-label" :for="'perm-' + permission.value">{{ permission.label }}</label>
                     </div>
                   </div>
-                   <small v-if="form.role === 'client'" class="form-text text-muted mt-2 d-block">Quyền chỉ có thể gán cho vai trò "Admin" hoặc "Staff".</small>
+                   <small v-if="form.role === 'admin'" class="form-text text-info mt-2 d-block">Admin luôn có tất cả các quyền. Không thể thay đổi.</small>
+                   <small v-if="form.role === 'client'" class="form-text text-muted mt-2 d-block">Client không có quyền hạn.</small>
                 </div>
               </div>
             </form>
@@ -229,65 +232,6 @@ const axiosConfig = axios.create({
   },
 });
 
-// === FIXED: Logic mở modal đã được sửa lại ===
-const openEditRoleModal = (user) => {
-  // Logic đúng: Luôn lấy quyền từ đối tượng người dùng được truyền vào.
-  // Không có logic `if (user.role === 'admin')` nào ở đây nữa.
-  // Điều này đảm bảo trạng thái hiển thị trong modal luôn khớp với CSDL.
-  form.value = {
-      id: user.id,
-      role: user.role,
-      // Tạo một bản sao của mảng để tránh các vấn đề về tham chiếu trong Vue
-      permissions: user.permissions ? [...user.permissions] : [] 
-  };
-
-  if (!editRoleModal) {
-      editRoleModal = new Modal(document.getElementById('editRoleModal'));
-  }
-  editRoleModal.show();
-};
-
-const saveRole = async () => {
-  try {
-    let permissionsToSend = form.value.permissions;
-    if (form.value.role === 'client') {
-        permissionsToSend = [];
-    }
-    
-    const response = await axiosConfig.put(`/api/users/${form.value.id}`, {
-        role: form.value.role,
-        permissions: permissionsToSend
-    });
-    
-    const updatedUser = response.data.data;
-    const loggedInUser = JSON.parse(localStorage.getItem('userInfo') || '{}');
-
-    // Cập nhật trạng thái tức thì nếu người dùng tự sửa quyền của chính mình
-    if (loggedInUser && loggedInUser.id === updatedUser.id) {
-      if (updateAndRefreshUserInfo) {
-        updateAndRefreshUserInfo(updatedUser);
-      }
-    }
-
-    showNotification('Cập nhật vai trò và quyền thành công!');
-    await fetchUsers(); // Tải lại danh sách để cập nhật bảng
-    closeModal('edit');
-    
-  } catch (error) {
-    const errorMessage = error.response?.data?.message || 'Cập nhật thất bại.';
-    showNotification(errorMessage, 'error');
-  }
-};
-
-// Watcher này chỉ còn tác dụng khi chuyển vai trò thành 'client' trong form
-watch(() => form.value.role, (newRole, oldRole) => {
-  if (newRole === 'client' && oldRole !== 'client') {
-    form.value.permissions = [];
-  }
-});
-
-
-// Các hàm còn lại không thay đổi
 const showNotification = (message, type = 'success') => {
   alertType.value = type === 'success' ? 'alert-success' : 'alert-danger';
   alertMessage.value = message;
@@ -297,9 +241,7 @@ const showNotification = (message, type = 'success') => {
 
 const fetchUsers = async () => {
   try {
-    const response = await axiosConfig.get('/api/users', {
-      params: { q: searchQuery.value },
-    });
+    const response = await axiosConfig.get('/api/users', { params: { q: searchQuery.value } });
     users.value = (response.data.data || response.data).map(user => ({
         ...user,
         permissions: user.permissions || []
@@ -308,6 +250,64 @@ const fetchUsers = async () => {
     showNotification('Không thể tải danh sách người dùng.', 'error');
   }
 };
+
+// === MODIFIED: Logic mở modal đã được cập nhật ===
+const openEditRoleModal = (user) => {
+  form.value = {
+      id: user.id,
+      role: user.role,
+      // Nếu user là admin, tự động chọn tất cả quyền. Ngược lại, lấy quyền thực tế.
+      permissions: user.role === 'admin' 
+          ? availablePermissions.value.map(p => p.value) 
+          : (user.permissions ? [...user.permissions] : [])
+  };
+
+  if (!editRoleModal) {
+      editRoleModal = new Modal(document.getElementById('editRoleModal'));
+  }
+  editRoleModal.show();
+};
+
+const saveRole = async () => {
+  // Với logic admin cố định, chúng ta không cần gửi mảng permissions cho admin nữa
+  const payload = {
+      role: form.value.role,
+      // Chỉ gửi mảng permissions nếu vai trò là 'staff'
+      permissions: form.value.role === 'staff' ? form.value.permissions : []
+  };
+
+  try {
+    const response = await axiosConfig.put(`/api/users/${form.value.id}`, payload);
+    
+    const updatedUser = response.data.data;
+    const loggedInUser = JSON.parse(localStorage.getItem('userInfo') || '{}');
+    if (loggedInUser && loggedInUser.id === updatedUser.id) {
+      if (updateAndRefreshUserInfo) {
+        updateAndRefreshUserInfo(updatedUser);
+      }
+    }
+
+    showNotification(response.data.message || 'Cập nhật thành công!');
+    await fetchUsers();
+    closeModal('edit');
+    
+  } catch (error) {
+    const errorMessage = error.response?.data?.message || 'Cập nhật thất bại.';
+    showNotification(errorMessage, 'error');
+  }
+};
+
+// === MODIFIED: Watcher cập nhật trạng thái checkbox khi vai trò thay đổi ===
+watch(() => form.value.role, (newRole) => {
+  if (newRole === 'admin') {
+    // Khi chuyển vai trò thành admin, tự động chọn tất cả quyền
+    form.value.permissions = availablePermissions.value.map(p => p.value);
+  } else if (newRole === 'client') {
+    // Khi chuyển thành client, xóa hết quyền
+    form.value.permissions = [];
+  }
+  // Khi chuyển sang staff, không làm gì để người dùng tự chọn
+});
 
 const closeModal = (modalType) => {
     if (modalType === 'edit' && editRoleModal) {
@@ -333,9 +333,7 @@ const pageRange = computed(() => {
   const maxPages = 5;
   let start = Math.max(1, currentPage.value - Math.floor(maxPages / 2));
   let end = Math.min(totalPages.value, start + maxPages - 1);
-  if (end - start + 1 < maxPages) {
-    start = Math.max(1, end - maxPages + 1);
-  }
+  if (end - start + 1 < maxPages) { start = Math.max(1, end - maxPages + 1); }
   return Array.from({ length: end - start + 1 }, (_, i) => start + i);
 });
 
@@ -377,6 +375,7 @@ watch(searchQuery, () => {
 <style scoped>
 @import url('https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@300;400;500;600;700&display=swap');
 @import url('https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css');
+/* CSS đầy đủ đã được cung cấp ở các câu trả lời trước, giữ nguyên không đổi */
 .page-container { font-family: 'Be Vietnam Pro', sans-serif; background-color: #f4f7f9; padding: 2rem; color: #34495e; }
 .page-header { border-bottom: 1px solid #e5eaee; padding-bottom: 1rem; }
 .page-title { font-size: 2rem; font-weight: 700; }

@@ -32,11 +32,11 @@
         <div class="col-lg-4 col-md-6">
           <h5 class="footer-title">Liên kết nhanh</h5>
           <ul class="footer-links list-unstyled">
-            <li><a href="#">Trang chủ</a></li>
-            <li><a href="#">Về chúng tôi</a></li>
-            <li><a href="#">Các loại phòng</a></li>
-            <li><a href="#">Dịch vụ & Tiện ích</a></li>
-            <li><a href="#">Liên hệ</a></li>
+            <li><a href="/">Trang chủ</a></li>
+            <li><a href="/about">Giới thiệu</a></li>
+            <li><a href="/rooms3">Đặt phòng</a></li>
+            <li><a href="/news">Tin tức</a></li>
+            <li><a href="/contact">Liên hệ</a></li>
           </ul>
         </div>
 
