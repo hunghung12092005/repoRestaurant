@@ -1,0 +1,46 @@
+<?php
+
+namespace App\Http\Controllers;
+
+use App\Models\Discount;
+use Illuminate\Http\Request;
+
+class CouponsController extends Controller
+{
+    public function getDiscountAmount(Request $request)
+    {
+        // Bước 1: Xác thực đầu vào
+        $request->validate([
+            'code' => 'required|string', // Đảm bảo rằng 'code' là một chuỗi và không được để trống
+        ]);
+
+        // Bước 2: Tìm mã giảm giá trong cơ sở dữ liệu
+        $discount = Discount::where('code', $request->code)->first();
+
+        // Bước 3: Kiểm tra xem mã giảm giá có tồn tại không
+        if (!$discount) {
+            return response()->json(['message' => 'Mã giảm giá không tồn tại'], 404);
+        }
+
+        // Bước 4: Lấy ngày hiện tại
+        $currentDate = now();
+
+        // Bước 5: Kiểm tra trạng thái hoạt động
+        if (!$discount->is_active) {
+            return response()->json(['message' => 'Mã giảm giá không hoạt động'], 400);
+        }
+
+        // Bước 6: Kiểm tra số lượt sử dụng
+        if ($discount->used_count >= $discount->usage_limit) {
+            return response()->json(['message' => 'Mã giảm giá đã hết lượt sử dụng'], 400);
+        }
+
+        // Bước 7: Kiểm tra ngày hết hạn
+        if ($discount->expires_at !== null && $currentDate >= $discount->expires_at) {
+            return response()->json(['message' => 'Mã giảm giá đã hết hạn'], 400);
+        }
+
+        // Bước 8: Nếu tất cả điều kiện đều đúng, trả về số tiền giảm giá
+        return response()->json(['discount_amount' => $discount->discount_amount]);
+    }
+}

@@ -19,6 +19,7 @@ use App\Http\Controllers\api\AdminDashboardController;
 use App\Http\Controllers\api\ContactController;
 use App\Http\Controllers\api\BookingHistoryController;
 use App\Http\Controllers\ChatAIController;
+use App\Http\Controllers\CouponsController;
 use App\Http\Controllers\FileController;
 use App\Http\Controllers\WebhookController;
 use App\Models\BookingHistory;
@@ -151,3 +152,5 @@ Route::delete('/hotel-infos/{id}', [ChatAIController::class, 'destroy']);
 Route::post('/upload', [FileController::class, 'upload']);
 //api webhook
 Route::get('/webhook-url', [WebhookController::class, 'handleWebhook']);
+//giam gia
+Route::post('/discount', [CouponsController::class, 'getDiscountAmount']);
