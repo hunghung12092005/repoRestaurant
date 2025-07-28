@@ -57,8 +57,8 @@
             </td>
             <td class="text-center">
               <img
-                v-if="getImageUrl(type.images)"
-                :src="getImageUrl(type.images)"
+                v-if="getFirstImageUrl(type.images)"
+                :src="getFirstImageUrl(type.images)"
                 alt="Room type image"
                 class="room-image"
                 @error="onImageError"
@@ -138,23 +138,34 @@
               </div>
               <div class="col-md-6">
                 <label class="form-label">Sức Chứa Trẻ Em</label>
-                <input type="number" v-model.number="newType.max_occupancy_child" class="form-control" min="1" required />
+                <input type="number" v-model.number="newType.max_occupancy_child" class="form-control" min="0" required />
               </div>
               <div class="col-12">
                 <label class="form-label">Mô Tả</label>
                 <textarea v-model="newType.description" class="form-control" rows="3"></textarea>
               </div>
 
-              <!-- Giao diện upload ảnh -->
+              <!-- Giao diện upload nhiều ảnh -->
               <div class="col-12">
-                <label class="form-label d-block mb-2">Ảnh Đại Diện</label>
+                 <label class="form-label d-block mb-2">Ảnh Loại Phòng</label>
                 <input
                   type="file"
                   accept="image/*"
                   ref="fileInput"
                   @change="handleImageUpload"
                   style="display: none"
+                  multiple
                 />
+                
+                <div v-if="imagePreviews.length > 0" class="image-previews-container mb-3">
+                    <div v-for="(preview, index) in imagePreviews" :key="preview.url" class="image-preview-item">
+                        <img :src="preview.url" alt="Preview" class="image-preview"/>
+                        <button @click="removeImage(index)" class="btn-remove-image" title="Xóa ảnh">
+                            <i class="bi bi-x-lg"></i>
+                        </button>
+                    </div>
+                </div>
+
                 <div
                   class="image-uploader"
                   @click="triggerFileInput"
@@ -163,17 +174,10 @@
                   @drop.prevent="handleDrop"
                   :class="{ 'drag-active': dragActive }"
                 >
-                  <div v-if="!previewImage" class="uploader-instructions">
+                  <div class="uploader-instructions">
                     <i class="bi bi-cloud-arrow-up-fill uploader-icon"></i>
                     <span>Kéo & Thả ảnh vào đây</span>
-                    <span class="text-muted small">hoặc <strong>nhấn để chọn file</strong></span>
-                  </div>
-                  <div v-else class="image-preview-container">
-                    <img :src="previewImage" class="image-preview" alt="Preview" />
-                    <div class="change-image-overlay">
-                      <i class="bi bi-arrow-repeat fs-3"></i>
-                      <span>Đổi ảnh</span>
-                    </div>
+                    <span class="text-muted small">hoặc <strong>nhấn để thêm ảnh</strong></span>
                   </div>
                 </div>
               </div>
@@ -219,8 +223,11 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted, watch } from 'vue';
+import { ref, computed, onMounted } from 'vue';
 import axios from 'axios';
+
+// API
+const API_BASE_URL = 'http://127.0.0.1:8000';
 
 // Dữ liệu và trạng thái
 const roomTypes = ref([]);
@@ -228,26 +235,15 @@ const amenities = ref([]);
 const tuKhoaTim = ref('');
 const isModalOpen = ref(false);
 const editingType = ref(null);
-const newType = ref({
-  type_name: '',
-  description: '',
-  bed_count: 1,
-  max_occupancy: 1,
-  max_occupancy_child: 1,
-  images: null,
-  amenity_ids: [],
-});
-const currentPage = ref(1);
-const itemsPerPage = 10;
 const fileInput = ref(null);
 const dragActive = ref(false);
-const previewImage = ref(null);
+const currentPage = ref(1);
+const itemsPerPage = 10;
 
-// API
-const API_BASE_URL = 'http://127.0.0.1:8000';
-
-// Hàm kiểm tra xem image có phải là File không
-const isFile = (image) => image instanceof File;
+// State cho form
+const newType = ref({});
+const existingImages = ref([]); // Mảng các tên file ảnh đã có trên server
+const newImageFiles = ref([]); // Mảng các đối tượng File mới được chọn
 
 // Lấy dữ liệu ban đầu
 const fetchData = async () => {
@@ -284,12 +280,17 @@ const displayedTypes = computed(() => {
 });
 
 const paginationPages = computed(() => {
-  const maxPages = 10;
+  const maxPages = 7;
+  if (totalPages.value <= maxPages) {
+    return Array.from({ length: totalPages.value }, (_, i) => i + 1);
+  }
   const middle = Math.ceil(maxPages / 2);
-  let start = Math.max(1, currentPage.value - middle + 1);
-  let end = Math.min(totalPages.value || 1, start + maxPages - 1);
-  if (end - start + 1 < maxPages) {
-    start = Math.max(1, end - maxPages + 1);
+  let start = currentPage.value - middle + 1;
+  if (start < 1) start = 1;
+  let end = start + maxPages - 1;
+  if (end > totalPages.value) {
+    end = totalPages.value;
+    start = end - maxPages + 1;
   }
   return Array.from({ length: end - start + 1 }, (_, i) => start + i);
 });
@@ -297,69 +298,83 @@ const paginationPages = computed(() => {
 // Quản lý trạng thái "Chọn tất cả" cho tiện ích
 const isAllAmenitiesSelected = computed(() => {
   if (!amenities.value || amenities.value.length === 0) return false;
-  return newType.value.amenity_ids.length === amenities.value.length;
+  return newType.value.amenity_ids?.length === amenities.value.length;
 });
 
-// Xử lý ảnh
-const getImageUrl = (image) => {
-  if (!image) return null;
-  let img = image;
-  if (typeof image === 'string') {
-    try {
-      const parsed = JSON.parse(image);
-      img = Array.isArray(parsed) ? parsed[0] : parsed;
-    } catch (e) {
-      img = image;
-    }
-  } else if (Array.isArray(image)) {
-    img = image[0];
-  }
-  return img ? `${API_BASE_URL}/images/room_type/${img}` : null;
- lambdafield.getImageUrl(image) ? `${API_BASE_URL}/images/room_type/${image}` : null;
+const toggleAllAmenities = (event) => {
+  newType.value.amenity_ids = event.target.checked ? amenities.value.map((a) => a.amenity_id) : [];
 };
 
-const handleFile = (file) => {
-  if (file && file.type.startsWith('image/')) {
-    newType.value.images = file;
-    previewImage.value = URL.createObjectURL(file);
-  } else {
-    alert('Vui lòng chỉ chọn file hình ảnh.');
+// Xử lý ảnh
+const getFirstImageUrl = (imagesJson) => {
+  if (!imagesJson) return null;
+  try {
+    const images = JSON.parse(imagesJson);
+    if (Array.isArray(images) && images.length > 0) {
+      return `${API_BASE_URL}/images/room_type/${images[0]}`;
+    }
+  } catch (e) { /* silent fail */ }
+  return null;
+};
+
+const imagePreviews = computed(() => {
+    const existing = existingImages.value.map(name => ({ type: 'existing', url: `${API_BASE_URL}/images/room_type/${name}` }));
+    const news = newImageFiles.value.map(file => ({ type: 'new', url: URL.createObjectURL(file) }));
+    return [...existing, ...news];
+});
+
+const handleFiles = (files) => {
+  for (const file of files) {
+    if (file && file.type.startsWith('image/')) {
+      newImageFiles.value.push(file);
+    }
   }
 };
 
 const handleImageUpload = (event) => {
-  const file = event.target.files[0];
-  handleFile(file);
+  handleFiles(event.target.files);
+  event.target.value = '';
 };
 
-const triggerFileInput = () => {
-  if (fileInput.value) fileInput.value.click();
-};
-
+const triggerFileInput = () => fileInput.value?.click();
 const handleDrop = (event) => {
   dragActive.value = false;
-  const file = event.dataTransfer.files[0];
-  handleFile(file);
+  handleFiles(event.dataTransfer.files);
+};
+
+const removeImage = (index) => {
+    const existingCount = existingImages.value.length;
+    if (index < existingCount) {
+        existingImages.value.splice(index, 1);
+    } else {
+        newImageFiles.value.splice(index - existingCount, 1);
+    }
 };
 
 // Xử lý Modal
+const resetModalState = () => {
+    newType.value = {
+        type_name: '',
+        description: '',
+        bed_count: 1,
+        max_occupancy: 1,
+        max_occupancy_child: 0,
+        amenity_ids: [],
+    };
+    existingImages.value = [];
+    newImageFiles.value = [];
+    dragActive.value = false;
+};
+
 const moModalThem = () => {
   editingType.value = null;
-  newType.value = {
-    type_name: '',
-    description: '',
-    bed_count: 1,
-    max_occupancy: 1,
-    max_occupancy_child: 1,
-    images: null,
-    amenity_ids: [],
-  };
-  previewImage.value = null;
+  resetModalState();
   isModalOpen.value = true;
 };
 
 const moModalSua = (type) => {
   editingType.value = type;
+  resetModalState();
   newType.value = {
     type_id: type.type_id,
     type_name: type.type_name,
@@ -367,21 +382,18 @@ const moModalSua = (type) => {
     bed_count: type.bed_count,
     max_occupancy: type.max_occupancy,
     max_occupancy_child: type.max_occupancy_child,
-    images: null,
     amenity_ids: type.amenities ? type.amenities.map((a) => a.amenity_id) : [],
   };
-  previewImage.value = getImageUrl(type.images);
+  try {
+      existingImages.value = type.images ? JSON.parse(type.images) : [];
+  } catch (e) {
+      existingImages.value = [];
+  }
   isModalOpen.value = true;
 };
 
 const closeModal = () => {
   isModalOpen.value = false;
-  dragActive.value = false;
-};
-
-// Xử lý Checkbox "Chọn tất cả"
-const toggleAllAmenities = (event) => {
-  newType.value.amenity_ids = event.target.checked ? amenities.value.map((a) => a.amenity_id) : [];
 };
 
 // Xử lý CRUD
@@ -392,36 +404,31 @@ const saveType = async () => {
   }
 
   const formData = new FormData();
-  formData.append('type_name', newType.value.type_name);
-  formData.append('description', newType.value.description || '');
-  formData.append('bed_count', newType.value.bed_count);
-  formData.append('max_occupancy', newType.value.max_occupancy);
-  formData.append('max_occupancy_child', newType.value.max_occupancy_child);
+  Object.keys(newType.value).forEach(key => {
+    if (key !== 'amenity_ids') {
+        formData.append(key, newType.value[key] || '');
+    }
+  });
 
-  // Xử lý ảnh
-  if (newType.value.images && isFile(newType.value.images)) {
-    formData.append('images[]', newType.value.images);
+  newImageFiles.value.forEach(file => formData.append('images[]', file));
+  
+  if (editingType.value) {
+      existingImages.value.forEach(imageName => formData.append('existing_images[]', imageName));
   }
 
-  // Xử lý amenity_ids
-  if (newType.value.amenity_ids && newType.value.amenity_ids.length > 0) {
-    newType.value.amenity_ids.forEach((id) => formData.append('amenity_ids[]', id));
-  }
+  newType.value.amenity_ids.forEach(id => formData.append('amenity_ids[]', id));
 
   try {
+    let response;
     if (editingType.value) {
       formData.append('_method', 'PUT');
-      await axios.post(`${API_BASE_URL}/api/room-types/${editingType.value.type_id}`, formData, {
-        headers: { 'Content-Type': 'multipart/form-data' },
-      });
+      response = await axios.post(`${API_BASE_URL}/api/room-types/${editingType.value.type_id}`, formData);
     } else {
-      await axios.post(`${API_BASE_URL}/api/room-types`, formData, {
-        headers: { 'Content-Type': 'multipart/form-data' },
-      });
+      response = await axios.post(`${API_BASE_URL}/api/room-types`, formData);
     }
     await fetchData();
     closeModal();
-    alert('Lưu loại phòng thành công!');
+    alert(response.data.message || 'Lưu loại phòng thành công!');
   } catch (error) {
     handleApiError('Lưu loại phòng thất bại', error);
   }
@@ -430,10 +437,12 @@ const saveType = async () => {
 const xoaLoaiPhong = async (id) => {
   if (confirm('Bạn có chắc chắn muốn xóa loại phòng này? Hành động này không thể hoàn tác.')) {
     try {
-      await axios.delete(`${API_BASE_URL}/api/room-types/${id}`);
+      const response = await axios.delete(`${API_BASE_URL}/api/room-types/${id}`);
       await fetchData();
-      if (displayedTypes.value.length === 0 && currentPage.value > 1) currentPage.value--;
-      alert('Xóa loại phòng thành công!');
+      if (displayedTypes.value.length === 0 && currentPage.value > 1) {
+        currentPage.value--;
+      }
+      alert(response.data.message || 'Xóa loại phòng thành công!');
     } catch (error) {
       handleApiError('Xóa loại phòng thất bại', error);
     }
@@ -441,253 +450,62 @@ const xoaLoaiPhong = async (id) => {
 };
 
 const onImageError = (event) => {
-  // event.target.src = 'https://via.placeholder.com/80x60.png?text=Lỗi';
+  event.target.src = 'https://via.placeholder.com/70x50.png?text=Loi';
 };
 
 const handleApiError = (message, error) => {
   const errorMessage = error.response?.data?.message || error.message;
-  const errorDetails = error.response?.data?.errors ? Object.values(error.response.data.errors).flat().join('\n') : '';
-  alert(`${message}:\n${errorMessage}${errorDetails ? `\n- ${errorDetails}` : ''}`);
+  let errorDetails = '';
+  if (error.response?.data?.errors) {
+    errorDetails = Object.values(error.response.data.errors).flat().join('\n- ');
+  }
+  alert(`${message}:\n${errorMessage}${errorDetails ? `\n\nChi tiết:\n- ${errorDetails}` : ''}`);
 };
 </script>
 
 <style scoped>
 @import url('https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@300;400;500;600;700&display=swap');
-@import url('https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css');
+@import url('https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css');
 
-.page-container {
-  font-family: 'Be Vietnam Pro', sans-serif;
-  background-color: #f4f7f9;
-  padding: 2rem;
-  color: #34495e;
-}
-.page-header {
-  border-bottom: 1px solid #e5eaee;
-  padding-bottom: 1rem;
-}
-.page-title {
-  font-size: 2rem;
-  font-weight: 700;
-}
-.page-subtitle {
-  font-size: 1rem;
-  color: #7f8c8d;
-}
-.filter-card {
-  background-color: #ffffff;
-  border: none;
-  border-radius: 12px;
-  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
-}
-.form-control,
-.form-select {
-  border-radius: 8px;
-  border: 1px solid #e5eaee;
-  transition: all 0.2s ease-in-out;
-  font-size: 0.9rem;
-}
-.form-control:focus,
-.form-select:focus {
-  border-color: #3498db;
-  box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.15);
-}
-
-.table-container {
-  background-color: #ffffff;
-  border-radius: 12px;
-  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
-  overflow: hidden;
-}
-.booking-table {
-  font-size: 0.875rem;
-  border-collapse: separate;
-  border-spacing: 0;
-}
-.booking-table thead th {
-  background-color: #f8f9fa;
-  color: #7f8c8d;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-  border-bottom: 2px solid #e5eaee;
-  padding: 1rem;
-  white-space: nowrap;
-}
-.booking-table td {
-  padding: 1.25rem 1rem;
-  border-bottom: 1px solid #e5eaee;
-}
-.booking-table tbody tr:last-child td {
-  border-bottom: none;
-}
-.booking-table tbody tr:hover {
-  background-color: #f9fafb;
-}
-.type-name {
-  font-size: 1rem;
-}
-.description-text {
-  font-size: 0.8rem;
-  color: #7f8c8d;
-  max-width: 250px;
-}
-.occupancy-info {
-  white-space: nowrap;
-  font-size: 0.85rem;
-  color: #34495e;
-}
-.occupancy-info .bi {
-  color: #7f8c8d;
-}
-.room-image {
-  width: 70px;
-  height: 50px;
-  object-fit: cover;
-  border-radius: 8px;
-}
-
-.image-uploader {
-  border: 2px dashed #d1d5db;
-  border-radius: 12px;
-  padding: 1rem;
-  text-align: center;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  background-color: #f9fafb;
-  min-height: 150px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  position: relative;
-  overflow: hidden;
-}
-.image-uploader:hover,
-.image-uploader.drag-active {
-  border-color: #3498db;
-  background-color: #f0f8ff;
-}
-.uploader-instructions {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  color: #7f8c8d;
-  pointer-events: none;
-}
-.uploader-icon {
-  font-size: 2.5rem;
-  color: #bdc3c7;
-  margin-bottom: 0.5rem;
-}
-.image-preview-container {
-  width: 100%;
-  height: 100%;
-  position: absolute;
-  top: 0;
-  left: 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 0.5rem;
-}
-.image-preview {
-  max-height: 100%;
-  max-width: 100%;
-  object-fit: contain;
-  border-radius: 8px;
-}
-.change-image-overlay {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background-color: rgba(0, 0, 0, 0.5);
-  color: white;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  opacity: 0;
-  transition: opacity 0.2s ease;
-  pointer-events: none;
-  border-radius: 10px;
-}
-.image-preview-container:hover .change-image-overlay {
-  opacity: 1;
-}
-
-.tags-container {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 6px;
-}
-.badge {
-  padding: 0.35em 0.7em;
-  font-size: 0.7rem;
-  font-weight: 600;
-  border-radius: 20px;
-}
-.badge-info {
-  background-color: #eaf6fb;
-  color: #3498db;
-}
-.badge-secondary {
-  background-color: #f3f4f6;
-  color: #7f8c8d;
-}
-
-.action-buttons {
-  white-space: nowrap;
-}
-.action-buttons .btn {
-  margin: 0 2px;
-}
-
-.pagination .page-link {
-  border: none;
-  border-radius: 8px;
-  margin: 0 4px;
-  color: #7f8c8d;
-  font-weight: 600;
-}
-.pagination .page-item.active .page-link {
-  background-color: #3498db;
-  color: white;
-}
-
-.modal-backdrop {
-  background-color: rgba(0, 0, 0, 0.4);
-}
-.modal-custom {
-  border-radius: 16px;
-  border: none;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
-}
-.modal-header-custom {
-  background-color: #f4f7f9;
-  border-bottom: 1px solid #e5eaee;
-  padding: 1.5rem;
-}
-.modal-footer-custom {
-  background-color: #f4f7f9;
-  border-top: 1px solid #e5eaee;
-  padding: 1rem 1.5rem;
-}
-
-.checkbox-list {
-  max-height: 200px;
-  overflow-y: auto;
-  border: 1px solid #e5eaee;
-  border-radius: 8px;
-  padding: 1rem;
-  background-color: #ffffff;
-  font-size: 0.9rem;
-}
-.select-all-switch {
-  padding-bottom: 0.5rem;
-}
-.select-all-switch .form-check-label {
-  font-weight: 600;
-  color: #34495e;
-}
+/* CSS đã được thay đổi: Không dùng :root và var() */
+.page-container { font-family: 'Be Vietnam Pro', sans-serif; background-color: #f4f7f9; padding: 2rem; color: #34495e; }
+.page-header { border-bottom: 1px solid #e5eaee; padding-bottom: 1rem; }
+.page-title { font-size: 2rem; font-weight: 700; }
+.page-subtitle { font-size: 1rem; color: #7f8c8d; }
+.filter-card, .table-container { background-color: #ffffff; border: none; border-radius: 12px; box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05); }
+.form-control, .form-select { border-radius: 8px; border: 1px solid #e5eaee; transition: all 0.2s ease-in-out; font-size: 0.9rem; }
+.form-control:focus, .form-select:focus { border-color: #3498db; box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.15); }
+.table-container { overflow: hidden; }
+.booking-table { font-size: 0.875rem; border-collapse: separate; border-spacing: 0; }
+.booking-table thead th { background-color: #f8f9fa; color: #7f8c8d; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; border-bottom: 2px solid #e5eaee; padding: 1rem; white-space: nowrap; }
+.booking-table td { padding: 1.25rem 1rem; border-bottom: 1px solid #e5eaee; }
+.booking-table tbody tr:last-child td { border-bottom: none; }
+.booking-table tbody tr:hover { background-color: #f9fafb; }
+.type-name { font-size: 1rem; }
+.description-text { font-size: 0.8rem; color: #7f8c8d; max-width: 250px; }
+.occupancy-info { white-space: nowrap; font-size: 0.85rem; color: #34495e; }
+.occupancy-info .bi { color: #7f8c8d; }
+.room-image { width: 70px; height: 50px; object-fit: cover; border-radius: 8px; }
+.tags-container { display: flex; flex-wrap: wrap; gap: 6px; }
+.badge { padding: 0.35em 0.7em; font-size: 0.7rem; font-weight: 600; border-radius: 20px; }
+.badge-info { background-color: #eaf6fb; color: #3498db; }
+.badge-secondary { background-color: #f3f4f6; color: #7f8c8d; }
+.action-buttons { white-space: nowrap; }
+.action-buttons .btn { margin: 0 2px; }
+.pagination .page-link { border: none; border-radius: 8px; margin: 0 4px; color: #7f8c8d; font-weight: 600; }
+.pagination .page-item.active .page-link { background-color: #3498db; color: #ffffff; }
+.modal-backdrop { background-color: rgba(0, 0, 0, 0.4); }
+.modal-custom { border-radius: 16px; border: none; box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1); }
+.modal-header-custom, .modal-footer-custom { background-color: #f4f7f9; border-color: #e5eaee; padding: 1.5rem; }
+.checkbox-list { max-height: 200px; overflow-y: auto; border: 1px solid #e5eaee; border-radius: 8px; padding: 1rem; background-color: #ffffff; font-size: 0.9rem; }
+.select-all-switch .form-check-label { font-weight: 600; color: #34495e; }
+.image-previews-container { display: flex; flex-wrap: wrap; gap: 1rem; padding: 1rem; border: 1px solid #e5eaee; border-radius: 12px; background-color: #fafafa; }
+.image-preview-item { position: relative; width: 100px; height: 100px; }
+.image-preview { width: 100%; height: 100%; object-fit: cover; border-radius: 8px; border: 1px solid #e5eaee; }
+.btn-remove-image { position: absolute; top: -8px; right: -8px; width: 24px; height: 24px; border-radius: 50%; background-color: #dc3545; color: white; border: 2px solid white; display: flex; align-items: center; justify-content: center; cursor: pointer; padding: 0; font-size: 0.7rem; line-height: 1; box-shadow: 0 2px 5px rgba(0,0,0,0.2); transition: transform 0.2s ease; }
+.btn-remove-image:hover { transform: scale(1.1); }
+.image-uploader { border: 2px dashed #d1d5db; border-radius: 12px; padding: 1.5rem; text-align: center; cursor: pointer; transition: all 0.2s ease; background-color: #f9fafb; }
+.image-uploader:hover, .image-uploader.drag-active { border-color: #3498db; background-color: #f0f8ff; }
+.uploader-instructions { display: flex; flex-direction: column; align-items: center; color: #7f8c8d; pointer-events: none; }
+.uploader-icon { font-size: 2.5rem; color: #bdc3c7; margin-bottom: 0.5rem; }
 </style>

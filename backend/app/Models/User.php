@@ -72,7 +72,6 @@ class User extends Authenticatable implements JWTSubject
      */
     public function hasPermissionTo(string $permission): bool
     {
-        // Admin có tất cả các quyền
         if ($this->role === 'admin') {
             return true;
         }

@@ -1,0 +1,11 @@
+<IfModule mod_rewrite.c>
+  RewriteEngine On
+  RewriteBase /
+
+  # Nếu request KHÔNG phải là file hoặc thư mục thật
+  RewriteCond %{REQUEST_FILENAME} !-f
+  RewriteCond %{REQUEST_FILENAME} !-d
+
+  # Thì chuyển hướng toàn bộ về index.html cho Vue xử lý
+  RewriteRule ^ index.html [L]
+</IfModule>

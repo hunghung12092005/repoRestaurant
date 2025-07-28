@@ -23,7 +23,6 @@
             placeholder="Tìm theo tên hoặc email người dùng..."
           />
         </div>
-        <!-- Có thể thêm nút "Tạo người dùng mới" ở đây nếu cần -->
       </div>
     </div>
 
@@ -50,7 +49,7 @@
             </td>
             <td>
                <div class="tags-container">
-                <span v-if="user.role === 'admin'" class="badge badge-info">Tất cả quyền</span>
+                <span v-if="user.role === 'admin'" class="badge badge-success">Tất cả quyền</span>
                 <span v-else-if="!user.permissions || !user.permissions.length" class="badge badge-secondary">Không có</span>
                 <span v-else v-for="permission in user.permissions.slice(0, 2)" :key="permission" class="badge badge-info">
                   {{ getPermissionLabel(permission) }}
@@ -98,7 +97,7 @@
     </nav>
 
 
-    <!-- Modal Chi Tiết (GIỮ NGUYÊN ID VÀ CLASS FADE ĐỂ BOOTSTRAP JS HOẠT ĐỘNG) -->
+    <!-- Modal Chi Tiết -->
     <div class="modal fade" id="detailModal" tabindex="-1" aria-labelledby="detailModalLabel" aria-hidden="true">
       <div class="modal-dialog modal-lg modal-dialog-centered">
         <div class="modal-content modal-custom">
@@ -107,30 +106,32 @@
             <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Đóng"></button>
           </div>
           <div class="modal-body p-4">
-            <div class="row g-3">
+            <div class="row g-3" v-if="selectedUser">
                 <div class="col-12">
                     <p class="mb-1 text-muted">Họ và Tên</p>
-                    <h6 class="fw-bold">{{ selectedUser?.name || 'N/A' }}</h6>
+                    <h6 class="fw-bold">{{ selectedUser.name || 'N/A' }}</h6>
                 </div>
                 <div class="col-12">
                     <p class="mb-1 text-muted">Email</p>
-                    <h6 class="fw-bold">{{ selectedUser?.email || 'N/A' }}</h6>
+                    <h6 class="fw-bold">{{ selectedUser.email || 'N/A' }}</h6>
                 </div>
                  <div class="col-md-6">
                     <p class="mb-1 text-muted">Vai trò</p>
-                    <h6><span class="badge fs-6" :class="getRoleBadgeClass(selectedUser?.role)">{{ selectedUser?.role || 'N/A' }}</span></h6>
+                    <h6><span class="badge fs-6" :class="getRoleBadgeClass(selectedUser.role)">{{ selectedUser.role || 'N/A' }}</span></h6>
                 </div>
                  <div class="col-md-6">
                     <p class="mb-1 text-muted">Ngày tham gia</p>
-                    <h6 class="fw-bold">{{ formatDate(selectedUser?.created_at) }}</h6>
+                    <h6 class="fw-bold">{{ formatDate(selectedUser.created_at) }}</h6>
                 </div>
-                 <div class="col-12" v-if="selectedUser?.permissions?.length > 0">
-                     <p class="mb-1 text-muted">Quyền cụ thể</p>
-                     <ul class="list-group">
-                         <li class="list-group-item border-0 px-0" v-for="permission in selectedUser.permissions" :key="permission">
+                 <div class="col-12">
+                    <p class="mb-1 text-muted">Quyền cụ thể</p>
+                    <p v-if="selectedUser.role === 'admin'" class="fst-italic text-success">Admin có tất cả các quyền.</p>
+                    <ul class="list-group list-group-flush" v-else-if="selectedUser.permissions && selectedUser.permissions.length > 0">
+                         <li class="list-group-item px-0" v-for="permission in selectedUser.permissions" :key="permission">
                             <i class="bi bi-check-circle-fill text-success me-2"></i>{{ getPermissionLabel(permission) }}
                         </li>
-                     </ul>
+                    </ul>
+                    <p v-else class="fst-italic text-muted">Không có quyền cụ thể nào được gán.</p>
                  </div>
             </div>
           </div>
@@ -141,7 +142,8 @@
       </div>
     </div>
 
-    <!-- Modal Sửa Vai Trò (GIỮ NGUYÊN ID VÀ CLASS FADE) -->
+
+    <!-- Modal Sửa Vai Trò -->
     <div class="modal fade" id="editRoleModal" tabindex="-1" aria-labelledby="editRoleModalLabel" aria-hidden="true">
       <div class="modal-dialog modal-lg modal-dialog-centered">
         <div class="modal-content modal-custom">
@@ -155,9 +157,9 @@
                 <div class="col-12 mb-2">
                   <label for="role" class="form-label">Vai trò</label>
                   <select class="form-select" v-model="form.role" required>
-                    <option value="admin">Admin (Tất cả quyền)</option>
-                    <option value="staff">Staff (Tùy chỉnh quyền)</option>
-                    <option value="client">Client (Không có quyền)</option>
+                    <option value="admin">Admin</option>
+                    <option value="staff">Staff</option>
+                    <option value="client">Client</option>
                   </select>
                 </div>
 
@@ -177,7 +179,8 @@
                       <label class="form-check-label" :for="'perm-' + permission.value">{{ permission.label }}</label>
                     </div>
                   </div>
-                   <small v-if="form.role !== 'staff'" class="form-text text-muted mt-2 d-block">Quyền chỉ có thể gán cho vai trò "Staff".</small>
+                   <small v-if="form.role === 'admin'" class="form-text text-info mt-2 d-block">Admin luôn có tất cả các quyền. Không thể thay đổi.</small>
+                   <small v-if="form.role === 'client'" class="form-text text-muted mt-2 d-block">Client không có quyền hạn.</small>
                 </div>
               </div>
             </form>
@@ -193,17 +196,15 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted, watch } from 'vue';
-import { inject } from 'vue';
+import { ref, computed, onMounted, watch, inject } from 'vue';
 import axios from 'axios';
 import { Modal } from 'bootstrap';
 
+const apiUrl = inject('apiUrl', 'http://localhost:8000');
+const updateAndRefreshUserInfo = inject('updateAndRefreshUserInfo');
+
 const users = ref([]);
-const form = ref({
-  id: null,
-  role: 'client',
-  permissions: [],
-});
+const form = ref({ id: null, role: 'client', permissions: [] });
 const searchQuery = ref('');
 const currentPage = ref(1);
 const itemsPerPage = 10;
@@ -213,12 +214,13 @@ const alertType = ref('alert-success');
 const selectedUser = ref(null);
 let detailModal = null;
 let editRoleModal = null;
-const apiUrl = inject('apiUrl', 'http://localhost:8000');
 
 const availablePermissions = ref([
     { value: 'manage_news', label: 'Quản lý Tin tức' },
     { value: 'manage_contacts', label: 'Quản lý Liên hệ' },
-    // Thêm các quyền khác tại đây
+    { value: 'manage_users', label: 'Quản lý Tài khoản' },
+    { value: 'manage_ai_training', label: 'Training AI' },
+    { value: 'manage_admin_chat', label: 'Chat Admin' },
 ]);
 
 const axiosConfig = axios.create({
@@ -239,9 +241,7 @@ const showNotification = (message, type = 'success') => {
 
 const fetchUsers = async () => {
   try {
-    const response = await axiosConfig.get('/api/users', {
-      params: { q: searchQuery.value },
-    });
+    const response = await axiosConfig.get('/api/users', { params: { q: searchQuery.value } });
     users.value = (response.data.data || response.data).map(user => ({
         ...user,
         permissions: user.permissions || []
@@ -251,69 +251,101 @@ const fetchUsers = async () => {
   }
 };
 
-const filteredUsers = computed(() => {
-    return users.value;
-});
-
-const totalPages = computed(() => Math.ceil(filteredUsers.value.length / itemsPerPage) || 1);
-
-const paginatedUsers = computed(() => {
-  const start = (currentPage.value - 1) * itemsPerPage;
-  return filteredUsers.value.slice(start, start + itemsPerPage);
-});
-
-// ** BỔ SUNG NHỎ ĐỂ HỖ TRỢ UI PHÂN TRANG **
-const pageRange = computed(() => {
-  const maxPages = 5;
-  let start = Math.max(1, currentPage.value - Math.floor(maxPages / 2));
-  let end = Math.min(totalPages.value, start + maxPages - 1);
-  if (end - start + 1 < maxPages) {
-    start = Math.max(1, end - maxPages + 1);
-  }
-  return Array.from({ length: end - start + 1 }, (_, i) => start + i);
-});
-
-const openDetailModal = (user) => {
-  selectedUser.value = user;
-  if (!detailModal) detailModal = new Modal(document.getElementById('detailModal'));
-  detailModal.show();
-};
-
 const openEditRoleModal = (user) => {
   form.value = {
       id: user.id,
       role: user.role,
-      permissions: user.permissions || []
+      permissions: user.role === 'admin' 
+          ? availablePermissions.value.map(p => p.value) 
+          : (user.permissions ? [...user.permissions] : [])
   };
-  if (!editRoleModal) editRoleModal = new Modal(document.getElementById('editRoleModal'));
+
+  if (!editRoleModal) {
+      editRoleModal = new Modal(document.getElementById('editRoleModal'));
+  }
   editRoleModal.show();
 };
 
-const closeModal = () => {
-  if (detailModal) detailModal.hide();
-  if (editRoleModal) editRoleModal.hide();
-};
-
 const saveRole = async () => {
+  let permissionsToSend = [];
+  if (form.value.role === 'staff') {
+      permissionsToSend = form.value.permissions;
+  } else if (form.value.role === 'admin') {
+      permissionsToSend = availablePermissions.value.map(p => p.value);
+  }
+
+  const payload = {
+      role: form.value.role,
+      permissions: permissionsToSend
+  };
+
   try {
-    let permissionsToSend = form.value.permissions;
-    if (form.value.role !== 'staff') {
-        permissionsToSend = [];
+    const response = await axiosConfig.put(`/api/users/${form.value.id}`, payload);
+    
+    const updatedUser = response.data.data;
+    const loggedInUser = JSON.parse(localStorage.getItem('userInfo') || '{}');
+    if (loggedInUser && loggedInUser.id === updatedUser.id) {
+      if (updateAndRefreshUserInfo) {
+        updateAndRefreshUserInfo(updatedUser);
+      }
     }
 
-    await axiosConfig.put(`/api/users/${form.value.id}`, {
-        role: form.value.role,
-        permissions: permissionsToSend
-    });
-    showNotification('Cập nhật vai trò và quyền thành công!');
+    showNotification(response.data.message || 'Cập nhật thành công!');
     await fetchUsers();
-    closeModal();
+    closeModal('edit');
+    
   } catch (error) {
     const errorMessage = error.response?.data?.message || 'Cập nhật thất bại.';
     showNotification(errorMessage, 'error');
   }
 };
 
+// === MODIFIED: Watcher đã được cập nhật ===
+watch(() => form.value.role, (newRole, oldRole) => {
+  // Chỉ thực hiện khi vai trò thực sự thay đổi trong form
+  if (newRole !== oldRole) {
+    if (newRole === 'admin') {
+      // Khi chuyển vai trò thành admin, tự động chọn tất cả quyền
+      form.value.permissions = availablePermissions.value.map(p => p.value);
+    } else if (newRole === 'staff') {
+      // Khi chuyển thành staff, xóa hết quyền để người dùng chọn lại từ đầu
+      form.value.permissions = [];
+    } else if (newRole === 'client') {
+      // Khi chuyển thành client, xóa hết quyền
+      form.value.permissions = [];
+    }
+  }
+});
+
+const closeModal = (modalType) => {
+    if (modalType === 'edit' && editRoleModal) {
+        const modalInstance = Modal.getInstance(document.getElementById('editRoleModal'));
+        if (modalInstance) modalInstance.hide();
+    }
+    if (modalType === 'detail' && detailModal) {
+        const modalInstance = Modal.getInstance(document.getElementById('detailModal'));
+        if (modalInstance) modalInstance.hide();
+    }
+};
+
+const filteredUsers = computed(() => users.value);
+const totalPages = computed(() => Math.ceil(filteredUsers.value.length / itemsPerPage) || 1);
+const paginatedUsers = computed(() => {
+  const start = (currentPage.value - 1) * itemsPerPage;
+  return filteredUsers.value.slice(start, start + itemsPerPage);
+});
+const pageRange = computed(() => {
+  const maxPages = 5;
+  let start = Math.max(1, currentPage.value - Math.floor(maxPages / 2));
+  let end = Math.min(totalPages.value, start + maxPages - 1);
+  if (end - start + 1 < maxPages) { start = Math.max(1, end - maxPages + 1); }
+  return Array.from({ length: end - start + 1 }, (_, i) => start + i);
+});
+const openDetailModal = (user) => {
+  selectedUser.value = user;
+  if (!detailModal) detailModal = new Modal(document.getElementById('detailModal'));
+  detailModal.show();
+};
 const getRoleBadgeClass = (role) => {
   switch (role) {
     case 'admin': return 'badge-danger';
@@ -322,45 +354,32 @@ const getRoleBadgeClass = (role) => {
     default: return 'badge-secondary';
   }
 };
-
 const getPermissionLabel = (permissionValue) => {
     const permission = availablePermissions.value.find(p => p.value === permissionValue);
     return permission ? permission.label : permissionValue;
 }
-
 const formatDate = (dateString) => {
   return dateString ? new Date(dateString).toLocaleDateString('vi-VN') : 'N/A';
 };
-
 onMounted(() => {
   fetchUsers();
 });
-
 watch(searchQuery, () => {
   currentPage.value = 1;
   fetchUsers();
 });
-
 </script>
 
 <style scoped>
-/* Copied styles from other components for consistency */
 @import url('https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@300;400;500;600;700&display=swap');
 @import url('https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css');
-
-.page-container {
-  font-family: 'Be Vietnam Pro', sans-serif;
-  background-color: #f4f7f9;
-  padding: 2rem;
-  color: #34495e;
-}
+.page-container { font-family: 'Be Vietnam Pro', sans-serif; background-color: #f4f7f9; padding: 2rem; color: #34495e; }
 .page-header { border-bottom: 1px solid #e5eaee; padding-bottom: 1rem; }
 .page-title { font-size: 2rem; font-weight: 700; }
 .page-subtitle { font-size: 1rem; color: #7f8c8d; }
 .filter-card { background-color: #ffffff; border: none; border-radius: 12px; box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05); }
 .form-control, .form-select { border-radius: 8px; border: 1px solid #e5eaee; transition: all 0.2s ease-in-out; font-size: 0.9rem; }
 .form-control:focus, .form-select:focus { border-color: #3498db; box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.15); }
-
 .table-container { background-color: #ffffff; border-radius: 12px; box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05); overflow-x: auto; }
 .booking-table { font-size: 0.875rem; border-collapse: separate; border-spacing: 0; min-width: 800px; }
 .booking-table thead th { background-color: #f8f9fa; color: #7f8c8d; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; border-bottom: 2px solid #e5eaee; padding: 1rem; white-space: nowrap; }
@@ -369,7 +388,6 @@ watch(searchQuery, () => {
 .booking-table tbody tr:hover { background-color: #f9fafb; }
 .type-name { font-size: 1rem; }
 .description-text { font-size: 0.8rem; color: #7f8c8d; }
-
 .tags-container { display: flex; flex-wrap: wrap; gap: 6px; }
 .badge { padding: 0.4em 0.8em; font-size: 0.75rem; font-weight: 600; border-radius: 20px; letter-spacing: 0.5px; }
 .badge-info { background-color: #eaf6fb; color: #3498db; }
@@ -377,23 +395,15 @@ watch(searchQuery, () => {
 .badge-success { background-color: #e6f9f0; color: #2ecc71; }
 .badge-danger { background-color: #fce8e6; color: #e74c3c; }
 .badge-warning { background-color: #fef5e7; color: #f39c12; }
-
 .action-buttons { white-space: nowrap; }
 .action-buttons .btn { margin: 0 2px; }
-
 .pagination .page-link { border: none; border-radius: 8px; margin: 0 4px; color: #7f8c8d; font-weight: 600; }
 .pagination .page-item.active .page-link { background-color: #3498db; color: white; }
-
-/* Modal Styles */
 .modal-custom { border-radius: 16px; border: none; box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1); }
 .modal-header-custom { background-color: #f4f7f9; border-bottom: 1px solid #e5eaee; padding: 1.5rem; }
 .modal-footer-custom { background-color: #f4f7f9; border-top: 1px solid #e5eaee; padding: 1rem 1.5rem; }
-
-/* Alert Styles */
 .custom-alert { position: fixed; top: 20px; right: 20px; z-index: 1060; min-width: 300px; box-shadow: 0 5px 15px rgba(0,0,0,0.1); border-radius: 8px; }
 .close-btn { cursor: pointer; float: right; font-size: 1.5rem; line-height: 1; }
-
-/* Checkbox List for Permissions */
 .checkbox-list { max-height: 250px; overflow-y: auto; border: 1px solid #e5eaee; border-radius: 8px; padding: 1rem; background-color: #ffffff; }
 .checkbox-list.disabled-list { background-color: #f8f9fa; cursor: not-allowed; }
 .checkbox-list.disabled-list .form-check-label { color: #6c757d; }

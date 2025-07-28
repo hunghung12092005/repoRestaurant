@@ -428,7 +428,7 @@ const submitForm = async () => {
             userInfo.value = user;
             localStorage.setItem('tokenJwt', token);
             localStorage.setItem('userInfo', JSON.stringify(user));
-            window.location.href = 'http://127.0.0.1:5173/';
+            window.location.href = 'http://127.0.0.1:5173/'; 
         } else {
             const response = await axios.post(`${apiUrl}/api/register`, {
                 name: name.value,

@@ -1,5 +1,8 @@
 import { io } from 'socket.io-client';
 
-const socket = io('http://socket.hxhhotel.online:6001');
-//const socket = 'j'; // Kết nối đến server Socket.IO
+const socket = io('https://socket.hxhhotel.online', {
+  transports: ['websocket'],
+  secure: true,
+});
+
 export default socket;
