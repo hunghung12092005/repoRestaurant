@@ -328,7 +328,17 @@
             </div>
         </section> -->
         <!-- adjb -->
-
+        <!-- Mobile Fixed Payment Button -->
+        <div class="mobile-checkout-bar d-md-none">
+            <div class="d-flex justify-content-between align-items-center px-3 py-2">
+                <div class="fw-bold text-gold">
+                    {{ formatPrice(totalPrice) }}
+                </div>
+                <button @click="openPopupshowModalBooking" class="btn btn-dark btn-sm rounded-pill px-3">
+                    Thanh Toán <i class="bi bi-arrow-right ms-1"></i>
+                </button>
+            </div>
+        </div>
         <div class="container">
             <div class="left">
                 <div class="card-body p-4">
@@ -338,7 +348,7 @@
                     <hr class="mb-3 border-gold">
 
                     <div v-if="selectedRooms.length === 0" class="text-center text-muted-subtle py-3">
-                        <p class="mb-0 small">Chưa có phòng nào được thêm vào.</p>
+                        <p class="mb-0 small">Mời quý khách thêm chọn phòng.</p>
                     </div>
 
                     <div v-else>
@@ -431,7 +441,6 @@
                     </div>
                 </div>
             </div>
-
         </div>
         <div class="container about-section mt-5">
             <div class="row align-items-center">
@@ -553,7 +562,7 @@
                                         <div
                                             class="d-flex flex-column flex-md-row justify-content-between align-items-md-center mt-4 py-4 px-4 border border-info rounded-3 shadow-lg">
                                             <h6 class="mb-2 mb-md-0 fw-bold text-uppercase text-dark">Tổng Cộng Thanh
-                                                Toán:  </h6>
+                                                Toán: </h6>
                                             <p class="h4 mb-0 fw-bolder text-primary"> {{
                                                 formatPrice(totalCostForAllRooms) }}</p>
                                         </div>
@@ -562,7 +571,7 @@
                                     <div class="mb-1">
                                         <div class="radio-input">
                                             <input value="value-1" name="value-radio" id="value-1" type="radio"
-                                                @click="checkAndSendOtp" />
+                                                v-model="paymentOption" @click="checkAndSendOtp" />
                                             <label for="value-1">
                                                 <div class="text">
                                                     <span class="circle"></span>
@@ -572,7 +581,7 @@
                                             </label>
 
                                             <input value="value-2" name="value-radio" id="value-2" type="radio"
-                                                @click="checkAndSendOtpPayos" />
+                                                v-model="paymentOption" @click="checkAndSendOtpPayos" />
                                             <label for="value-2">
                                                 <div class="text">
                                                     <span class="circle"></span>
@@ -808,6 +817,12 @@ const isFormOTP = ref(true);
 const isOtp = ref(false);
 const otpInputs = ref();
 
+//trang thai thanh toan
+const paymentOption = ref(null); // Mặc định chưa chọn radio nào
+
+const resetRadio = () => {
+    paymentOption.value = null; // Reset về trạng thái chưa chọn
+};
 const showPopUpMain = () => {
     showPopup.value = true;//popup mới vào trang
 }
@@ -926,6 +941,7 @@ const removeRoomFromModal = (index) => {
 //hien thi popup chon dich vu
 const surchargeSucChua = ref(0);
 const openPopupshowModalBooking = () => {
+    resetRadio();//dua trang thai ve null
     if (selectedRooms.value.length === 0) {
         alert('Vui lòng chọn ít nhất một phòng trước khi đặt.');
         return;
@@ -955,12 +971,12 @@ const openPopupshowModalBooking = () => {
     surchargeSucChua.value = (extraAdults * feeAdult) + (extraChildren * feeChild);
 
     // In ra kiểm tra
-    console.log('selectedRooms:', selectedRooms.value);
-    console.log('Tổng người lớn của phòng:', totalAdultsRoom);
-    console.log('Tổng trẻ em của phòng:', totalChildrenRoom);
-    console.log('Số người lớn khách chọn:', selectedAdults);
-    console.log('Số trẻ em khách chọn:', selectedChildren);
-    console.log('Phụ thu:', surchargeSucChua.value.toLocaleString(), 'VND');
+    // console.log('selectedRooms:', selectedRooms.value);
+    // console.log('Tổng người lớn của phòng:', totalAdultsRoom);
+    // console.log('Tổng trẻ em của phòng:', totalChildrenRoom);
+    // console.log('Số người lớn khách chọn:', selectedAdults);
+    // console.log('Số trẻ em khách chọn:', selectedChildren);
+    // console.log('Phụ thu:', surchargeSucChua.value.toLocaleString(), 'VND');
 
     // Nếu bạn có formBooking hoặc booking_details, có thể gán:
     // formBooking.value.additional_fee = surcharge;
@@ -1025,10 +1041,11 @@ const getRoomTypes = async () => {
             const roomTypeId = parseInt(item.room_type.toString().trim());
             availabilityMap[roomTypeId] = item.available_rooms;
         });
-
         // Map room types + gán số phòng trống tương ứng
         hotels.value = roomTypes.map(room => {
             const typeId = parseInt(room.type_id);
+            const images = room.images ? JSON.parse(room.images) : [];
+
             return {
                 id: typeId,
                 name: room.type_name,
@@ -1038,18 +1055,16 @@ const getRoomTypes = async () => {
                 services: room.services || [],
                 max_occupancy: room.max_occupancy,
                 max_occupancy_child: room.max_occupancy_child,
-                images: [
-                    'https://img.lottehotel.com/cms/asset/2025/07/01/29403/438-2-1920-roo-LTHA.webp',
-                    room.images
-                ],
-                image: room.images || "https://img.lottehotel.com/cms/asset/2025/07/01/29403/438-2-1920-roo-LTHA.webp",
+                images: images,
+                image: images[0] ? `${apiUrl}/images/room_type/${images[0]}` : "https://img.lottehotel.com/cms/asset/2025/07/01/29403/438-2-1920-roo-LTHA.webp",
                 youtube_link: room.youtube_link || "https://www.youtube.com/embed/kXaLkZPlYyo?si=Pw0ywUB6VmhsW5XC",
                 price: 0,
                 rating: room.rate,
                 m2: room.m2,
                 available_rooms: availabilityMap[typeId] || 0
             };
-        });
+        }).reverse();
+
         //console.log("Hotels:", hotels.value); // Kiểm tra dữ liệu phòng đã lấy
         // showPopup.value = true;
 
@@ -1273,6 +1288,13 @@ const payQr = async () => {
 }
 //check de gui sms
 const checkAndSendOtp = () => {
+    if (!phoneNumber.value) {
+        alert('Vui lòng nhập số điện thoại!');
+        // Tập trung vào input số điện thoại
+        document.getElementById('phone').focus(); // Đảm bảo ID đúng với input của bạn
+        resetRadio();
+        return; // Ngừng thực hiện hàm nếu không có số điện thoại
+    }
     const phone = String(phoneNumber.value || '').trim();
     const storageKey = 'sentOtpPhones';
     if (!phone) return;
@@ -1293,6 +1315,13 @@ const checkAndSendOtp = () => {
 };
 
 const checkAndSendOtpPayos = () => {
+    if (!phoneNumber.value) {
+        alert('Vui lòng nhập số điện thoại!');
+        // Tập trung vào input số điện thoại
+        document.getElementById('phone').focus(); // Đảm bảo ID đúng với input của bạn
+        resetRadio();
+        return; // Ngừng thực hiện hàm nếu không có số điện thoại
+    }
     const phone = String(phoneNumber.value || '').trim();
     const storageKey = 'sentOtpPhones';
     if (!phone) return;
@@ -1347,7 +1376,7 @@ const sendOtpSMS = async () => {
     } catch (error) {
         console.error('Lỗi gửi mã xác nhận:', error.message || error);
         alert(`Lỗi gửi mã xác nhận: SDT không hợp lệ hoặc đã được đăng ký trước đó. Vui lòng thử lại.`);
-        location.reload();
+        //location.reload();
     } finally {
         isLoading.value = false; // Kết thúc quá trình tải
     }
@@ -1468,8 +1497,6 @@ body {
     color: #000;
 }
 
-
-
 .right {
     flex: 1;
     display: flex;
@@ -1561,6 +1588,24 @@ body {
         bottom: unset;
         left: unset;
         margin-top: 10px;
+    }
+}
+
+/* css nut thanh toan mobile */
+@media (max-width: 768px) {
+    .mobile-checkout-bar {
+        position: fixed;
+        bottom: 20px;
+        right: 10px;
+        left: 10px;
+        z-index: 1000;
+        background: white;
+        border-radius: 16px;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    }
+
+    .right {
+        gap: 60px;
     }
 }
 

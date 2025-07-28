@@ -18,83 +18,79 @@
     <section class="blog-content-area py-5">
       <div class="container">
         <div class="row">
-          <!-- Cột nội dung chi tiết bài viết -->
-          <div class="col-lg-8">
+          <!-- Cột nội dung chi tiết bài viết (Thay đổi class order) -->
+          <div class="col-lg-8 order-2 order-lg-1">
             <!-- Trạng thái đang tải -->
-            <div v-if="loading" class="text-center py-5">
+            <div v-if="loading" class="loading-state text-center py-5">
               <div class="spinner-border text-primary" style="width: 3rem; height: 3rem;" role="status">
                 <span class="visually-hidden">Đang tải...</span>
               </div>
+              <p class="mt-3">Đang tải nội dung bài viết...</p>
             </div>
 
             <!-- Nội dung chi tiết khi đã tải xong -->
-            <div v-else-if="postDetail" class="news-detail-wrapper">
-              <h1 class="post-detail-title">{{ postDetail.title }}</h1>
-              <div class="post-detail-meta mb-4 text-muted">
-                <span><i class="bi bi-person-fill"></i> {{ postDetail.author ? postDetail.author.name : 'Không rõ' }}</span>
-                <span class="mx-2">|</span>
-                <span><i class="bi bi-folder-fill"></i> {{ postDetail.category?.name || 'N/A' }}</span>
-                <span class="mx-2">|</span>
-                <span><i class="bi bi-calendar-event-fill"></i> {{ formatDate(postDetail.publish_date) }}</span>
-                <span class="mx-2">|</span>
-                <span><i class="bi bi-eye-fill"></i> {{ postDetail.views.toLocaleString('vi-VN') }} lượt xem</span>
-              </div>
-              <hr>
+            <article v-else-if="postDetail" class="news-detail-wrapper">
+              <header class="post-header mb-4">
+                <h1 class="post-detail-title">{{ postDetail.title }}</h1>
+                <div class="post-detail-meta">
+                  <span class="meta-item" title="Tác giả"><i class="bi bi-person-fill"></i> {{ postDetail.author ? postDetail.author.name : 'Admin' }}</span>
+                  <span class="meta-item" title="Danh mục"><i class="bi bi-folder-fill"></i> {{ postDetail.category?.name || 'N/A' }}</span>
+                  <span class="meta-item" title="Ngày đăng"><i class="bi bi-calendar-event-fill"></i> {{ formatDate(postDetail.publish_date) }}</span>
+                  <span class="meta-item" title="Lượt xem"><i class="bi bi-eye-fill"></i> {{ postDetail.views.toLocaleString('vi-VN') }}</span>
+                </div>
+              </header>
+              
               <div class="post-detail-content" v-html="postDetail.content"></div>
 
-              <!-- Khu vực Bình luận -->
-              <div class="comments-section mt-5">
-                <h3 class="mb-4">Bình luận ({{ allComments.length }})</h3>
+              <!-- Khu vực Bình luận (Thiết kế lại) -->
+              <div class="comments-section-wrapper mt-5">
+                <h3 class="comments-title">Bình luận ({{ allComments.length }})</h3>
                 
                 <!-- Form gửi bình luận -->
-                <div class="comment-form-wrapper mb-5 p-4 bg-light rounded">
-                  <h4 class="mb-3">Để lại bình luận</h4>
+                <div class="comment-form-wrapper">
+                  <h4 class="comment-form-title">Để lại bình luận của bạn</h4>
                   <form @submit.prevent="submitComment">
                     <div class="mb-3">
-                      <textarea class="form-control" v-model="newComment.content" rows="4" placeholder="Viết bình luận của bạn..." required></textarea>
+                      <textarea class="form-control" v-model="newComment.content" rows="4" placeholder="Nội dung bình luận..." required></textarea>
                     </div>
-                    <button type="submit" class="btn btn-primary" :disabled="isSubmittingComment">
-                      <span v-if="isSubmittingComment" class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
-                      Gửi bình luận
+                    <button type="submit" class="btn btn-submit-comment" :disabled="isSubmittingComment">
+                      <span v-if="isSubmittingComment" class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+                      {{ isSubmittingComment ? 'Đang gửi...' : 'Gửi bình luận' }}
                     </button>
                   </form>
                 </div>
                 
                 <!-- Danh sách bình luận -->
-                <ul v-if="visibleComments.length" class="list-unstyled">
-                  <li v-for="comment in visibleComments" :key="comment.id" class="comment-item d-flex mb-4">
-                    
-                    <!-- [THAY ĐỔI] Thay thế <img> bằng <div> cho avatar dạng chữ -->
-                    <div 
-                      class="initials-avatar d-flex align-items-center justify-content-center rounded-circle me-3" 
-                      :style="{ backgroundColor: getAvatarColor(comment.user ? comment.user.name : 'Khách') }">
-                      <span>{{ getInitials(comment.user ? comment.user.name : 'Khách') }}</span>
-                    </div>
-
-                    <div class="comment-body">
-                      <div class="comment-header">
-                        <h6 class="comment-author">{{ comment.user ? comment.user.name : 'Khách' }}</h6>
-                        <small class="comment-date text-muted" :title="formatDate(comment.created_at)">
-                           {{ formatTimeAgo(comment.created_at) }}
-                        </small>
+                <div class="comment-list mt-5">
+                  <ul v-if="visibleComments.length" class="list-unstyled">
+                    <li v-for="comment in visibleComments" :key="comment.id" class="comment-item">
+                      <div class="initials-avatar" :style="{ backgroundColor: getAvatarColor(comment.user ? comment.user.name : 'Khách') }">
+                        <span>{{ getInitials(comment.user ? comment.user.name : 'Khách') }}</span>
                       </div>
-                      <p class="comment-text mt-2">{{ comment.content }}</p>
-                    </div>
-                  </li>
-                </ul>
-                <div v-else class="text-center text-muted">
-                  Chưa có bình luận nào. Hãy là người đầu tiên!
-                </div>
+                      <div class="comment-body">
+                        <div class="comment-header">
+                          <h6 class="comment-author">{{ comment.user ? comment.user.name : 'Khách' }}</h6>
+                          <small class="comment-date text-muted" :title="formatDate(comment.created_at)">
+                            {{ formatTimeAgo(comment.created_at) }}
+                          </small>
+                        </div>
+                        <p class="comment-text mt-1">{{ comment.content }}</p>
+                      </div>
+                    </li>
+                  </ul>
+                  <div v-else class="text-center text-muted p-4">
+                    Chưa có bình luận nào. Hãy là người đầu tiên!
+                  </div>
 
-                <!-- Nút "Tải thêm / Thu gọn" -->
-                <div v-if="showToggleButton" class="text-center mt-4">
-                    <button @click="toggleCommentsView" class="btn btn-outline-primary">
-                        {{ toggleButtonText }}
-                    </button>
+                  <!-- Nút "Tải thêm / Thu gọn" -->
+                  <div v-if="showToggleButton" class="text-center mt-4">
+                      <button @click="toggleCommentsView" class="btn btn-toggle-comments">
+                          {{ toggleButtonText }}
+                      </button>
+                  </div>
                 </div>
-
               </div>
-            </div>
+            </article>
             
             <!-- Trường hợp không tìm thấy bài viết -->
             <div v-else class="text-center py-5">
@@ -104,72 +100,75 @@
             </div>
           </div>
 
-          <!-- Cột Sidebar -->
-          <div class="col-lg-4">
-            <div class="blog-sidebar">
+          <!-- Cột Sidebar (Thay đổi class order và cấu trúc để đồng bộ) -->
+          <div class="col-lg-4 order-1 order-lg-2 mb-5 mb-lg-0">
+            <aside class="blog-sidebar">
               <!-- Widget Tìm kiếm -->
-              <div class="sidebar-widget p-4 rounded mb-4">
-                <h4 class="widget-title mb-3">Tìm Kiếm Tại Đây</h4>
-                <div class="input-group">
-                  <input type="text" v-model="searchQuery" @keyup.enter="handleSearch" class="form-control" placeholder="Tìm kiếm..." aria-label="Search here">
-                  <button class="btn btn-search" type="button" @click="handleSearch"><i class="bi bi-search"></i></button>
+              <div class="sidebar-widget">
+                <h4 class="widget-title">Tìm Kiếm</h4>
+                <div class="search-form">
+                  <input type="text" v-model="searchQuery" @keyup.enter="handleSearch" class="form-control" placeholder="Nhập từ khóa...">
+                  <button class="btn-search" type="button" @click="handleSearch"><i class="bi bi-search"></i></button>
                 </div>
               </div>
 
               <!-- Widget Danh Mục -->
-              <div class="sidebar-widget p-4 rounded mb-4">
-                <h4 class="widget-title mb-3">Danh Mục</h4>
-                <ul v-if="categories.length" class="list-unstyled category-list">
+              <div class="sidebar-widget">
+                <h4 class="widget-title">Danh Mục</h4>
+                <ul v-if="categories.length" class="category-list list-unstyled">
                   <li>
-                    <router-link to="/news" class="d-flex justify-content-between align-items-center">
+                    <router-link to="/news">
                       <span>Tất cả danh mục</span>
+                      <i class="bi bi-chevron-right"></i>
                     </router-link>
                   </li>
                   <li v-for="category in categories" :key="category.id">
-                    <router-link :to="{ path: '/news', query: { category: category.id } }" class="d-flex justify-content-between align-items-center">
+                    <router-link :to="{ path: '/news', query: { category: category.id } }">
                       <span>{{ category.name }}</span>
+                      <i class="bi bi-chevron-right"></i>
                     </router-link>
                   </li>
                 </ul>
-                <div v-else>
-                    <p class="text-muted">Đang tải danh mục...</p>
-                </div>
+                <div v-else class="text-muted">Đang tải danh mục...</div>
               </div>
 
-              <!-- Widget Bài viết gần đây -->
-              <div class="sidebar-widget p-4 rounded mb-4">
-                <h4 class="widget-title mb-3">Bài Viết Gần Đây</h4>
-                <div v-if="recentPosts.length">
-                    <div v-for="post in recentPosts" :key="post.id" class="recent-post-item d-flex align-items-center mb-3">
-                    <img :src="getThumbnailUrl(post.thumbnail)" :alt="post.title" class="rounded me-3">
-                    <div>
-                        <h6 class="mb-1"><router-link :to="`/news/${post.id}`">{{ post.title }}</router-link></h6>
-                        <small class="text-muted"><i class="bi bi-calendar-event me-1"></i>{{ formatDate(post.publish_date) }}</small>
-                    </div>
-                    </div>
-                </div>
-                <div v-else>
-                    <p class="text-muted">Không có bài viết nào.</p>
-                </div>
-              </div>
-
-              <!-- Widget Bài viết nổi bật MỚI -->
-              <div v-if="pinnedPosts.length > 0" class="sidebar-widget p-4 rounded mb-4">
-                <h4 class="widget-title mb-3">Bài Viết Nổi Bật</h4>
-                <div v-for="post in pinnedPosts" :key="post.id" class="recent-post-item d-flex align-items-center mb-3">
-                  <img :src="getThumbnailUrl(post.thumbnail)" :alt="post.title" class="rounded me-3">
-                  <div>
-                    <h6 class="mb-1"><router-link :to="`/news/${post.id}`">{{ post.title }}</router-link></h6>
-                    <small class="text-muted"><i class="bi bi-calendar-event me-1"></i>{{ formatDate(post.publish_date) }}</small>
+              <!-- Widget Bài viết nổi bật -->
+              <div v-if="pinnedPosts.length > 0" class="sidebar-widget">
+                <h4 class="widget-title">Bài Viết Nổi Bật</h4>
+                <div v-for="post in pinnedPosts" :key="post.id" class="recent-post-item">
+                  <router-link :to="`/news/${post.id}`" class="recent-post-img-link">
+                    <img :src="getThumbnailUrl(post.thumbnail)" :alt="post.title" class="recent-post-img">
+                  </router-link>
+                  <div class="recent-post-info">
+                    <h6 class="recent-post-title"><router-link :to="`/news/${post.id}`">{{ post.title }}</router-link></h6>
+                    <small class="recent-post-date"><i class="bi bi-calendar3 me-1"></i>{{ formatDate(post.publish_date) }}</small>
                   </div>
                 </div>
               </div>
 
-               <div class="mb-4">
+              <!-- Widget Bài viết gần đây -->
+              <div class="sidebar-widget">
+                <h4 class="widget-title">Bài Viết Gần Đây</h4>
+                <div v-if="recentPosts.length">
+                    <div v-for="post in recentPosts" :key="post.id" class="recent-post-item">
+                      <router-link :to="`/news/${post.id}`" class="recent-post-img-link">
+                        <img :src="getThumbnailUrl(post.thumbnail)" :alt="post.title" class="recent-post-img">
+                      </router-link>
+                      <div class="recent-post-info">
+                        <h6 class="recent-post-title"><router-link :to="`/news/${post.id}`">{{ post.title }}</router-link></h6>
+                        <small class="recent-post-date"><i class="bi bi-calendar3 me-1"></i>{{ formatDate(post.publish_date) }}</small>
+                      </div>
+                    </div>
+                </div>
+                <div v-else class="text-muted">Không có bài viết nào.</div>
+              </div>
+
+              <!-- Widget Quảng cáo -->
+              <div class="sidebar-widget p-0">
                  <AdPlaceholder />
               </div>
 
-            </div>
+            </aside>
           </div>
         </div>
       </div>
@@ -178,6 +177,7 @@
 </template>
 
 <script setup>
+// --- PHẦN SCRIPT GIỮ NGUYÊN KHÔNG THAY ĐỔI ---
 import { ref, onMounted, inject, watch, computed } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import axios from 'axios';
@@ -252,7 +252,6 @@ const formatTimeAgo = (dateString) => {
     return `${years} năm trước`;
 };
 
-// [THÊM MỚI] Hàm tạo tên viết tắt cho avatar
 const getInitials = (name) => {
   if (!name || typeof name !== 'string' || name.trim() === '') {
     return '?';
@@ -269,10 +268,9 @@ const getInitials = (name) => {
   return (firstInitial + lastInitial).toUpperCase();
 };
 
-// [THÊM MỚI] Hàm tạo màu nền động cho avatar
 const getAvatarColor = (name) => {
   if (!name || name.trim() === '') {
-    return '#6c757d'; // Màu mặc định
+    return '#6c757d';
   }
   let hash = 0;
   for (let i = 0; i < name.length; i++) {
@@ -409,136 +407,249 @@ watch(() => route.params.id, (newId, oldId) => {
 });
 </script>
 
+
+<style>
+/* Thêm Google Font */
+@import url('https://fonts.googleapis.com/css2?family=Public+Sans:wght@400;500;600;700;800&display=swap');
+</style>
+
 <style scoped>
-/* ----- SAO CHÉP STYLE TỪ TRANG LIST ----- */
-.blog-banner {
-  width: 100%; height: 350px; position: relative; display: flex;
-  justify-content: center; align-items: center;
-  background: linear-gradient(rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.5)),
-    url('https://anhphathotel.com/wp-content/uploads/2023/06/resort-thanh-hoa-4.jpg');
-  background-size: cover; background-position: center;
-}
-.banner-title { font-size: 3.5rem; font-weight: 800; color: #fff; }
-.breadcrumb { background-color: transparent; padding: 0; }
-.breadcrumb-item a { color: #f1f1f1; font-weight: 600; text-decoration: none; }
-.breadcrumb-item.active { color: #ffc107; }
-.blog-content-area {
+/* --- THIẾT KẾ TỔNG THỂ --- */
+.blog-page-wrapper {
+  font-family: 'Public Sans', sans-serif;
   background-color: #ffffff;
 }
-/* Sidebar Styles */
-.blog-sidebar .sidebar-widget { background-color: #f8f9fa; border: 1px solid #dee2e6; }
-.widget-title { position: relative; padding-bottom: 10px; border-bottom: 2px solid #dee2e6; font-weight: 700; color: #343a40;}
-.sidebar-widget .form-control:focus { box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25); border-color: #007bff; }
-.sidebar-widget .btn-search { background-color: #007bff; color: white; }
-.sidebar-widget .btn-search:hover { background-color: #0056b3; }
-.category-list li a { display: block; padding: 12px 15px; border-radius: 5px; font-weight: 500; background-color: #fff; color: #343a40; border: 1px solid #ddd; transition: all 0.3s ease; text-decoration: none;}
-.category-list li a:hover { background-color: #007bff; color: #fff; border-color: #007bff; }
-.category-list li { margin-bottom: 10px; }
-.recent-post-item img { width: 70px; height: 70px; object-fit: cover; }
-.recent-post-item h6 { font-size: 0.95rem; line-height: 1.3; font-weight: 600;}
-.recent-post-item a { text-decoration: none; color: #343a40;}
-.recent-post-item a:hover { color: #007bff;}
-/* ----- END STYLE SAO CHÉP ----- */
-/* ----- STYLE MỚI CHO TRANG CHI TIẾT ----- */
-.post-detail-title {
-  font-size: 2.5rem;
+a {
+  text-decoration: none;
+  color: #212529;
+}
+h1, h2, h3, h4, h5, h6 {
   font-weight: 700;
   color: #212529;
+}
+
+/* --- BANNER --- */
+.blog-banner {
+  width: 100%; height: 250px; position: relative; display: flex;
+  justify-content: center; align-items: center;
+  background: linear-gradient(rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.5)),
+    url('https://anhphathotel.com/wp-content/uploads/2023/06/resort-thanh-hoa-4.jpg') center center / cover no-repeat;
+}
+.banner-title { font-size: 3rem; font-weight: 800; color: #fff; }
+.breadcrumb-item a { color: #f1f1f1; font-weight: 500; }
+.breadcrumb-item.active { color: #ffc107; }
+
+/* --- KHU VỰC NỘI DUNG --- */
+.blog-content-area { background-color: #f8f9fa; }
+.news-detail-wrapper {
+  background-color: #fff;
+  padding: 2rem;
+  border-radius: 12px;
+  border: 1px solid #e9ecef;
+}
+
+/* --- CHI TIẾT BÀI VIẾT --- */
+.post-detail-title {
+  font-size: 2.25rem;
+  font-weight: 800;
+  color: #212529;
   line-height: 1.3;
+  margin-bottom: 1rem;
 }
 .post-detail-meta {
-  font-size: 0.9rem;
   display: flex;
   flex-wrap: wrap;
-  gap: 5px;
-  align-items: center;
+  gap: 0.5rem 1.5rem;
+  color: #6c757d;
+  font-size: 0.9rem;
+  padding-bottom: 1.5rem;
+  border-bottom: 1px solid #e9ecef;
+  margin-bottom: 1.5rem;
 }
-/* Định dạng cho nội dung v-html, giống trang admin */
+.post-detail-meta .meta-item {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+/* Định dạng nội dung từ v-html */
 .post-detail-content {
     line-height: 1.8;
     word-wrap: break-word;
-    font-size: 1.1rem;
+    font-size: 1.05rem;
     color: #343a40;
 }
 .post-detail-content :deep(p) { margin-bottom: 1.25rem; }
 .post-detail-content :deep(h1),
 .post-detail-content :deep(h2),
 .post-detail-content :deep(h3) {
-    margin-top: 2rem;
-    margin-bottom: 1rem;
-    font-weight: 600;
+    margin-top: 2.5rem;
+    margin-bottom: 1.25rem;
+    font-weight: 700;
     line-height: 1.4;
+    color: #1a1a1a;
 }
 .post-detail-content :deep(img) {
     max-width: 100%;
     height: auto;
-    border-radius: 8px;
+    border-radius: 12px;
     margin: 1.5rem 0;
-    box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+    box-shadow: 0 5px 20px rgba(0,0,0,0.08);
 }
 .post-detail-content :deep(blockquote) {
-    border-left: 5px solid #007bff;
-    padding-left: 1.5rem;
+    border-left: 4px solid #007bff;
+    padding: 1rem 1.5rem;
     margin: 2rem 0;
     font-style: italic;
-    color: #6c757d;
+    color: #495057;
     background-color: #f8f9fa;
-    padding-top: 1rem;
-    padding-bottom: 1rem;
-    border-radius: 0 5px 5px 0;
+    border-radius: 0 8px 8px 0;
 }
 .post-detail-content :deep(ul), .post-detail-content :deep(ol) {
     padding-left: 2rem;
     margin-bottom: 1.5rem;
 }
-/* Định dạng cho khu vực bình luận */
-.comments-section {
-  border-top: 1px solid #dee2e6;
+.post-detail-content :deep(li) {
+    margin-bottom: 0.5rem;
+}
+
+/* --- KHU VỰC BÌNH LUẬN --- */
+.comments-section-wrapper {
+  border-top: 1px solid #e9ecef;
   padding-top: 2rem;
+  margin-top: 3rem;
+  background-color: #fff;
+}
+.comments-title {
+  font-size: 1.75rem;
+  margin-bottom: 1.5rem;
+}
+.comment-form-wrapper {
+  background-color: #f8f9fa;
+  padding: 1.5rem;
+  border-radius: 12px;
+}
+.comment-form-title {
+  font-size: 1.25rem;
+  font-weight: 600;
+  margin-bottom: 1rem;
+}
+.comment-form-wrapper .form-control {
+  border-radius: 8px;
+  border: 1px solid #dee2e6;
+}
+.comment-form-wrapper .form-control:focus {
+  border-color: #007bff;
+  box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+}
+.btn-submit-comment {
+  background-color: #007bff;
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  padding: 10px 20px;
+  font-weight: 600;
+  transition: background-color 0.3s ease;
+}
+.btn-submit-comment:hover:not(:disabled) {
+  background-color: #0056b3;
 }
 .comment-item {
-  border-bottom: 1px solid #e9ecef;
-  padding-bottom: 1.5rem;
-}
-.comment-item:last-child {
-  border-bottom: none;
-  padding-bottom: 0;
-}
-.comment-header {
   display: flex;
-  justify-content: space-between;
-  align-items: baseline;
-  flex-wrap: wrap;
-  gap: 10px;
+  gap: 1rem;
+  padding-bottom: 1.5rem;
+  margin-bottom: 1.5rem;
+  border-bottom: 1px solid #e9ecef;
 }
-.comment-author {
-  font-weight: 600;
-  color: #343a40;
+.comment-list .comment-item:last-child {
+  border-bottom: none;
   margin-bottom: 0;
 }
-.comment-date {
-  font-size: 0.85rem;
-  flex-shrink: 0;
-}
-.comment-text {
-  color: #495057;
-  line-height: 1.6;
-}
-.btn-outline-primary {
-    font-weight: 600;
-}
-
-/* [THÊM MỚI] Style cho avatar dạng chữ */
 .initials-avatar {
-  width: 60px;
-  height: 60px;
-  color: white;
-  font-weight: 600;
-  font-size: 1.5rem;
-  flex-shrink: 0; /* Đảm bảo avatar không bị co lại khi nội dung dài */
+  width: 50px; height: 50px;
+  color: white; font-weight: 600; font-size: 1.25rem;
+  flex-shrink: 0;
+  display: flex; align-items: center; justify-content: center;
+  border-radius: 50%;
+}
+.comment-header {
+  display: flex; justify-content: space-between; align-items: baseline;
+  flex-wrap: wrap; gap: 10px;
+}
+.comment-author { font-weight: 600; color: #343a40; margin-bottom: 0; }
+.comment-date { font-size: 0.8rem; flex-shrink: 0; }
+.comment-text { color: #495057; line-height: 1.6; font-size: 0.95rem; }
+.btn-toggle-comments {
+  font-weight: 600; color: #007bff;
+  border: 1px solid #007bff;
+}
+.btn-toggle-comments:hover {
+  background-color: #007bff; color: #fff;
 }
 
-.initials-avatar span {
-  line-height: 1; /* Căn chỉnh chiều cao dòng tốt hơn */
+/* --- SIDEBAR (GIỐNG HỆT TRANG LIST) --- */
+.blog-sidebar {
+  display: flex; flex-direction: column; gap: 1.75rem;
+}
+.sidebar-widget {
+  background-color: #fff; padding: 25px; border-radius: 12px;
+  border: 1px solid #e9ecef;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+}
+.widget-title {
+  font-size: 1.3rem; padding-bottom: 10px; margin-bottom: 20px;
+  position: relative;
+}
+.widget-title::after {
+  content: ''; position: absolute; bottom: 0; left: 0;
+  width: 40px; height: 3px; background-color: #007bff; border-radius: 2px;
+}
+.search-form { display: flex; position: relative; }
+.search-form .form-control {
+  height: 48px; padding-left: 15px; padding-right: 50px;
+  border: 1px solid #dee2e6; border-radius: 8px;
+}
+.search-form .form-control:focus {
+  border-color: #007bff; box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+}
+.search-form .btn-search {
+  position: absolute; right: 5px; top: 50%; transform: translateY(-50%);
+  background: #007bff; color: white; border: none;
+  width: 40px; height: 40px; border-radius: 6px; font-size: 1rem;
+}
+.category-list li { margin-bottom: 8px; }
+.category-list li a {
+  display: flex; justify-content: space-between; align-items: center;
+  padding: 12px 15px; border-radius: 8px; font-weight: 500;
+  color: #6c757d; background-color: #f8f9fa; transition: all 0.3s ease;
+}
+.category-list li a:hover {
+  background-color: #007bff; color: #fff; transform: translateX(5px);
+}
+.recent-post-item { display: flex; align-items: center; gap: 15px; }
+.recent-post-item:not(:last-child) { margin-bottom: 20px; }
+.recent-post-img-link { flex-shrink: 0; }
+.recent-post-img {
+  width: 75px; height: 75px; object-fit: cover; border-radius: 8px;
+}
+.recent-post-info { flex-grow: 1; }
+.recent-post-title { font-size: 0.95rem; line-height: 1.4; font-weight: 600; margin-bottom: 5px; }
+.recent-post-title a:hover { color: #007bff; }
+.recent-post-date { color: #6c757d; font-size: 0.8rem; }
+
+/* --- RESPONSIVE --- */
+@media (min-width: 992px) {
+  .blog-sidebar {
+    position: sticky;
+    top: 20px;
+  }
+}
+@media (max-width: 768px) {
+  .post-detail-title { font-size: 1.75rem; }
+  .news-detail-wrapper { padding: 1.5rem; }
+}
+@media (max-width: 576px) {
+  .banner-title { font-size: 2.5rem; }
+  .post-detail-meta { gap: 0.5rem 1rem; }
 }
 </style>

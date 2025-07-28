@@ -144,7 +144,7 @@
                   </li>
                 </template>
                 <li class="nav-item">
-                  <router-link class="btn btn-solid-custom" to="/rooms3">Đặt Phòng</router-link>
+                  <router-link class="btn btn-solid-custom" to="/booking_hotel">Đặt Phòng</router-link>
                 </li>
               </ul>
             </div>

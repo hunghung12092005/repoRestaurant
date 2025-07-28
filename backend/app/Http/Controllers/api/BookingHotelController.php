@@ -669,18 +669,18 @@ class BookingHotelController extends Controller
                 'booking_hotel.booking_type',
                 'booking_hotel.note'
             ])
-            ->leftJoin('customers', 'booking_hotel.customer_id', '=', 'customers.customer_id')
-            ->with([
-                'customer' => function ($query) {
-                    $query->select('customer_id', 'customer_name', 'customer_phone', 'customer_email');
-                },
-                'details' => function ($query) {
-                    $query->select('booking_hotel_detail.booking_detail_id', 'booking_hotel_detail.booking_id', 'booking_hotel_detail.room_type', 'booking_hotel_detail.total_price', 'booking_hotel_detail.room_id')
-                          ->with(['roomType' => function ($q) {
-                              $q->select('type_id', 'type_name');
-                          }]);
-                }
-            ]);
+                ->leftJoin('customers', 'booking_hotel.customer_id', '=', 'customers.customer_id')
+                ->with([
+                    'customer' => function ($query) {
+                        $query->select('customer_id', 'customer_name', 'customer_phone', 'customer_email');
+                    },
+                    'details' => function ($query) {
+                        $query->select('booking_hotel_detail.booking_detail_id', 'booking_hotel_detail.booking_id', 'booking_hotel_detail.room_type', 'booking_hotel_detail.total_price', 'booking_hotel_detail.room_id')
+                            ->with(['roomType' => function ($q) {
+                                $q->select('type_id', 'type_name');
+                            }]);
+                    }
+                ]);
 
             // Áp dụng bộ lọc trạng thái
             if ($status) {
@@ -694,8 +694,8 @@ class BookingHotelController extends Controller
             if ($search) {
                 $query->where(function ($q) use ($search) {
                     $q->where('booking_hotel.booking_id', 'like', "%$search%")
-                      ->orWhere('customers.customer_name', 'like', "%$search%")
-                      ->orWhere('customers.customer_phone', 'like', "%$search%");
+                        ->orWhere('customers.customer_name', 'like', "%$search%")
+                        ->orWhere('customers.customer_phone', 'like', "%$search%");
                 });
             }
 

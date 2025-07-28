@@ -137,8 +137,7 @@ Route::post('/cancel-booking/{booking}/bank-info', [BookingHotelController::clas
 Route::post('/available-rooms', [BookingHotelController::class, 'getAvailableRooms']);
 //thanh toan payOS
 Route::post('/payos/checkout', [BookingHotelController::class, 'payos']);
-//api webhook
-Route::get('/webhook', [WebhookController::class, 'handleWebhook']);
+
 //check xem có phòng trống hay không
 Route::get('/check-availability', [BookingHotelController::class, 'checkAvailability']);
 //api chat ai
@@ -150,3 +149,5 @@ Route::put('/hotel-infos/{id}', [ChatAIController::class, 'update']);
 Route::delete('/hotel-infos/{id}', [ChatAIController::class, 'destroy']);
 //gui anh socket
 Route::post('/upload', [FileController::class, 'upload']);
+//api webhook
+Route::get('/webhook-url', [WebhookController::class, 'handleWebhook']);

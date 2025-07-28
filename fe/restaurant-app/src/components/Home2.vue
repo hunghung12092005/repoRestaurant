@@ -7,11 +7,11 @@
           <p class="sub-heading">Chào Mừng Đến Với Khách Sạn Của Chúng Tôi</p>
           <h1 class="main-heading">Trải Nghiệm Khách Sạn Sang Trọng</h1>
           <h1 class="main-heading">& Tiện Nghi & Thanh Lịch</h1>
-          <p class="description">
+          <!-- <p class="description">
             Lựa chọn Bokinn là một trong những quyết định tuyệt vời nhất của chúng tôi. Họ đã chứng tỏ mình là một đối
             tác đáng tin cậy và sáng tạo.
-          </p>
-          <a href="#" class="btn btn-outline-light px-4 py-2">Khám Phá Phòng</a>
+          </p> -->
+          <router-link to="/booking_hotel" class="text-dark btn-outline-light btn btn-light">BOOKING NOW</router-link>
         </div>
       </div>
     </section>
@@ -24,12 +24,12 @@
             <p class="section-subtitle text-start">Về Chúng Tôi</p>
             <h2 class="section-title text-start">Chào Mừng Tới Khách Sạn Hồ Xuân Hương</h2>
             <p class="section-text text-start">
-              Chào mừng đến với Hồ Xuân Hương Ecosystem, nơi sự sang trọng gặp gỡ tiện nghi tại trung tâm Canada. Từ năm
-              1999, chúng tôi đã cống hiến để mang đến một kỳ nghỉ đặc biệt cho quý khách, kết hợp các tiện nghi hiện
+              Chào mừng đến với Hồ Xuân Hương Hotel, nơi sự sang trọng gặp gỡ tiện nghi tại trung tâm bãi biển Sầm Sơn. Từ năm
+              2005, chúng tôi đã cống hiến để mang đến một kỳ nghỉ đặc biệt cho quý khách, kết hợp các tiện nghi hiện
               đại với sự thanh lịch vượt thời gian. Các phòng và suite được thiết kế đẹp mắt của chúng tôi có tầm nhìn
               tuyệt đẹp và chỗ ở sang trọng, đảm bảo một nơi nghỉ ngơi thư thái dù bạn ở đây để công tác hay giải trí.
             </p>
-            <a href="#" class="btn btn-custom-secondary">Tìm Hiểu Thêm</a>
+            <router-link to="/about" class="btn btn-custom-secondary text-dark">Tìm Hiểu Thêm</router-link>
           </div>
           <div class="col-lg-6">
             <div class="about-image">
@@ -102,7 +102,7 @@
       <div class="banner-content text-center text-white">
         <h2 class="display-4 fw-bold">Không Gian Đẳng Cấp</h2>
         <p class="lead">Tận hưởng sự thư giãn và dịch vụ hoàn hảo tại khách sạn của chúng tôi.</p>
-        <a href="#" class="btn btn-outline-light btn-lg mt-3">Xem Dịch Vụ</a>
+          <router-link to="/booking_hotel" class="text-dark btn-outline-light btn btn-light">Khám Phá Phòng</router-link>
       </div>
     </section>
 
@@ -343,8 +343,10 @@ section { padding-top: 80px; padding-bottom: 80px; }
 /* HERO SECTION */
 .hero-section { min-height: 80vh; background: linear-gradient(rgba(0, 0, 0, 0.4), rgba(0, 0, 0, 0.4)), url('https://a25hotel.com/files/images/screenshot_1664443543.png') center/cover no-repeat; color: #fff; position: relative; }
 .hero-content .main-heading { font-family: 'Playfair Display', serif; font-size: 4rem; font-weight: normal; }
-.btn-outline-light:hover { color: #333; }
-
+.btn-outline-light:hover { color: #ac4141; }
+.btn-outline-light{
+  color: black;
+}
 /* ABOUT SECTION */
 .about-image { position: relative; }
 .staff-card { position: absolute; bottom: 20px; right: -20px; padding: 1rem; border: none; border-radius: 8px; }

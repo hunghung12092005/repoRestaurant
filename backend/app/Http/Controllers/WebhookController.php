@@ -1,31 +1,79 @@
-<?php namespace App\Http\Controllers;
+<?php
+
+namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
+use App\Models\BookingHotel;
 
 class WebhookController extends Controller
 {
     public function handleWebhook(Request $request)
     {
-        // Lấy dữ liệu từ webhook
-        $data = $request->all();
+        $payload = $request->all();
 
-        // Kiểm tra signature (nếu cần)
-        // $signature = $request->header('signature');
-        // if (!$this->isValidSignature($data, $signature)) {
-        //     return response()->json(['error' => 'Invalid signature'], 401);
-        // }
+        // Lấy signature và checksum_key
+        $receivedSignature = $payload['signature'] ?? null;
+        $checksumKey = env('PAYOS_CHECKSUM_KEY'); // từ .env
 
-        // Xử lý dữ liệu
-       // Log::info('Webhook data received: ', $data);
+        // Dữ liệu cần kiểm tra chữ ký
+        $data = $payload['data'] ?? [];
 
-        // Trả về phản hồi
-        return response()->json(['code' => '00', 'desc' => 'success']);
+        // Kiểm tra chữ ký
+        if (!$this->isValidSignature($data, $receivedSignature, $checksumKey)) {
+            Log::warning('❌ Webhook sai chữ ký', [
+                'received' => $receivedSignature,
+                'data' => $data
+            ]);
+            return response()->json(['error' => 'Invalid signature'], 401);
+        }
+
+        Log::info('✅ Webhook hợp lệ từ PayOS', $data);
+
+        // Tìm đơn theo orderCode
+        $orderCode = $data['orderCode'] ?? null;
+        $code = $data['code'] ?? null;
+
+        if ($orderCode && $code) {
+            $booking = BookingHotel::where('orderCode', $orderCode)->first();
+
+            if ($booking) {
+                $newStatus = $code === '00' ? 'completed' : 'failed';
+                $booking->payment_status = $newStatus;
+                $booking->save();
+
+                Log::info("💰 Đơn hàng [$orderCode] cập nhật trạng thái [$newStatus]");
+            } else {
+                Log::warning("⚠️ Không tìm thấy đơn hàng với orderCode [$orderCode]");
+            }
+        } else {
+            Log::warning("⚠️ Dữ liệu webhook thiếu orderCode hoặc code");
+        }
+
+        return response()->json(['message' => 'Webhook xử lý thành công'], 200);
     }
 
-    // Hàm kiểm tra signature (nếu cần)
-    // private function isValidSignature($data, $signature)
-    // {
-    //     // Logic để kiểm tra signature
-    // }
-}?>
+    private function isValidSignature($transaction, $signature, $checksum_key)
+    {
+        ksort($transaction);
+        $transaction_str_arr = [];
+
+        foreach ($transaction as $key => $value) {
+            if (in_array($value, ["undefined", "null"]) || is_null($value)) {
+                $value = "";
+            }
+
+            if (is_array($value)) {
+                ksort($value);
+                $value = json_encode($value, JSON_UNESCAPED_UNICODE);
+            }
+
+            $transaction_str_arr[] = $key . '=' . $value;
+        }
+
+        $transaction_str = implode('&', $transaction_str_arr);
+        $generated = hash_hmac('sha256', $transaction_str, $checksum_key);
+
+        return $signature === $generated;
+    }
+}
