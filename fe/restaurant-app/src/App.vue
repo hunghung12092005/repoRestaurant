@@ -7,7 +7,7 @@
       <div v-if="isAdmin || isStaff" class="sidebar">
         <div class="header text-center p-3 border-bottom">
           <img src="https://i.postimg.cc/d3pNGXPN/7c6764b8-de90-474c-9b98-05019aef3193.png" alt="Luxuria Logo" class="rounded-circle" />
-          <span class="fw-bold"><strong>Ho Xuan Huong</strong> Ecosystem</span>
+          <span class="fw-bold">Ho Xuan Huong Ecosystem</span>
         </div>
         <div class="profile text-center p-3 border-bottom">
           <p class="mb-0 text-muted">{{ userInfo.name || 'User' }}</p>
@@ -388,8 +388,8 @@ footer { background-color: var(--second-color); color: #fff; }
 }
 .sidebar::-webkit-scrollbar { display: none; }
 .sidebar .header { text-align: center; padding: 20px; border-bottom: 1px solid var(--border-color); }
-.sidebar .header img { width: 30px; margin-right: 10px; vertical-align: middle; }
-.sidebar .header span { font-size: 1.5rem; vertical-align: middle; color: #dc3545; }
+.sidebar .header img { width: 30px; margin-right: 10px; vertical-align: middle; color: #080808;}
+.sidebar .header span { font-size: 1.5rem; vertical-align: middle; filter: brightness(0); }
 .sidebar .profile { text-align: center; padding: 20px 0; border-bottom: 1px solid var(--border-color); }
 .sidebar .profile img { width: 80px; height: 80px; border-radius: 50%; margin-bottom: 10px; }
 .sidebar .profile p { margin: 0; font-size: 0.9rem; color: #6c757d; }
