@@ -1,1 +1,1 @@
-<template>coupons</template>
+<template>coupons adnadoadj</template>
