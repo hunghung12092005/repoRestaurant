@@ -8,19 +8,20 @@ class BookingHistory extends Model
 {
     protected $table = 'booking_room_status';
     protected $primaryKey = 'status_id';
-    public $timestamps = true; // Nếu bảng có cột created_at, updated_at
+    public $timestamps = true;
 
     protected $fillable = [
         'room_id',
         'customer_id',
-        'check_in_date',
-        'check_out_date',
-        'actual_check_out_time',
-        'pricing_type',
-        'status',
-        'total_price',
+        'booking_id',
+        'booking_detail_id',
+        'check_in',
+        'check_out',
+        'room_price',
+        'service_price',
         'surcharge',
-        'surcharge_reason'
+        'surcharge_reason',
+        'total_paid',
     ];
 
     // Quan hệ với Room
@@ -33,5 +34,17 @@ class BookingHistory extends Model
     public function customer()
     {
         return $this->belongsTo(Customer::class, 'customer_id', 'customer_id');
+    }
+
+    // Quan hệ với BookingHotel
+    public function booking()
+    {
+        return $this->belongsTo(BookingHotel::class, 'booking_id', 'booking_id');
+    }
+
+    // Quan hệ với BookingHotelDetail
+    public function bookingDetail()
+    {
+        return $this->belongsTo(BookingHotelDetail::class, 'booking_detail_id', 'booking_detail_id');
     }
 }
