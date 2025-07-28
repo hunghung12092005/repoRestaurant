@@ -153,4 +153,10 @@ Route::post('/upload', [FileController::class, 'upload']);
 //api webhook
 Route::get('/webhook-url', [WebhookController::class, 'handleWebhook']);
 //giam gia
-Route::post('/discount', [CouponsController::class, 'getDiscountAmount']);
+Route::post('/discount', [CouponsController::class, 'getDiscountAmount'])->middleware('throttle:100,60');
+Route::prefix('discount-codes')->controller(CouponsController::class)->group(function () {
+    Route::get('/', 'index');
+    Route::post('/', 'store');
+    Route::put('/{id}', 'update');
+    Route::delete('/{id}', 'destroy');
+});

@@ -8,16 +8,16 @@ class Discount extends Model
 {
         protected $table = 'hotel_coupons';
 
-//   protected $primaryKey = 'room_id';
-//     public $incrementing = true;
+protected $fillable = [
+        'code', 'description', 'discount_amount',
+        'usage_limit', 'used_count', 'is_active',
+        'expires_at'
+    ];
 
-//     protected $fillable = [
-//         'room_name',
-//         'type_id',
-//         'floor_number',
-//         'status',
-//         'description'
-//     ];
+    protected $casts = [
+        'is_active' => 'boolean',
+        'expires_at' => 'datetime',
+    ];
 
 }
     

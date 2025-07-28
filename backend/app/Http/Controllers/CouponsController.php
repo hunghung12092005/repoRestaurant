@@ -7,6 +7,51 @@ use Illuminate\Http\Request;
 
 class CouponsController extends Controller
 {
+    public function index()
+    {
+        return Discount::orderByDesc('created_at')->get();
+    }
+
+    public function store(Request $request)
+    {
+        $data = $request->validate([
+            'code' => 'required|string|unique:hotel_coupons,code',
+            'description' => 'nullable|string',
+            'discount_amount' => 'required|integer|min:0',
+            'usage_limit' => 'required|integer|min:1',
+            'is_active' => 'required|boolean',
+            'expires_at' => 'nullable|date'
+        ]);
+
+        $data['used_count'] = 0;
+
+        return Discount::create($data);
+    }
+
+    public function update(Request $request, $id)
+    {
+        $discount = Discount::findOrFail($id);
+
+        $data = $request->validate([
+            'code' => 'required|string|unique:hotel_coupons,code,' . $discount->id,
+            'description' => 'nullable|string',
+            'discount_amount' => 'required|integer|min:0',
+            'usage_limit' => 'required|integer|min:1',
+            'is_active' => 'required|boolean',
+            'expires_at' => 'nullable|date'
+        ]);
+
+        $discount->update($data);
+
+        return $discount;
+    }
+
+    public function destroy($id)
+    {
+        $discount = Discount::findOrFail($id);
+        $discount->delete();
+        return response()->json(['message' => 'Deleted']);
+    }
     public function getDiscountAmount(Request $request)
     {
         // Bước 1: Xác thực đầu vào
@@ -39,7 +84,8 @@ class CouponsController extends Controller
         if ($discount->expires_at !== null && $currentDate >= $discount->expires_at) {
             return response()->json(['message' => 'Mã giảm giá đã hết hạn'], 400);
         }
-
+        $discount->used_count += 1;
+        $discount->save();
         // Bước 8: Nếu tất cả điều kiện đều đúng, trả về số tiền giảm giá
         return response()->json(['discount_amount' => $discount->discount_amount]);
     }
