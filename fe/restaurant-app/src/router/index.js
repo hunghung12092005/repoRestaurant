@@ -40,7 +40,7 @@ import AdminNewsCommentComponent from '../components/admin/news/AdminNewsComment
 import RoomTypeDetail from '../components/RoomTypeDetail.vue';
 import traningAI from '../components/admin/AI/traningAI.vue';
 import AdminBookingHistory from '../components/AdminBooking/AdminBookingHistory.vue';
-
+import coupons from '../components/admin/coupons/coupons.vue'
 const routes = [
   // --- PUBLIC ROUTES ---
   { path: '/', name: 'Home2', component: Home2 },
@@ -158,6 +158,12 @@ const routes = [
     path: '/admin/ChatAdmin',
     name: 'ChatAdmin',
     component: ChatAdmin,
+    meta: { requiresAdmin: true },
+  },
+  {
+    path: '/admin/coupons',
+    name: 'coupons',
+    component: coupons,
     meta: { requiresAdmin: true },
   },
 

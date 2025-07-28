@@ -74,6 +74,10 @@
           <li v-if="hasPermission('manage_contacts')" class="nav-item">
               <router-link class="nav-link" to="/admin/contacts"><i class="bi bi-envelope"></i>Quản lý liên hệ</router-link>
           </li>
+          <!-- Quản lý coupons-->
+          <li v-if="hasPermission('manage_coupons')" class="nav-item">
+              <router-link class="nav-link" to="/admin/coupons"><i class="bi bi-envelope"></i>Quản lý discount</router-link>
+          </li>
           <!-- Quản lý Tài khoản -->
           <li v-if="hasPermission('manage_users')" class="nav-item"><router-link class="nav-link" to="/admin/users"><i class="bi bi-people"></i>Quản lý tài khoản</router-link>
           </li>

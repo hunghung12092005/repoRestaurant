@@ -530,7 +530,7 @@
                                         <div class="total">
                                             <p>Phòng {{ index + 1 }} :
                                                 <span class="text-secondary fw-normal">{{ room.name
-                                                }}</span>
+                                                    }}</span>
                                             </p>
                                             <p>{{
                                                 formatPrice(room.price) }}</p>
@@ -1607,10 +1607,15 @@ body {
     .right {
         gap: 60px;
     }
-    .icons{
-       display: inline-block;
-       margin-top: 10px;
-       padding: 10px;
+
+    .icons {
+        display: inline-block;
+        padding: 10px;
+    }
+
+    .icons div {
+        align-items: center;
+        margin-top: 10px;
     }
 }
 
