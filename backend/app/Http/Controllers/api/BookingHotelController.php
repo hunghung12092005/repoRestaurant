@@ -166,8 +166,22 @@ class BookingHotelController extends Controller
             $checkInDate = $request->input('check_in_date');
             $checkOutDate = $request->input('check_out_date');
 
+            // Kiểm tra xem booking có đang ở trạng thái pending_confirmation không
+            $booking = BookingHotel::findOrFail($bookingDetail->booking_id);
+            if ($booking->status !== 'pending_confirmation') {
+                Log::warning('Không thể xếp phòng vì booking không ở trạng thái pending_confirmation', [
+                    'booking_detail_id' => $bookingDetailId,
+                    'booking_id' => $booking->booking_id,
+                    'status' => $booking->status,
+                ]);
+                return response()->json([
+                    'error' => 'Chỉ có thể xếp phòng khi booking đang chờ xác nhận'
+                ], 400);
+            }
+
             // Kiểm tra xem phòng đã được gán trong khoảng thời gian trùng lặp
             $isRoomOccupied = BookingHotelDetail::where('room_id', $request->room_id)
+                ->where('booking_detail_id', '!=', $bookingDetailId) // Loại trừ chính booking detail hiện tại
                 ->whereHas('booking', function ($query) use ($checkInDate, $checkOutDate) {
                     $query->whereIn('status', ['pending_confirmation', 'confirmed'])
                         ->where(function ($q) use ($checkInDate, $checkOutDate) {
@@ -208,31 +222,15 @@ class BookingHotelController extends Controller
                 ], 400);
             }
 
-            // Gán phòng và cập nhật trạng thái
+            // Gán phòng cho booking detail mà không thay đổi trạng thái phòng
             $bookingDetail->room_id = $request->room_id;
             $bookingDetail->save();
-
-            $room->status = 'occupied';
-            $room->save();
-
-            // Kiểm tra xem tất cả phòng đã được gán chưa
-            $booking = BookingHotel::findOrFail($bookingDetail->booking_id);
-            $unassignedRooms = BookingHotelDetail::where('booking_id', $booking->booking_id)
-                ->whereNull('room_id')
-                ->count();
-
-            if ($unassignedRooms === 0) {
-                $booking->status = 'confirmed';
-                $booking->save();
-                Log::info('Tự động xác nhận booking vì tất cả phòng đã được gán', [
-                    'booking_id' => $booking->booking_id
-                ]);
-            }
 
             Log::info('Xếp phòng thành công', [
                 'booking_detail_id' => $bookingDetailId,
                 'room_id' => $request->room_id
             ]);
+
             return response()->json(['message' => 'Xếp phòng thành công'], 200);
         } catch (\Exception $e) {
             Log::error('Lỗi khi xếp phòng: ' . $e->getMessage(), [
@@ -902,10 +900,40 @@ class BookingHotelController extends Controller
     {
         try {
             $booking = BookingHotel::findOrFail($bookingId);
+            
+            // Kiểm tra xem tất cả các phòng đã được gán chưa
+            $unassignedRooms = BookingHotelDetail::where('booking_id', $bookingId)
+                ->whereNull('room_id')
+                ->count();
+
+            if ($unassignedRooms > 0) {
+                Log::warning('Không thể xác nhận booking vì còn phòng chưa được gán', [
+                    'booking_id' => $bookingId,
+                    'unassigned_rooms' => $unassignedRooms
+                ]);
+                return response()->json([
+                    'error' => 'Vui lòng gán tất cả các phòng trước khi xác nhận'
+                ], 400);
+            }
+
+            // Cập nhật trạng thái booking
             $booking->status = 'confirmed';
             $booking->save();
 
-            Log::info('Xác nhận booking thành công', ['booking_id' => $bookingId]);
+            // Cập nhật trạng thái các phòng được gán
+            $bookingDetails = BookingHotelDetail::where('booking_id', $bookingId)
+                ->whereNotNull('room_id')
+                ->pluck('room_id');
+
+            if ($bookingDetails->count() > 0) {
+                Room::whereIn('room_id', $bookingDetails)
+                    ->update(['status' => 'occupied']);
+            }
+
+            Log::info('Xác nhận booking thành công', [
+                'booking_id' => $bookingId,
+                'rooms_updated' => $bookingDetails->toArray()
+            ]);
             return response()->json(['message' => 'Xác nhận booking thành công'], 200);
         } catch (\Exception $e) {
             Log::error('Lỗi khi xác nhận booking: ' . $e->getMessage(), [

@@ -197,15 +197,14 @@
                         </td>
                         <td class="text-end">{{ dinhDangTien(chiTiet.total_price) }}</td>
                         <td>
-                          <div v-if="datPhongDuocChon.status === 'pending_confirmation' && !chiTiet.room_id">
+                          <div v-if="datPhongDuocChon.status === 'pending_confirmation'">
                             <select v-if="phongTrong[chiTiet.booking_detail_id]?.length > 0" v-model="chiTiet.room_id" @change="xepPhong(chiTiet)" class="form-select form-select-sm">
                               <option value="">-- Chọn phòng --</option>
                               <option v-for="phong in phongTrong[chiTiet.booking_detail_id]" :key="phong.room_id" :value="phong.room_id">{{ phong.room_name }}</option>
                             </select>
                             <div v-else class="text-warning small">Hết phòng trống</div>
                           </div>
-                          <div v-else-if="chiTiet.room_id" class="text-muted small">Đã xếp phòng</div>
-                          <div v-else class="text-muted small">Không thể xếp phòng</div>
+                          <div v-else class="text-muted small">Đã xác nhận, không thể thay đổi</div>
                         </td>
                       </tr>
                     </tbody>
@@ -387,13 +386,13 @@ const moModalChiTiet = async (datPhong) => {
   hienModal.value = true;
   thongBaoLoi.value = '';
   phongTrong.value = {};
-  thongTinHuy.value = null; // Gán giá trị null cho thongTinHuy
+  thongTinHuy.value = null;
 
   try {
     // Tải chi tiết đặt phòng
     const resDetails = await axios.get(`/api/booking-details/${datPhong.booking_id}`, {
       headers: { 'Accept': 'application/json' },
-      timeout: 10000, // Timeout 10 giây
+      timeout: 10000,
     });
 
     chiTietDatPhong.value = Array.isArray(resDetails.data)
@@ -423,7 +422,7 @@ const moModalChiTiet = async (datPhong) => {
 
     // Tải phòng trống nếu trạng thái là pending_confirmation
     if (datPhong.status === 'pending_confirmation') {
-      const chiTietCanPhongTrong = chiTietDatPhong.value.filter(c => !c.room_id && c.room_type);
+      const chiTietCanPhongTrong = chiTietDatPhong.value.filter(c => c.room_type); // Lấy tất cả chi tiết có room_type
       if (chiTietCanPhongTrong.length > 0) {
         try {
           const roomTypes = [...new Set(chiTietCanPhongTrong.map(c => c.room_type))];
@@ -443,7 +442,9 @@ const moModalChiTiet = async (datPhong) => {
             const resPhong = phongTrongResponses.find(resp =>
               resp.config.data.includes(`"room_type":${chiTiet.room_type}`)
             );
-            phongTrong.value[chiTiet.booking_detail_id] = Array.isArray(resPhong?.data) ? resPhong.data : [];
+            phongTrong.value[chiTiet.booking_detail_id] = Array.isArray(resPhong?.data)
+              ? resPhong.data.filter(room => room.status !== 'occupied') // Lọc phòng không ở trạng thái occupied
+              : [];
           });
         } catch (err) {
           console.error('Lỗi khi lấy phòng trống:', err);
