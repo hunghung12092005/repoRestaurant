@@ -7,20 +7,26 @@ class WebhookController extends Controller
 {
     public function handleWebhook(Request $request)
     {
-        // Lấy dữ liệu từ webhook
-        $data = $request->all();
+        // Nhận dữ liệu từ PayOS
+        // $data = $request->all();
 
-        // Kiểm tra signature (nếu cần)
-        // $signature = $request->header('signature');
-        // if (!$this->isValidSignature($data, $signature)) {
-        //     return response()->json(['error' => 'Invalid signature'], 401);
+        // // Ghi log dữ liệu nhận được để kiểm tra
+        // Log::info('Dữ liệu webhook:', $data);
+
+        // // Kiểm tra trạng thái chuyển khoản
+        // if (isset($data['status'])) {
+        //     $status = $data['status'];
+        //     // Xử lý trạng thái chuyển khoản
+        //     if ($status == 'success') {
+        //         // Xử lý khi chuyển khoản thành công
+        //         Log::info('Chuyển khoản thành công:', $data);
+        //     } else {
+        //         // Xử lý khi chuyển khoản thất bại
+        //         Log::warning('Chuyển khoản thất bại:', $data);
+        //     }
         // }
 
-        // Xử lý dữ liệu
-       // Log::info('Webhook data received: ', $data);
-
-        // Trả về phản hồi
-        return response()->json(['code' => '00', 'desc' => 'success']);
+        return response()->json(['message' => 'Webhook nhận thành công'], 200);
     }
 
     // Hàm kiểm tra signature (nếu cần)

@@ -7,6 +7,7 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\api\LoginController as ApiLoginController;
 use App\Http\Controllers\api\MenuItemController;
 use App\Http\Controllers\UploadController;
+use App\Http\Controllers\WebhookController;
 
 Route::get('auth/google', [LoginController::class, 'redirectToGoogle'])->name('auth.google');
 
@@ -22,6 +23,8 @@ Route::group(['middleware' => AdminMiddleware::class], function () {
 // gửi ảnh
 Route::get('/upload', [UploadController::class, 'create']);
 Route::post('/upload', [UploadController::class, 'store']);
+//api webhook
+Route::get('/webhook-url', [WebhookController::class, 'handleWebhook']);
 // Route cho API
 // Route::get('/api/protected', [ApiLoginController::class, 'someProtectedRoute']);
 // Route::post('/api/login', [ApiLoginController::class, 'login']);

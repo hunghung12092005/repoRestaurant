@@ -49,7 +49,7 @@ const routes = [
   { path: '/news', name: 'NewsList', component: BlogComponent },
   { path: '/news/:id', name: 'NewsDetail', component: BlogDetailComponent },
   { path: '/room-types/:id', name: 'RoomTypeDetail', component: RoomTypeDetail, props: true },
-  { path: '/rooms3', name: 'rooms3', component: rooms3 },
+  { path: '/booking_hotel', name: 'rooms3', component: rooms3 },
   { path: '/login', name: 'LoginComponent', component: LoginComponent },
   { path: '/forgotPass', name: 'forgotPass', component: forgotPass },
   { path: '/ThanksBooking', name: 'ThanksBooking', component: ThanksBooking },

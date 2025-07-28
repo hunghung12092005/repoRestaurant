@@ -13,7 +13,6 @@
     </div>
     <!-- Nút mở/đóng chat-container -->
     <button @click="toggleChatContainer" class="toggle-chat-btn">
-      <small>CHATBOT HXH </small>
       <img src="https://img.freepik.com/free-vector/chatbot-conversation-vectorart_78370-4107.jpg?semt=ais_hybrid&w=740"
         alt="Toggle Chat" />
     </button>
@@ -26,7 +25,7 @@
             src="https://img.freepik.com/free-vector/chatbot-conversation-vectorart_78370-4107.jpg?semt=ais_hybrid&w=740"
             class="avatar" alt="Support" />
           <div>
-            <h6>{{ activeTab === 'ai' ? 'Hỏi đáp cùng ChatBot AI 🤖' : 'Admin Support' }}</h6>
+            <h6>{{ activeTab === 'ai' ? 'Hỏi đáp cùng ChatBot AI' : 'Admin Support' }}</h6>
             <small>{{ activeTab === 'ai' ? 'Hệ thống hỗ trợ tự động 24/7' : 'Online Gần Đây' }}</small>
           </div>
           <span @click="toggleChatContainer" class="badge">Close</span>
@@ -103,7 +102,7 @@ import axios from 'axios';
 import socket from '../socket'; // Import socket từ file chung
 
 // Khai báo biến trạng thái cho chat-container
-const showChat = ref(true);
+const showChat = ref(false);
 
 // Hàm để bật/tắt chat-container
 const toggleChatContainer = () => {
@@ -400,9 +399,9 @@ onMounted(() => {
   cursor: pointer;
   position: fixed;
   /* Đặt ở vị trí bạn muốn */
-  bottom: 20px;
+  bottom: 70px;
   /* Ví dụ: gần đáy */
-  right: 20px;
+  right: 2px;
   /* Ví dụ: gần bên phải */
   z-index: 1001;
   /* Đảm bảo nó nằm trên cùng */
@@ -466,7 +465,7 @@ onMounted(() => {
   width: 360px;
   height: auto;
   background-color: transparent;
-  z-index: 1000;
+  z-index: 10000;
   padding: 0;
 }
 
@@ -484,12 +483,55 @@ onMounted(() => {
   position: relative;
 }
 @media (max-width: 580px) {
+  .chat-container {
+    position: fixed;
+    bottom: 80px;    /* 👈 cách bottom 20px */
+    right: 0px;      /* 👈 cách phải 8px */
+    z-index: 1000;
+  }
+
   .chat-card {
-    max-width: 90%; /* Make it smaller on mobile */
-    height: auto;   /* Allow height to adjust based on content */
-    margin: 0 auto; /* Center the card */
+    width: 100%;
+    max-width: 320px; /* 👈 hoặc tuỳ chỉnh theo ý muốn */
+    height: 76vh;
+    border-radius: 16px;
+    display: flex;
+    flex-direction: column;
+    background: white;
+    box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.2);
+  }
+
+  .chat-header,
+  .chat-footer {
+    padding: 12px;
+    flex-shrink: 0;
+    background: #f5f5f5;
+    border-bottom: 1px solid #ddd;
+  }
+
+  .chat-body {
+    flex: 1;
+    overflow-y: auto;
+    padding: 12px;
+  }
+
+  .chat-footer input[type="text"] {
+    font-size: 14px;
+    width: 100%;
+  }
+
+  .suggestions {
+    bottom: 60px;
+    left: 0;
+    right: 0;
+    margin: auto;
+    width: 90%;
   }
 }
+
+
+
+
 .chat-header {
   display: flex;
   align-items: center;
