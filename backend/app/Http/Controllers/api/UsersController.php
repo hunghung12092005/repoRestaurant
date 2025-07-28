@@ -35,26 +35,26 @@ class UsersController extends Controller
     }
 
     // --- MODIFIED ---
-    public function update(Request $request, $id)
+     public function update(Request $request, $id)
     {
         $user = User::findOrFail($id);
 
         $validated = $request->validate([
             'role' => 'required|in:admin,staff,client',
-            // permissions phải là một mảng và có thể null
             'permissions' => 'nullable|array',
-            // Mỗi item trong mảng permissions phải là một trong các giá trị hợp lệ
             'permissions.*' => [
                 'string',
-                Rule::in(['manage_news', 'manage_contacts']), // <-- DANH SÁCH QUYỀN HỢP LỆ
+                Rule::in([
+                    'manage_news', 
+                    'manage_contacts',
+                    'manage_users',
+                    'manage_ai_training',
+                    'manage_admin_chat'
+                ]),
             ],
         ]);
         
-        // Nếu vai trò là admin, permissions sẽ bị xóa để đảm bảo admin luôn có mọi quyền
         $permissionsToUpdate = $validated['permissions'] ?? [];
-        if ($validated['role'] === 'admin') {
-            $permissionsToUpdate = []; // Admin không cần lưu permissions cụ thể
-        }
 
         $user->update([
             'role' => $validated['role'],

@@ -148,9 +148,16 @@ const showGuestModal = ref(false);
 const guestInfo = ref({});
 const showExtendModal = ref(false);
 const extendForm = ref({ room_id: null, check_out_date: '' });
+<<<<<<< HEAD
 const additionalFee = ref(0); // Số tiền phụ thu
 const surchargeReason = ref(''); // Lý do phụ thu
 const apiKey = 'UIOieiMUjnqR7UCrJrtF30wQaw8Jc4ys';
+=======
+const additionalFee = ref(0);
+const surchargeReason = ref('');
+const apiKey = 'XXjjI5g9j7gk4NcZE9Dh9PPLCrvrR6zJ';
+const imageFile = ref(null);
+>>>>>>> aebb72b979501184486e3ddf6de7921c6ff7a9ea
 
 const serviceTotal = computed(() => allServices.value.reduce((sum, s) => sum + s.price * s.quantity, 0));
 const increaseQty = (index) => { allServices.value[index].quantity++; };

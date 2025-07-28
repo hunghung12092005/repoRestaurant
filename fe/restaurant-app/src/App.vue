@@ -18,15 +18,13 @@
           </div>
         </div>
         <ul class="nav flex-column">
-          <!-- == MỤC CHUNG CHO CẢ ADMIN & STAFF == -->
           <li class="nav-item"><router-link class="nav-link" to="/admin/dashboard"><i class="bi bi-grid"></i> Trang thống kê</router-link></li>
           <li class="nav-item"><router-link class="nav-link" to="/admin/occupancy"><i class="bi bi-house-door"></i> QL tình trạng phòng</router-link></li>
           <li class="nav-item"><router-link class="nav-link" to="/admin/bookings"><i class="bi bi-book"></i> Quản lý đặt phòng</router-link></li>
           <li class="nav-item"><router-link class="nav-link" to="/admin/booking-histories"><i class="bi bi-clock-history"></i> Lịch sử đặt phòng</router-link></li>
           
-
-          
-          <!-- == CÁC MỤC CHỈ DÀNH CHO ADMIN == -->
+          <!-- Các mục này vẫn chỉ dành cho Admin để giữ cấu trúc dropdown -->
+          <!-- Nếu muốn các mục này cũng theo quyền, bạn cần tạo thêm các quyền mới -->
           <template v-if="isAdmin">
             <li class="nav-item">
               <a class="nav-link collapsible-toggle" href="#" @click.prevent="roomManagementOpen = !roomManagementOpen">
@@ -53,14 +51,10 @@
               <li><router-link class="nav-link" to="/admin/amenities"><i class='bx bx-bed'></i> Quản lý tiện nghi</router-link></li>
             </ul>
           </li>
-            <li class="nav-item"><router-link class="nav-link" to="/admin/ChatAdmin"><i class="bi bi-chat-dots"></i>Chat Admin</router-link></li>
-            <li class="nav-item"><router-link class="nav-link" to="/admin/traningAI"><i class="bi bi-robot"></i>Training AI </router-link></li>
-            <li class="nav-item"><router-link class="nav-link" to="/admin/users"><i class="bi bi-people"></i>Quản lý tài khoản</router-link></li>
-            
-            
           </template>
 
-          <!-- == MỤC TIN TỨC (DROPDOWN PUSH-DOWN) - ĐÃ CẬP NHẬT == -->
+          <!-- == CÁC MỤC HIỂN THỊ THEO QUYỀN (PERMISSION-BASED) == -->
+          <!-- Quản lý Tin tức -->
           <template v-if="hasPermission('manage_news')">
             <li class="nav-item">
               <a class="nav-link collapsible-toggle" href="#" @click.prevent="newsManagementOpen = !newsManagementOpen">
@@ -76,10 +70,18 @@
               </ul>
             </li>
           </template>
-
-          <!-- == MỤC THEO QUYỀN: 'manage_contacts' == -->
+          <!-- Quản lý Liên hệ -->
           <li v-if="hasPermission('manage_contacts')" class="nav-item">
               <router-link class="nav-link" to="/admin/contacts"><i class="bi bi-envelope"></i>Quản lý liên hệ</router-link>
+          </li>
+          <!-- Quản lý Tài khoản -->
+          <li v-if="hasPermission('manage_users')" class="nav-item"><router-link class="nav-link" to="/admin/users"><i class="bi bi-people"></i>Quản lý tài khoản</router-link>
+          </li>
+          <!-- Training AI -->
+          <li v-if="hasPermission('manage_ai_training')" class="nav-item"><router-link class="nav-link" to="/admin/traningAI"><i class="bi bi-robot"></i>Training AI </router-link>
+          </li>
+          <!-- Chat Admin -->
+          <li v-if="hasPermission('manage_admin_chat')" class="nav-item"><router-link class="nav-link" to="/admin/ChatAdmin"><i class="bi bi-chat-dots"></i>Chat Admin</router-link>
           </li>
 
           <li class="nav-item"><router-link class="nav-link" to="/"><i class="bi bi-box-arrow-left"></i>Thoát trang quản trị</router-link></li>
@@ -90,7 +92,6 @@
       <div class="main-content">
         <div class="navbar-top" :class="{ 'scrolled': navbarSticky }">
           <div class="d-flex align-items-center">
-            <!-- <i class="bi bi-globe"></i> -->
             <i class="bi bi-bell mx-3"></i>
             <span>{{ userInfo.name || 'User' }}</span>
           </div>
@@ -183,7 +184,7 @@ const roomTypes = ref([]);
 const lastScrollPosition = ref(0);
 const servicesAmenitiesOpen = ref(false); 
 const roomManagementOpen = ref(false);
-const newsManagementOpen = ref(false); // State cho dropdown Tin tức
+const newsManagementOpen = ref(false);
 
 const apiUrl = 'http://127.0.0.1:8000';
 provide('apiUrl', apiUrl);
@@ -194,11 +195,16 @@ const setUserRoles = (user) => {
     isStaff.value = user?.role === 'staff';
 };
 
+const updateAndRefreshUserInfo = (updatedUser) => {
+  localStorage.setItem('userInfo', JSON.stringify(updatedUser));
+  setUserRoles(updatedUser);
+};
+provide('updateAndRefreshUserInfo', updateAndRefreshUserInfo);
+
 const hasPermission = (permission) => {
   if (!userInfo.value) return false;
-  // Admin luôn có mọi quyền
-  if (userInfo.value.role === 'admin') return true;
-  // Kiểm tra trong mảng permissions của user
+  // Logic kiểm tra quyền mới: Áp dụng cho mọi vai trò, kể cả admin.
+  // Quyền được quyết định duy nhất bởi mảng 'permissions'.
   return userInfo.value.permissions?.includes(permission) ?? false;
 };
 
@@ -277,6 +283,7 @@ const handleOutsideClick = (event) => {
     }
   }
 };
+
 const handleUrlParams = () => {
   const urlParams = new URLSearchParams(window.location.search);
   const token = urlParams.get('token');
@@ -287,23 +294,19 @@ const handleUrlParams = () => {
     localStorage.setItem('userInfo', user);
     try {
       const parsedUser = JSON.parse(user);
-      localStorage.setItem('userInfo', user);
-      userInfo.value = parsedUser;
-      isLogin.value = true;
-      isAdmin.value = parsedUser.role === 'admin';
-      
+      setUserRoles(parsedUser);
       router.replace({ query: {} });
     } catch (e) {
       console.error('Error parsing user from URL:', e);
     }
   }
 }; 
+
 onMounted(() => {
   restoreUserSession();
   fetchUserInfo();
   handleUrlParams();
   fetchRoomTypes();
-  handleUrlParams();
   window.addEventListener('scroll', handleScroll);
   document.addEventListener('click', handleOutsideClick);
 });
@@ -315,7 +318,6 @@ onUnmounted(() => {
 </script>
 
 <style scoped>
-/* Lấy lại toàn bộ CSS từ file gốc của bạn */
 @import url('https://fonts.googleapis.com/css2?family=Arial&display=swap');
 @import url('https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css');
 @import url('https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css');
@@ -406,7 +408,6 @@ footer { background-color: var(--second-color); color: #fff; }
 .sidebar .nav-link i { margin-right: 10px; }
 .sidebar .nav-link .badge { margin-left: auto; background-color: #dc3545; }
 
-/* === CSS CHO DROPDOWN ACCORDION (ÁP DỤNG CHUNG) === */
 .sidebar .collapsible-toggle {
   cursor: pointer;
   display: flex;
@@ -432,7 +433,7 @@ footer { background-color: var(--second-color); color: #fff; }
   background-color: #fdfdfd;
 }
 .nav-submenu.open {
-  max-height: 200px; /* Tăng giá trị này nếu có nhiều mục con hơn */
+  max-height: 200px;
 }
 .nav-submenu .nav-link {
     padding-left: 40px; 
@@ -444,7 +445,6 @@ footer { background-color: var(--second-color); color: #fff; }
 .nav-submenu .nav-link:hover {
    color: #0a75f7;
 }
-/* === KẾT THÚC CSS CHO DROPDOWN === */
 
 .main-content {
   margin-left: 250px; padding: 20px; padding-top: 60px; min-height: 100vh;

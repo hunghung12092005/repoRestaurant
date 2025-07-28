@@ -1,30 +1,23 @@
 <?php
 
-use App\Http\Controllers\AmenityController;
-use App\Http\Controllers\BookingController;
+use App\Http\Controllers\api\AmenityController;
 use App\Http\Controllers\api\LoginController as ApiLoginController;
-use App\Http\Controllers\api\MenuItemController;
-use App\Http\Controllers\api\ShopOnlineController;
 use App\Http\Controllers\api\OccupancyController;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Log;
 use App\Http\Controllers\LoginController;
-use App\Http\Controllers\MenuCategoryController;
-use App\Http\Controllers\MenuController;
-use App\Http\Controllers\RoomController;
-use App\Http\Controllers\RoomTypeController;
-use App\Http\Controllers\PriceController;
-use App\Http\Controllers\ServiceController;
-use App\Http\Controllers\TableController;
-use App\Http\Controllers\TableTypeController;
+use App\Http\Controllers\api\RoomController;
+use App\Http\Controllers\api\RoomTypeController;
+use App\Http\Controllers\api\PriceController;
+use App\Http\Controllers\api\ServiceController;
 use App\Http\Controllers\api\UsersController;
 use App\Http\Controllers\api\NewsController;
 use App\Http\Controllers\api\NewsCategoryController;
 use App\Http\Controllers\api\NewsCommentController;
-use App\Http\Controllers\BookingHotelController;
+use App\Http\Controllers\api\BookingHotelController;
 use App\Http\Controllers\api\AdminDashboardController;
 use App\Http\Controllers\api\ContactController;
-use App\Http\Controllers\BookingHistoryController;
+use App\Http\Controllers\api\BookingHistoryController;
 use App\Http\Controllers\ChatAIController;
 use App\Http\Controllers\FileController;
 use App\Http\Controllers\WebhookController;
@@ -49,6 +42,7 @@ Route::post('/rooms/{room_id}/extend', [OccupancyController::class, 'extendStay'
 Route::post('/customers/{id}/update-name', [OccupancyController::class, 'updateCustomerName']);
 Route::post('/bookings/{booking_id}/request-cancellation', [OccupancyController::class, 'requestCancellation']);
 Route::post('/bookings/{booking_id}/confirm-cancellation', [OccupancyController::class, 'confirmCancellation']);
+
 // Cập nhật thông tin khách hàng
 Route::post('/contacts', [ContactController::class, 'store']);
 Route::get('/admin/contacts', [ContactController::class, 'index']);
