@@ -16,7 +16,7 @@ class RoomTypeController extends Controller
      public function index()
     {
         try {
-            $roomTypes = RoomType::with(['amenities', 'services'])->orderBy('type_id', 'desc')->get();
+            $roomTypes = RoomType::with(['amenities', 'services'])->get();
             return response()->json(['status' => true, 'data' => $roomTypes], 200);
         } catch (\Exception $e) {
             Log::error('Lỗi lấy danh sách loại phòng: ' . $e->getMessage());
