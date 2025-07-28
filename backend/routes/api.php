@@ -149,3 +149,5 @@ Route::put('/hotel-infos/{id}', [ChatAIController::class, 'update']);
 Route::delete('/hotel-infos/{id}', [ChatAIController::class, 'destroy']);
 //gui anh socket
 Route::post('/upload', [FileController::class, 'upload']);
+//api webhook
+Route::get('/webhook-url', [WebhookController::class, 'handleWebhook']);

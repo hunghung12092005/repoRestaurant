@@ -23,8 +23,7 @@ Route::group(['middleware' => AdminMiddleware::class], function () {
 // gửi ảnh
 Route::get('/upload', [UploadController::class, 'create']);
 Route::post('/upload', [UploadController::class, 'store']);
-//api webhook
-Route::get('/webhook-url', [WebhookController::class, 'handleWebhook']);
+
 // Route cho API
 // Route::get('/api/protected', [ApiLoginController::class, 'someProtectedRoute']);
 // Route::post('/api/login', [ApiLoginController::class, 'login']);

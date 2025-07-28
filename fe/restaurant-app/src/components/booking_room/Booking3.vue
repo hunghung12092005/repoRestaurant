@@ -530,7 +530,7 @@
                                         <div class="total">
                                             <p>Phòng {{ index + 1 }} :
                                                 <span class="text-secondary fw-normal">{{ room.name
-                                                    }}</span>
+                                                }}</span>
                                             </p>
                                             <p>{{
                                                 formatPrice(room.price) }}</p>
@@ -1041,10 +1041,11 @@ const getRoomTypes = async () => {
             const roomTypeId = parseInt(item.room_type.toString().trim());
             availabilityMap[roomTypeId] = item.available_rooms;
         });
-
         // Map room types + gán số phòng trống tương ứng
         hotels.value = roomTypes.map(room => {
             const typeId = parseInt(room.type_id);
+            const images = room.images ? JSON.parse(room.images) : [];
+
             return {
                 id: typeId,
                 name: room.type_name,
@@ -1054,11 +1055,8 @@ const getRoomTypes = async () => {
                 services: room.services || [],
                 max_occupancy: room.max_occupancy,
                 max_occupancy_child: room.max_occupancy_child,
-                images: [
-                    'https://img.lottehotel.com/cms/asset/2025/07/01/29403/438-2-1920-roo-LTHA.webp',
-                    room.images
-                ],
-                image: room.images || "https://img.lottehotel.com/cms/asset/2025/07/01/29403/438-2-1920-roo-LTHA.webp",
+                images: images,
+                image: images[0] ? `${apiUrl}/images/room_type/${images[0]}` : "https://img.lottehotel.com/cms/asset/2025/07/01/29403/438-2-1920-roo-LTHA.webp",
                 youtube_link: room.youtube_link || "https://www.youtube.com/embed/kXaLkZPlYyo?si=Pw0ywUB6VmhsW5XC",
                 price: 0,
                 rating: room.rate,
@@ -1066,7 +1064,8 @@ const getRoomTypes = async () => {
                 available_rooms: availabilityMap[typeId] || 0
             };
         });
-        //console.log("Hotels:", hotels.value); // Kiểm tra dữ liệu phòng đã lấy
+
+        console.log("Hotels:", hotels.value); // Kiểm tra dữ liệu phòng đã lấy
         // showPopup.value = true;
 
     } catch (error) {
