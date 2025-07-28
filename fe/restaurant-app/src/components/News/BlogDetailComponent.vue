@@ -18,7 +18,7 @@
     <section class="blog-content-area py-5">
       <div class="container">
         <div class="row">
-          <!-- Cột nội dung chi tiết bài viết (Thay đổi class order) -->
+          <!-- Cột nội dung chi tiết bài viết -->
           <div class="col-lg-8 order-2 order-lg-1">
             <!-- Trạng thái đang tải -->
             <div v-if="loading" class="loading-state text-center py-5">
@@ -100,7 +100,7 @@
             </div>
           </div>
 
-          <!-- Cột Sidebar (Thay đổi class order và cấu trúc để đồng bộ) -->
+          <!-- Cột Sidebar -->
           <div class="col-lg-4 order-1 order-lg-2 mb-5 mb-lg-0">
             <aside class="blog-sidebar">
               <!-- Widget Tìm kiếm -->
@@ -497,7 +497,7 @@ h1, h2, h3, h4, h5, h6 {
     box-shadow: 0 5px 20px rgba(0,0,0,0.08);
 }
 .post-detail-content :deep(blockquote) {
-    border-left: 4px solid #007bff;
+    border-left: 4px solid #937451;
     padding: 1rem 1.5rem;
     margin: 2rem 0;
     font-style: italic;
@@ -539,11 +539,11 @@ h1, h2, h3, h4, h5, h6 {
   border: 1px solid #dee2e6;
 }
 .comment-form-wrapper .form-control:focus {
-  border-color: #007bff;
+  border-color: #937451;
   box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
 }
 .btn-submit-comment {
-  background-color: #007bff;
+  background-color: #937451;
   color: #fff;
   border: none;
   border-radius: 8px;
@@ -580,11 +580,11 @@ h1, h2, h3, h4, h5, h6 {
 .comment-date { font-size: 0.8rem; flex-shrink: 0; }
 .comment-text { color: #495057; line-height: 1.6; font-size: 0.95rem; }
 .btn-toggle-comments {
-  font-weight: 600; color: #007bff;
-  border: 1px solid #007bff;
+  font-weight: 600; color: #937451;
+  border: 1px solid #937451;
 }
 .btn-toggle-comments:hover {
-  background-color: #007bff; color: #fff;
+  background-color: #937451; color: #fff;
 }
 
 /* --- SIDEBAR (GIỐNG HỆT TRANG LIST) --- */
@@ -602,7 +602,7 @@ h1, h2, h3, h4, h5, h6 {
 }
 .widget-title::after {
   content: ''; position: absolute; bottom: 0; left: 0;
-  width: 40px; height: 3px; background-color: #007bff; border-radius: 2px;
+  width: 40px; height: 3px; background-color: #937451; border-radius: 2px;
 }
 .search-form { display: flex; position: relative; }
 .search-form .form-control {
@@ -610,11 +610,11 @@ h1, h2, h3, h4, h5, h6 {
   border: 1px solid #dee2e6; border-radius: 8px;
 }
 .search-form .form-control:focus {
-  border-color: #007bff; box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+  border-color: #937451; box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
 }
 .search-form .btn-search {
   position: absolute; right: 5px; top: 50%; transform: translateY(-50%);
-  background: #007bff; color: white; border: none;
+  background: #937451; color: white; border: none;
   width: 40px; height: 40px; border-radius: 6px; font-size: 1rem;
 }
 .category-list li { margin-bottom: 8px; }
@@ -624,7 +624,7 @@ h1, h2, h3, h4, h5, h6 {
   color: #6c757d; background-color: #f8f9fa; transition: all 0.3s ease;
 }
 .category-list li a:hover {
-  background-color: #007bff; color: #fff; transform: translateX(5px);
+  background-color: #937451; color: #fff; transform: translateX(5px);
 }
 .recent-post-item { display: flex; align-items: center; gap: 15px; }
 .recent-post-item:not(:last-child) { margin-bottom: 20px; }
@@ -634,16 +634,10 @@ h1, h2, h3, h4, h5, h6 {
 }
 .recent-post-info { flex-grow: 1; }
 .recent-post-title { font-size: 0.95rem; line-height: 1.4; font-weight: 600; margin-bottom: 5px; }
-.recent-post-title a:hover { color: #007bff; }
+.recent-post-title a:hover { color: #937451; }
 .recent-post-date { color: #6c757d; font-size: 0.8rem; }
 
 /* --- RESPONSIVE --- */
-@media (min-width: 992px) {
-  .blog-sidebar {
-    position: sticky;
-    top: 20px;
-  }
-}
 @media (max-width: 768px) {
   .post-detail-title { font-size: 1.75rem; }
   .news-detail-wrapper { padding: 1.5rem; }
