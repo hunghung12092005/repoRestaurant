@@ -49,7 +49,8 @@ class UsersController extends Controller
                     'manage_contacts',
                     'manage_users',
                     'manage_ai_training',
-                    'manage_admin_chat'
+                    'manage_admin_chat',
+                    'manage_coupons'
                 ]),
             ],
         ]);

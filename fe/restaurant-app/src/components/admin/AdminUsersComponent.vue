@@ -221,6 +221,7 @@ const availablePermissions = ref([
     { value: 'manage_users', label: 'Quản lý Tài khoản' },
     { value: 'manage_ai_training', label: 'Training AI' },
     { value: 'manage_admin_chat', label: 'Chat Admin' },
+    { value: 'manage_coupons', label: 'Quản lý Discount' }
 ]);
 
 const axiosConfig = axios.create({
