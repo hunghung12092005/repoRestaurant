@@ -251,12 +251,10 @@ const fetchUsers = async () => {
   }
 };
 
-// === MODIFIED: Logic mở modal đã được cập nhật ===
 const openEditRoleModal = (user) => {
   form.value = {
       id: user.id,
       role: user.role,
-      // Nếu user là admin, tự động chọn tất cả quyền. Ngược lại, lấy quyền thực tế.
       permissions: user.role === 'admin' 
           ? availablePermissions.value.map(p => p.value) 
           : (user.permissions ? [...user.permissions] : [])
@@ -269,11 +267,16 @@ const openEditRoleModal = (user) => {
 };
 
 const saveRole = async () => {
-  // Với logic admin cố định, chúng ta không cần gửi mảng permissions cho admin nữa
+  let permissionsToSend = [];
+  if (form.value.role === 'staff') {
+      permissionsToSend = form.value.permissions;
+  } else if (form.value.role === 'admin') {
+      permissionsToSend = availablePermissions.value.map(p => p.value);
+  }
+
   const payload = {
       role: form.value.role,
-      // Chỉ gửi mảng permissions nếu vai trò là 'staff'
-      permissions: form.value.role === 'staff' ? form.value.permissions : []
+      permissions: permissionsToSend
   };
 
   try {
@@ -297,16 +300,21 @@ const saveRole = async () => {
   }
 };
 
-// === MODIFIED: Watcher cập nhật trạng thái checkbox khi vai trò thay đổi ===
-watch(() => form.value.role, (newRole) => {
-  if (newRole === 'admin') {
-    // Khi chuyển vai trò thành admin, tự động chọn tất cả quyền
-    form.value.permissions = availablePermissions.value.map(p => p.value);
-  } else if (newRole === 'client') {
-    // Khi chuyển thành client, xóa hết quyền
-    form.value.permissions = [];
+// === MODIFIED: Watcher đã được cập nhật ===
+watch(() => form.value.role, (newRole, oldRole) => {
+  // Chỉ thực hiện khi vai trò thực sự thay đổi trong form
+  if (newRole !== oldRole) {
+    if (newRole === 'admin') {
+      // Khi chuyển vai trò thành admin, tự động chọn tất cả quyền
+      form.value.permissions = availablePermissions.value.map(p => p.value);
+    } else if (newRole === 'staff') {
+      // Khi chuyển thành staff, xóa hết quyền để người dùng chọn lại từ đầu
+      form.value.permissions = [];
+    } else if (newRole === 'client') {
+      // Khi chuyển thành client, xóa hết quyền
+      form.value.permissions = [];
+    }
   }
-  // Khi chuyển sang staff, không làm gì để người dùng tự chọn
 });
 
 const closeModal = (modalType) => {
@@ -321,14 +329,11 @@ const closeModal = (modalType) => {
 };
 
 const filteredUsers = computed(() => users.value);
-
 const totalPages = computed(() => Math.ceil(filteredUsers.value.length / itemsPerPage) || 1);
-
 const paginatedUsers = computed(() => {
   const start = (currentPage.value - 1) * itemsPerPage;
   return filteredUsers.value.slice(start, start + itemsPerPage);
 });
-
 const pageRange = computed(() => {
   const maxPages = 5;
   let start = Math.max(1, currentPage.value - Math.floor(maxPages / 2));
@@ -336,13 +341,11 @@ const pageRange = computed(() => {
   if (end - start + 1 < maxPages) { start = Math.max(1, end - maxPages + 1); }
   return Array.from({ length: end - start + 1 }, (_, i) => start + i);
 });
-
 const openDetailModal = (user) => {
   selectedUser.value = user;
   if (!detailModal) detailModal = new Modal(document.getElementById('detailModal'));
   detailModal.show();
 };
-
 const getRoleBadgeClass = (role) => {
   switch (role) {
     case 'admin': return 'badge-danger';
@@ -351,31 +354,25 @@ const getRoleBadgeClass = (role) => {
     default: return 'badge-secondary';
   }
 };
-
 const getPermissionLabel = (permissionValue) => {
     const permission = availablePermissions.value.find(p => p.value === permissionValue);
     return permission ? permission.label : permissionValue;
 }
-
 const formatDate = (dateString) => {
   return dateString ? new Date(dateString).toLocaleDateString('vi-VN') : 'N/A';
 };
-
 onMounted(() => {
   fetchUsers();
 });
-
 watch(searchQuery, () => {
   currentPage.value = 1;
   fetchUsers();
 });
-
 </script>
 
 <style scoped>
 @import url('https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@300;400;500;600;700&display=swap');
 @import url('https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css');
-/* CSS đầy đủ đã được cung cấp ở các câu trả lời trước, giữ nguyên không đổi */
 .page-container { font-family: 'Be Vietnam Pro', sans-serif; background-color: #f4f7f9; padding: 2rem; color: #34495e; }
 .page-header { border-bottom: 1px solid #e5eaee; padding-bottom: 1rem; }
 .page-title { font-size: 2rem; font-weight: 700; }
