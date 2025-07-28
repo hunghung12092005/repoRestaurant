@@ -17,7 +17,7 @@
     <section class="blog-content-area py-5">
       <div class="container">
         <div class="row">
-          <!-- Cột các bài viết Blog - [THAY ĐỔI] Thêm class order -->
+          <!-- Cột các bài viết Blog -->
           <div class="col-lg-8 order-2 order-lg-1">
             <div class="blog-posts-wrapper">
               
@@ -86,7 +86,7 @@
             </div>
           </div>
 
-          <!-- Cột Sidebar - [THAY ĐỔI] Thêm class order và margin responsive -->
+          <!-- Cột Sidebar -->
           <div class="col-lg-4 order-1 order-lg-2 mb-5 mb-lg-0">
             <aside class="blog-sidebar">
               <!-- Widget Tìm kiếm -->
@@ -375,7 +375,7 @@ h1, h2, h3, h4, h5, h6 {
   transition: color 0.3s ease;
 }
 .post-title a:hover {
-  color: #007bff;
+  color: #937451;
 }
 .post-excerpt {
   color: #6c757d;
@@ -385,7 +385,7 @@ h1, h2, h3, h4, h5, h6 {
 }
 .read-more-link {
   font-weight: 600;
-  color: #007bff;
+  color: #937451;
   transition: color 0.3s ease;
   display: inline-flex;
   align-items: center;
@@ -394,7 +394,7 @@ h1, h2, h3, h4, h5, h6 {
   align-self: flex-start;
 }
 .read-more-link:hover {
-  color: #0056b3;
+  color: #c57820;
 }
 .read-more-link .bi-arrow-right {
   transition: transform 0.3s ease;
@@ -422,12 +422,12 @@ h1, h2, h3, h4, h5, h6 {
 }
 .pagination .page-item .page-link:hover {
   background-color: #f8f9fa;
-  color: #007bff;
+  color: #937451;
 }
 .pagination .page-item.active .page-link {
-  background-color: #007bff;
+  background-color: #937451;
   color: #fff;
-  border-color: #007bff;
+  border-color: #937451;
 }
 .pagination .page-item.disabled .page-link {
   color: #adb5bd;
@@ -461,7 +461,7 @@ h1, h2, h3, h4, h5, h6 {
   left: 0;
   width: 40px;
   height: 3px;
-  background-color: #007bff;
+  background-color: #937451;
   border-radius: 2px;
 }
 
@@ -478,7 +478,7 @@ h1, h2, h3, h4, h5, h6 {
   border-radius: 8px;
 }
 .search-form .form-control:focus {
-  border-color: #007bff;
+  border-color: #937451;
   box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
 }
 .search-form .btn-search {
@@ -486,7 +486,7 @@ h1, h2, h3, h4, h5, h6 {
   right: 5px;
   top: 50%;
   transform: translateY(-50%);
-  background: #007bff;
+  background: #937451;
   color: white;
   border: none;
   width: 40px;
@@ -509,13 +509,13 @@ h1, h2, h3, h4, h5, h6 {
   transition: all 0.3s ease;
 }
 .category-list li a:hover {
-  background-color: #007bff;
+  background-color: #937451;
   color: #fff;
   transform: translateX(5px);
 }
 .category-list li a.active-category,
 .category-list li a.active-category:hover {
-  background-color: #007bff;
+  background-color: #937451;
   color: #fff;
   transform: translateX(0);
 }
@@ -548,21 +548,14 @@ h1, h2, h3, h4, h5, h6 {
   margin-bottom: 5px;
 }
 .recent-post-title a:hover {
-  color: #007bff;
+  color: #937451;
 }
 .recent-post-date {
   color: #6c757d;
   font-size: 0.8rem;
 }
 
-/* --- [THAY ĐỔI] RESPONSIVE --- */
-/* Breakpoint của Bootstrap cho LG là 992px */
-@media (min-width: 992px) {
-  .blog-sidebar {
-    position: sticky;
-    top: 20px;
-  }
-}
+/* --- RESPONSIVE --- */
 @media (max-width: 576px) {
   .banner-title {
     font-size: 2.5rem;

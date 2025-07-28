@@ -7,11 +7,7 @@
           <p class="sub-heading">Chào Mừng Đến Với Khách Sạn Của Chúng Tôi</p>
           <h1 class="main-heading">Trải Nghiệm Khách Sạn Sang Trọng</h1>
           <h1 class="main-heading">& Tiện Nghi & Thanh Lịch</h1>
-          <!-- <p class="description">
-            Lựa chọn Bokinn là một trong những quyết định tuyệt vời nhất của chúng tôi. Họ đã chứng tỏ mình là một đối
-            tác đáng tin cậy và sáng tạo.
-          </p> -->
-          <router-link to="/booking_hotel" class="text-dark btn-outline-light btn btn-light">BOOKING NOW</router-link>
+          <router-link to="/booking_hotel" class="btn btn-cta mt-4">Đặt Phòng Ngay</router-link>
         </div>
       </div>
     </section>
@@ -29,7 +25,7 @@
               đại với sự thanh lịch vượt thời gian. Các phòng và suite được thiết kế đẹp mắt của chúng tôi có tầm nhìn
               tuyệt đẹp và chỗ ở sang trọng, đảm bảo một nơi nghỉ ngơi thư thái dù bạn ở đây để công tác hay giải trí.
             </p>
-            <router-link to="/about" class="btn btn-custom-secondary text-dark">Tìm Hiểu Thêm</router-link>
+            <router-link to="/about" class="btn btn-custom-secondary">Tìm Hiểu Thêm</router-link>
           </div>
           <div class="col-lg-6">
             <div class="about-image">
@@ -102,7 +98,7 @@
       <div class="banner-content text-center text-white">
         <h2 class="display-4 fw-bold">Không Gian Đẳng Cấp</h2>
         <p class="lead">Tận hưởng sự thư giãn và dịch vụ hoàn hảo tại khách sạn của chúng tôi.</p>
-          <router-link to="/booking_hotel" class="text-dark btn-outline-light btn btn-light">Khám Phá Phòng</router-link>
+        <router-link to="/booking_hotel" class="btn btn-cta mt-4">Đặt Phòng Ngay</router-link>
       </div>
     </section>
 
@@ -200,8 +196,6 @@
         </div>
     </section>
 
-
-
     <!-- KHU VỰC HIỂN THỊ THÔNG BÁO TOAST TÙY CHỈNH -->
     <transition-group name="toast" tag="div" class="toast-container">
       <div v-for="toast in toasts" :key="toast.id" :class="['toast-notification', `toast--${toast.type}`]">
@@ -212,7 +206,6 @@
         </div>
       </div>
     </transition-group>
-
   </div>
 </template>
 
@@ -340,13 +333,33 @@ section { padding-top: 80px; padding-bottom: 80px; }
 .btn-custom-secondary { background-color: #A98A66; color: #fff; border-color: #A98A66; }
 .btn-custom-secondary:hover { background-color: #937451; border-color: #937451; color: #fff; }
 
+/* === NEW BUTTON STYLE === */
+.btn-cta {
+  background-color: #A98A66; /* Màu nhấn vàng/nâu */
+  color: #ffffff;
+  padding: 12px 30px;
+  font-size: 1rem;
+  font-weight: bold;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  border: 2px solid transparent;
+  border-radius: 50px; /* Bo tròn */
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+  transition: all 0.3s ease-in-out;
+  text-decoration: none;
+}
+
+.btn-cta:hover, .btn-cta:focus {
+  background-color: #937451; /* Màu đậm hơn khi hover */
+  color: #ffffff;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
+  transform: translateY(-2px); /* Hiệu ứng nhấc lên */
+}
+
 /* HERO SECTION */
 .hero-section { min-height: 80vh; background: linear-gradient(rgba(0, 0, 0, 0.4), rgba(0, 0, 0, 0.4)), url('https://a25hotel.com/files/images/screenshot_1664443543.png') center/cover no-repeat; color: #fff; position: relative; }
 .hero-content .main-heading { font-family: 'Playfair Display', serif; font-size: 4rem; font-weight: normal; }
-.btn-outline-light:hover { color: #ac4141; }
-.btn-outline-light{
-  color: black;
-}
+
 /* ABOUT SECTION */
 .about-image { position: relative; }
 .staff-card { position: absolute; bottom: 20px; right: -20px; padding: 1rem; border: none; border-radius: 8px; }
