@@ -116,7 +116,7 @@
                 <li class="nav-item"><router-link class="nav-link" to="/">Trang chủ</router-link></li>
                 <li class="nav-item"><router-link class="nav-link" to="/about">Giới thiệu</router-link></li>
                 <li class="nav-item dropdown">
-                  <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">Phòng</a>
+                  <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">Các loại phòng</a>
                   <ul class="dropdown-menu">
                     <li v-for="roomType in roomTypes" :key="roomType.type_id">
                       <router-link class="dropdown-item" :to="{ name: 'RoomTypeDetail', params: { id: roomType.type_id } }">{{ roomType.type_name }}</router-link>
