@@ -130,14 +130,30 @@ onMounted(async () => {
     users.value = userArray;
   });
   // console.log(users.value);
-  // Gửi yêu cầu lấy danh sách user ban đầu
+  // Gửi yêu cầu lấy danh sách user ban đầu  
   socket.emit('getUserList');
 });
-const getUserMessages = async (userId) => {
+// const getUserMessages = async (userId) => {
+//   console.log('Fetching messages for user:', userId);
+//   selectedUserId.value = userId;
+//   const response = await axios.get(`https://socket.hxhhotel.online/api/messages/${userId}/6`);
+//   console.log(response.data);
+//   selectedMessages.value = response.data;
+// };
+const getUserMessages = (userId) => {
+  console.log('Fetching messages for user:', userId);
   selectedUserId.value = userId;
-  const response = await fetch(`http://localhost:6001/api/messages/${userId}/6`);
-  selectedMessages.value = await response.json();
+
+  // Gửi yêu cầu lấy tin nhắn qua socket
+  socket.emit('getMessages', { userId, recipientId: 6 });
 };
+
+// Lắng nghe phản hồi từ server
+socket.on('messages', (messages) => {
+  console.log('Tin nhắn nhận được:', messages);
+  selectedMessages.value = messages;
+});
+
 
 const socketIdUser = ref();
 const listenForMessages = () => {

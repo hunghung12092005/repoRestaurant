@@ -213,7 +213,7 @@ const alertType = ref('alert-success');
 const selectedUser = ref(null);
 let detailModal = null;
 let editRoleModal = null;
-const apiUrl = inject('apiUrl', 'http://localhost:8000');
+const apiUrl = inject('apiUrl', 'http://127.0.0.1:8000');
 
 const availablePermissions = ref([
     { value: 'manage_news', label: 'Quản lý Tin tức' },

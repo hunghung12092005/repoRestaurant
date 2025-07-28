@@ -1008,15 +1008,14 @@ const getRoomTypes = async () => {
     try {
         // Gọi đồng thời 2 API — API check-availability có truyền ngày
         const [roomTypeRes, availabilityRes] = await Promise.all([
-            axios.get('http://127.0.0.1:8000/api/room-types/'),
-            axios.get('http://127.0.0.1:8000/api/check-availability', {
+            axios.get(`${apiUrl}/api/room-types/`),
+            axios.get(`${apiUrl}/api/check-availability`, {
                 params: {
                     check_in_date: checkin.value,
                     check_out_date: checkOut.value
                 }
             })
         ]);
-
         const roomTypes = roomTypeRes.data.data;
         const availabilityData = availabilityRes.data;
 

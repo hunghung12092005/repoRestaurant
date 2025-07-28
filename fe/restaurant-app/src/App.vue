@@ -185,9 +185,8 @@ const servicesAmenitiesOpen = ref(false);
 const roomManagementOpen = ref(false);
 const newsManagementOpen = ref(false); // State cho dropdown Tin tức
 
-const apiUrl = 'http://localhost:8000';//link api back end tong
+const apiUrl = 'http://127.0.0.1:8000';
 provide('apiUrl', apiUrl);
-
 const setUserRoles = (user) => {
     userInfo.value = user || {};
     isLogin.value = !!user;

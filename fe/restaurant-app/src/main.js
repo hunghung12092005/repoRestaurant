@@ -17,8 +17,19 @@ window.bootstrap = bootstrap
 const app = createApp(App);
 
 app
-  .use(router) // Sử dụng router
-  //.use(Antd)   // Sử dụng Ant Design Vue
-  .component('QuillEditor', QuillEditor) // Đăng ký component QuillEditor
-  .provide('apiUrl', 'http://localhost:8000/api')
-  .mount('#app');
+  .use(router)
+  //.use(Antd)
+  .component('QuillEditor', QuillEditor)
+  //.provide('apiUrl', 'http://127.0.0.1:8000');
+
+// 🔻 Thêm đoạn xử lý lỗi ở đây
+app.config.errorHandler = (err, instance, info) => {
+  console.error('Vue error:', err);
+  console.error('In component:', instance);
+  console.error('Info:', info);
+
+  // Ví dụ: Hiển thị thông báo
+  //alert('Đã có lỗi xảy ra. Vui lòng thử lại.');
+};
+
+app.mount('#app');

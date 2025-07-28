@@ -116,7 +116,7 @@ const routes = [
     component: AdminContacts,
     meta: { requiresAuth: true, permission: 'manage_contacts' },
   },
-  
+
   // --- ADMIN-ONLY ROUTES ---
   {
     path: '/admin/room-types',
@@ -154,7 +154,7 @@ const routes = [
     component: traningAI,
     meta: { requiresAdmin: true },
   },
-   {
+  {
     path: '/admin/ChatAdmin',
     name: 'ChatAdmin',
     component: ChatAdmin,
@@ -179,7 +179,7 @@ router.afterEach(() => {
 // Route Guard để kiểm tra quyền truy cập
 router.beforeEach((to, from, next) => {
   const isAuthenticated = !!localStorage.getItem('tokenJwt');
-  
+
   // Kiểm tra xem route có yêu cầu bất kỳ loại xác thực nào không
   const requiresAuth = to.matched.some(record => record.meta.requiresAuth || record.meta.requiresAdmin || record.meta.permission || record.meta.roles);
 
@@ -187,24 +187,34 @@ router.beforeEach((to, from, next) => {
   if (requiresAuth && !isAuthenticated) {
     return next({ name: 'LoginComponent', query: { redirect: to.fullPath } });
   }
-  
+
+  // 2. Nếu người dùng đã đăng nhập, tiến hành kiểm tra quyền
   // 2. Nếu người dùng đã đăng nhập, tiến hành kiểm tra quyền
   if (isAuthenticated) {
-    const userInfo = JSON.parse(localStorage.getItem('userInfo') || '{}');
+    // ✅ Fix lỗi JSON.parse khi giá trị là "undefined"
+    let userInfo = {};
+    try {
+      const raw = localStorage.getItem('userInfo');
+      userInfo = raw && raw !== 'undefined' ? JSON.parse(raw) : {};
+    } catch (e) {
+      console.error('Lỗi khi parse userInfo:', e);
+      userInfo = {};
+    }
+
     const isAdmin = userInfo.role === 'admin';
     const isStaff = userInfo.role === 'staff';
     const userPermissions = userInfo.permissions || [];
 
     // 2.1. Kiểm tra vai trò (dành cho các route meta.roles)
     if (to.meta.roles && !to.meta.roles.includes(userInfo.role)) {
-        // Nếu vai trò không được phép, về dashboard
-        return next('/admin/dashboard');
+      // Nếu vai trò không được phép, về dashboard
+      return next('/admin/dashboard');
     }
 
     // 2.2. Kiểm tra quyền Admin
     if (to.meta.requiresAdmin && !isAdmin) {
       // Nếu yêu cầu admin mà không phải admin -> về dashboard
-      return next('/admin/dashboard'); 
+      return next('/admin/dashboard');
     }
 
     // 2.3. Kiểm tra quyền cụ thể (permission)
@@ -213,6 +223,7 @@ router.beforeEach((to, from, next) => {
       if (isAdmin) {
         return next();
       }
+
       // Nếu không phải admin, kiểm tra trong mảng permissions
       if (!userPermissions.includes(to.meta.permission)) {
         // Không có quyền -> về dashboard
@@ -220,6 +231,7 @@ router.beforeEach((to, from, next) => {
       }
     }
   }
+
 
   // 3. Nếu tất cả các kiểm tra đều qua, cho phép truy cập
   next();

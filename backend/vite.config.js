@@ -21,7 +21,7 @@ export default defineConfig({
     proxy: {
       '/api': {
         // Thay bằng địa chỉ server Laravel của bạn
-        target: 'http://localhost:8000',
+        target: 'http://127.0.0.1:8000',
         changeOrigin: true,
       },
     },

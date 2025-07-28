@@ -51,8 +51,8 @@
         </div>
 
         <!-- Messages -->
-        <div class="chat-body">
-          <div class="messages" ref="messagesRef">
+        <div class="chat-body" ref="messagesRef">
+          <div class="messages">
             <div v-for="(msg, index) in currentMessages" :key="'msg-' + index"
               :class="['message', msg.user === user ? 'user' : 'admin']">
               <img v-if="msg.user !== user"
@@ -113,11 +113,25 @@ const toggleChatContainer = () => {
 const API_KEY = 'AIzaSyDdyQPlin693Vo16vKOWnI38qLJ5U2z5LQ';
 const apiUrl = inject('apiUrl');
 const showPopup = ref(false);
+
 const userName = ref('');
 const message = ref('');
 const loading = ref(false);
 const activeTab = ref('ai');
-const nameU = JSON.parse(localStorage.getItem('userInfo'))?.name || '';
+let userInfo = {};
+try {
+  const rawUser = localStorage.getItem('userInfo');
+  userInfo = rawUser ? JSON.parse(rawUser) : {};
+} catch (err) {
+  console.error('Lỗi khi parse userInfo:', err);
+  // Nếu dữ liệu lỗi, có thể logout hoặc xóa localStorage để tránh lỗi lặp lại
+  localStorage.removeItem('userInfo');
+  userInfo = {};
+}
+
+const nameU = userInfo?.name || '';
+
+//const nameU = (JSON.parse(localStorage.getItem('userInfo') || '{}')?.name) || '';
 
 const aiMessages = ref([
   { user: 'AI', message: `Xin chào ${nameU}! Tôi là AI ChatBot HXH. Bạn muốn hỏi gì về khách sạn ạ?` },
@@ -137,8 +151,8 @@ const messagesRef = ref(null);
 const socketId = ref('');
 const file = ref(null);
 const MAX_FILE_SIZE = 0.5 * 1024 * 1024; // 0.5 MB
-var user = JSON.parse(localStorage.getItem('userInfo'))?.name || 'MR';
-var userId = JSON.parse(localStorage.getItem('userInfo'))?.id;
+var user = JSON.parse(localStorage.getItem('userInfo'))?.name || 'HXH CLIENT';
+var userId = JSON.parse(localStorage.getItem('userInfo'))?.id || 'defaultUserId';
 
 // Computed property to display messages based on active tab
 const currentMessages = computed(() => {
@@ -159,6 +173,8 @@ const saveName = () => {
 
 const closePopup = () => {
   showPopup.value = false;
+  activeTab.value = 'ai'; // Chuyển về tab nhân viên
+  //showChat.value = false;
 };
 
 // Chat Functions
@@ -211,50 +227,45 @@ const sendMessage = async (suggestion = null) => {
     return;
   }
 
-  // const fileBase64 = file.value ? await convertFileToBase64(file.value) : null;
-  // const messageData = {
-  //   user,
-  //   userId,
-  //   message: msg,
-  //   socketId: socketId.value,
-  //   file: fileBase64,
-  // };
   let fileUrl = null;
-
-if (file.value) {
-  const formData = new FormData();
-  formData.append('file', file.value);
-  try {
-    const response = await axios.post(`${apiUrl}/api/upload`, formData);
-    fileUrl = response.data.url;
-  } catch (error) {
-    alert('Upload file thất bại!');
-    return;
+  if (file.value) {
+    const formData = new FormData();
+    formData.append('file', file.value);
+    try {
+      const response = await axios.post(`${apiUrl}/api/upload`, formData);
+      fileUrl = response.data.url;
+    } catch (error) {
+      alert('Upload file thất bại!');
+      return;
+    }
   }
-}
 
-const messageData = {
-  user,
-  userId,
-  message: msg,
-  socketId: socketId.value,
-  file: fileUrl, // 👈 Gửi URL file thay vì base64
-};
+  const messageData = {
+    user,
+    userId,
+    message: msg,
+    socketId: socketId.value,
+    file: fileUrl,
+  };
 
   if (activeTab.value === 'ai') {
     aiMessages.value.push(messageData);
+    await nextTick(); // 👉 đảm bảo DOM cập nhật xong trước khi cuộn
+    scrollToBottom(); // 👉 cuộn ngay sau khi push tin nhắn người dùng
+
     loading.value = true;
+
     try {
       const docResponse = await fetch(`${apiUrl}/api/chat-ai/hotel-info`);
       const hotelDocs = await docResponse.text();
       const prompt = `
       Người dùng name is ${nameU},
-        Dưới đây là toàn bộ thông tin về khách sạn:
-        ${hotelDocs}
+      Dưới đây là toàn bộ thông tin về khách sạn:
+      ${hotelDocs}
 
-        Người dùng hỏi: "${msg}"
-        → Trả lời ngắn gọn, rõ ràng, thân thiện dựa trên thông tin khách sạn trên.
-        → Trả lời như một lễ tân chuyên nghiệp, thân thiện, dễ hiểu. Dùng ngôn ngữ tiếng Việt tự nhiên, nhẹ nhàng.
+      Người dùng hỏi: "${msg}"
+      → Trả lời ngắn gọn, rõ ràng, thân thiện dựa trên thông tin khách sạn trên.
+      → Trả lời như một lễ tân chuyên nghiệp, thân thiện, dễ hiểu. Dùng ngôn ngữ tiếng Việt tự nhiên, nhẹ nhàng.
       `;
 
       const response = await fetch(
@@ -262,33 +273,34 @@ const messageData = {
         {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            contents: [{ parts: [{ text: prompt }] }],
-          }),
+          body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }] }),
         }
       );
 
       const data = await response.json();
       const reply = data?.candidates?.[0]?.content?.parts?.[0]?.text || '❗ Không có phản hồi từ AI.';
       aiMessages.value.push({ user: 'AI', message: reply });
-      message.value = ''; // Clear input after sending
+      await nextTick(); //  chờ render xong
+      scrollToBottom(); // cuộn tới khi AI trả lời xong
     } catch (err) {
       aiMessages.value.push({ user: 'AI', message: 'Error: ' + err.message });
+      await nextTick();
+      scrollToBottom();
     } finally {
       loading.value = false;
-      scrollToBottom();
     }
   } else {
-    // messageSend.value.push(messageData);
+    // Gửi tin nhắn tới người thật qua socket
     socket.emit('chat message', messageData);
-    console.log('Sent message:', messageData);
+    await nextTick(); // không cần push vì socket sẽ trả lại rồi push
+    scrollToBottom();
   }
 
   message.value = '';
   file.value = null;
   showSuggestions.value = false;
-  scrollToBottom();
 };
+
 
 const handleAvailabilityCheck = async () => {
   if (activeTab.value !== 'ai') return;
@@ -413,11 +425,12 @@ onMounted(() => {
   left: 0;
   width: 100%;
   height: 100%;
-  background: rgba(0, 0, 0, 0.7);
+  background: rgba(0, 0, 0, 0.7); /* Dims the background */
   display: flex;
   justify-content: center;
-  align-items: center;
-  z-index: 1000;
+  align-items: flex-start; /* Aligns the popup to the top */
+  z-index: 10000;
+  padding-top: 20px; /* Adds some space at the top */
 }
 
 .popup-content {
@@ -445,7 +458,6 @@ onMounted(() => {
   display: flex;
   justify-content: space-between;
 }
-
 /* CHỈNH SỬA VỊ TRÍ CHAT WIDGET */
 .chat-container {
   position: fixed;
@@ -471,7 +483,13 @@ onMounted(() => {
   overflow: hidden;
   position: relative;
 }
-
+@media (max-width: 580px) {
+  .chat-card {
+    max-width: 90%; /* Make it smaller on mobile */
+    height: auto;   /* Allow height to adjust based on content */
+    margin: 0 auto; /* Center the card */
+  }
+}
 .chat-header {
   display: flex;
   align-items: center;
@@ -566,11 +584,22 @@ onMounted(() => {
   background-color: #cde2ff;
 }
 
+/* .chat-body {
+  flex: 1;
+  overflow-y: auto;
+  padding: 16px;
+  background: #f9fafb;
+} */
 .chat-body {
   flex: 1;
   overflow-y: auto;
   padding: 16px;
   background: #f9fafb;
+
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start; /* căn đầu */
+  min-height: 300px; /* đảm bảo khung có chiều cao tối thiểu */
 }
 
 .messages {
