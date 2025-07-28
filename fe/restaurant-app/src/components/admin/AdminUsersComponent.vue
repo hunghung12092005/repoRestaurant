@@ -267,22 +267,17 @@ const openEditRoleModal = (user) => {
 };
 
 const saveRole = async () => {
-  // === MODIFIED: Logic gửi payload đã được sửa ===
   let permissionsToSend = [];
   if (form.value.role === 'staff') {
       permissionsToSend = form.value.permissions;
   } else if (form.value.role === 'admin') {
-      // Khi lưu một admin, LUÔN gửi đi đầy đủ tất cả các quyền
-      // để lưu tường minh vào CSDL.
       permissionsToSend = availablePermissions.value.map(p => p.value);
   }
-  // Nếu là client, permissionsToSend sẽ là mảng rỗng.
 
   const payload = {
       role: form.value.role,
       permissions: permissionsToSend
   };
-  // ===============================================
 
   try {
     const response = await axiosConfig.put(`/api/users/${form.value.id}`, payload);
@@ -305,11 +300,20 @@ const saveRole = async () => {
   }
 };
 
-watch(() => form.value.role, (newRole) => {
-  if (newRole === 'admin') {
-    form.value.permissions = availablePermissions.value.map(p => p.value);
-  } else if (newRole === 'client') {
-    form.value.permissions = [];
+// === MODIFIED: Watcher đã được cập nhật ===
+watch(() => form.value.role, (newRole, oldRole) => {
+  // Chỉ thực hiện khi vai trò thực sự thay đổi trong form
+  if (newRole !== oldRole) {
+    if (newRole === 'admin') {
+      // Khi chuyển vai trò thành admin, tự động chọn tất cả quyền
+      form.value.permissions = availablePermissions.value.map(p => p.value);
+    } else if (newRole === 'staff') {
+      // Khi chuyển thành staff, xóa hết quyền để người dùng chọn lại từ đầu
+      form.value.permissions = [];
+    } else if (newRole === 'client') {
+      // Khi chuyển thành client, xóa hết quyền
+      form.value.permissions = [];
+    }
   }
 });
 
@@ -357,8 +361,13 @@ const getPermissionLabel = (permissionValue) => {
 const formatDate = (dateString) => {
   return dateString ? new Date(dateString).toLocaleDateString('vi-VN') : 'N/A';
 };
-onMounted(() => { fetchUsers(); });
-watch(searchQuery, () => { currentPage.value = 1; fetchUsers(); });
+onMounted(() => {
+  fetchUsers();
+});
+watch(searchQuery, () => {
+  currentPage.value = 1;
+  fetchUsers();
+});
 </script>
 
 <style scoped>
