@@ -1607,6 +1607,11 @@ body {
     .right {
         gap: 60px;
     }
+    .icons{
+       display: inline-block;
+       margin-top: 10px;
+       padding: 10px;
+    }
 }
 
 /* about */
