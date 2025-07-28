@@ -72,7 +72,9 @@ class User extends Authenticatable implements JWTSubject
      */
     public function hasPermissionTo(string $permission): bool
     {
-        
+        if ($this->role === 'admin') {
+            return true;
+        }
 
         // Kiểm tra trong mảng permissions
         // Sử dụng ?? [] để tránh lỗi nếu permissions là null
