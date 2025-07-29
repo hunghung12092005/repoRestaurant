@@ -1,8 +1,11 @@
 <template>
   <div class="ad-placeholder">
-    <i class="bi bi-badge-ad-fill placeholder-icon"></i>
-    <span class="placeholder-text">Không gian quảng cáo</span>
-    <small class="placeholder-subtext">(Quảng cáo sẽ hiển thị tại đây)</small>
+    <ins class="adsbygoogle"
+         style="display:block"
+         data-ad-client="ca-pub-2849216366032057" 
+         :data-ad-slot="adSlot"
+         data-ad-format="auto"
+         data-full-width-responsive="true"></ins>
   </div>
 </template>
 
