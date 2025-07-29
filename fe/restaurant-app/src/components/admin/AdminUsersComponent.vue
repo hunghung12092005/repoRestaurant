@@ -200,7 +200,7 @@ import { ref, computed, onMounted, watch, inject } from 'vue';
 import axios from 'axios';
 import { Modal } from 'bootstrap';
 
-const apiUrl = inject('apiUrl', 'http://localhost:8000');
+const apiUrl = inject('apiUrl', 'http://127.0.0.1:8000');
 const updateAndRefreshUserInfo = inject('updateAndRefreshUserInfo');
 
 const users = ref([]);

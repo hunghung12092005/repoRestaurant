@@ -214,7 +214,7 @@ import { ref, onMounted } from 'vue';
 import axiosConfig from '../axiosConfig.js'; 
 
 // --- DỮ LIỆU PHÒNG ---
-const apiUrl = ref('http://localhost:8000');
+const apiUrl = ref('http://127.0.0.1:8000');
 const roomTypes = ref([]);
 const loading = ref(true);
 

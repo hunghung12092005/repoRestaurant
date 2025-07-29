@@ -137,7 +137,7 @@ const aiMessages = ref([
 ]);
 const messageSend = ref([]);
 const aiSuggestions = ref([
-  '🕒 Giờ nhận và trả phòng là khi nào?',
+  '🕒 Nguyên tắc chung?',
   '💰 Giá phòng bao nhiêu?',
   // '📞 Tôi muốn liên hệ khách sạn',
 ]);
