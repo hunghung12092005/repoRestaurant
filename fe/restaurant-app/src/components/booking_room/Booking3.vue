@@ -816,7 +816,17 @@ const selectedHotelBooking = ref(null);
 
 const currentDateTime = new Date().toLocaleString();
 const phoneNumber = ref('');
+const userInfoRaw = localStorage.getItem('userInfo');
 const fullName = ref('');
+
+if (userInfoRaw) {
+  try {
+    const userInfo = JSON.parse(userInfoRaw);
+    fullName.value = userInfo.name || '';
+  } catch (e) {
+    console.error('Lỗi parse userInfo:', e);
+  }
+}
 const orderNotes = ref('');
 const createAccount = ref('true');
 const paymentMethod = ref(''); // Phương thức thanh toán
