@@ -160,3 +160,5 @@ Route::prefix('discount-codes')->controller(CouponsController::class)->group(fun
     Route::put('/{id}', 'update');
     Route::delete('/{id}', 'destroy');
 });
+//
+Route::get('/chat-ai/hotel-links', [ChatAIController::class, 'hotelLinks']);
