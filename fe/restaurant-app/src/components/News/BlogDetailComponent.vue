@@ -165,7 +165,8 @@
 
               <!-- Widget Quảng cáo -->
               <div class="sidebar-widget p-0">
-                 <AdPlaceholder />
+                 <AdPlaceholder :key="route.fullPath"
+                    ad-slot="3266917819"/>
               </div>
 
             </aside>
