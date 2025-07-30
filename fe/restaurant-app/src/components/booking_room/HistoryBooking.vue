@@ -627,8 +627,8 @@ const formatPayment = (method) => {
 
 const formatPaymentStatus = (status) => {
   const map = {
-    pending: 'Chưa thanh toán',
-    paid: 'Đã thanh toán',
+    pending: 'Đang xử lý',
+    completed: 'Đã thanh toán',
   };
   return map[status] || 'Không rõ';
 };

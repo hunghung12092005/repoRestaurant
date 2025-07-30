@@ -1081,7 +1081,7 @@ const getRoomTypes = async () => {
     try {
         // Gọi đồng thời 2 API — API check-availability có truyền ngày
         const [roomTypeRes, availabilityRes] = await Promise.all([
-            axios.get(`${apiUrl}/api/room-types/`),
+            axios.get(`${apiUrl}/api/room-types`),
             axios.get(`${apiUrl}/api/check-availability`, {
                 params: {
                     check_in_date: checkin.value,
