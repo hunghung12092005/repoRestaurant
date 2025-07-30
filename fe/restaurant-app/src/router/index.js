@@ -53,10 +53,10 @@ const routes = [
   { path: '/login', name: 'LoginComponent', component: LoginComponent },
   { path: '/forgotPass', name: 'forgotPass', component: forgotPass },
   { path: '/ThanksBooking', name: 'ThanksBooking', component: ThanksBooking },
+  { path: '/HistoryBooking', name: 'HistoryBooking', component: HistoryBooking },
 
   // --- AUTHENTICATED USER ROUTES ---
   { path: '/userprofile', name: 'userprofile', component: userprofile, meta: { requiresAuth: true } },
-  { path: '/HistoryBooking', name: 'HistoryBooking', component: HistoryBooking, meta: { requiresAuth: true } },
 
   // --- ADMIN & STAFF ROUTES ---
   { path: '/admin', redirect: '/admin/dashboard' },

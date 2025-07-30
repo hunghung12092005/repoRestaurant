@@ -1224,7 +1224,7 @@ const confirmBooking = async () => {
         status: 'pending_confirmation',
         note: orderNotes.value || 'Không có ghi chú',
     };
-    console.log("Booking Details:", JSON.stringify(bookingDetails, null, 2)); // Log booking details as JSON
+    //console.log("Booking Details:", JSON.stringify(bookingDetails, null, 2)); // Log booking details as JSON
     //return;
     // Xác thực và lấy token
     let token;
