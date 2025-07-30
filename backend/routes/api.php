@@ -148,6 +148,8 @@ Route::get('/hotel-infos', [ChatAIController::class, 'index']);
 Route::post('/hotel-infos', [ChatAIController::class, 'store']);
 Route::put('/hotel-infos/{id}', [ChatAIController::class, 'update']);
 Route::delete('/hotel-infos/{id}', [ChatAIController::class, 'destroy']);
+Route::get('/chat-ai/hotel-links', [ChatAIController::class, 'hotelLinks']);
+
 //gui anh socket
 Route::post('/upload', [FileController::class, 'upload']);
 //api webhook
@@ -160,5 +162,3 @@ Route::prefix('discount-codes')->controller(CouponsController::class)->group(fun
     Route::put('/{id}', 'update');
     Route::delete('/{id}', 'destroy');
 });
-//
-Route::get('/chat-ai/hotel-links', [ChatAIController::class, 'hotelLinks']);

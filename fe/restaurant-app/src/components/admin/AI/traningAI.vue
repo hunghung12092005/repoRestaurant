@@ -76,7 +76,7 @@
 
 <script setup>
 // --- TOÀN BỘ SCRIPT CỦA BẠN GIỮ NGUYÊN ---
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, inject } from 'vue'
 import axios from 'axios'
 
 const hotelInfos = ref([])
@@ -85,8 +85,8 @@ const form = ref({
   title: '',
   content: ''
 })
-
-const API_BASE_URL = '/api/hotel-infos'; 
+const apiUrl = inject('apiUrl');
+const API_BASE_URL = `${apiUrl}/api/hotel-infos`; 
 
 const fetchInfos = async () => {
   try {

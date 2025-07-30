@@ -628,6 +628,7 @@ const formatPayment = (method) => {
 const formatPaymentStatus = (status) => {
   const map = {
     pending: 'Đang xử lý',
+    failed: 'Đang xử lý',
     completed: 'Đã thanh toán',
   };
   return map[status] || 'Không rõ';
