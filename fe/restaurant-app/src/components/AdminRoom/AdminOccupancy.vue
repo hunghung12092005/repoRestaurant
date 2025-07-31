@@ -89,7 +89,15 @@
               <div class="col-md-6"><label class="form-label">Giờ nhận phòng</label><input type="time" v-model="formData.check_in_time" class="form-control" placeholder="14:00" /></div>
               <div class="col-md-6"><label class="form-label">Ngày trả phòng</label><input type="date" v-model="formData.check_out_date" required class="form-control" /></div>
               <div class="col-md-6"><label class="form-label">Giờ trả phòng</label><input type="time" v-model="formData.check_out_time" class="form-control" placeholder="12:00" /></div>
-              <div v-if="totalPricePreview" class="col-12 mt-3"><label class="form-label">Tổng tiền ước tính:</label><div class="fw-bold fs-5 text-success">{{ Number(totalPricePreview).toLocaleString('vi-VN') + ' VND' }}</div></div>
+              <div class="col-12 mt-3">
+                <label class="form-label">Tổng tiền ước tính:</label>
+                <div v-if="totalPricePreview && isFinite(totalPricePreview)" class="fw-bold fs-5 text-success">
+                  {{ Number(totalPricePreview).toLocaleString('vi-VN') + ' VND' }}
+                </div>
+                <div v-else class="text-danger">
+                  {{ pricePreviewError || 'Không thể tính giá. Vui lòng kiểm tra thời gian đặt phòng.' }}
+                </div>
+              </div>
             </div>
           </div>
           <div class="modal-footer modal-footer-custom"><button type="button" class="btn btn-secondary" @click="showForm = false">Hủy</button><button type="submit" class="btn btn-primary">Lưu</button></div>
@@ -190,9 +198,10 @@ const selectedStatus = ref('Tất cả');
 const selectedRoomType = ref('Tất cả');
 const selectedFloor = ref('Tất cả');
 const selectedDate = ref(new Date().toISOString().substr(0, 10));
-const selectedTime = ref(new Date().toLocaleTimeString('it-IT', { hour: '2-digit', minute: '2-digit' })); // Mặc định là thời gian hiện tại
+const selectedTime = ref(new Date().toLocaleTimeString('it-IT', { hour: '2-digit', minute: '2-digit' }));
 const showForm = ref(false);
 const totalPricePreview = ref(null);
+const pricePreviewError = ref(''); // Thêm biến để lưu thông báo lỗi
 const formData = ref({
   customer_name: '',
   customer_phone: '',
@@ -204,7 +213,7 @@ const formData = ref({
   check_in_time: '14:00',
   check_out_date: '',
   check_out_time: '12:00',
-  pricing_type: 'nightly'
+  pricing_type: 'hourly' // Đặt mặc định là hourly cho đặt phòng ngắn
 });
 const showEditForm = ref(false);
 const editFormData = ref({
@@ -350,7 +359,7 @@ const fetchRooms = async () => {
     const res = await axios.get(`${apiUrl}/api/occupancy/by-date`, {
       params: {
         date: selectedDate.value,
-        time: selectedTime.value || undefined // Gửi thời gian nếu có
+        time: selectedTime.value || undefined
       }
     });
     allRooms.value = res.data.map(r => ({
@@ -370,6 +379,9 @@ const fetchRooms = async () => {
 };
 
 const showAddGuest = (room_id) => {
+  const now = new Date();
+  const currentTime = selectedTime.value || now.toLocaleTimeString('it-IT', { hour: '2-digit', minute: '2-digit' });
+  const defaultCheckOutTime = new Date(now.getTime() + 4 * 60 * 60 * 1000).toLocaleTimeString('it-IT', { hour: '2-digit', minute: '2-digit' });
   formData.value = {
     customer_name: '',
     customer_phone: '',
@@ -378,12 +390,13 @@ const showAddGuest = (room_id) => {
     customer_id_number: '',
     room_id,
     check_in_date: selectedDate.value,
-    check_in_time: '14:00',
-    check_out_date: '',
+    check_in_time: '14:00', 
+    check_out_date: selectedDate.value, // cùng ngày mặc định
     check_out_time: '12:00',
-    pricing_type: 'nightly'
+    pricing_type: 'hourly'
   };
   showForm.value = true;
+  pricePreviewError.value = ''; // Reset thông báo lỗi
   calculateTotalPricePreview();
 };
 
@@ -408,6 +421,7 @@ const submitCustomerForm = async () => {
 const calculateTotalPricePreview = async () => {
   if (!formData.value.room_id || !formData.value.check_in_date || !formData.value.check_out_date) {
     totalPricePreview.value = null;
+    pricePreviewError.value = 'Vui lòng nhập đầy đủ thông tin phòng và thời gian.';
     return;
   }
   try {
@@ -417,44 +431,41 @@ const calculateTotalPricePreview = async () => {
       check_out_time: formData.value.check_out_time || '12:00',
       is_extend: false
     });
-    totalPricePreview.value = res.data.total_price;
+    if (res.data.total_price && isFinite(res.data.total_price)) {
+      totalPricePreview.value = res.data.total_price;
+      pricePreviewError.value = '';
+    } else {
+      totalPricePreview.value = null;
+      pricePreviewError.value = 'API trả về giá không hợp lệ.';
+      console.error('API trả về total_price không hợp lệ:', res.data);
+    }
   } catch (e) {
-    totalPricePreview.value = 'Không tính được';
+    totalPricePreview.value = null;
+    pricePreviewError.value = e.response?.data?.message || 'Lỗi tính giá phòng. Vui lòng kiểm tra thời gian đặt phòng.';
+    console.error('Lỗi tính giá:', e.response?.data?.message || e.message);
+    if (e.response?.status === 422) {
+      alert('Thời gian đặt phòng không hợp lệ: ' + (e.response.data.message || 'Vui lòng kiểm tra lại.'));
+    }
   }
-};
-
-const roomTypes = computed(() => ['Tất cả', ...[...new Set(allRooms.value.map(r => r.type))].sort()]);
-const floors = computed(() => ['Tất cả', ...[...new Set(allRooms.value.map(r => r.floor))].sort((a, b) => a - b).map(f => `Tầng ${f}`)]);
-const filteredRooms = computed(() => allRooms.value.filter(r => 
-  (selectedStatus.value === 'Tất cả' || r.status === selectedStatus.value) && 
-  (selectedRoomType.value === 'Tất cả' || r.type === selectedRoomType.value) && 
-  (selectedFloor.value === 'Tất cả' || `Tầng ${r.floor}` === selectedFloor.value)
-));
-const groupedAndSortedRooms = computed(() => {
-  const groups = {};
-  for (const room of filteredRooms.value) {
-    if (!groups[room.floor]) groups[room.floor] = [];
-    groups[room.floor].push(room);
-  }
-  return Object.keys(groups).sort((a, b) => a - b).map(f => ({ floor: f, rooms: groups[f] }));
-});
-
-const clearFilters = () => {
-  selectedStatus.value = 'Tất cả';
-  selectedRoomType.value = 'Tất cả';
-  selectedFloor.value = 'Tất cả';
-  selectedTime.value = new Date().toLocaleTimeString('it-IT', { hour: '2-digit', minute: '2-digit' }); // Đặt lại về thời gian hiện tại
-  fetchRooms();
 };
 
 const showGuestDetails = async (room) => {
   try {
-    const res = await axios.get(`${apiUrl}/api/rooms/${room.room_id}/customer`, { params: { date: selectedDate.value } });
+    const res = await axios.get(`${apiUrl}/api/rooms/${room.room_id}/customer`, {
+      params: {
+        date: selectedDate.value,
+        time: selectedTime.value,
+      },
+    });
     guestInfo.value = res.data;
     showGuestModal.value = true;
   } catch (e) {
-    alert("Không tìm thấy thông tin khách.");
-    console.error(e);
+    if (e.response?.status === 404) {
+      alert("Không tìm thấy thông tin khách tại thời điểm này.");
+    } else {
+      alert("Lỗi khi lấy thông tin khách: " + (e.response?.data?.message || 'Lỗi server.'));
+      console.error('Lỗi showGuestDetails:', e);
+    }
   }
 };
 
@@ -481,9 +492,33 @@ const getActualCheckout = (booking) => {
   return booking.actual_check_out_time;
 };
 
+const roomTypes = computed(() => ['Tất cả', ...[...new Set(allRooms.value.map(r => r.type))].sort()]);
+const floors = computed(() => ['Tất cả', ...[...new Set(allRooms.value.map(r => r.floor))].sort((a, b) => a - b).map(f => `Tầng ${f}`)]);
+const filteredRooms = computed(() => allRooms.value.filter(r => 
+  (selectedStatus.value === 'Tất cả' || r.status === selectedStatus.value) && 
+  (selectedRoomType.value === 'Tất cả' || r.type === selectedRoomType.value) && 
+  (selectedFloor.value === 'Tất cả' || `Tầng ${r.floor}` === selectedFloor.value)
+));
+const groupedAndSortedRooms = computed(() => {
+  const groups = {};
+  for (const room of filteredRooms.value) {
+    if (!groups[room.floor]) groups[room.floor] = [];
+    groups[room.floor].push(room);
+  }
+  return Object.keys(groups).sort((a, b) => a - b).map(f => ({ floor: f, rooms: groups[f] }));
+});
+
+const clearFilters = () => {
+  selectedStatus.value = 'Tất cả';
+  selectedRoomType.value = 'Tất cả';
+  selectedFloor.value = 'Tất cả';
+  selectedTime.value = new Date().toLocaleTimeString('it-IT', { hour: '2-digit', minute: '2-digit' });
+  fetchRooms();
+};
+
 onMounted(fetchRooms);
 watch(() => [formData.value.check_in_date, formData.value.check_in_time, formData.value.check_out_date, formData.value.check_out_time, formData.value.pricing_type, formData.value.room_id], calculateTotalPricePreview, { deep: true });
-watch(() => [selectedDate, selectedTime], fetchRooms); // Theo dõi thay đổi ngày và thời gian
+watch(() => [selectedDate, selectedTime], fetchRooms);
 </script>
 
 <style scoped>
