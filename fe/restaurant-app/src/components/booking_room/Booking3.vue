@@ -1211,6 +1211,8 @@ const confirmBooking = async () => {
     const bookingDetails = {
         check_in_date: checkin.value,
         check_out_date: checkOut.value,
+        check_in_time: '14:00',
+        check_out_time: '12:00',
         total_rooms: selectedRooms.totalRooms,
         total_price: selectedRooms.totalPrice,
         roomDetails: roomDetails.value,
