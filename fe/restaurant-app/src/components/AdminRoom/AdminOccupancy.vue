@@ -53,8 +53,17 @@
         <h2 class="floor-header">Tầng {{ floorGroup.floor }}</h2>
         <div class="room-grid">
           <div v-for="room in floorGroup.rooms" :key="room.room_id" class="room-card" :class="{ 'booked': room.status === 'Đã đặt' }">
-            <div class="card-header"><h5 class="room-number">{{ room.number }}</h5><span class="badge" :class="room.status === 'Đã đặt' ? 'badge-booked' : 'badge-available'">{{ room.status }}</span></div>
-            <div class="card-body"><p class="room-type">{{ room.type }}</p><p class="room-bedsize">{{ room.bedSize }}</p></div>
+            <div class="card-header">
+              <h5 class="room-number">{{ room.number }}</h5>
+              <span class="badge" :class="room.status === 'Đã đặt' ? 'badge-booked' : 'badge-available'">{{ room.status }}</span>
+            </div>
+            <div class="card-body">
+              <p class="room-type">{{ room.type }}</p>
+              <p class="room-bedsize">{{ room.bedSize }}</p>
+              <p class="room-capacity">
+                <i class="bi bi-people-fill"></i> {{ room.max_occupancy }} Người lớn & {{ room.max_occupancy_child }} Trẻ em
+              </p>
+            </div>
             <div class="card-footer">
               <div v-if="room.status === 'Đã đặt'" class="action-grid">
                 <div class="action-row">
@@ -368,7 +377,9 @@ const fetchRooms = async () => {
       floor: r.floor_number,
       status: mapApiStatusToVietnamese(r.status),
       type: r.type_name,
-      bedSize: mapBedCountToString(r.bed_count)
+      bedSize: mapBedCountToString(r.bed_count),
+      max_occupancy: r.max_occupancy || 0, 
+      max_occupancy_child: r.max_occupancy_child || 0
     }));
   } catch (e) {
     console.error("Lỗi load phòng:", e);
@@ -547,6 +558,19 @@ watch(() => [selectedDate, selectedTime], fetchRooms);
 @media (max-width: 1200px) { .room-grid { grid-template-columns: repeat(4, 1fr); } }
 @media (max-width: 992px) { .room-grid { grid-template-columns: repeat(3, 1fr); } }
 @media (max-width: 768px) { .room-grid { grid-template-columns: repeat(2, 1fr); } }
+
+.room-capacity {
+  font-size: 0.8rem;
+  color: #7f8c8d;
+  margin-bottom: 0;
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.room-capacity .bi {
+  color: #3498db;
+}
 
 .room-card {
   background-color: #ffffff;

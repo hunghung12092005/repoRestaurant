@@ -588,7 +588,9 @@ class OccupancyController extends Controller
                     'rooms.room_name',
                     'rooms.floor_number',
                     'room_types.type_name',
-                    'room_types.bed_count'
+                    'room_types.bed_count',
+                    'room_types.max_occupancy', 
+                    'room_types.max_occupancy_child'
                 )
                 ->orderBy('rooms.floor_number')
                 ->orderBy('rooms.room_name')
