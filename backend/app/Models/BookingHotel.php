@@ -18,6 +18,8 @@ class BookingHotel extends Model
         'pricing_type',
         'check_in_date',
         'check_out_date',
+        'check_in_time',
+        'check_out_time',
         'total_rooms',
         'total_price',
         'additional_fee',

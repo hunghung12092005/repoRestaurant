@@ -3,19 +3,46 @@
   <div class="page-container">
     <!-- Tiêu đề trang -->
     <div class="page-header mb-4">
-      <h1 class="page-title">Sơ Đồ Phòng</h1>
+      <h1 class="page-title">Sơ đồ Phòng</h1>
       <p class="page-subtitle">Quản lý trạng thái và thao tác với các phòng trong khách sạn.</p>
     </div>
-
     <!-- Bộ lọc -->
     <div class="card filter-card mb-4">
       <div class="card-body">
         <div class="row g-3 align-items-end">
-          <div class="col-lg-3 col-md-6"><label for="filter-date" class="form-label">Xem theo ngày</label><input type="date" id="filter-date" class="form-control" v-model="selectedDate" @change="fetchRooms" /></div>
-          <div class="col-lg-2 col-md-6"><label for="status" class="form-label">Trạng thái</label><select id="status" class="form-select" v-model="selectedStatus"><option>Tất cả</option><option>Còn trống</option><option>Đã đặt</option></select></div>
-          <div class="col-lg-3 col-md-6"><label for="room-type" class="form-label">Loại phòng</label><select id="room-type" class="form-select" v-model="selectedRoomType"><option v-for="type in roomTypes" :key="type" :value="type">{{ type }}</option></select></div>
-          <div class="col-lg-2 col-md-6"><label for="floor" class="form-label">Tầng</label><select id="floor" class="form-select" v-model="selectedFloor"><option v-for="floor in floors" :key="floor" :value="floor">{{ floor }}</option></select></div>
-          <div class="col-lg-2 col-md-12 text-end"><button @click="clearFilters" class="btn btn-outline-secondary w-100"><i class="bi bi-arrow-clockwise me-2"></i>Xóa lọc</button></div>
+          <div class="col-lg-2 col-md-6">
+            <label for="filter-date" class="form-label">Xem theo ngày</label>
+            <input type="date" id="filter-date" class="form-control" v-model="selectedDate" @change="fetchRooms" />
+          </div>
+          <div class="col-lg-2 col-md-6">
+            <label for="filter-time" class="form-label">Thời gian</label>
+            <input type="time" id="filter-time" class="form-control" v-model="selectedTime" @change="fetchRooms" />
+          </div>
+          <div class="col-lg-2 col-md-6">
+            <label for="status" class="form-label">Trạng thái</label>
+            <select id="status" class="form-select" v-model="selectedStatus">
+              <option>Tất cả</option>
+              <option>Còn trống</option>
+              <option>Đã đặt</option>
+            </select>
+          </div>
+          <div class="col-lg-2 col-md-6">
+            <label for="room-type" class="form-label">Loại phòng</label>
+            <select id="room-type" class="form-select" v-model="selectedRoomType">
+              <option v-for="type in roomTypes" :key="type" :value="type">{{ type }}</option>
+            </select>
+          </div>
+          <div class="col-lg-2 col-md-6">
+            <label for="floor" class="form-label">Tầng</label>
+            <select id="floor" class="form-select" v-model="selectedFloor">
+              <option v-for="floor in floors" :key="floor" :value="floor">{{ floor }}</option>
+            </select>
+          </div>
+          <div class="col-lg-2 col-md-12 text-end">
+            <button @click="clearFilters" class="btn btn-outline-secondary w-100">
+              <i class="bi bi-arrow-clockwise me-2"></i>Xóa lọc
+            </button>
+          </div>
         </div>
       </div>
     </div>
@@ -43,15 +70,28 @@
       </div>
     </div>
     <div v-else class="alert alert-light text-center">Không có phòng nào khớp với bộ lọc hiện tại.</div>
-    
-    <!-- ======================= MODALS ======================= -->
+
     <!-- Modal Thêm Khách -->
     <div v-if="showForm" class="modal-backdrop fade show"></div>
     <div v-if="showForm" class="modal fade show d-block" tabindex="-1">
       <div class="modal-dialog modal-lg modal-dialog-centered">
         <form @submit.prevent="submitCustomerForm" class="modal-content modal-custom">
           <div class="modal-header modal-header-custom"><h5 class="modal-title">Đăng ký khách hàng</h5><button type="button" class="btn-close" @click="showForm = false"></button></div>
-          <div class="modal-body p-4"><div class="row g-3"><div class="col-12"><label class="form-label">Ảnh CCCD</label><div class="input-group"><input type="file" @change="onFileChange" accept="image/*" class="form-control" /><button type="button" class="btn btn-outline-secondary" @click="uploadImage">Quét CCCD</button></div></div><div class="col-md-6"><label class="form-label">Họ tên</label><input v-model="formData.customer_name" required class="form-control" /></div><div class="col-md-6"><label class="form-label">Số điện thoại</label><input v-model="formData.customer_phone" required class="form-control" /></div><div class="col-md-6"><label class="form-label">Số CCCD</label><input v-model="formData.customer_id_number" required class="form-control" /></div><div class="col-md-6"><label class="form-label">Email</label><input v-model="formData.customer_email" type="email" required class="form-control" /></div><div class="col-12"><label class="form-label">Địa chỉ</label><input v-model="formData.address" class="form-control" /></div><div class="col-md-6"><label class="form-label">Ngày giờ nhận phòng</label><input type="datetime-local" v-model="formData.check_in_date" required class="form-control" /></div><div class="col-md-6"><label class="form-label">Ngày giờ trả phòng</label><input type="datetime-local" v-model="formData.check_out_date" required class="form-control" /></div><div v-if="totalPricePreview" class="col-12 mt-3"><label class="form-label">Tổng tiền ước tính:</label><div class="fw-bold fs-5 text-success">{{ Number(totalPricePreview).toLocaleString('vi-VN') + ' VND' }}</div></div></div></div>
+          <div class="modal-body p-4">
+            <div class="row g-3">
+              <div class="col-12"><label class="form-label">Ảnh CCCD</label><div class="input-group"><input type="file" @change="onFileChange" accept="image/*" class="form-control" /><button type="button" class="btn btn-outline-secondary" @click="uploadImage">Quét CCCD</button></div></div>
+              <div class="col-md-6"><label class="form-label">Họ tên</label><input v-model="formData.customer_name" required class="form-control" /></div>
+              <div class="col-md-6"><label class="form-label">Số điện thoại</label><input v-model="formData.customer_phone" required class="form-control" /></div>
+              <div class="col-md-6"><label class="form-label">Số CCCD</label><input v-model="formData.customer_id_number" required class="form-control" /></div>
+              <div class="col-md-6"><label class="form-label">Email</label><input v-model="formData.customer_email" type="email" required class="form-control" /></div>
+              <div class="col-12"><label class="form-label">Địa chỉ</label><input v-model="formData.address" class="form-control" /></div>
+              <div class="col-md-6"><label class="form-label">Ngày nhận phòng</label><input type="date" v-model="formData.check_in_date" required class="form-control" /></div>
+              <div class="col-md-6"><label class="form-label">Giờ nhận phòng</label><input type="time" v-model="formData.check_in_time" class="form-control" placeholder="14:00" /></div>
+              <div class="col-md-6"><label class="form-label">Ngày trả phòng</label><input type="date" v-model="formData.check_out_date" required class="form-control" /></div>
+              <div class="col-md-6"><label class="form-label">Giờ trả phòng</label><input type="time" v-model="formData.check_out_time" class="form-control" placeholder="12:00" /></div>
+              <div v-if="totalPricePreview" class="col-12 mt-3"><label class="form-label">Tổng tiền ước tính:</label><div class="fw-bold fs-5 text-success">{{ Number(totalPricePreview).toLocaleString('vi-VN') + ' VND' }}</div></div>
+            </div>
+          </div>
           <div class="modal-footer modal-footer-custom"><button type="button" class="btn btn-secondary" @click="showForm = false">Hủy</button><button type="submit" class="btn btn-primary">Lưu</button></div>
         </form>
       </div>
@@ -63,12 +103,18 @@
       <div class="modal-dialog modal-lg modal-dialog-centered">
         <div class="modal-content modal-custom" v-if="guestInfo.room">
           <div class="modal-header modal-header-custom"><h5 class="modal-title">Chi tiết phòng & khách</h5><button type="button" class="btn-close" @click="showGuestModal = false"></button></div>
-          <div class="modal-body p-4"><div class="row g-4"><div class="col-md-6"><h6 class="info-title">Thông tin phòng</h6><ul class="info-list"><li><span>Phòng:</span><strong>{{ guestInfo.room.room_name }} (Tầng {{ guestInfo.room.floor_number }})</strong></li><li><span>Loại phòng:</span><strong>{{ guestInfo.room.type_name }}</strong></li><li><span>Trạng thái phòng:</span><strong>{{ guestInfo.room?.status }}</strong></li></ul></div><div class="col-md-6"><h6 class="info-title">Thông tin khách hàng</h6><ul class="info-list"><li><span>Họ tên:</span><strong>{{ guestInfo.customer?.customer_name || 'N/A' }}</strong></li><li><span>SĐT:</span><strong>{{ guestInfo.customer?.customer_phone || 'N/A' }}</strong></li><li><span>Email:</span><strong>{{ guestInfo.customer?.customer_email || 'N/A' }}</strong></li><li><span>Địa chỉ:</span><strong>{{ guestInfo.customer?.address || 'N/A' }}</strong></li></ul></div><div class="col-12"><h6 class="info-title">Chi tiết lưu trú</h6><ul class="info-list"><li><span>Nhận phòng:</span><strong>{{ guestInfo.booking?.check_in_date || 'N/A' }}</strong></li><li><span>Trả phòng dự kiến:</span><strong>{{ guestInfo.booking?.check_out_date || 'N/A' }}</strong></li><li><span>Trả phòng thực tế:</span><strong>{{ getActualCheckout(guestInfo.booking) }}</strong></li><li><span>Tổng tiền:</span><strong class="text-success fs-6">{{ guestInfo.booking?.total_price ? Number(guestInfo.booking.total_price).toLocaleString('vi-VN') + ' VND' : 'N/A' }}</strong></li></ul></div></div></div>
+          <div class="modal-body p-4">
+            <div class="row g-4">
+              <div class="col-md-6"><h6 class="info-title">Thông tin phòng</h6><ul class="info-list"><li><span>Phòng:</span><strong>{{ guestInfo.room.room_name }} (Tầng {{ guestInfo.room.floor_number }})</strong></li><li><span>Loại phòng:</span><strong>{{ guestInfo.room.type_name }}</strong></li></ul></div>
+              <div class="col-md-6"><h6 class="info-title">Thông tin khách hàng</h6><ul class="info-list"><li><span>Họ tên:</span><strong>{{ guestInfo.customer?.customer_name || 'N/A' }}</strong></li><li><span>SĐT:</span><strong>{{ guestInfo.customer?.customer_phone || 'N/A' }}</strong></li><li><span>Email:</span><strong>{{ guestInfo.customer?.customer_email || 'N/A' }}</strong></li><li><span>Địa chỉ:</span><strong>{{ guestInfo.customer?.address || 'N/A' }}</strong></li></ul></div>
+              <div class="col-12"><h6 class="info-title">Chi tiết lưu trú</h6><ul class="info-list"><li><span>Nhận phòng:</span><strong>{{ formatDateTime(guestInfo.booking?.check_in_date, guestInfo.booking?.check_in_time) || 'N/A' }}</strong></li><li><span>Trả phòng dự kiến:</span><strong>{{ formatDateTime(guestInfo.booking?.check_out_date, guestInfo.booking?.check_out_time) || 'N/A' }}</strong></li><li><span>Trả phòng thực tế:</span><strong>{{ getActualCheckout(guestInfo.booking) }}</strong></li><li><span>Tổng tiền:</span><strong class="text-success fs-6">{{ guestInfo.booking?.total_price ? Number(guestInfo.booking.total_price).toLocaleString('vi-VN') + ' VND' : 'N/A' }}</strong></li></ul></div>
+            </div>
+          </div>
           <div class="modal-footer modal-footer-custom"><button type="button" class="btn btn-secondary" @click="showGuestModal = false">Đóng</button><button type="button" class="btn btn-primary" @click="editCustomerInfo(guestInfo.customer)">Sửa thông tin</button></div>
         </div>
       </div>
     </div>
-    
+
     <!-- Modal Gia hạn -->
     <div v-if="showExtendModal" class="modal-backdrop fade show"></div>
     <div v-if="showExtendModal" class="modal fade show d-block" tabindex="-1">
@@ -84,16 +130,32 @@
     <!-- Modal Dịch vụ -->
     <div v-if="showServiceModal" class="modal-backdrop fade show"></div>
     <div v-if="showServiceModal" class="modal fade show d-block" tabindex="-1">
-        <div class="modal-dialog modal-dialog-centered">
-            <div class="modal-content modal-custom">
-                <div class="modal-header modal-header-custom"><h5 class="modal-title">Chọn dịch vụ sử dụng</h5><button type="button" class="btn-close" @click="showServiceModal = false"></button></div>
-                <div class="modal-body p-4"><div v-if="allServices.length === 0">Đang tải dịch vụ...</div><div v-else><div v-for="(service, index) in allServices" :key="service.service_id" class="service-item"><div>{{ service.service_name }} - {{ formatPrice(service.price) }}</div><div class="qty-controls"><button @click="decreaseQty(index)" class="btn btn-sm btn-outline-secondary">-</button><input type="number" v-model.number="service.quantity" min="0" class="form-control form-control-sm text-center" /><button @click="increaseQty(index)" class="btn btn-sm btn-outline-secondary">+</button></div></div><hr/><div class="mb-2"><label>Tổng tiền dịch vụ:</label><span class="fw-bold text-danger ms-2">{{ serviceTotal.toLocaleString('vi-VN') }} VND</span></div><div class="mb-2"><label class="form-label">Phí phụ thu (VND):</label><input type="number" v-model.number="additionalFee" min="0" class="form-control form-control-sm" /></div><div class="mb-2"><label class="form-label">Lý do phụ thu:</label><input type="text" v-model="surchargeReason" class="form-control form-control-sm" /></div></div></div>
-                <div class="modal-footer modal-footer-custom"><button type="button" class="btn btn-secondary" @click="showServiceModal = false">Hủy</button><button type="button" class="btn btn-danger" @click="confirmPayment">Xác nhận trả phòng</button></div>
+      <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content modal-custom">
+          <div class="modal-header modal-header-custom"><h5 class="modal-title">Chọn dịch vụ sử dụng</h5><button type="button" class="btn-close" @click="showServiceModal = false"></button></div>
+          <div class="modal-body p-4">
+            <div v-if="allServices.length === 0">Đang tải dịch vụ...</div>
+            <div v-else>
+              <div v-for="(service, index) in allServices" :key="service.service_id" class="service-item">
+                <div>{{ service.service_name }} - {{ formatPrice(service.price) }}</div>
+                <div class="qty-controls">
+                  <button @click="decreaseQty(index)" class="btn btn-sm btn-outline-secondary">-</button>
+                  <input type="number" v-model.number="service.quantity" min="0" class="form-control form-control-sm text-center" />
+                  <button @click="increaseQty(index)" class="btn btn-sm btn-outline-secondary">+</button>
+                </div>
+              </div>
+              <hr/>
+              <div class="mb-2"><label>Tổng tiền dịch vụ:</label><span class="fw-bold text-danger ms-2">{{ serviceTotal.toLocaleString('vi-VN') }} VND</span></div>
+              <div class="mb-2"><label class="form-label">Phí phụ thu (VND):</label><input type="number" v-model.number="additionalFee" min="0" class="form-control form-control-sm" /></div>
+              <div class="mb-2"><label class="form-label">Lý do phụ thu:</label><input type="text" v-model="surchargeReason" class="form-control form-control-sm" /></div>
             </div>
+          </div>
+          <div class="modal-footer modal-footer-custom"><button type="button" class="btn btn-secondary" @click="showServiceModal = false">Hủy</button><button type="button" class="btn btn-danger" @click="confirmPayment">Xác nhận trả phòng</button></div>
         </div>
+      </div>
     </div>
-    
-    <!-- [THÊM LẠI] Modal Sửa Thông Tin Khách -->
+
+    <!-- Modal Sửa Thông Tin Khách -->
     <div v-if="showEditForm" class="modal-backdrop fade show"></div>
     <div v-if="showEditForm" class="modal fade show d-block" tabindex="-1">
       <div class="modal-dialog modal-dialog-centered">
@@ -116,11 +178,10 @@
 </template>
 
 <script setup>
-// --- SCRIPT CỦA BẠN GIỮ NGUYÊN, THÊM 1 DÒNG TRONG editCustomerInfo ---
 import { ref, computed, onMounted, watch } from 'vue';
 import axios from 'axios';
 import { inject } from 'vue';
-import isLoading from '../loading.vue'
+import isLoading from '../loading.vue';
 
 const apiUrl = inject('apiUrl');
 const allRooms = ref([]);
@@ -129,17 +190,29 @@ const selectedStatus = ref('Tất cả');
 const selectedRoomType = ref('Tất cả');
 const selectedFloor = ref('Tất cả');
 const selectedDate = ref(new Date().toISOString().substr(0, 10));
+const selectedTime = ref(new Date().toLocaleTimeString('it-IT', { hour: '2-digit', minute: '2-digit' })); // Mặc định là thời gian hiện tại
 const showForm = ref(false);
 const totalPricePreview = ref(null);
 const formData = ref({
-  customer_name: '', customer_phone: '', customer_email: '', address: '',
-  customer_id_number: '', room_id: null, check_in_date: '',
-  check_out_date: '', pricing_type: 'nightly'
+  customer_name: '',
+  customer_phone: '',
+  customer_email: '',
+  address: '',
+  customer_id_number: '',
+  room_id: null,
+  check_in_date: '',
+  check_in_time: '14:00',
+  check_out_date: '',
+  check_out_time: '12:00',
+  pricing_type: 'nightly'
 });
 const showEditForm = ref(false);
 const editFormData = ref({
-  customer_id: null, customer_name: '', customer_phone: '',
-  customer_email: '', address: '',
+  customer_id: null,
+  customer_name: '',
+  customer_phone: '',
+  customer_email: '',
+  address: ''
 });
 const showServiceModal = ref(false);
 const allServices = ref([]);
@@ -158,21 +231,24 @@ const increaseQty = (index) => { allServices.value[index].quantity++; };
 const decreaseQty = (index) => { if (allServices.value[index].quantity > 0) allServices.value[index].quantity--; };
 const formatPrice = (price) => price.toLocaleString('vi-VN') + ' VND';
 
-// [CẢI TIẾN] Đóng modal cũ trước khi mở modal mới
+const formatDateTime = (date, time) => {
+  if (!date || !time) return 'N/A';
+  return `${date} ${time}`;
+};
+
 const editCustomerInfo = (customer) => {
   if (!customer) return;
   editFormData.value = { ...customer };
-  showGuestModal.value = false; // Đóng modal chi tiết
-  showEditForm.value = true;   // Mở modal sửa
+  showGuestModal.value = false;
+  showEditForm.value = true;
 };
 
 const submitEditForm = async () => {
   try {
     const res = await axios.post(`${apiUrl}/api/customers/${editFormData.value.customer_id}/update-name`, { ...editFormData.value });
     alert(res.data.message || 'Cập nhật thành công.');
-    // Sau khi sửa thành công, không cần mở lại modal chi tiết
-    showEditForm.value = false; 
-    await fetchRooms(); // Cập nhật lại sơ đồ phòng
+    showEditForm.value = false;
+    await fetchRooms();
   } catch (e) {
     alert("Không thể cập nhật.");
     console.error(e);
@@ -224,12 +300,33 @@ const checkoutRoom = async (room_id) => {
 const confirmPayment = async () => {
   if (!window.confirm("Xác nhận thanh toán và trả phòng?")) return;
   try {
-    const services = allServices.value.filter(s => Number(s.quantity) > 0).map(s => ({ service_id: Number(s.service_id), quantity: Number(s.quantity) }));
+    const services = allServices.value
+      .filter(s => Number(s.quantity) > 0)
+      .map(s => ({ service_id: Number(s.service_id), quantity: Number(s.quantity) }));
+
     const response = await axios.post(`${apiUrl}/api/rooms/${currentRoomId.value}/checkout`, {
-      services, date: selectedDate.value, additional_fee: additionalFee.value, surcharge_reason: surchargeReason.value
+      services,
+      date: selectedDate.value,
+      additional_fee: additionalFee.value,
+      surcharge_reason: surchargeReason.value
     });
     const data = response.data;
-    alert(`${data.message}\n\n💳 Đã thanh toán trước: ${Number(data.paid_total).toLocaleString('vi-VN')} VND\n🛏️ Tiền phòng: ${Number(data.room_total).toLocaleString('vi-VN')} VND\n🧾 Dịch vụ: ${Number(data.service_total).toLocaleString('vi-VN')} VND\n➕ Phí phụ thu: ${Number(data.additional_fee).toLocaleString('vi-VN')} VND${data.surcharge_reason ? ` (Lý do: ${data.surcharge_reason})` : ''}\n💰 Tổng phải trả: ${Number(data.actual_total).toLocaleString('vi-VN')} VND\n\n${data.note || ''}`);
+
+    const alertMessage = [
+      data.message,
+      `\n--------------------------------`,
+      `💰 Giá phòng ban đầu: ${Number(data.original_booking_price || 0).toLocaleString('vi-VN')} VND`,
+      `🛏️ Tiền phòng thực tế: ${Number(data.room_total || 0).toLocaleString('vi-VN')} VND`,
+      `   ➡️ Cách tính: ${data.calculation_note || 'N/A'}`,
+      `🧾 Tiền dịch vụ: ${Number(data.service_total || 0).toLocaleString('vi-VN')} VND`,
+      `➕ Phí phụ thu: ${Number(data.additional_fee || 0).toLocaleString('vi-VN')} VND` + (data.surcharge_reason ? ` (Lý do: ${data.surcharge_reason})` : ''),
+      `--------------------------------`,
+      `💳 TỔNG THANH TOÁN: ${Number(data.actual_total || 0).toLocaleString('vi-VN')} VND`,
+      `\n📝 Ghi chú chung: ${data.note || 'Không có'}`
+    ].join('\n');
+
+    alert(alertMessage);
+
     showServiceModal.value = false;
     await fetchRooms();
   } catch (error) {
@@ -239,20 +336,34 @@ const confirmPayment = async () => {
   }
 };
 
-const mapApiStatusToVietnamese = (s) => s === 'available' ? 'Còn trống' : s === 'occupied' ? 'Đã đặt' : 'Không xác định';
+const mapApiStatusToVietnamese = (s) => {
+  if (s === 'available') return 'Còn trống';
+  if (s === 'occupied' || s === 'pending' || s === 'confirmed' || s === 'cancellation_requested') return 'Đã đặt';
+  return 'Không xác định';
+};
+
 const mapBedCountToString = (c) => c === 1 ? 'Giường đơn' : c === 2 ? 'Giường đôi' : `${c} giường`;
 
 const fetchRooms = async () => {
   isisLoading.value = true;
   try {
-    const res = await axios.get(`${apiUrl}/api/occupancy/by-date`, { params: { date: selectedDate.value } });
+    const res = await axios.get(`${apiUrl}/api/occupancy/by-date`, {
+      params: {
+        date: selectedDate.value,
+        time: selectedTime.value || undefined // Gửi thời gian nếu có
+      }
+    });
     allRooms.value = res.data.map(r => ({
-      room_id: r.room_id, number: r.room_name, floor: r.floor_number,
-      status: mapApiStatusToVietnamese(r.status), type: r.type_name,
-      bedSize: mapBedCountToString(r.bed_count),
+      room_id: r.room_id,
+      number: r.room_name,
+      floor: r.floor_number,
+      status: mapApiStatusToVietnamese(r.status),
+      type: r.type_name,
+      bedSize: mapBedCountToString(r.bed_count)
     }));
   } catch (e) {
     console.error("Lỗi load phòng:", e);
+    alert("Không thể tải thông tin phòng. Vui lòng thử lại.");
   } finally {
     isisLoading.value = false;
   }
@@ -260,9 +371,17 @@ const fetchRooms = async () => {
 
 const showAddGuest = (room_id) => {
   formData.value = {
-    customer_name: '', customer_phone: '', customer_email: '', address: '',
-    customer_id_number: '', room_id, check_in_date: '',
-    check_out_date: '', pricing_type: 'nightly'
+    customer_name: '',
+    customer_phone: '',
+    customer_email: '',
+    address: '',
+    customer_id_number: '',
+    room_id,
+    check_in_date: selectedDate.value,
+    check_in_time: '14:00',
+    check_out_date: '',
+    check_out_time: '12:00',
+    pricing_type: 'nightly'
   };
   showForm.value = true;
   calculateTotalPricePreview();
@@ -271,20 +390,33 @@ const showAddGuest = (room_id) => {
 const submitCustomerForm = async () => {
   if (!window.confirm("Xác nhận lưu khách hàng?")) return;
   try {
-    const res = await axios.post(`${apiUrl}/api/rooms/${formData.value.room_id}/add-guest`, formData.value);
-    alert(`${res.data.message}\nTổng tiền: ${res.data.total_price}`);
+    const res = await axios.post(`${apiUrl}/api/rooms/${formData.value.room_id}/add-guest`, {
+      ...formData.value,
+      check_in_time: formData.value.check_in_time || '14:00',
+      check_out_time: formData.value.check_out_time || '12:00'
+    });
+    alert(`${res.data.message}\nTổng tiền: ${Number(res.data.total_price).toLocaleString('vi-VN')} VND`);
     showForm.value = false;
     await fetchRooms();
   } catch (e) {
     console.error("Lỗi gửi dữ liệu:", e);
-    alert("Không thể lưu thông tin khách.");
+    const errorMessage = e.response?.data?.message || "Không thể lưu thông tin khách.";
+    alert(errorMessage);
   }
 };
 
 const calculateTotalPricePreview = async () => {
-  if (!formData.value.room_id) return;
+  if (!formData.value.room_id || !formData.value.check_in_date || !formData.value.check_out_date) {
+    totalPricePreview.value = null;
+    return;
+  }
   try {
-    const res = await axios.post(`${apiUrl}/api/rooms/preview-price`, { ...formData.value, is_extend: false });
+    const res = await axios.post(`${apiUrl}/api/rooms/preview-price`, {
+      ...formData.value,
+      check_in_time: formData.value.check_in_time || '14:00',
+      check_out_time: formData.value.check_out_time || '12:00',
+      is_extend: false
+    });
     totalPricePreview.value = res.data.total_price;
   } catch (e) {
     totalPricePreview.value = 'Không tính được';
@@ -293,7 +425,11 @@ const calculateTotalPricePreview = async () => {
 
 const roomTypes = computed(() => ['Tất cả', ...[...new Set(allRooms.value.map(r => r.type))].sort()]);
 const floors = computed(() => ['Tất cả', ...[...new Set(allRooms.value.map(r => r.floor))].sort((a, b) => a - b).map(f => `Tầng ${f}`)]);
-const filteredRooms = computed(() => allRooms.value.filter(r => (selectedStatus.value === 'Tất cả' || r.status === selectedStatus.value) && (selectedRoomType.value === 'Tất cả' || r.type === selectedRoomType.value) && (selectedFloor.value === 'Tất cả' || `Tầng ${r.floor}` === selectedFloor.value)));
+const filteredRooms = computed(() => allRooms.value.filter(r => 
+  (selectedStatus.value === 'Tất cả' || r.status === selectedStatus.value) && 
+  (selectedRoomType.value === 'Tất cả' || r.type === selectedRoomType.value) && 
+  (selectedFloor.value === 'Tất cả' || `Tầng ${r.floor}` === selectedFloor.value)
+));
 const groupedAndSortedRooms = computed(() => {
   const groups = {};
   for (const room of filteredRooms.value) {
@@ -307,6 +443,8 @@ const clearFilters = () => {
   selectedStatus.value = 'Tất cả';
   selectedRoomType.value = 'Tất cả';
   selectedFloor.value = 'Tất cả';
+  selectedTime.value = new Date().toLocaleTimeString('it-IT', { hour: '2-digit', minute: '2-digit' }); // Đặt lại về thời gian hiện tại
+  fetchRooms();
 };
 
 const showGuestDetails = async (room) => {
@@ -333,7 +471,8 @@ const submitExtendForm = async () => {
     await fetchRooms();
   } catch (e) {
     console.error("Lỗi gia hạn:", e);
-    alert("Không thể gia hạn.");
+    const errorMessage = e.response?.data?.message || "Không thể gia hạn.";
+    alert(errorMessage);
   }
 };
 
@@ -343,12 +482,11 @@ const getActualCheckout = (booking) => {
 };
 
 onMounted(fetchRooms);
-watch(() => [formData.value.check_in_date, formData.value.check_out_date, formData.value.pricing_type], calculateTotalPricePreview);
-watch(() => formData.value.room_id, () => { if (formData.value.check_in_date && formData.value.check_out_date) calculateTotalPricePreview(); });
+watch(() => [formData.value.check_in_date, formData.value.check_in_time, formData.value.check_out_date, formData.value.check_out_time, formData.value.pricing_type, formData.value.room_id], calculateTotalPricePreview, { deep: true });
+watch(() => [selectedDate, selectedTime], fetchRooms); // Theo dõi thay đổi ngày và thời gian
 </script>
 
 <style scoped>
-/* Copied styles from other components for consistency */
 @import url('https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@300;400;500;600;700&display=swap');
 @import url('https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css');
 
@@ -366,8 +504,8 @@ watch(() => formData.value.room_id, () => { if (formData.value.check_in_date && 
 .form-label { font-weight: 500; margin-bottom: 0.5rem; font-size: 0.875rem; }
 .form-control, .form-select { border-radius: 8px; border: 1px solid #e5eaee; transition: all 0.2s ease-in-out; }
 .form-control:focus, .form-select:focus { border-color: #3498db; box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.15); }
+.form-control[type="time"] { width: 100%; }
 
-/* Grid Styles */
 .floor-section { margin-bottom: 2.5rem; }
 .floor-header { font-size: 1.75rem; font-weight: 600; color: #2c3e50; padding-bottom: 0.75rem; border-bottom: 2px solid #e5eaee; margin-bottom: 1.5rem; }
 .room-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 1.5rem; }
@@ -385,7 +523,6 @@ watch(() => formData.value.room_id, () => { if (formData.value.check_in_date && 
 }
 .room-card:hover { transform: translateY(-5px); box-shadow: 0 8px 25px rgba(0, 0, 0, 0.08); }
 
-/* Bảng màu "Blue" */
 .room-card.booked { border-left: 4px solid #f39c12; }
 .room-card:not(.booked) { border-left: 4px solid #3498db; }
 .badge-available { background-color: #eaf6fb; color: #3498db; }
@@ -399,11 +536,9 @@ watch(() => formData.value.room_id, () => { if (formData.value.check_in_date && 
 .room-card .room-bedsize { font-size: 0.85rem; color: #7f8c8d; margin-bottom: 0; }
 .room-card .card-footer { background-color: #fafbfc; padding: 0.75rem 1rem; border-top: 1px solid #f0f2f5; }
 
-/* Bố cục nút bấm mới */
 .action-grid .action-row { display: flex; gap: 0.5rem; }
 .action-grid .action-row .btn { flex-grow: 1; }
 
-/* Modal Styles */
 .modal-backdrop { background-color: rgba(0, 0, 0, 0.4); }
 .modal-custom { border-radius: 16px; border: none; box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1); }
 .modal-header-custom { background-color: #f4f7f9; border-bottom: 1px solid #e5eaee; padding: 1.5rem; }
@@ -416,7 +551,6 @@ watch(() => formData.value.room_id, () => { if (formData.value.check_in_date && 
 .info-list li span { color: #7f8c8d; flex-shrink: 0; }
 .info-list li strong { color: #34495e; text-align: right; word-break: break-word; }
 
-/* Nút bấm theo chủ đề blue */
 .btn-primary { background-color: #3498db; border-color: #3498db; }
 .btn-primary:hover { background-color: #2980b9; border-color: #2980b9; }
 .btn-outline-primary { color: #3498db; border-color: #3498db; }
@@ -424,7 +558,6 @@ watch(() => formData.value.room_id, () => { if (formData.value.check_in_date && 
 .btn-outline-warning { color: #f39c12; border-color: #f39c12; }
 .btn-outline-warning:hover { background-color: #f39c12; color: white; }
 
-/* Modal Dịch vụ */
 .service-item { display: flex; justify-content: space-between; align-items: center; padding: 0.5rem 0; }
 .qty-controls { display: flex; align-items: center; gap: 0.5rem; }
 .qty-controls input { width: 50px; }

@@ -19,7 +19,7 @@
         </div>
         <ul class="nav flex-column">
           <li class="nav-item"><router-link class="nav-link" to="/admin/dashboard"><i class="bi bi-grid"></i> Trang thống kê</router-link></li>
-          <li class="nav-item"><router-link class="nav-link" to="/admin/occupancy"><i class="bi bi-house-door"></i> QL tình trạng phòng</router-link></li>
+          <li class="nav-item"><router-link class="nav-link" to="/admin/occupancy"><i class="bi bi-house-door"></i> Quản lý sơ đồ phòng</router-link></li>
           <li class="nav-item"><router-link class="nav-link" to="/admin/bookings"><i class="bi bi-book"></i> Quản lý đặt phòng</router-link></li>
           <li class="nav-item"><router-link class="nav-link" to="/admin/booking-histories"><i class="bi bi-clock-history"></i> Lịch sử đặt phòng</router-link></li>
           
