@@ -44,30 +44,22 @@ class AdminDashboardController extends Controller
         $startOfMonth = Carbon::now()->startOfMonth();
         $endOfMonth = Carbon::now()->endOfMonth();
         
-        // 1. Doanh thu tháng này
         $revenueThisMonth = DB::table('booking_room_status')
             ->join('booking_hotel', 'booking_room_status.booking_id', '=', 'booking_hotel.booking_id')
             ->where('booking_hotel.status', 'completed')
             ->where('booking_room_status.created_at', '>=', $startOfMonth)
             ->sum('booking_room_status.total_paid');
 
-        // 2. Lượt đặt phòng tháng này
         $bookingsThisMonth = BookingHotel::where('created_at', '>=', $startOfMonth)->count();
-
-        // 3. Lượt hủy tháng này
         $cancellationsThisMonth = CancelBooking::where('cancellation_date', '>=', $startOfMonth)->count();
-
-        // 4. Tình trạng phòng tháng này
         $totalRooms = Room::count();
         $occupiedRoomsThisMonth = BookingHotel::join($this->bookingDetailsTable, 'booking_hotel.booking_id', '=', $this->bookingDetailsTable . '.booking_id')
-            ->where('check_in_date', '<=', $endOfMonth) // Bắt đầu trước khi tháng kết thúc
-            ->where('check_out_date', '>', $startOfMonth) // Và kết thúc sau khi tháng bắt đầu
+            ->where('check_in_date', '<=', $endOfMonth)
+            ->where('check_out_date', '>', $startOfMonth)
             ->whereIn('status', ['confirmed', 'checked_in', 'completed'])
             ->distinct($this->bookingDetailsTable . '.room_id')
             ->count($this->bookingDetailsTable . '.room_id');
         $availableRoomsThisMonth = $totalRooms > $occupiedRoomsThisMonth ? $totalRooms - $occupiedRoomsThisMonth : 0;
-        
-        // 5. Tổng loại phòng
         $totalRoomTypes = RoomType::count();
 
         return [
@@ -86,30 +78,42 @@ class AdminDashboardController extends Controller
     private function getContentActivityChartData()
     {
         $labels = [];
-        $datasets = [
-            ['label' => 'Tin tức mới', 'data' => []],
-            ['label' => 'Bình luận mới', 'data' => []],
-            ['label' => 'Số phòng có khách', 'data' => []], // Đổi tên & logic
-        ];
+        $newsData = [];
+        $commentsData = [];
+        $occupiedRoomsData = [];
 
-        for ($i = 5; $i >= 0; $i--) {
-            $date = Carbon::now()->subMonths($i);
+        // **LOGIC MỚI - ĐẢM BẢO CHÍNH XÁC**
+        // Bắt đầu từ tháng đầu tiên trong chuỗi 6 tháng (5 tháng trước)
+        $currentMonth = Carbon::now()->subMonths(5)->startOfMonth();
+
+        for ($i = 0; $i < 6; $i++) {
+            // Lấy thông tin tháng hiện tại trong vòng lặp
+            $date = $currentMonth->copy();
             $startOfMonth = $date->copy()->startOfMonth();
             $endOfMonth = $date->copy()->endOfMonth();
-            
+
             $labels[] = 'Tháng ' . $date->format('n/Y');
             
-            $datasets[0]['data'][] = News::whereYear('publish_date', $date->year)->whereMonth('publish_date', $date->month)->count();
-            $datasets[1]['data'][] = NewsComment::whereYear('created_at', $date->year)->whereMonth('created_at', $date->month)->count();
+            $newsData[] = News::whereYear('publish_date', $date->year)->whereMonth('publish_date', $date->month)->count();
+            $commentsData[] = NewsComment::whereYear('created_at', $date->year)->whereMonth('created_at', $date->month)->count();
             
-            // LOGIC MỚI: Đếm số phòng duy nhất có khách trong từng tháng
-            $datasets[2]['data'][] = BookingHotel::join($this->bookingDetailsTable, 'booking_hotel.booking_id', '=', $this->bookingDetailsTable . '.booking_id')
+            $occupiedRoomsData[] = BookingHotel::join($this->bookingDetailsTable, 'booking_hotel.booking_id', '=', $this->bookingDetailsTable . '.booking_id')
                 ->where('check_in_date', '<=', $endOfMonth)
                 ->where('check_out_date', '>', $startOfMonth)
                 ->whereIn('status', ['confirmed', 'checked_in', 'completed'])
                 ->distinct($this->bookingDetailsTable . '.room_id')
                 ->count($this->bookingDetailsTable . '.room_id');
+
+            // Chuyển sang tháng tiếp theo cho vòng lặp sau
+            $currentMonth->addMonth();
         }
+
+        $datasets = [
+            ['label' => 'Tin tức mới', 'data' => $newsData],
+            ['label' => 'Bình luận mới', 'data' => $commentsData],
+            ['label' => 'Số phòng có khách', 'data' => $occupiedRoomsData],
+        ];
+
         return compact('labels', 'datasets');
     }
 
@@ -117,16 +121,27 @@ class AdminDashboardController extends Controller
     {
         $labels = [];
         $revenueData = [];
-        for ($i = 5; $i >= 0; $i--) {
-            $date = Carbon::now()->subMonths($i);
+        
+        // **LOGIC MỚI - ĐẢM BẢO CHÍNH XÁC**
+        // Bắt đầu từ tháng đầu tiên trong chuỗi 6 tháng (5 tháng trước)
+        $currentMonth = Carbon::now()->subMonths(5)->startOfMonth();
+
+        for ($i = 0; $i < 6; $i++) {
+            // Lấy thông tin tháng hiện tại trong vòng lặp
+            $date = $currentMonth->copy();
             $labels[] = 'Tháng ' . $date->format('n/Y');
+
             $revenueData[] = DB::table('booking_room_status')
                 ->join('booking_hotel', 'booking_room_status.booking_id', '=', 'booking_hotel.booking_id')
                 ->where('booking_hotel.status', 'completed')
                 ->whereYear('booking_room_status.created_at', $date->year)
                 ->whereMonth('booking_room_status.created_at', $date->month)
                 ->sum('booking_room_status.total_paid');
+
+            // Chuyển sang tháng tiếp theo cho vòng lặp sau
+            $currentMonth->addMonth();
         }
+
         return ['labels' => $labels, 'datasets' => [['label' => 'Doanh thu', 'data' => $revenueData]]];
     }
 
