@@ -280,6 +280,8 @@ class BookingHotelController extends Controller
             $bookingDetails = $request->validate([
                 'check_in_date' => 'required|date',
                 'check_out_date' => 'required|date',
+                'check_in_time' => 'required',
+                'check_out_time' => 'required',
                 'total_rooms' => 'required|integer',
                 'roomDetails' => 'required|array',
                 'total_price' => 'required|numeric',
@@ -320,6 +322,8 @@ class BookingHotelController extends Controller
                 'orderCode' => $bookingDetails['orderCode'],
                 'check_in_date' => $bookingDetails['check_in_date'],
                 'check_out_date' => $bookingDetails['check_out_date'],
+                'check_in_time' => $bookingDetails['check_in_time'],
+                'check_out_time' => $bookingDetails['check_out_time'],
                 'total_rooms' => $bookingDetails['total_rooms'],
                 'total_price' => $bookingDetails['total_price'],
                 'payment_status' => 'pending',

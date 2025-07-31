@@ -35,288 +35,93 @@ class OccupancyController extends Controller
             return response()->json(['message' => 'Không thể lấy dữ liệu phòng.', 'error' => $e->getMessage()], 500);
         }
     }
-
+    
     /**
-     * Lấy thông tin khách theo phòng.
+     * Lấy thông tin khách và booking cho phòng tại thời điểm cụ thể
      */
     public function getCustomerByRoom(Request $request, $room_id)
     {
         try {
-            $date = $request->input('date', now()->toDateString());
+            // Kiểm tra phòng
+            $room = DB::table('rooms')->where('room_id', $room_id)->first();
+            if (!$room) {
+                Log::warning("Không tìm thấy phòng với room_id: {$room_id}");
+                return response()->json(['message' => 'Không tìm thấy phòng.'], 404);
+            }
 
-            // 1. Tìm chi tiết đặt phòng (BookingHotelDetail)
-            $bookingDetail = BookingHotelDetail::with([
-                    'booking.customer',
-                    'room.roomType',
-                    'services'
-                ])
-                ->where('room_id', $room_id)
-                ->whereHas('booking', function ($query) use ($date) {
-                    $query->whereDate('check_in_date', '<=', $date)
-                          ->whereDate('check_out_date', '>=', $date)
-                          ->whereIn('status', ['pending', 'confirmed']);
-                })
+            // Lấy ngày và thời gian từ request
+            $date = $request->query('date', now()->toDateString());
+            $time = $request->query('time', now()->format('H:i'));
+
+            // Parse thời gian
+            try {
+                $checkTime = Carbon::parse($date . ' ' . $time);
+            } catch (\Exception $e) {
+                Log::warning("Lỗi parse thời gian: date={$date}, time={$time}, error=" . $e->getMessage());
+                return response()->json(['message' => 'Định dạng thời gian không hợp lệ.'], 400);
+            }
+
+            // Lấy booking hiện tại tại thời điểm checkTime
+            $booking = DB::table('booking_hotel_detail as bkd')
+                ->join('booking_hotel as bk', 'bk.booking_id', '=', 'bkd.booking_id')
+                ->join('customers as c', 'bk.customer_id', '=', 'c.customer_id')
+                ->join('room_types as rt', 'rt.type_id', '=', 'bkd.room_type')
+                ->join('rooms', 'rooms.room_id', '=', 'bkd.room_id') // Sửa tham chiếu bảng rooms
+                ->where('bkd.room_id', $room_id)
+                ->where('bk.status', '!=', 'completed')
+                ->whereRaw('CONCAT(bk.check_in_date, " ", COALESCE(bk.check_in_time, "14:00")) <= ?', [$checkTime->toDateTimeString()])
+                ->whereRaw('CONCAT(bk.check_out_date, " ", COALESCE(bk.check_out_time, "12:00")) >= ?', [$checkTime->toDateTimeString()])
+                ->select(
+                    'bk.booking_id',
+                    'bk.check_in_date',
+                    'bk.check_in_time',
+                    'bk.check_out_date',
+                    'bk.check_out_time',
+                    'bk.total_price',
+                    'bk.note',
+                    'c.customer_id',
+                    'c.customer_name',
+                    'c.customer_phone',
+                    'c.customer_email',
+                    'c.address',
+                    'rt.type_name',
+                    'rooms.room_name', // Sửa từ room.room_name thành rooms.room_name
+                    'rooms.floor_number'
+                )
                 ->first();
 
-            if (!$bookingDetail) {
-                Log::warning("Không tìm thấy booking hợp lệ cho phòng {$room_id} vào ngày {$date}");
-                return response()->json(['message' => 'Không tìm thấy thông tin đặt phòng cho ngày này.'], 404);
+            if (!$booking) {
+                Log::info("Không tìm thấy booking cho room_id={$room_id} tại thời điểm {$checkTime}");
+                return response()->json(['message' => 'Không tìm thấy booking tại thời điểm này.'], 404);
             }
 
-            // 3. Lấy dữ liệu từ các đối tượng đã được tải
-            $booking = $bookingDetail->booking;
-            $customer = $booking->customer;
-            $room = $bookingDetail->room;
-            $roomType = $room->roomType; // Lấy thông tin loại phòng
-
-            // Kiểm tra để đảm bảo dữ liệu liên quan tồn tại, tránh lỗi NULL
-            if (!$booking || !$customer || !$room || !$roomType) {
-                 Log::error("Dữ liệu liên quan không hợp lệ cho booking_detail_id: {$bookingDetail->booking_detail_id}");
-                 return response()->json(['message' => 'Dữ liệu đặt phòng không đầy đủ hoặc bị lỗi.'], 500);
-            }
-
-            // 4. Tính tổng tiền dịch vụ
-            $totalService = $bookingDetail->services->sum('total');
-
-            // 5. Xây dựng và trả về kết quả
             return response()->json([
-                'success' => true,
                 'room' => [
-                    'room_id' => $room->room_id,
-                    'room_name' => $room->room_name,
-                    'floor_number' => $room->floor_number,
-                    'type_name' => $roomType->type_name,     
-                    'bed_count' => $roomType->bed_count,     
-                    'status' => $booking->status,
+                    'room_id' => $room_id,
+                    'room_name' => $booking->room_name, // Sử dụng từ kết quả truy vấn
+                    'floor_number' => $booking->floor_number,
+                    'type_name' => $booking->type_name,
                 ],
-                'customer' => $customer,
+                'customer' => [
+                    'customer_id' => $booking->customer_id,
+                    'customer_name' => $booking->customer_name,
+                    'customer_phone' => $booking->customer_phone,
+                    'customer_email' => $booking->customer_email,
+                    'address' => $booking->address,
+                ],
                 'booking' => [
                     'booking_id' => $booking->booking_id,
-                    'pricing_type' => $booking->pricing_type,
                     'check_in_date' => $booking->check_in_date,
-                    'check_in_time' => $booking->check_in_time ?? '14:00',
+                    'check_in_time' => $booking->check_in_time,
                     'check_out_date' => $booking->check_out_date,
-                    'check_out_time' => $booking->check_out_time ?? '12:00',
-                    'status' => $booking->status,
-                    'payment_status' => $booking->payment_status,
-                    'gia_phong' => $bookingDetail->gia_phong,
-                    'gia_dich_vu' => $totalService,
-                    'total_price' => ($bookingDetail->gia_phong ?? 0) + ($totalService ?? 0),
-                    'actual_check_out_time' => $booking->actual_check_out_time,
+                    'check_out_time' => $booking->check_out_time,
+                    'total_price' => $booking->total_price,
+                    'note' => $booking->note,
                 ],
             ]);
-
         } catch (\Exception $e) {
-            Log::error("Lỗi lấy thông tin khách phòng {$room_id}: " . $e->getMessage() . " | File: " . $e->getFile() . " | Line: " . $e->getLine());
-            return response()->json([
-                'message' => 'Lỗi máy chủ khi lấy thông tin khách.',
-                'error' => $e->getMessage(),
-                'file' => $e->getFile(),
-                'line' => $e->getLine()
-            ], 500);
-        }
-    }
-
-    /**
-     * Trả phòng và thanh toán.
-     */
-    public function checkoutRoom(Request $request, $room_id)
-    {
-        // Bắt đầu transaction để đảm bảo tính toàn vẹn dữ liệu
-        DB::beginTransaction();
-
-        try {
-            $date = $request->input('date', now()->toDateString());
-
-            // 1. Tìm chi tiết đặt phòng bằng Eloquent
-            $bookingDetail = BookingHotelDetail::with('booking')
-                ->where('room_id', $room_id)
-                ->whereHas('booking', function ($query) use ($date) {
-                    $query->whereDate('check_in_date', '<=', $date)
-                          ->whereDate('check_out_date', '>=', $date)
-                          ->whereIn('status', ['pending', 'confirmed']);
-                })
-                ->firstOrFail();
-
-            $booking = $bookingDetail->booking;
-
-            // Nếu thời gian hiện tại trước thời gian nhận phòng, không cho phép trả phòng
-            $now = Carbon::now();
-            $checkInDateTime = Carbon::parse($booking->check_in_date . ' ' . ($booking->check_in_time ?? '14:00'));
-            
-            if ($now->lessThan($checkInDateTime)) {
-                DB::rollBack();
-                return response()->json([
-                    'message' => "Chưa đến thời gian nhận phòng ({$checkInDateTime->format('d-m-Y H:i')}). Không thể thực hiện trả phòng."
-                ], 400);
-            }
-
-            // Nếu đã qua bước kiểm tra, tiếp tục xử lý trả phòng như bình thường
-            $servicesInput = $request->input('services', []);
-            $additionalFee = (float) $request->input('additional_fee', 0);
-            $surchargeReason = $request->input('surcharge_reason', null);
-
-            $room = Room::with('roomType')->findOrFail($room_id);
-
-            if (!$room->roomType) {
-                throw new \Exception("Phòng chưa được gán loại.");
-            }
-
-            $price = Price::where('type_id', $room->type_id)
-                ->where('start_date', '<=', $now)
-                ->where('end_date', '>=', $now)
-                ->orderByDesc('priority')
-                ->first();
-
-            if (!$price) {
-                throw new \Exception("Không tìm thấy bảng giá hiện tại cho loại phòng này.");
-            }
-
-            $checkIn = Carbon::parse($booking->check_in_date . ' ' . ($booking->check_in_time ?? '14:00'));
-            $actualCheckout = now();
-            $totalHours = $checkIn->floatDiffInHours($actualCheckout);
-
-            // Đảm bảo totalHours không âm
-            if ($totalHours < 0) {
-                DB::rollBack();
-                return response()->json([
-                    'message' => "Thời gian trả phòng không hợp lệ (trước thời gian nhận phòng)."
-                ], 400);
-            }
-
-            $recalculatedRoomPrice = 0;
-            $note = '';
-            $calculationNote = '';
-
-            if ($totalHours <= 2) {
-                // Dưới 2 giờ, tính giá cố định cho 2 giờ
-                $recalculatedRoomPrice = 2 * $price->hourly_price;
-                $note = "Ở dưới 2 giờ, tính giá cố định 2 giờ.";
-                $calculationNote = "Tính theo giờ: 2 giờ x " . number_format($price->hourly_price) . "đ = " . number_format($recalculatedRoomPrice) . "đ";
-            } elseif ($totalHours <= 6) {
-                // Từ 2 đến 6 giờ, tính theo giờ
-                $hours = ceil($totalHours);
-                $recalculatedRoomPrice = $hours * $price->hourly_price;
-                $note = "Ở {$hours} giờ.";
-                $calculationNote = "Tính theo giờ: {$hours} giờ x " . number_format($price->hourly_price) . "đ = " . number_format($recalculatedRoomPrice) . "đ";
-            } else {
-                // Trên 6 giờ, tính theo ngày
-                $fullDays = ceil($totalHours / 24); // Làm tròn lên số ngày
-                $recalculatedRoomPrice = $fullDays * $price->price_per_night;
-                $note = "Ở {$fullDays} ngày (trên 6 giờ, tính theo ngày).";
-                $calculationNote = "Tính theo ngày: {$fullDays} ngày x " . number_format($price->price_per_night) . "đ = " . number_format($recalculatedRoomPrice) . "đ";
-            }
-
-            $originalBookingPrice = $booking->total_price;
-
-            if ($recalculatedRoomPrice < $originalBookingPrice) {
-                $refund = $originalBookingPrice - $recalculatedRoomPrice;
-                $note .= " Khách trả sớm hơn so với dự kiến ";
-            } elseif ($recalculatedRoomPrice > $originalBookingPrice) {
-                $extraFee = $recalculatedRoomPrice - $originalBookingPrice;
-                $note .= " Khách ở quá giờ, phụ thu thêm " . number_format($extraFee) . " VND.";
-            }
-
-            if ($additionalFee > 0 && $surchargeReason) {
-                $note .= " Phụ thu: " . number_format($additionalFee) . " VND (Lý do: {$surchargeReason}).";
-            } elseif ($additionalFee > 0) {
-                $note .= " Phụ thu: " . number_format($additionalFee) . " VND.";
-            }
-
-            $totalServiceFee = 0;
-            $servicesToInsert = [];
-
-            if (!empty($servicesInput)) {
-                $serviceIds = collect($servicesInput)->pluck('service_id');
-                $servicesFromDb = \App\Models\Service::whereIn('service_id', $serviceIds)->get()->keyBy('service_id');
-
-                foreach ($servicesInput as $item) {
-                    $serviceId = $item['service_id'];
-                    $quantity = (int) $item['quantity'];
-
-                    if ($quantity > 0 && $servicesFromDb->has($serviceId)) {
-                        $service = $servicesFromDb->get($serviceId);
-                        $total = $quantity * $service->price;
-                        $totalServiceFee += $total;
-
-                        $servicesToInsert[] = [
-                            'booking_detail_id' => $bookingDetail->booking_detail_id,
-                            'service_id' => $serviceId,
-                            'quantity' => $quantity,
-                            'price' => $service->price,
-                            'total' => $total,
-                            'created_at' => $now,
-                            'updated_at' => $now,
-                        ];
-                    }
-                }
-
-                if (!empty($servicesToInsert)) {
-                    DB::table('booking_hotel_service')->insert($servicesToInsert);
-                }
-            }
-
-            $actualTotal = $recalculatedRoomPrice + $totalServiceFee + $additionalFee;
-
-            $bookingDetail->update([
-                'gia_phong' => $recalculatedRoomPrice,
-                'gia_dich_vu' => $totalServiceFee,
-                'total_price' => $recalculatedRoomPrice + $totalServiceFee,
-            ]);
-
-            $booking->update([
-                'status' => 'completed',
-                'payment_status' => 'completed',
-                'note' => $note,
-                'total_price' => $actualTotal,
-                'actual_check_out_time' => $actualCheckout,
-            ]);
-
-            DB::table('booking_room_status')->insert([
-                'customer_id' => $booking->customer_id,
-                'booking_id' => $booking->booking_id,
-                'booking_detail_id' => $bookingDetail->booking_detail_id,
-                'room_id' => $room_id,
-                'check_in' => $checkIn,
-                'check_out' => $actualCheckout,
-                'room_price' => $recalculatedRoomPrice,
-                'service_price' => $totalServiceFee,
-                'surcharge' => $additionalFee,
-                'surcharge_reason' => $surchargeReason,
-                'total_paid' => $actualTotal,
-                'created_at' => now(),
-                'updated_at' => now(),
-            ]);
-
-            $room->update(['status' => 'available']);
-
-            DB::commit();
-
-            return response()->json([
-                'message' => 'Thanh toán thành công. Phòng đã chuyển về trạng thái trống.',
-                'original_booking_price' => $originalBookingPrice,
-                'room_total' => $recalculatedRoomPrice,
-                'service_total' => $totalServiceFee,
-                'additional_fee' => $additionalFee,
-                'surcharge_reason' => $surchargeReason,
-                'actual_total' => $actualTotal,
-                'note' => $note,
-                'calculation_note' => $calculationNote,
-            ]);
-
-        } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
-            DB::rollBack();
-            Log::warning("Lỗi thanh toán: Không tìm thấy bản ghi cần thiết. " . $e->getMessage());
-            return response()->json(['message' => 'Không tìm thấy thông tin đặt phòng hoặc phòng để thanh toán.'], 404);
-        } catch (\Exception $e) {
-            DB::rollBack();
-            Log::error("Lỗi thanh toán phòng {$room_id}: " . $e->getMessage() . " | File: " . $e->getFile() . " | Line: " . $e->getLine());
-            return response()->json([
-                'message' => 'Lỗi máy chủ khi thanh toán phòng.',
-                'error' => $e->getMessage(),
-                'file' => $e->getFile(),
-                'line' => $e->getLine()
-            ], 500);
+            Log::error("Lỗi lấy thông tin khách cho phòng {$room_id}: " . $e->getMessage() . "\nTrace: " . $e->getTraceAsString());
+            return response()->json(['message' => 'Lỗi server khi lấy thông tin khách.', 'error' => $e->getMessage()], 500);
         }
     }
 
@@ -327,15 +132,36 @@ class OccupancyController extends Controller
     {
         $validated = $request->validate([
             'customer_name'      => 'required|string|max:255',
-            'customer_phone'     => 'required|string|max:20',
+            'customer_phone'     => 'required|digits_between:10,11',
             'customer_email'     => 'required|email|max:255',
             'address'            => 'nullable|string|max:255',
             'check_in_date'      => 'required|date',
             'check_in_time'      => 'nullable|date_format:H:i',
-            'check_out_date'     => 'required|date|after:check_in_date',
+            'check_out_date'     => 'required|date',
             'check_out_time'     => 'nullable|date_format:H:i',
             'pricing_type'       => 'required|in:hourly,nightly',
-            'customer_id_number' => 'required|string|max:20',
+            'customer_id_number' => 'required|digits:12',
+        ], [
+            'customer_name.required'      => 'Tên khách hàng là bắt buộc.',
+            'customer_name.string'        => 'Tên khách hàng phải là chuỗi ký tự.',
+            'customer_name.max'           => 'Tên khách hàng không được vượt quá 255 ký tự.',
+            'customer_phone.required'     => 'Số điện thoại là bắt buộc.',
+            'customer_phone.digits_between' => 'Số điện thoại phải có từ 10 đến 11 chữ số.',
+            'customer_email.required'     => 'Email là bắt buộc.',
+            'customer_email.email'        => 'Email không đúng định dạng.',
+            'customer_email.max'          => 'Email không được vượt quá 255 ký tự.',
+            'address.string'             => 'Địa chỉ phải là chuỗi ký tự.',
+            'address.max'                => 'Địa chỉ không được vượt quá 255 ký tự.',
+            'check_in_date.required'     => 'Ngày nhận phòng là bắt buộc.',
+            'check_in_date.date'         => 'Ngày nhận phòng không đúng định dạng.',
+            'check_in_time.date_format'  => 'Giờ nhận phòng phải có định dạng H:i (VD: 14:00).',
+            'check_out_date.required'    => 'Ngày trả phòng là bắt buộc.',
+            'check_out_date.date'        => 'Ngày trả phòng không đúng định dạng.',
+            'check_out_time.date_format' => 'Giờ trả phòng phải có định dạng H:i (VD: 12:00).',
+            'pricing_type.required'      => 'Loại giá là bắt buộc.',
+            'pricing_type.in'            => 'Loại giá phải là "hourly" hoặc "nightly".',
+            'customer_id_number.required' => 'Số CCCD là bắt buộc.',
+            'customer_id_number.digits'  => 'Số CCCD phải có đúng 12 chữ số.',
         ]);
 
         try {
@@ -354,9 +180,9 @@ class OccupancyController extends Controller
                 ->where('end_date', '>=', $now)
                 ->orderByDesc('priority')
                 ->first();
-            if (!$price) {
-                Log::warning("Không tìm thấy bảng giá cho type_id: {$room->type_id}");
-                return response()->json(['message' => 'Không tìm thấy bảng giá phù hợp.'], 400);
+            if (!$price || !is_numeric($price->hourly_price) || !is_numeric($price->price_per_night)) {
+                Log::warning("Không tìm thấy bảng giá hợp lệ hoặc giá không phải số cho type_id: {$room->type_id}");
+                return response()->json(['message' => 'Không tìm thấy bảng giá hợp lệ hoặc giá không hợp lệ.'], 400);
             }
 
             // Đặt thời gian mặc định
@@ -367,72 +193,74 @@ class OccupancyController extends Controller
 
             // Kiểm tra thời gian hợp lệ
             if ($checkOut <= $checkIn) {
+                Log::warning("Thời gian trả phòng không hợp lệ: check_in={$checkIn}, check_out={$checkOut}");
                 return response()->json(['message' => 'Thời gian trả phòng phải sau thời gian nhận phòng.'], 422);
             }
 
+            // Kiểm tra đặt phòng trong cùng ngày
+            if ($validated['check_in_date'] === $validated['check_out_date'] && $checkOutTime <= $checkInTime) {
+                return response()->json(['message' => 'Giờ trả phòng phải sau giờ nhận phòng trong cùng ngày.'], 422);
+            }
+
             // Kiểm tra trùng thời gian
-            $isOverlapping = DB::table('booking_hotel_detail as bkd')
+            $existingBookings = DB::table('booking_hotel_detail as bkd')
                 ->join('booking_hotel as bk', 'bk.booking_id', '=', 'bkd.booking_id')
                 ->where('bkd.room_id', $room_id)
                 ->where('bk.status', '!=', 'completed')
-                ->where(function ($query) use ($checkIn, $checkOut, $checkInTime, $checkOutTime) {
-                    $query->whereBetween('bk.check_in_date', [$checkIn->toDateString(), $checkOut->toDateString()])
-                          ->orWhereBetween('bk.check_out_date', [$checkIn->toDateString(), $checkOut->toDateString()])
-                          ->orWhere(function ($subQ) use ($checkIn, $checkOut) {
-                              $subQ->where('bk.check_in_date', '<=', $checkIn->toDateString())
-                                   ->where('bk.check_out_date', '>=', $checkOut->toDateString());
-                          });
-                    // Kiểm tra thời gian cụ thể
-                    $query->where(function ($timeQ) use ($checkInTime, $checkOutTime) {
-                        $timeQ->where('bk.check_in_time', '<=', $checkOutTime)
-                              ->where('bk.check_out_time', '>=', $checkInTime);
-                    });
-                })
-                ->exists();
+                ->select('bk.booking_id', 'bk.check_in_date', 'bk.check_in_time', 'bk.check_out_date', 'bk.check_out_time')
+                ->get();
 
-            // Cho phép đặt sớm trước 13:30
-            $allowEarlyBooking = false;
-            if ($checkInTime < '13:30' && $checkIn->toDateString() === $validated['check_in_date']) {
-                $hasLaterBooking = DB::table('booking_hotel_detail as bkd')
-                    ->join('booking_hotel as bk', 'bk.booking_id', '=', 'bkd.booking_id')
-                    ->where('bkd.room_id', $room_id)
-                    ->where('bk.status', '!=', 'completed')
-                    ->where('bk.check_in_date', $validated['check_in_date'])
-                    ->where('bk.check_in_time', '>=', '13:30')
-                    ->exists();
-                $allowEarlyBooking = !$hasLaterBooking;
+            $isOverlapping = false;
+            foreach ($existingBookings as $booking) {
+                $existingCheckIn = Carbon::parse($booking->check_in_date . ' ' . ($booking->check_in_time ?? '14:00'));
+                $existingCheckOut = Carbon::parse($booking->check_out_date . ' ' . ($booking->check_out_time ?? '12:00'));
+
+                // Kiểm tra xung đột thời gian
+                if ($checkIn < $existingCheckOut && $checkOut > $existingCheckIn) {
+                    $isOverlapping = true;
+                    Log::info("Xung đột thời gian với booking_id: {$booking->booking_id}, existing_check_in={$existingCheckIn}, existing_check_out={$existingCheckOut}");
+
+                    // Kiểm tra quy tắc 30 phút trong cùng ngày
+                    if ($validated['check_in_date'] === $booking->check_in_date) {
+                        if ($checkOut <= $existingCheckIn) {
+                            $isOverlapping = false; // Đặt phòng mới kết thúc trước khi đơn hiện có bắt đầu
+                        } elseif ($checkIn->diffInMinutes($existingCheckIn, false) < 30) {
+                            return response()->json(['message' => 'Thời gian nhận phòng phải sớm hơn ít nhất 30 phút so với lịch đặt hiện có trong cùng ngày.'], 409);
+                        }
+                    }
+                }
             }
 
-            if ($isOverlapping && !$allowEarlyBooking) {
+            if ($isOverlapping) {
                 return response()->json(['message' => 'Phòng này đã có người đặt trong khoảng thời gian đã chọn.'], 409);
             }
 
             // Tính giá
             $totalHours = $checkIn->floatDiffInHours($checkOut);
+            if (!is_numeric($totalHours) || $totalHours <= 0) {
+                Log::error("Lỗi tính totalHours: check_in={$checkIn}, check_out={$checkOut}, totalHours={$totalHours}");
+                return response()->json(['message' => 'Lỗi tính toán thời gian đặt phòng.'], 422);
+            }
+
             $total_price = 0;
             $note = '';
 
-            if ($totalHours <= 6) {
-                $total_price = ceil($totalHours) * $price->hourly_price;
-                $note = "Ở " . ceil($totalHours) . " giờ.";
-            } elseif ($totalHours < 24) {
-                $total_price = $price->price_per_night;
-                $note = "Ở trên 6 giờ và dưới 1 ngày, tính 1 ngày.";
+            if ($totalHours <= 2) {
+                $total_price = 2 * $price->hourly_price;
+                $note = "Ở dưới 2 giờ, tính giá cố định 2 giờ.";
+            } elseif ($totalHours <= 6) {
+                $hours = ceil($totalHours);
+                $total_price = $hours * $price->hourly_price;
+                $note = "Ở {$hours} giờ.";
             } else {
-                $fullDays = floor($totalHours / 24);
-                $remainingHours = $totalHours - ($fullDays * 24);
-                if ($remainingHours > 6) {
-                    $fullDays += 1;
-                    $total_price = $fullDays * $price->price_per_night;
-                    $note = "Ở {$fullDays} ngày (dư > 6 giờ, tính thêm 1 ngày).";
-                } elseif ($remainingHours > 0) {
-                    $extraFee = ceil($remainingHours) * $price->hourly_price;
-                    $total_price = ($fullDays * $price->price_per_night) + $extraFee;
-                    $note = "Ở {$fullDays} ngày + thêm " . ceil($remainingHours) . " giờ.";
-                } else {
-                    $total_price = $fullDays * $price->price_per_night;
-                    $note = "Ở tròn {$fullDays} ngày.";
-                }
+                $fullDays = ceil($totalHours / 24);
+                $total_price = $fullDays * $price->price_per_night;
+                $note = "Ở {$fullDays} ngày (trên 6 giờ, tính theo ngày).";
+            }
+
+            if (!is_numeric($total_price) || $total_price <= 0) {
+                Log::error("Lỗi tính total_price: totalHours={$totalHours}, hourly_price={$price->hourly_price}, price_per_night={$price->price_per_night}, total_price={$total_price}");
+                return response()->json(['message' => 'Lỗi tính toán giá phòng.', 'error' => 'Giá phòng không hợp lệ.'], 500);
             }
 
             // Thêm khách
@@ -483,7 +311,11 @@ class OccupancyController extends Controller
             // Cập nhật trạng thái phòng
             DB::table('rooms')->where('room_id', $room_id)->update(['status' => 'occupied']);
 
-            return response()->json(['message' => 'Đặt phòng thành công', 'total_price' => $total_price]);
+            return response()->json([
+                'message' => 'Đặt phòng thành công',
+                'booking_id' => $bookingId,
+                'total_price' => $total_price,
+            ]);
         } catch (\Exception $e) {
             Log::error("Lỗi đặt phòng {$room_id}: " . $e->getMessage());
             return response()->json(['message' => 'Lỗi khi đặt phòng.', 'error' => $e->getMessage()], 500);
@@ -491,24 +323,24 @@ class OccupancyController extends Controller
     }
 
     /**
-     * Xem trước giá phòng.
+     * Xem trước giá phòng dựa trên thời gian đặt
      */
     public function previewPrice(Request $request)
     {
         $validated = $request->validate([
+            'room_id' => 'required|exists:rooms,room_id',
             'check_in_date' => 'required|date',
             'check_in_time' => 'nullable|date_format:H:i',
-            'check_out_date' => 'required|date|after:check_in_date',
+            'check_out_date' => 'required|date',
             'check_out_time' => 'nullable|date_format:H:i',
             'pricing_type' => 'required|in:hourly,nightly',
-            'room_id' => 'required|exists:rooms,room_id',
+            'is_extend' => 'boolean',
         ]);
 
         try {
             // Kiểm tra phòng
             $room = DB::table('rooms')->where('room_id', $validated['room_id'])->first();
             if (!$room) {
-                Log::warning("Không tìm thấy phòng với room_id: {$validated['room_id']}");
                 return response()->json(['message' => 'Không tìm thấy phòng.'], 404);
             }
 
@@ -520,40 +352,65 @@ class OccupancyController extends Controller
                 ->where('end_date', '>=', $now)
                 ->orderByDesc('priority')
                 ->first();
-            if (!$price) {
-                Log::warning("Không tìm thấy bảng giá cho type_id: {$room->type_id}");
-                return response()->json(['message' => 'Không tìm thấy bảng giá phù hợp.'], 400);
+            if (!$price || !is_numeric($price->hourly_price) || !is_numeric($price->price_per_night)) {
+                Log::warning("Không tìm thấy bảng giá hợp lệ hoặc giá không phải số cho type_id: {$room->type_id}");
+                return response()->json(['message' => 'Không tìm thấy bảng giá hợp lệ hoặc giá không hợp lệ.'], 400);
             }
 
-            // Thời gian mặc định
+            // Đặt thời gian mặc định
             $checkInTime = $validated['check_in_time'] ?? '14:00';
             $checkOutTime = $validated['check_out_time'] ?? '12:00';
             $checkIn = Carbon::parse($validated['check_in_date'] . ' ' . $checkInTime);
             $checkOut = Carbon::parse($validated['check_out_date'] . ' ' . $checkOutTime);
 
-            // Tính giá
-            $totalHours = $checkIn->floatDiffInHours($checkOut);
-            $total_price = 0;
-
-            if ($totalHours <= 6) {
-                $total_price = ceil($totalHours) * $price->hourly_price;
-            } else {
-                $fullDays = floor($totalHours / 24);
-                $remainingHours = $totalHours - ($fullDays * 24);
-                if ($remainingHours > 6) {
-                    $fullDays += 1;
-                    $remainingHours = 0;
-                }
-                $total_price = ($fullDays * $price->price_per_night) + (ceil($remainingHours) * $price->hourly_price);
+            // Kiểm tra thời gian hợp lệ
+            if ($checkOut <= $checkIn) {
+                Log::warning("Thời gian trả phòng không hợp lệ: check_in={$checkIn}, check_out={$checkOut}");
+                return response()->json(['message' => 'Thời gian trả phòng phải sau thời gian nhận phòng.'], 422);
             }
 
-            return response()->json(['total_price' => $total_price]);
+            // Kiểm tra đặt phòng trong cùng ngày
+            if ($validated['check_in_date'] === $validated['check_out_date'] && $checkOutTime <= $checkInTime) {
+                return response()->json(['message' => 'Giờ trả phòng phải sau giờ nhận phòng trong cùng ngày.'], 422);
+            }
+
+            // Tính giá
+            $totalHours = $checkIn->floatDiffInHours($checkOut);
+            if (!is_numeric($totalHours) || $totalHours <= 0) {
+                Log::error("Lỗi tính totalHours: check_in={$checkIn}, check_out={$checkOut}, totalHours={$totalHours}");
+                return response()->json(['message' => 'Lỗi tính toán thời gian đặt phòng.'], 422);
+            }
+
+            $total_price = 0;
+            $note = '';
+
+            if ($totalHours <= 2) {
+                $total_price = 2 * $price->hourly_price;
+                $note = "Ở dưới 2 giờ, tính giá cố định 2 giờ.";
+            } elseif ($totalHours <= 6) {
+                $hours = ceil($totalHours);
+                $total_price = $hours * $price->hourly_price;
+                $note = "Ở {$hours} giờ.";
+            } else {
+                $fullDays = ceil($totalHours / 24);
+                $total_price = $fullDays * $price->price_per_night;
+                $note = "Ở {$fullDays} ngày (trên 6 giờ, tính theo ngày).";
+            }
+
+            if (!is_numeric($total_price) || $total_price <= 0) {
+                Log::error("Lỗi tính total_price: totalHours={$totalHours}, hourly_price={$price->hourly_price}, price_per_night={$price->price_per_night}, total_price={$total_price}");
+                return response()->json(['message' => 'Lỗi tính toán giá phòng.'], 500);
+            }
+
+            return response()->json([
+                'total_price' => $total_price,
+                'note' => $note,
+            ]);
         } catch (\Exception $e) {
-            Log::error('Lỗi tính giá: ' . $e->getMessage());
-            return response()->json(['message' => 'Lỗi khi tính giá.', 'error' => $e->getMessage()], 500);
+            Log::error("Lỗi xem trước giá phòng {$validated['room_id']}: " . $e->getMessage());
+            return response()->json(['message' => 'Lỗi khi tính giá phòng.', 'error' => $e->getMessage()], 500);
         }
     }
-
 
     /**
      * Gia hạn thời gian lưu trú.
@@ -771,6 +628,209 @@ class OccupancyController extends Controller
         } catch (\Exception $e) {
             Log::error('Lỗi lấy danh sách phòng theo ngày và thời gian: ' . $e->getMessage(), ['exception' => $e]);
             return response()->json(['message' => 'Lỗi khi lấy danh sách phòng.', 'error' => $e->getMessage()], 500);
+        }
+    }
+
+    /**
+     * Trả phòng và thanh toán.
+     */
+    public function checkoutRoom(Request $request, $room_id)
+    {
+        // Bắt đầu transaction để đảm bảo tính toàn vẹn dữ liệu
+        DB::beginTransaction();
+
+        try {
+            $date = $request->input('date', now()->toDateString());
+
+            // 1. Tìm chi tiết đặt phòng bằng Eloquent
+            $bookingDetail = BookingHotelDetail::with('booking')
+                ->where('room_id', $room_id)
+                ->whereHas('booking', function ($query) use ($date) {
+                    $query->whereDate('check_in_date', '<=', $date)
+                          ->whereDate('check_out_date', '>=', $date)
+                          ->whereIn('status', ['pending', 'confirmed']);
+                })
+                ->firstOrFail();
+
+            $booking = $bookingDetail->booking;
+
+            // Nếu thời gian hiện tại trước thời gian nhận phòng, không cho phép trả phòng
+            $now = Carbon::now();
+            $checkInDateTime = Carbon::parse($booking->check_in_date . ' ' . ($booking->check_in_time ?? '14:00'));
+            
+            if ($now->lessThan($checkInDateTime)) {
+                DB::rollBack();
+                return response()->json([
+                    'message' => "Chưa đến thời gian nhận phòng ({$checkInDateTime->format('d-m-Y H:i')}). Không thể thực hiện trả phòng."
+                ], 400);
+            }
+
+            // Nếu đã qua bước kiểm tra, tiếp tục xử lý trả phòng như bình thường
+            $servicesInput = $request->input('services', []);
+            $additionalFee = (float) $request->input('additional_fee', 0);
+            $surchargeReason = $request->input('surcharge_reason', null);
+
+            $room = Room::with('roomType')->findOrFail($room_id);
+
+            if (!$room->roomType) {
+                throw new \Exception("Phòng chưa được gán loại.");
+            }
+
+            $price = Price::where('type_id', $room->type_id)
+                ->where('start_date', '<=', $now)
+                ->where('end_date', '>=', $now)
+                ->orderByDesc('priority')
+                ->first();
+
+            if (!$price) {
+                throw new \Exception("Không tìm thấy bảng giá hiện tại cho loại phòng này.");
+            }
+
+            $checkIn = Carbon::parse($booking->check_in_date . ' ' . ($booking->check_in_time ?? '14:00'));
+            $actualCheckout = now();
+            $totalHours = $checkIn->floatDiffInHours($actualCheckout);
+
+            // Đảm bảo totalHours không âm
+            if ($totalHours < 0) {
+                DB::rollBack();
+                return response()->json([
+                    'message' => "Thời gian trả phòng không hợp lệ (trước thời gian nhận phòng)."
+                ], 400);
+            }
+
+            $recalculatedRoomPrice = 0;
+            $note = '';
+            $calculationNote = '';
+
+            if ($totalHours <= 2) {
+                // Dưới 2 giờ, tính giá cố định cho 2 giờ
+                $recalculatedRoomPrice = 2 * $price->hourly_price;
+                $note = "Ở dưới 2 giờ, tính giá cố định 2 giờ.";
+                $calculationNote = "Tính theo giờ: 2 giờ x " . number_format($price->hourly_price) . "đ = " . number_format($recalculatedRoomPrice) . "đ";
+            } elseif ($totalHours <= 6) {
+                // Từ 2 đến 6 giờ, tính theo giờ
+                $hours = ceil($totalHours);
+                $recalculatedRoomPrice = $hours * $price->hourly_price;
+                $note = "Ở {$hours} giờ.";
+                $calculationNote = "Tính theo giờ: {$hours} giờ x " . number_format($price->hourly_price) . "đ = " . number_format($recalculatedRoomPrice) . "đ";
+            } else {
+                // Trên 6 giờ, tính theo ngày
+                $fullDays = ceil($totalHours / 24); // Làm tròn lên số ngày
+                $recalculatedRoomPrice = $fullDays * $price->price_per_night;
+                $note = "Ở {$fullDays} ngày (trên 6 giờ, tính theo ngày).";
+                $calculationNote = "Tính theo ngày: {$fullDays} ngày x " . number_format($price->price_per_night) . "đ = " . number_format($recalculatedRoomPrice) . "đ";
+            }
+
+            $originalBookingPrice = $booking->total_price;
+
+            if ($recalculatedRoomPrice < $originalBookingPrice) {
+                $refund = $originalBookingPrice - $recalculatedRoomPrice;
+                $note .= " Khách trả sớm hơn so với dự kiến ";
+            } elseif ($recalculatedRoomPrice > $originalBookingPrice) {
+                $extraFee = $recalculatedRoomPrice - $originalBookingPrice;
+                $note .= " Khách ở quá giờ, phụ thu thêm " . number_format($extraFee) . " VND.";
+            }
+
+            if ($additionalFee > 0 && $surchargeReason) {
+                $note .= " Phụ thu: " . number_format($additionalFee) . " VND (Lý do: {$surchargeReason}).";
+            } elseif ($additionalFee > 0) {
+                $note .= " Phụ thu: " . number_format($additionalFee) . " VND.";
+            }
+
+            $totalServiceFee = 0;
+            $servicesToInsert = [];
+
+            if (!empty($servicesInput)) {
+                $serviceIds = collect($servicesInput)->pluck('service_id');
+                $servicesFromDb = \App\Models\Service::whereIn('service_id', $serviceIds)->get()->keyBy('service_id');
+
+                foreach ($servicesInput as $item) {
+                    $serviceId = $item['service_id'];
+                    $quantity = (int) $item['quantity'];
+
+                    if ($quantity > 0 && $servicesFromDb->has($serviceId)) {
+                        $service = $servicesFromDb->get($serviceId);
+                        $total = $quantity * $service->price;
+                        $totalServiceFee += $total;
+
+                        $servicesToInsert[] = [
+                            'booking_detail_id' => $bookingDetail->booking_detail_id,
+                            'service_id' => $serviceId,
+                            'quantity' => $quantity,
+                            'price' => $service->price,
+                            'total' => $total,
+                            'created_at' => $now,
+                            'updated_at' => $now,
+                        ];
+                    }
+                }
+
+                if (!empty($servicesToInsert)) {
+                    DB::table('booking_hotel_service')->insert($servicesToInsert);
+                }
+            }
+
+            $actualTotal = $recalculatedRoomPrice + $totalServiceFee + $additionalFee;
+
+            $bookingDetail->update([
+                'gia_phong' => $recalculatedRoomPrice,
+                'gia_dich_vu' => $totalServiceFee,
+                'total_price' => $recalculatedRoomPrice + $totalServiceFee,
+            ]);
+
+            $booking->update([
+                'status' => 'completed',
+                'payment_status' => 'completed',
+                'note' => $note,
+                'total_price' => $actualTotal,
+                'actual_check_out_time' => $actualCheckout,
+            ]);
+
+            DB::table('booking_room_status')->insert([
+                'customer_id' => $booking->customer_id,
+                'booking_id' => $booking->booking_id,
+                'booking_detail_id' => $bookingDetail->booking_detail_id,
+                'room_id' => $room_id,
+                'check_in' => $checkIn,
+                'check_out' => $actualCheckout,
+                'room_price' => $recalculatedRoomPrice,
+                'service_price' => $totalServiceFee,
+                'surcharge' => $additionalFee,
+                'surcharge_reason' => $surchargeReason,
+                'total_paid' => $actualTotal,
+                'created_at' => now(),
+                'updated_at' => now(),
+            ]);
+
+            $room->update(['status' => 'available']);
+
+            DB::commit();
+
+            return response()->json([
+                'message' => 'Thanh toán thành công. Phòng đã chuyển về trạng thái trống.',
+                'original_booking_price' => $originalBookingPrice,
+                'room_total' => $recalculatedRoomPrice,
+                'service_total' => $totalServiceFee,
+                'additional_fee' => $additionalFee,
+                'surcharge_reason' => $surchargeReason,
+                'actual_total' => $actualTotal,
+                'note' => $note,
+                'calculation_note' => $calculationNote,
+            ]);
+
+        } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
+            DB::rollBack();
+            Log::warning("Lỗi thanh toán: Không tìm thấy bản ghi cần thiết. " . $e->getMessage());
+            return response()->json(['message' => 'Không tìm thấy thông tin đặt phòng hoặc phòng để thanh toán.'], 404);
+        } catch (\Exception $e) {
+            DB::rollBack();
+            Log::error("Lỗi thanh toán phòng {$room_id}: " . $e->getMessage() . " | File: " . $e->getFile() . " | Line: " . $e->getLine());
+            return response()->json([
+                'message' => 'Lỗi máy chủ khi thanh toán phòng.',
+                'error' => $e->getMessage(),
+                'file' => $e->getFile(),
+                'line' => $e->getLine()
+            ], 500);
         }
     }
 
