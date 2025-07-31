@@ -6,7 +6,6 @@
         <header class="hero-section d-flex align-items-center">
             <div class="container text-center">
                 <h1 class="display-3 fw-bold " style="margin: 0 auto;">Hồ Xuân Hương Hotel </h1>
-
             </div>
         </header>
         <Popup v-if="showPopup" :isVisible="showPopup" @close="showPopup = false"></Popup>
@@ -330,11 +329,15 @@
         <!-- adjb -->
         <!-- Mobile Fixed Payment Button -->
         <div class="mobile-checkout-bar d-md-none">
+             <div v-if="capacityWarning" class="alert alert-danger my-2">
+                    {{ capacityWarning }}
+                </div>
             <div class="d-flex justify-content-between align-items-center px-3 py-2">
                 <div class="fw-bold text-gold">
                     {{ formatPrice(totalPrice) }}
                 </div>
-                <button @click="openPopupshowModalBooking" class="btn btn-dark btn-sm rounded-pill px-3">
+               
+                <button v-if="isAddbooking" @click="openPopupshowModalBooking" class="btn btn-dark btn-sm rounded-pill px-3">
                     Thanh Toán <i class="bi bi-arrow-right ms-1"></i>
                 </button>
             </div>
@@ -353,42 +356,48 @@
 
                     <div v-else>
                         <transition-group name="list" tag="div">
-                            <div v-for="(room, index) in selectedRooms" :key="index"
+                            <div v-for="(room, index) in groupedRooms" :key="index"
                                 class="d-flex align-items-center justify-content-between mb-3 p-3 bg-light-gold rounded-3 shadow-sm">
                                 <div>
-                                    <h6 class="mb-1 text-charcoal fw-bold">{{ room.name }}</h6>
-                                    <p class="mb-1 text-muted-dark small">{{ room.description.substring(0, 50) }}...
-                                    </p>
+                                    <h6 class="mb-1 text-charcoal fw-bold">
+                                        {{ room.name }} <span class="text-muted">(x{{ room.so_phong }})</span>
+                                    </h6>
+                                    <p class="mb-1 text-muted-dark small">{{ room.description.substring(0, 50) }}...</p>
                                     <p class="mb-0 text-gold fw-bold">
                                         {{ formatPrice(room.price) }}
-                                        <span class="small text-charcoal-light">/ {{ room.total_days }} Đêm / {{
-                                            room.so_phong }} Phòng</span>
+                                        <span class="small text-charcoal-light">
+                                            / {{ room.total_days }} Đêm / {{ room.so_phong }} Phòng
+                                        </span>
                                     </p>
                                 </div>
-                                <button @click="removeRoom(index)"
-                                    class="btn btn-outline-danger btn-sm rounded-circle ms-3" title="Xóa phòng">
+                                <button @click="removeAllRoomsByName(room.name)"
+                                    class="btn btn-outline-danger btn-sm rounded-circle ms-3"
+                                    title="Xóa tất cả phòng này">
                                     <i class="bi bi-x-lg"></i>
                                 </button>
                             </div>
+
+
                         </transition-group>
                     </div>
 
                     <div class="d-flex justify-content-between mt-4 pt-3 border-top border-gold-light">
-                        <strong class="text-charcoal">{{ totalAdults }} Người lớn, {{ totalChildren }} Trẻ
-                            em</strong>
+                        <strong class="text-charcoal">{{ totalAdults }} Người lớn, {{ totalChildren }} Trẻ em</strong>
                     </div>
 
                     <div class="mt-3 text-gold fw-bold">
                         Tổng Giá (Tạm Tính): {{ formatPrice(totalPrice) }}
                     </div>
 
-                    <button @click="openPopupshowModalBooking"
+                    <button v-if="isAddbooking" @click="openPopupshowModalBooking"
                         class="btn btn-gold w-100 py-2 rounded-pill fw-bold fs-5 mt-4 btn-outline-dark">
                         Tiến Hành Thanh Toán <i class="bi bi-arrow-right ms-2"></i>
                     </button>
                 </div>
+                <div v-if="capacityWarning" class="alert alert-danger my-2">
+                    {{ capacityWarning }}
+                </div>
             </div>
-
             <div class="right">
                 <div class="room-card position-relative" v-for="hotel in hotels" :key="hotel.id">
                     <span
@@ -807,7 +816,17 @@ const selectedHotelBooking = ref(null);
 
 const currentDateTime = new Date().toLocaleString();
 const phoneNumber = ref('');
+const userInfoRaw = localStorage.getItem('userInfo');
 const fullName = ref('');
+
+if (userInfoRaw) {
+  try {
+    const userInfo = JSON.parse(userInfoRaw);
+    fullName.value = userInfo.name || '';
+  } catch (e) {
+    console.error('Lỗi parse userInfo:', e);
+  }
+}
 const orderNotes = ref('');
 const createAccount = ref('true');
 const paymentMethod = ref(''); // Phương thức thanh toán
@@ -890,42 +909,79 @@ const delSelection = () => {
     //console.log("Đã xóa tất cả các phòng đã chọn.");
 };
 //addBooking
+//  Gộp UI theo tên phòng
+const groupedRooms = computed(() => {
+    const map = new Map();
+    for (const room of selectedRooms.value) {
+        const key = room.name;
+        if (!map.has(key)) {
+            map.set(key, {
+                ...room,
+                so_phong: 1,
+            });
+        } else {
+            const existing = map.get(key);
+            existing.so_phong += 1;
+        }
+    }
+    return Array.from(map.values());
+});
+const capacityWarning = ref("");
+const isAddbooking = ref(true);
+//  Thêm phòng vào mảng (không gộp)
+const checkCapacity = () => {
+    const totalMaxAdults = selectedRooms.value.reduce((sum, room) => sum + (room.max_occupancy || 0), 0);
+    const totalMaxChildren = selectedRooms.value.reduce((sum, room) => sum + (room.max_occupancy_child || 0), 0);
 
+    if (totalAdults.value > totalMaxAdults || totalChildren.value > totalMaxChildren) {
+        capacityWarning.value = `Không đủ sức chứa: Tổng phòng hiện tại không đủ cho ${totalAdults.value} người lớn và ${totalChildren.value} trẻ em vui lòng chọn thêm. `;
+        isAddbooking.value = false;
+    } else {
+        capacityWarning.value = "";
+        isAddbooking.value = true;
+    }
+};
 const addBooking = (hotel) => {
-    //console.log(hotel)
     const maxRooms = hotel.available_rooms || 0;
     const currentRooms = selectedRooms.value.length;
 
-    //console.log(`📦 Đã chọn: ${currentRooms} / Tối đa: ${maxRooms} phòng`);
-
-    if (currentRooms < maxRooms) {
-        // toast.success("Đã thêm phòng thành công!");
-        const roomData = {
-            ...hotel,
-            total_days: hotel.total_days || 1,
-            services: (hotel.services || []).map(service => ({
-                ...service,
-                selected: false
-            })),
-            serviceChoose: [],
-            totalServiceCost: 0
-        };
-
-        selectedRooms.value.push(roomData);
-        selectedRooms.totalAdults = totalAdults.value;
-        selectedRooms.totalChildren = totalChildren.value;
-        selectedRooms.totalRooms = selectedRooms.value.length;// tong so phong
-        // Hiển thị toast luôn
-        const toastEl = document.getElementById('roomToast');
-        if (toastEl) {
-            new bootstrap.Toast(toastEl, { delay: 1000 }).show();
-        }
-
-        //console.log("Thêm phòng:", roomData);
-        //console.log("Tổng số phòng đã chọn:", selectedRooms.totalRooms);
-    } else {
-        alert(`❗ Bạn chỉ có thể chọn tối đa ${maxRooms} phòng.`);
+    if (currentRooms >= maxRooms) {
+        alert(`Bạn chỉ có thể chọn tối đa ${maxRooms} phòng.`);
+        selectedRooms.value = [];
+        return;
     }
+
+    const roomData = {
+        ...hotel,
+        total_days: hotel.total_days || 1,
+        services: (hotel.services || []).map(service => ({
+            ...service,
+            selected: false,
+        })),
+        serviceChoose: [],
+        totalServiceCost: 0
+    };
+
+    selectedRooms.value.push(roomData);
+
+    selectedRooms.totalAdults = totalAdults.value;
+    selectedRooms.totalChildren = totalChildren.value;
+    selectedRooms.totalRooms = selectedRooms.value.length;
+
+    checkCapacity(); //  Gọi hàm kiểm tra sức chứa
+
+    const toastEl = document.getElementById('roomToast');
+    if (toastEl) {
+        new bootstrap.Toast(toastEl, { delay: 1000 }).show();
+    }
+
+    // console.log("Thêm phòng:", selectedRooms.value);
+    // console.log("Tổng số người lớn đã chọn:", totalAdults.value);
+    // console.log("Tổng số trẻ em đã chọn:", totalChildren.value);
+};
+const removeAllRoomsByName = (name) => {
+    selectedRooms.value = selectedRooms.value.filter(room => room.name !== name);
+    checkCapacity(); //  Kiểm tra lại sau khi xoá
 };
 
 const removeRoom = (index) => {
@@ -1006,6 +1062,7 @@ const updateRoomTotal = (room, selectedServiceId) => {
     //console.log("Dịch vụ đã chọn:", room.serviceChoose);
     //console.log(selectedRooms.value);
 };
+
 //tinh tien dich vu 1 phong
 const calculateRoomTotal = (room) => {
     const roomPrice = parseFloat(room.price) || 0; // Giá phòng
@@ -1024,7 +1081,7 @@ const getRoomTypes = async () => {
     try {
         // Gọi đồng thời 2 API — API check-availability có truyền ngày
         const [roomTypeRes, availabilityRes] = await Promise.all([
-            axios.get(`${apiUrl}/api/room-types/`),
+            axios.get(`${apiUrl}/api/room-types`),
             axios.get(`${apiUrl}/api/check-availability`, {
                 params: {
                     check_in_date: checkin.value,
@@ -1074,7 +1131,6 @@ const getRoomTypes = async () => {
         isLoading.value = false;
     }
 };
-
 
 //lấy giá phòng
 const getRoomPrices = async () => {
@@ -1168,7 +1224,7 @@ const confirmBooking = async () => {
         status: 'pending_confirmation',
         note: orderNotes.value || 'Không có ghi chú',
     };
-    console.log("Booking Details:", JSON.stringify(bookingDetails, null, 2)); // Log booking details as JSON
+    //console.log("Booking Details:", JSON.stringify(bookingDetails, null, 2)); // Log booking details as JSON
     //return;
     // Xác thực và lấy token
     let token;

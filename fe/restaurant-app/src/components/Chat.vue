@@ -52,7 +52,41 @@
         <!-- Messages -->
         <div class="chat-body" ref="messagesRef">
           <div class="messages">
-            <div v-for="(msg, index) in currentMessages" :key="'msg-' + index"
+            <div v-for="(msg, index) in currentMessages" :key="'msg-' + index">
+              <!-- 👇 Nếu là gợi ý link từ AI -->
+              <div v-if="msg.type === 'link'" class="card my-2 shadow-sm">
+                <img :src="msg.image" class="card-img-top" style="height: 150px; object-fit: cover;" />
+                <div class="card-body">
+                  <h5 class="card-title">{{ msg.title }}</h5>
+                  <p class="text-muted mb-2">{{ msg.price }}</p>
+                  <a :href="msg.url" target="_blank" class="btn btn-outline-primary btn-sm"> Xem chi tiết</a>
+                </div>
+              </div>
+
+              <!-- 👇 Tin nhắn văn bản bình thường -->
+              <div v-else :class="['message', msg.user === user ? 'user' : 'admin']">
+                <img v-if="msg.user !== user"
+                  src="https://img.freepik.com/free-vector/chatbot-conversation-vectorart_78370-4107.jpg?semt=ais_hybrid&w=740"
+                  class="avatar-sm" />
+                <div class="bubble-ai">
+                  <div class="meta">{{ msg.user === user ? msg.user : (activeTab === 'ai' ? 'AI' : 'Admin') }}</div>
+                  <div class="text">{{ msg.message }}</div>
+                  <img v-if="msg.file" :src="msg.file" class="image-preview mt-2" />
+                </div>
+                <img v-if="msg.user === user"
+                  src="https://jbagy.me/wp-content/uploads/2025/03/Hinh-anh-avatar-nam-cute-2.jpg" class="avatar-sm" />
+              </div>
+            </div>
+
+            <!-- 👇 Loading khi đang xử lý -->
+            <div v-if="loading" class="message admin loading">
+              <div class="bubble">
+                <div class="meta">{{ activeTab === 'ai' ? 'AI' : 'Admin' }}</div>
+                <div class="text">Đang xử lý<span class="dots"></span></div>
+              </div>
+            </div>
+
+            <!-- <div v-for="(msg, index) in currentMessages" :key="'msg-' + index"
               :class="['message', msg.user === user ? 'user' : 'admin']">
               <img v-if="msg.user !== user"
                 src="https://img.freepik.com/free-vector/chatbot-conversation-vectorart_78370-4107.jpg?semt=ais_hybrid&w=740"
@@ -70,7 +104,7 @@
                 <div class="meta">{{ activeTab === 'ai' ? 'AI' : 'Admin' }}</div>
                 <div class="text">Đang xử lý<span class="dots"></span></div>
               </div>
-            </div>
+            </div> -->
           </div>
         </div>
 
@@ -137,8 +171,8 @@ const aiMessages = ref([
 ]);
 const messageSend = ref([]);
 const aiSuggestions = ref([
-  '🕒 Giờ nhận và trả phòng là khi nào?',
-  '💰 Giá phòng bao nhiêu?',
+  '🕒 Nguyên tắc chung của khách sạn?',
+  'Khách sạn có những hạng phòng nào?',
   // '📞 Tôi muốn liên hệ khách sạn',
 ]);
 const suggestions = ref([
@@ -248,47 +282,92 @@ const sendMessage = async (suggestion = null) => {
   };
 
   if (activeTab.value === 'ai') {
-    aiMessages.value.push(messageData);
-    await nextTick(); // 👉 đảm bảo DOM cập nhật xong trước khi cuộn
-    scrollToBottom(); // 👉 cuộn ngay sau khi push tin nhắn người dùng
+  aiMessages.value.push(messageData);
+  await nextTick();
+  scrollToBottom();
+  loading.value = true;
 
-    loading.value = true;
+  try {
+    // Lấy dữ liệu từ server
+    const docRes = await fetch(`${apiUrl}/api/chat-ai/hotel-info`);
+    const hotelDocs = await docRes.text();
 
-    try {
-      const docResponse = await fetch(`${apiUrl}/api/chat-ai/hotel-info`);
-      const hotelDocs = await docResponse.text();
-      const prompt = `
-      Người dùng name is ${nameU},
-      Dưới đây là toàn bộ thông tin về khách sạn:
-      ${hotelDocs}
+    const linksRes = await fetch(`${apiUrl}/api/chat-ai/hotel-links`);
+    const hotelLinks = await linksRes.json();
 
-      Người dùng hỏi: "${msg}"
-      → Trả lời ngắn gọn, rõ ràng, thân thiện dựa trên thông tin khách sạn trên.
-      → Trả lời như một lễ tân chuyên nghiệp, thân thiện, dễ hiểu. Dùng ngôn ngữ tiếng Việt tự nhiên, nhẹ nhàng.
-      `;
+    // Chuẩn bị dữ liệu dạng danh sách phòng
+    const formattedRooms = hotelLinks.map((r, i) =>
+      `${i + 1}. ${r.title} - Giá: ${r.price} VNĐ`
+    ).join('\n');
 
-      const response = await fetch(
-        `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${API_KEY}`,
-        {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }] }),
-        }
+    const prompt = `
+Bạn là lễ tân khách sạn chuyên nghiệp, đang hỗ trợ khách hàng tên là ${nameU}.
+
+Thông tin khách sạn:
+${hotelDocs}
+
+Dưới đây là danh sách các loại phòng hiện có:
+${formattedRooms}
+
+Khách hàng hỏi: "${msg}"
+
+Yêu cầu:
+1. Nếu khách hỏi về loại phòng, giá cả, phòng phù hợp ngân sách (ví dụ: trên 1 triệu, dưới 800k...), hãy lọc ra tất cả các phòng phù hợp **trong danh sách trên** và liệt kê tên từng phòng.
+2. Nếu khách chỉ hỏi chung (không rõ tiêu chí), hãy gợi ý một phòng phù hợp nhất.
+3. Với mỗi phòng được gợi ý, hãy ghi 1 dòng: "Phòng: [Tên phòng]" — KHÔNG thêm mô tả, KHÔNG ghi số thứ tự, KHÔNG xuống dòng.
+4. Cái nào không biết thì hướng khách hàng về nhắn tin cho nhân viên nhé
+Trả lời ngắn gọn, tự nhiên, thân thiện như nhân viên lễ tân.
+    `;
+
+    // Gọi Gemini API
+    const geminiRes = await fetch(
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${API_KEY}`,
+      {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }] }),
+      }
+    );
+
+    const data = await geminiRes.json();
+    const reply = data?.candidates?.[0]?.content?.parts?.[0]?.text || 'Bạn có thể hỏi lại rõ hơn chút xíu được không ạ.';
+    aiMessages.value.push({ user: 'AI', message: reply });
+
+    // Trích xuất danh sách phòng từ "Phòng: ..."
+    const roomMatches = reply.match(/Phòng:\s*(.+)/gi);
+
+    if (roomMatches && roomMatches.length) {
+      const roomNames = roomMatches.map(r =>
+        r.replace(/Phòng:\s*/i, '').trim().toLowerCase()
       );
 
-      const data = await response.json();
-      const reply = data?.candidates?.[0]?.content?.parts?.[0]?.text || '❗ Không có phản hồi từ AI.';
-      aiMessages.value.push({ user: 'AI', message: reply });
-      await nextTick(); //  chờ render xong
-      scrollToBottom(); // cuộn tới khi AI trả lời xong
-    } catch (err) {
-      aiMessages.value.push({ user: 'AI', message: 'Error: ' + err.message });
-      await nextTick();
-      scrollToBottom();
-    } finally {
-      loading.value = false;
+      const matchedRooms = hotelLinks.filter(link =>
+        roomNames.some(name => link.title.toLowerCase().includes(name))
+      );
+
+      for (const room of matchedRooms) {
+        aiMessages.value.push({
+          user: 'AI',
+          type: 'link',
+          title: room.title,
+          image: room.image,
+          price: room.price,
+          url: room.url,
+        });
+      }
     }
-  } else {
+
+    await nextTick();
+    scrollToBottom();
+  } catch (err) {
+    aiMessages.value.push({ user: 'AI', message: 'Lỗi: ' + err.message });
+    await nextTick();
+    scrollToBottom();
+  } finally {
+    loading.value = false;
+  }
+}
+  else {
     // Gửi tin nhắn tới người thật qua socket
     socket.emit('chat message', messageData);
     await nextTick(); // không cần push vì socket sẽ trả lại rồi push
@@ -346,16 +425,16 @@ socket.on('connect', () => {
   socket.emit('join', user);
   socket.emit('register', userId);
 });
- // Sự kiện khi kết nối thành công
-  // Sự kiện khi mất kết nối
-  socket.on('disconnect', (reason) => {
-    console.warn('⚠️ Socket.IO bị ngắt kết nối:', reason)
-  });
+// Sự kiện khi kết nối thành công
+// Sự kiện khi mất kết nối
+socket.on('disconnect', (reason) => {
+  console.warn('⚠️ Socket.IO bị ngắt kết nối:', reason)
+});
 
-  // Sự kiện lỗi kết nối
-  socket.on('connect_error', (error) => {
-    console.error('❌ Lỗi kết nối Socket.IO:', error.message)
-  });
+// Sự kiện lỗi kết nối
+socket.on('connect_error', (error) => {
+  console.error('❌ Lỗi kết nối Socket.IO:', error.message)
+});
 const getMessages = () => {
   socket.emit('get user messages', userId);
 };
@@ -399,11 +478,11 @@ onMounted(() => {
   cursor: pointer;
   position: fixed;
   /* Đặt ở vị trí bạn muốn */
-  bottom: 70px;
+  bottom: 50%;
   /* Ví dụ: gần đáy */
-  right: 2px;
+  right: 9px;
   /* Ví dụ: gần bên phải */
-  z-index: 1001;
+  z-index: 999;
   /* Đảm bảo nó nằm trên cùng */
 }
 
@@ -424,12 +503,15 @@ onMounted(() => {
   left: 0;
   width: 100%;
   height: 100%;
-  background: rgba(0, 0, 0, 0.7); /* Dims the background */
+  background: rgba(0, 0, 0, 0.7);
+  /* Dims the background */
   display: flex;
   justify-content: center;
-  align-items: flex-start; /* Aligns the popup to the top */
+  align-items: flex-start;
+  /* Aligns the popup to the top */
   z-index: 10000;
-  padding-top: 20px; /* Adds some space at the top */
+  padding-top: 20px;
+  /* Adds some space at the top */
 }
 
 .popup-content {
@@ -457,6 +539,7 @@ onMounted(() => {
   display: flex;
   justify-content: space-between;
 }
+
 /* CHỈNH SỬA VỊ TRÍ CHAT WIDGET */
 .chat-container {
   position: fixed;
@@ -482,21 +565,24 @@ onMounted(() => {
   overflow: hidden;
   position: relative;
 }
+
 @media (max-width: 580px) {
   .chat-container {
     position: fixed;
-    bottom: 80px;    /* 👈 cách bottom 20px */
-    right: 0px;      /* 👈 cách phải 8px */
-    z-index: 1000;
+    bottom: 80px;
+    /* 👈 cách bottom 20px */
+    right: 0px;
   }
 
   .chat-card {
-    width: 100%;
-    max-width: 320px; /* 👈 hoặc tuỳ chỉnh theo ý muốn */
-    height: 76vh;
+    /* width: 100%; */
+    max-width: 90%;
+    /* 👈 hoặc tuỳ chỉnh theo ý muốn */
+    height: 80vh;
+    margin-left: 10%;
     border-radius: 16px;
-    display: flex;
-    flex-direction: column;
+    /* display: flex;
+    flex-direction: column; */
     background: white;
     box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.2);
   }
@@ -525,11 +611,9 @@ onMounted(() => {
     left: 0;
     right: 0;
     margin: auto;
-    width: 90%;
+    width: 80%;
   }
 }
-
-
 
 
 .chat-header {
@@ -640,8 +724,10 @@ onMounted(() => {
 
   display: flex;
   flex-direction: column;
-  justify-content: flex-start; /* căn đầu */
-  min-height: 300px; /* đảm bảo khung có chiều cao tối thiểu */
+  justify-content: flex-start;
+  /* căn đầu */
+  min-height: 300px;
+  /* đảm bảo khung có chiều cao tối thiểu */
 }
 
 .messages {
@@ -672,7 +758,17 @@ onMounted(() => {
   border-radius: 16px;
   position: relative;
 }
-
+.bubble-ai {
+  max-width: 80%;
+  background: #e5e7eb;
+  padding: 12px;
+  border-radius: 16px;
+  position: relative;
+}
+.bubble-ai img {
+  max-width: 10px;
+  border-radius: 8px;
+}
 .message.user .bubble {
   background: #dbeafe;
 }
@@ -685,7 +781,7 @@ onMounted(() => {
 
 .image-preview {
   margin-top: 8px;
-  max-width: 200px;
+  max-width: 100px;
   border-radius: 8px;
 }
 
