@@ -5,6 +5,7 @@ namespace App\Http\Controllers\api;
 use App\Http\Controllers\Controller;
 use App\Models\BookingHotel;
 use App\Models\BookingHotelDetail;
+use App\Models\CancelBooking;
 use App\Models\Price;
 use App\Models\Room;
 use Illuminate\Http\Request;
@@ -207,6 +208,7 @@ class OccupancyController extends Controller
                 ->join('booking_hotel as bk', 'bk.booking_id', '=', 'bkd.booking_id')
                 ->where('bkd.room_id', $room_id)
                 ->where('bk.status', '!=', 'completed')
+                  ->where('bkd.status', '!=', 'cancelled')
                 ->select('bk.booking_id', 'bk.check_in_date', 'bk.check_in_time', 'bk.check_out_date', 'bk.check_out_time')
                 ->get();
 
@@ -487,6 +489,7 @@ class OccupancyController extends Controller
                 ->join('booking_hotel as bk', 'bk.booking_id', '=', 'bkd.booking_id')
                 ->where('bkd.room_id', $room->room_id)
                 ->where('bk.status', '!=', 'completed')
+                 ->where('bkd.status', '!=', 'cancelled')
                 ->where('bkd.booking_detail_id', '!=', $booking_detail_id)
                 ->select('bk.booking_id', 'bk.check_in_date', 'bk.check_in_time', 'bk.check_out_date', 'bk.check_out_time')
                 ->get();
@@ -921,31 +924,31 @@ class OccupancyController extends Controller
     /**
      * Yêu cầu hủy đặt phòng từ phía Admin.
      */
-    public function requestCancellation(Request $request, $booking_id)
-    {
-        try {
-            $booking = BookingHotel::findOrFail($booking_id);
+    // public function requestCancellation(Request $request, $booking_id)
+    // {
+    //     try {
+    //         $booking = BookingHotel::findOrFail($booking_id);
 
-            if (in_array($booking->status, ['cancelled', 'completed'])) {
-                return response()->json(['message' => 'Đặt phòng đã hoàn thành hoặc đã bị hủy. Không thể yêu cầu hủy.'], 400);
-            }
+    //         if (in_array($booking->status, ['cancelled', 'completed'])) {
+    //             return response()->json(['message' => 'Đặt phòng đã hoàn thành hoặc đã bị hủy. Không thể yêu cầu hủy.'], 400);
+    //         }
 
-            if ($booking->status === 'cancellation_requested') {
-                return response()->json(['message' => 'Đặt phòng này đã được yêu cầu hủy trước đó.'], 400);
-            }
+    //         if ($booking->status === 'cancellation_requested') {
+    //             return response()->json(['message' => 'Đặt phòng này đã được yêu cầu hủy trước đó.'], 400);
+    //         }
 
-            $booking->status = 'cancellation_requested';
-            $booking->save();
+    //         $booking->status = 'cancellation_requested';
+    //         $booking->save();
 
-            return response()->json(['message' => 'Yêu cầu hủy đặt phòng đã được gửi thành công.']);
+    //         return response()->json(['message' => 'Yêu cầu hủy đặt phòng đã được gửi thành công.']);
 
-        } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
-            return response()->json(['message' => 'Không tìm thấy đơn đặt phòng này.'], 404);
-        } catch (\Exception $e) {
-            Log::error('Lỗi yêu cầu hủy booking ' . $booking_id . ': ' . $e->getMessage(), ['exception' => $e]);
-            return response()->json(['message' => 'Lỗi máy chủ khi yêu cầu hủy.', 'error' => $e->getMessage()], 500);
-        }
-    }
+    //     } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
+    //         return response()->json(['message' => 'Không tìm thấy đơn đặt phòng này.'], 404);
+    //     } catch (\Exception $e) {
+    //         Log::error('Lỗi yêu cầu hủy booking ' . $booking_id . ': ' . $e->getMessage(), ['exception' => $e]);
+    //         return response()->json(['message' => 'Lỗi máy chủ khi yêu cầu hủy.', 'error' => $e->getMessage()], 500);
+    //     }
+    // }
 
     /**
      * Xác nhận hủy đặt phòng.
@@ -983,4 +986,71 @@ class OccupancyController extends Controller
             return response()->json(['message' => 'Lỗi khi xác nhận hủy.', 'error' => $e->getMessage()], 500);
         }
     }
+    public function getFutureBookings()
+{
+    $now = Carbon::now();
+
+    $futureBookings = BookingHotelDetail::with(['room', 'booking.customer'])
+        ->whereHas('booking', function ($query) use ($now) {
+            $query->where('status', '!=', 'cancelled')
+                  ->whereRaw("STR_TO_DATE(CONCAT(check_in_date, ' ', check_in_time), '%Y-%m-%d %H:%i:%s') > ?", [$now]);
+        })
+        ->get()
+        ->map(function ($item) {
+            return [
+                'id' => $item->booking_detail_id,
+                'room_name' => optional($item->room)->room_name,
+                'customer_name' => optional($item->booking->customer)->customer_name ?? 'Không rõ',
+                'check_in_time' => optional($item->booking)->check_in_date . ' ' . optional($item->booking)->check_in_time,
+            ];
+        });
+
+    return response()->json($futureBookings);
+}
+
+public function cancelNow(Request $request)
+{
+    $request->validate([
+        'detail_id' => 'required|exists:booking_hotel_detail,booking_detail_id',
+        'reason' => 'nullable|string',
+    ]);
+
+    $detail = BookingHotelDetail::with('booking')->findOrFail($request->detail_id);
+    $booking = $detail->booking;
+
+    $checkIn = Carbon::parse($booking->check_in_date . ' ' . $booking->check_in_time);
+    $now = Carbon::now();
+
+    if ($now->gte($checkIn)) {
+        return response()->json([
+            'message' => 'Không thể hủy vì đã đến giờ check-in hoặc đang sử dụng.'
+        ], 422);
+    }
+
+    // Ghi nhận yêu cầu hủy vào bảng cancelbooking
+    CancelBooking::create([
+        'booking_id' => $booking->booking_id,
+        'customer_id' => $booking->customer_id,
+        'cancellation_reason' => $request->reason ?? 'Không có lý do',
+        'refund_amount' => 0.00,
+        'status' => 'requested',
+    ]);
+
+    $booking->status = 'cancelled';
+    $booking->save();
+
+    $detail->status = 'cancelled';
+    $detail->save();
+
+    // Trả phòng nếu có phòng gắn với booking detail
+    $room = $detail->room;
+    if ($room) {
+        $room->status = 'available';
+        $room->save();
+    }
+
+    return response()->json(['message' => 'Đã hủy phòng thành công.']);
+}
+
+
 }

@@ -39,6 +39,12 @@
             </select>
           </div>
           <div class="col-lg-2 col-md-12 text-end">
+  <button @click="openFutureBookings" class="btn btn-outline-danger w-100">
+    <i class="bi bi-calendar-x me-2"></i>Hủy phòng trước
+  </button>
+</div>
+
+          <div class="col-lg-2 col-md-12 text-end">
             <button @click="clearFilters" class="btn btn-outline-secondary w-100">
               <i class="bi bi-arrow-clockwise me-2"></i>Xóa lọc
             </button>
@@ -193,6 +199,59 @@
       </div>
     </div>
   </div>
+  <div v-if="futureBookingModal" class="modal-backdrop fade show"></div>
+  <div v-if="futureBookingModal" class="modal fade show d-block" tabindex="-1">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+      <div class="modal-content modal-custom">
+        <div class="modal-header modal-header-custom">
+          <h5 class="modal-title">Danh sách hủy phòng trong tương lai</h5>
+          <button type="button" class="btn-close" @click="futureBookingModal = false"></button>
+        </div>
+        <div class="modal-body p-4">
+          <table class="table table-bordered">
+            <thead>
+              <tr>
+                <th>Phòng</th>
+                <th>Khách</th>
+                <th>Nhận phòng</th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr v-for="booking in futureBookings" :key="booking.id">
+                <td>{{ booking.room_name }}</td>
+                <td>{{ booking.customer_name }}</td>
+                <td>{{ booking.check_in_time }}</td>
+                <td>
+                  <button class="btn btn-sm btn-danger" @click="openCancelNowModal(booking)">Hủy</button>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal nhập lý do hủy -->
+  <div v-if="cancelNowModal" class="modal-backdrop fade show"></div>
+  <div v-if="cancelNowModal" class="modal fade show d-block" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content modal-custom">
+        <div class="modal-header modal-header-custom">
+          <h5 class="modal-title">Xác nhận hủy phòng</h5>
+          <button type="button" class="btn-close" @click="cancelNowModal = false"></button>
+        </div>
+        <div class="modal-body p-4">
+          <textarea v-model="cancelNowReason" class="form-control" placeholder="Lý do hủy (tuý chọn)" rows="3"></textarea>
+        </div>
+        <div class="modal-footer modal-footer-custom">
+          <button class="btn btn-secondary" @click="cancelNowModal = false">Hủy</button>
+          <button class="btn btn-danger" @click="confirmCancelNow">Xác nhận</button>
+        </div>
+      </div>
+    </div>
+  </div>
 </template>
 
 <script setup>
@@ -249,6 +308,43 @@ const serviceTotal = computed(() => allServices.value.reduce((sum, s) => sum + s
 const increaseQty = (index) => { allServices.value[index].quantity++; };
 const decreaseQty = (index) => { if (allServices.value[index].quantity > 0) allServices.value[index].quantity--; };
 const formatPrice = (price) => price.toLocaleString('vi-VN') + ' VND';
+
+const futureBookingModal = ref(false);
+const cancelNowModal = ref(false);
+const cancelNowBookingId = ref(null);
+const cancelNowReason = ref('');
+const futureBookings = ref([]);
+
+const openFutureBookings = async () => {
+  try {
+    const res = await axios.get(`${apiUrl}/api/occupancy/future-bookings`);
+    futureBookings.value = res.data;
+    futureBookingModal.value = true;
+  } catch (err) {
+    alert('Lỗi khi tải danh sách hủy phòng trước.');
+  }
+};
+
+const openCancelNowModal = (booking) => {
+  cancelNowBookingId.value = booking.id;
+  cancelNowReason.value = '';
+  cancelNowModal.value = true;
+};
+
+const confirmCancelNow = async () => {
+  try {
+    await axios.post(`${apiUrl}/api/occupancy/cancel-now`, {
+      detail_id: cancelNowBookingId.value,
+      reason: cancelNowReason.value
+    });
+    cancelNowModal.value = false;
+    futureBookingModal.value = false;
+    alert('Hủy phòng thành công!');
+    await fetchRooms();
+  } catch (err) {
+    alert(err.response?.data?.message || 'Lỗi khi hủy phòng!');
+  }
+};
 
 const formatDateTime = (date, time) => {
   if (!date || !time) return 'N/A';
