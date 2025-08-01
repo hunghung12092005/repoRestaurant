@@ -66,7 +66,7 @@ class OccupancyController extends Controller
                 ->join('booking_hotel as bk', 'bk.booking_id', '=', 'bkd.booking_id')
                 ->join('customers as c', 'bk.customer_id', '=', 'c.customer_id')
                 ->join('room_types as rt', 'rt.type_id', '=', 'bkd.room_type')
-                ->join('rooms', 'rooms.room_id', '=', 'bkd.room_id') // Sửa tham chiếu bảng rooms
+                ->join('rooms', 'rooms.room_id', '=', 'bkd.room_id')
                 ->where('bkd.room_id', $room_id)
                 ->where('bk.status', '!=', 'completed')
                 ->whereRaw('CONCAT(bk.check_in_date, " ", COALESCE(bk.check_in_time, "14:00")) <= ?', [$checkTime->toDateTimeString()])
@@ -85,7 +85,7 @@ class OccupancyController extends Controller
                     'c.customer_email',
                     'c.address',
                     'rt.type_name',
-                    'rooms.room_name', // Sửa từ room.room_name thành rooms.room_name
+                    'rooms.room_name',
                     'rooms.floor_number'
                 )
                 ->first();
@@ -98,7 +98,7 @@ class OccupancyController extends Controller
             return response()->json([
                 'room' => [
                     'room_id' => $room_id,
-                    'room_name' => $booking->room_name, // Sử dụng từ kết quả truy vấn
+                    'room_name' => $booking->room_name,
                     'floor_number' => $booking->floor_number,
                     'type_name' => $booking->type_name,
                 ],
@@ -288,7 +288,7 @@ class OccupancyController extends Controller
                 'total_rooms'      => 1,
                 'total_price'      => $total_price,
                 'additional_fee'   => 0,
-                'payment_status'   => 'completed',
+                'payment_status'   => 'pending',
                 'status'           => 'confirmed',
                 'note'             => $note,
                 'created_at'       => now(),
@@ -296,7 +296,7 @@ class OccupancyController extends Controller
             ]);
 
             // Thêm chi tiết booking
-            DB::table('booking_hotel_detail')->insert([
+            $bookingDetailId = DB::table('booking_hotel_detail')->insertGetId([
                 'booking_id'    => $bookingId,
                 'room_type'     => $room->type_id,
                 'room_id'       => $room_id,
@@ -308,12 +308,31 @@ class OccupancyController extends Controller
                 'updated_at'    => now(),
             ]);
 
+            // Thêm bản ghi vào booking_room_status
+            DB::table('booking_room_status')->insert([
+                'customer_id'      => $customerId,
+                'booking_id'       => $bookingId,
+                'booking_detail_id' => $bookingDetailId,
+                'room_id'          => $room_id,
+                'check_in'         => $checkIn,
+                'check_out'        => $checkOut,
+                'room_price'       => $total_price,
+                'service_price'    => 0,
+                'surcharge'        => 0,
+                'surcharge_reason' => null,
+                'total_paid'       => 0,
+                'payment_status'   => 'pending',
+                'created_at'       => now(),
+                'updated_at'       => now(),
+            ]);
+
             // Cập nhật trạng thái phòng
             DB::table('rooms')->where('room_id', $room_id)->update(['status' => 'occupied']);
 
             return response()->json([
                 'message' => 'Đặt phòng thành công',
                 'booking_id' => $bookingId,
+                'booking_detail_id' => $bookingDetailId,
                 'total_price' => $total_price,
             ]);
         } catch (\Exception $e) {
@@ -413,22 +432,22 @@ class OccupancyController extends Controller
     }
 
     /**
-     * Gia hạn thời gian lưu trú.
+     * Gia hạn thời gian lưu trú cho một phòng cụ thể trong booking.
      */
-    public function extendStay(Request $request, $room_id)
+    public function extendStay(Request $request, $booking_detail_id)
     {
         $request->validate([
             'check_out_date' => 'required|date|after:now',
+            'check_out_time' => 'nullable|date_format:H:i',
         ]);
 
         try {
-            // Tìm booking hiện tại
+            // Tìm chi tiết đặt phòng
             $bookingDetail = DB::table('booking_hotel_detail')
-                ->where('room_id', $room_id)
-                ->latest('created_at')
+                ->where('booking_detail_id', $booking_detail_id)
                 ->first();
             if (!$bookingDetail) {
-                return response()->json(['message' => 'Không tìm thấy booking chi tiết.'], 404);
+                return response()->json(['message' => 'Không tìm thấy chi tiết đặt phòng.'], 404);
             }
 
             $booking = DB::table('booking_hotel')
@@ -439,7 +458,7 @@ class OccupancyController extends Controller
             }
 
             // Kiểm tra phòng
-            $room = DB::table('rooms')->where('room_id', $room_id)->first();
+            $room = DB::table('rooms')->where('room_id', $bookingDetail->room_id)->first();
             if (!$room) {
                 return response()->json(['message' => 'Không tìm thấy phòng.'], 404);
             }
@@ -457,10 +476,28 @@ class OccupancyController extends Controller
             }
 
             // Tính giá mới
-            $checkIn = Carbon::parse($booking->check_in_date . ' ' . $booking->check_in_time);
-            $newCheckOut = Carbon::parse($request->check_out_date);
+            $checkIn = Carbon::parse($booking->check_in_date . ' ' . ($booking->check_in_time ?? '14:00'));
+            $newCheckOut = Carbon::parse($request->check_out_date . ' ' . ($request->check_out_time ?? '12:00'));
             if ($newCheckOut <= $checkIn) {
                 return response()->json(['message' => 'Ngày giờ trả phải sau ngày nhận.'], 400);
+            }
+
+            // Kiểm tra trùng thời gian với các booking khác
+            $existingBookings = DB::table('booking_hotel_detail as bkd')
+                ->join('booking_hotel as bk', 'bk.booking_id', '=', 'bkd.booking_id')
+                ->where('bkd.room_id', $room->room_id)
+                ->where('bk.status', '!=', 'completed')
+                ->where('bkd.booking_detail_id', '!=', $booking_detail_id)
+                ->select('bk.booking_id', 'bk.check_in_date', 'bk.check_in_time', 'bk.check_out_date', 'bk.check_out_time')
+                ->get();
+
+            foreach ($existingBookings as $existingBooking) {
+                $existingCheckIn = Carbon::parse($existingBooking->check_in_date . ' ' . ($existingBooking->check_in_time ?? '14:00'));
+                $existingCheckOut = Carbon::parse($existingBooking->check_out_date . ' ' . ($existingBooking->check_out_time ?? '12:00'));
+
+                if ($newCheckOut > $existingCheckIn && $checkIn < $existingCheckOut) {
+                    return response()->json(['message' => 'Phòng đã được đặt trong khoảng thời gian gia hạn.'], 409);
+                }
             }
 
             $totalHours = $checkIn->floatDiffInHours($newCheckOut);
@@ -492,23 +529,32 @@ class OccupancyController extends Controller
                 }
             }
 
-            // Cập nhật booking
-            DB::table('booking_hotel')
-                ->where('booking_id', $booking->booking_id)
+            // Cập nhật booking_hotel_detail
+            DB::table('booking_hotel_detail')
+                ->where('booking_detail_id', $booking_detail_id)
                 ->update([
-                    'check_out_date' => $newCheckOut->toDateString(),
-                    'check_out_time' => $newCheckOut->toTimeString(),
+                    'gia_phong' => $newTotal,
                     'total_price' => $newTotal,
                     'note' => $note,
                     'updated_at' => now(),
                 ]);
 
-            // Cập nhật booking detail
-            DB::table('booking_hotel_detail')
-                ->where('booking_detail_id', $bookingDetail->booking_detail_id)
+            // Cập nhật booking_room_status
+            DB::table('booking_room_status')
+                ->where('booking_detail_id', $booking_detail_id)
                 ->update([
-                    'gia_phong' => $newTotal,
-                    'total_price' => $newTotal,
+                    'check_out' => $newCheckOut,
+                    'room_price' => $newTotal,
+                    'updated_at' => now(),
+                ]);
+
+            // Cập nhật booking_hotel (tạm thời chỉ cập nhật thời gian)
+            DB::table('booking_hotel')
+                ->where('booking_id', $booking->booking_id)
+                ->update([
+                    'check_out_date' => $newCheckOut->toDateString(),
+                    'check_out_time' => $newCheckOut->toTimeString(),
+                    'note' => $note,
                     'updated_at' => now(),
                 ]);
 
@@ -517,7 +563,7 @@ class OccupancyController extends Controller
                 'total_price' => number_format($newTotal, 0, ',', '.') . ' VND',
             ]);
         } catch (\Exception $e) {
-            Log::error('Lỗi gia hạn phòng ' . $room_id . ': ' . $e->getMessage());
+            Log::error('Lỗi gia hạn booking_detail_id ' . $booking_detail_id . ': ' . $e->getMessage());
             return response()->json(['message' => 'Lỗi khi gia hạn.', 'error' => $e->getMessage()], 500);
         }
     }
@@ -578,7 +624,7 @@ class OccupancyController extends Controller
     public function getRoomsByDate(Request $request)
     {
         $date = $request->input('date', now()->toDateString());
-        $time = $request->input('time', now()->toTimeString('minute')); // Sử dụng thời gian hiện tại nếu không có time
+        $time = $request->input('time', now()->toTimeString('minute'));
 
         try {
             $rooms = DB::table('rooms')
@@ -599,30 +645,36 @@ class OccupancyController extends Controller
             foreach ($rooms as $room) {
                 $bookingInfo = DB::table('booking_hotel_detail as bkd')
                     ->join('booking_hotel as bk', 'bk.booking_id', '=', 'bkd.booking_id')
+                    ->leftJoin('booking_room_status as brs', 'brs.booking_detail_id', '=', 'bkd.booking_detail_id')
                     ->where('bkd.room_id', $room->room_id)
                     ->whereIn('bk.status', ['pending', 'confirmed', 'cancellation_requested'])
                     ->where(function ($query) use ($date, $time) {
-                        // Kiểm tra xem ngày đặt có bao gồm ngày được chọn không
                         $query->whereDate('bk.check_in_date', '<=', $date)
                               ->whereDate('bk.check_out_date', '>=', $date);
 
-                        // Nếu có thời gian được cung cấp, thêm điều kiện lọc theo thời gian
                         if ($time) {
-                            $query->where(function ($timeQuery) use ($time, $date) {
-                                $timeQuery->whereRaw('CONCAT(bk.check_in_date, " ", COALESCE(bk.check_in_time, "14:00")) <= ?', [$date . ' ' . $time])
-                                          ->whereRaw('CONCAT(bk.check_out_date, " ", COALESCE(bk.check_out_time, "12:00")) >= ?', [$date . ' ' . $time]);
-                            });
+                            $query->whereRaw('CONCAT(bk.check_in_date, " ", COALESCE(bk.check_in_time, "14:00")) <= ?', [$date . ' ' . $time])
+                                  ->whereRaw('CONCAT(bk.check_out_date, " ", COALESCE(bk.check_out_time, "12:00")) >= ?', [$date . ' ' . $time]);
                         }
                     })
-                    ->select('bk.booking_id', 'bk.status as booking_status')
+                    ->select(
+                        'bk.booking_id',
+                        'bk.status as booking_status',
+                        'bkd.booking_detail_id',
+                        'brs.payment_status'
+                    )
                     ->first();
 
                 if ($bookingInfo) {
                     $room->status = $bookingInfo->booking_status;
                     $room->booking_id = $bookingInfo->booking_id;
+                    $room->booking_detail_id = $bookingInfo->booking_detail_id;
+                    $room->payment_status = $bookingInfo->payment_status ?? 'pending';
                 } else {
                     $room->status = 'available';
                     $room->booking_id = null;
+                    $room->booking_detail_id = null;
+                    $room->payment_status = 'pending';
                 }
             }
 
@@ -634,50 +686,45 @@ class OccupancyController extends Controller
     }
 
     /**
-     * Trả phòng và thanh toán.
+     * Trả phòng và thanh toán cho một phòng cụ thể trong booking.
      */
-    public function checkoutRoom(Request $request, $room_id)
+    public function checkoutRoom(Request $request, $booking_detail_id)
     {
         // Bắt đầu transaction để đảm bảo tính toàn vẹn dữ liệu
         DB::beginTransaction();
 
         try {
-            $date = $request->input('date', now()->toDateString());
-
-            // 1. Tìm chi tiết đặt phòng bằng Eloquent
+            // Tìm chi tiết đặt phòng
             $bookingDetail = BookingHotelDetail::with('booking')
-                ->where('room_id', $room_id)
-                ->whereHas('booking', function ($query) use ($date) {
-                    $query->whereDate('check_in_date', '<=', $date)
-                          ->whereDate('check_out_date', '>=', $date)
-                          ->whereIn('status', ['pending', 'confirmed']);
+                ->where('booking_detail_id', $booking_detail_id)
+                ->whereHas('booking', function ($query) {
+                    $query->whereIn('status', ['pending', 'confirmed']);
                 })
                 ->firstOrFail();
 
             $booking = $bookingDetail->booking;
+            $room_id = $bookingDetail->room_id;
 
-            // Nếu thời gian hiện tại trước thời gian nhận phòng, không cho phép trả phòng
-            $now = Carbon::now();
-            $checkInDateTime = Carbon::parse($booking->check_in_date . ' ' . ($booking->check_in_time ?? '14:00'));
-            
-            if ($now->lessThan($checkInDateTime)) {
-                DB::rollBack();
-                return response()->json([
-                    'message' => "Chưa đến thời gian nhận phòng ({$checkInDateTime->format('d-m-Y H:i')}). Không thể thực hiện trả phòng."
-                ], 400);
-            }
-
-            // Nếu đã qua bước kiểm tra, tiếp tục xử lý trả phòng như bình thường
-            $servicesInput = $request->input('services', []);
-            $additionalFee = (float) $request->input('additional_fee', 0);
-            $surchargeReason = $request->input('surcharge_reason', null);
-
+            // Kiểm tra phòng
             $room = Room::with('roomType')->findOrFail($room_id);
-
             if (!$room->roomType) {
                 throw new \Exception("Phòng chưa được gán loại.");
             }
 
+            // Kiểm tra trạng thái thanh toán trong booking_room_status
+            $roomStatus = DB::table('booking_room_status')
+                ->where('booking_detail_id', $booking_detail_id)
+                ->first();
+
+            if ($roomStatus && $roomStatus->payment_status === 'completed') {
+                DB::rollBack();
+                return response()->json([
+                    'message' => 'Phòng này đã được thanh toán.'
+                ], 400);
+            }
+
+            // Lấy thông tin giá
+            $now = now();
             $price = Price::where('type_id', $room->type_id)
                 ->where('start_date', '<=', $now)
                 ->where('end_date', '>=', $now)
@@ -688,11 +735,12 @@ class OccupancyController extends Controller
                 throw new \Exception("Không tìm thấy bảng giá hiện tại cho loại phòng này.");
             }
 
+            // Lấy thời gian và tính toán giá phòng
             $checkIn = Carbon::parse($booking->check_in_date . ' ' . ($booking->check_in_time ?? '14:00'));
             $actualCheckout = now();
             $totalHours = $checkIn->floatDiffInHours($actualCheckout);
 
-            // Đảm bảo totalHours không âm
+            // Kiểm tra thời gian trả phòng hợp lệ
             if ($totalHours < 0) {
                 DB::rollBack();
                 return response()->json([
@@ -705,33 +753,25 @@ class OccupancyController extends Controller
             $calculationNote = '';
 
             if ($totalHours <= 2) {
-                // Dưới 2 giờ, tính giá cố định cho 2 giờ
                 $recalculatedRoomPrice = 2 * $price->hourly_price;
                 $note = "Ở dưới 2 giờ, tính giá cố định 2 giờ.";
                 $calculationNote = "Tính theo giờ: 2 giờ x " . number_format($price->hourly_price) . "đ = " . number_format($recalculatedRoomPrice) . "đ";
             } elseif ($totalHours <= 6) {
-                // Từ 2 đến 6 giờ, tính theo giờ
                 $hours = ceil($totalHours);
                 $recalculatedRoomPrice = $hours * $price->hourly_price;
                 $note = "Ở {$hours} giờ.";
                 $calculationNote = "Tính theo giờ: {$hours} giờ x " . number_format($price->hourly_price) . "đ = " . number_format($recalculatedRoomPrice) . "đ";
             } else {
-                // Trên 6 giờ, tính theo ngày
-                $fullDays = ceil($totalHours / 24); // Làm tròn lên số ngày
+                $fullDays = ceil($totalHours / 24);
                 $recalculatedRoomPrice = $fullDays * $price->price_per_night;
                 $note = "Ở {$fullDays} ngày (trên 6 giờ, tính theo ngày).";
                 $calculationNote = "Tính theo ngày: {$fullDays} ngày x " . number_format($price->price_per_night) . "đ = " . number_format($recalculatedRoomPrice) . "đ";
             }
 
-            $originalBookingPrice = $booking->total_price;
-
-            if ($recalculatedRoomPrice < $originalBookingPrice) {
-                $refund = $originalBookingPrice - $recalculatedRoomPrice;
-                $note .= " Khách trả sớm hơn so với dự kiến ";
-            } elseif ($recalculatedRoomPrice > $originalBookingPrice) {
-                $extraFee = $recalculatedRoomPrice - $originalBookingPrice;
-                $note .= " Khách ở quá giờ, phụ thu thêm " . number_format($extraFee) . " VND.";
-            }
+            // Xử lý phụ phí và dịch vụ
+            $additionalFee = (float) $request->input('additional_fee', 0);
+            $surchargeReason = $request->input('surcharge_reason', null);
+            $servicesInput = $request->input('services', []);
 
             if ($additionalFee > 0 && $surchargeReason) {
                 $note .= " Phụ thu: " . number_format($additionalFee) . " VND (Lý do: {$surchargeReason}).";
@@ -756,7 +796,7 @@ class OccupancyController extends Controller
                         $totalServiceFee += $total;
 
                         $servicesToInsert[] = [
-                            'booking_detail_id' => $bookingDetail->booking_detail_id,
+                            'booking_detail_id' => $booking_detail_id,
                             'service_id' => $serviceId,
                             'quantity' => $quantity,
                             'price' => $service->price,
@@ -772,53 +812,94 @@ class OccupancyController extends Controller
                 }
             }
 
+            // Tính tổng tiền phòng
             $actualTotal = $recalculatedRoomPrice + $totalServiceFee + $additionalFee;
 
+            // Cập nhật booking_hotel_detail
             $bookingDetail->update([
                 'gia_phong' => $recalculatedRoomPrice,
                 'gia_dich_vu' => $totalServiceFee,
                 'total_price' => $recalculatedRoomPrice + $totalServiceFee,
-            ]);
-
-            $booking->update([
-                'status' => 'completed',
-                'payment_status' => 'completed',
                 'note' => $note,
-                'total_price' => $actualTotal,
-                'actual_check_out_time' => $actualCheckout,
+                'updated_at' => $now,
             ]);
 
-            DB::table('booking_room_status')->insert([
-                'customer_id' => $booking->customer_id,
-                'booking_id' => $booking->booking_id,
-                'booking_detail_id' => $bookingDetail->booking_detail_id,
-                'room_id' => $room_id,
-                'check_in' => $checkIn,
-                'check_out' => $actualCheckout,
-                'room_price' => $recalculatedRoomPrice,
-                'service_price' => $totalServiceFee,
-                'surcharge' => $additionalFee,
-                'surcharge_reason' => $surchargeReason,
-                'total_paid' => $actualTotal,
-                'created_at' => now(),
-                'updated_at' => now(),
-            ]);
+            // Cập nhật hoặc tạo booking_room_status
+            if ($roomStatus) {
+                DB::table('booking_room_status')
+                    ->where('booking_detail_id', $booking_detail_id)
+                    ->update([
+                        'room_price' => $recalculatedRoomPrice,
+                        'service_price' => $totalServiceFee,
+                        'surcharge' => $additionalFee,
+                        'surcharge_reason' => $surchargeReason,
+                        'total_paid' => $actualTotal,
+                        'payment_status' => 'completed',
+                        'check_out' => $actualCheckout,
+                        'updated_at' => $now,
+                    ]);
+            } else {
+                DB::table('booking_room_status')->insert([
+                    'customer_id' => $booking->customer_id,
+                    'booking_id' => $booking->booking_id,
+                    'booking_detail_id' => $booking_detail_id,
+                    'room_id' => $room_id,
+                    'check_in' => $checkIn,
+                    'check_out' => $actualCheckout,
+                    'room_price' => $recalculatedRoomPrice,
+                    'service_price' => $totalServiceFee,
+                    'surcharge' => $additionalFee,
+                    'surcharge_reason' => $surchargeReason,
+                    'total_paid' => $actualTotal,
+                    'payment_status' => 'completed',
+                    'created_at' => $now,
+                    'updated_at' => $now,
+                ]);
+            }
 
+            // Cập nhật trạng thái phòng
             $room->update(['status' => 'available']);
 
-            DB::commit();
+            // Kiểm tra xem tất cả các phòng trong booking đã thanh toán chưa
+            $allDetails = BookingHotelDetail::where('booking_id', $booking->booking_id)->get();
+            $allPaid = DB::table('booking_room_status')
+                ->where('booking_id', $booking->booking_id)
+                ->where('payment_status', 'completed')
+                ->count() === $allDetails->count();
 
-            return response()->json([
-                'message' => 'Thanh toán thành công. Phòng đã chuyển về trạng thái trống.',
-                'original_booking_price' => $originalBookingPrice,
+            $response = [
+                'message' => 'Thanh toán phòng thành công.',
+                'booking_detail_id' => $booking_detail_id,
                 'room_total' => $recalculatedRoomPrice,
                 'service_total' => $totalServiceFee,
                 'additional_fee' => $additionalFee,
                 'surcharge_reason' => $surchargeReason,
                 'actual_total' => $actualTotal,
-                'note' => $note,
                 'calculation_note' => $calculationNote,
-            ]);
+                'booking_completed' => $allPaid,
+            ];
+
+            // 12. Nếu tất cả phòng đã thanh toán, cập nhật booking_hotel
+            if ($allPaid) {
+                $booking_total = DB::table('booking_room_status')
+                    ->where('booking_id', $booking->booking_id)
+                    ->sum('total_paid');
+
+                $booking->update([
+                    'status' => 'completed',
+                    'payment_status' => 'completed',
+                    'total_price' => $booking_total,
+                    'actual_check_out_time' => $actualCheckout,
+                    'updated_at' => $now,
+                ]);
+
+                $response['booking_total'] = $booking_total;
+            }
+
+            // 13. Commit transaction
+            DB::commit();
+
+            return response()->json($response);
 
         } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
             DB::rollBack();
@@ -826,7 +907,7 @@ class OccupancyController extends Controller
             return response()->json(['message' => 'Không tìm thấy thông tin đặt phòng hoặc phòng để thanh toán.'], 404);
         } catch (\Exception $e) {
             DB::rollBack();
-            Log::error("Lỗi thanh toán phòng {$room_id}: " . $e->getMessage() . " | File: " . $e->getFile() . " | Line: " . $e->getLine());
+            Log::error("Lỗi thanh toán booking_detail_id {$booking_detail_id}: " . $e->getMessage() . " | File: " . $e->getFile() . " | Line: " . $e->getLine());
             return response()->json([
                 'message' => 'Lỗi máy chủ khi thanh toán phòng.',
                 'error' => $e->getMessage(),

@@ -35,7 +35,8 @@ Route::get('/occupancy/rooms', [OccupancyController::class, 'index']);
 // Route::post('/customers', [OccupancyController::class, 'storeCustomer']); //thêm dữ liệu khách vào bảng customer
 Route::get('/occupancy/by-date', [OccupancyController::class, 'getRoomsByDate']); //lọc theo ngày
 Route::get('/rooms/{room_id}/customer', [OccupancyController::class, 'getCustomerByRoom']); //hiển thị thông tin khách
-Route::post('/rooms/{room_id}/checkout', [OccupancyController::class, 'checkoutRoom']); //checkout
+// Route::post('/rooms/{room_id}/checkout', [OccupancyController::class, 'checkoutRoom']); //checkout
+Route::post('/booking-details/{booking_detail_id}/checkout', [OccupancyController::class, 'checkoutRoom']); //checkout theo booking detail
 Route::get('/services', [OccupancyController::class, 'getServices']); //hiển thị dịch vụ
 Route::post('/rooms/{room_id}/add-guest', [OccupancyController::class, 'addGuestToRoom']); //khi khách đặt phòng thì đổi trạng thái
 Route::post('/rooms/preview-price', [OccupancyController::class, 'previewPrice']); //xem trước giá

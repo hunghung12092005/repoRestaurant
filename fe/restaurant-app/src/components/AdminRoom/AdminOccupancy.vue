@@ -1,5 +1,5 @@
 <template>
-  <isLoading v-if="isisLoading"></isLoading>
+  <loading v-if="isLoading"></loading>
   <div class="page-container">
     <!-- Tiêu đề trang -->
     <div class="page-header mb-4">
@@ -56,6 +56,7 @@
             <div class="card-header">
               <h5 class="room-number">{{ room.number }}</h5>
               <span class="badge" :class="room.status === 'Đã đặt' ? 'badge-booked' : 'badge-available'">{{ room.status }}</span>
+              <span v-if="room.payment_status === 'completed'" class="badge badge-paid">Đã thanh toán</span>
             </div>
             <div class="card-body">
               <p class="room-type">{{ room.type }}</p>
@@ -68,9 +69,9 @@
               <div v-if="room.status === 'Đã đặt'" class="action-grid">
                 <div class="action-row">
                   <button class="btn btn-sm btn-outline-primary" @click.prevent="showGuestDetails(room)">Chi tiết</button>
-                  <button class="btn btn-sm btn-outline-warning" @click.prevent="showExtendForm(room.room_id)">Gia hạn</button>
+                  <button class="btn btn-sm btn-outline-warning" @click.prevent="showExtendForm(room)" :disabled="room.payment_status === 'completed'">Gia hạn</button>
                 </div>
-                <button class="btn btn-sm btn-outline-danger w-100 mt-2" @click.prevent="checkoutRoom(room.room_id)">Trả phòng</button>
+                <button class="btn btn-sm btn-outline-danger w-100 mt-2" @click.prevent="checkoutRoom(room)" :disabled="room.payment_status === 'completed'">Trả phòng</button>
               </div>
               <button v-else class="btn btn-sm btn-outline-primary w-100" @click.prevent="showAddGuest(room.room_id)"><i class="bi bi-person-plus-fill me-1"></i> Thêm khách</button>
             </div>
@@ -198,11 +199,11 @@
 import { ref, computed, onMounted, watch } from 'vue';
 import axios from 'axios';
 import { inject } from 'vue';
-import isLoading from '../loading.vue';
+import loading from '../loading.vue';
 
 const apiUrl = inject('apiUrl');
 const allRooms = ref([]);
-const isisLoading = ref(false);
+const isLoading = ref(false);
 const selectedStatus = ref('Tất cả');
 const selectedRoomType = ref('Tất cả');
 const selectedFloor = ref('Tất cả');
@@ -210,7 +211,7 @@ const selectedDate = ref(new Date().toISOString().substr(0, 10));
 const selectedTime = ref(new Date().toLocaleTimeString('it-IT', { hour: '2-digit', minute: '2-digit' }));
 const showForm = ref(false);
 const totalPricePreview = ref(null);
-const pricePreviewError = ref(''); // Thêm biến để lưu thông báo lỗi
+const pricePreviewError = ref('');
 const formData = ref({
   customer_name: '',
   customer_phone: '',
@@ -222,7 +223,7 @@ const formData = ref({
   check_in_time: '14:00',
   check_out_date: '',
   check_out_time: '12:00',
-  pricing_type: 'hourly' // Đặt mặc định là hourly cho đặt phòng ngắn
+  pricing_type: 'hourly'
 });
 const showEditForm = ref(false);
 const editFormData = ref({
@@ -234,11 +235,11 @@ const editFormData = ref({
 });
 const showServiceModal = ref(false);
 const allServices = ref([]);
-const currentRoomId = ref(null);
+const currentBookingDetailId = ref(null);
 const showGuestModal = ref(false);
 const guestInfo = ref({});
 const showExtendModal = ref(false);
-const extendForm = ref({ room_id: null, check_out_date: '' });
+const extendForm = ref({ booking_detail_id: null, check_out_date: '' });
 const additionalFee = ref(0);
 const surchargeReason = ref('');
 const apiKey = 'XXjjI5g9j7gk4NcZE9Dh9PPLCrvrR6zJ';
@@ -280,7 +281,7 @@ const onFileChange = (e) => {
 
 const uploadImage = async () => {
   if (!imageFile.value) return alert('Chọn ảnh CCCD trước!');
-  isisLoading.value = true;
+  isLoading.value = true;
   try {
     const formDataSend = new FormData();
     formDataSend.append('image', imageFile.value);
@@ -297,12 +298,16 @@ const uploadImage = async () => {
     console.error('Lỗi gửi CCCD:', e);
     alert('Đã xảy ra lỗi khi gửi ảnh.');
   } finally {
-    isisLoading.value = false;
+    isLoading.value = false;
   }
 };
 
-const checkoutRoom = async (room_id) => {
-  currentRoomId.value = room_id;
+const checkoutRoom = async (room) => {
+  if (!room.booking_detail_id) {
+    alert('Không tìm thấy thông tin đặt phòng cho phòng này.');
+    return;
+  }
+  currentBookingDetailId.value = room.booking_detail_id;
   try {
     const res = await axios.get(`${apiUrl}/api/services/indexAllService`);
     allServices.value = res.data.map(service => ({ ...service, price: Number(service.price) || 0, quantity: 0 }));
@@ -322,9 +327,8 @@ const confirmPayment = async () => {
       .filter(s => Number(s.quantity) > 0)
       .map(s => ({ service_id: Number(s.service_id), quantity: Number(s.quantity) }));
 
-    const response = await axios.post(`${apiUrl}/api/rooms/${currentRoomId.value}/checkout`, {
+    const response = await axios.post(`${apiUrl}/api/booking-details/${currentBookingDetailId.value}/checkout`, {
       services,
-      date: selectedDate.value,
       additional_fee: additionalFee.value,
       surcharge_reason: surchargeReason.value
     });
@@ -333,15 +337,15 @@ const confirmPayment = async () => {
     const alertMessage = [
       data.message,
       `\n--------------------------------`,
-      `💰 Giá phòng ban đầu: ${Number(data.original_booking_price || 0).toLocaleString('vi-VN')} VND`,
-      `🛏️ Tiền phòng thực tế: ${Number(data.room_total || 0).toLocaleString('vi-VN')} VND`,
+      `🛏️ Tiền phòng: ${Number(data.room_total || 0).toLocaleString('vi-VN')} VND`,
       `   ➡️ Cách tính: ${data.calculation_note || 'N/A'}`,
       `🧾 Tiền dịch vụ: ${Number(data.service_total || 0).toLocaleString('vi-VN')} VND`,
       `➕ Phí phụ thu: ${Number(data.additional_fee || 0).toLocaleString('vi-VN')} VND` + (data.surcharge_reason ? ` (Lý do: ${data.surcharge_reason})` : ''),
       `--------------------------------`,
       `💳 TỔNG THANH TOÁN: ${Number(data.actual_total || 0).toLocaleString('vi-VN')} VND`,
-      `\n📝 Ghi chú chung: ${data.note || 'Không có'}`
-    ].join('\n');
+      data.booking_completed ? `📋 TỔNG TIỀN BOOKING: ${Number(data.booking_total || 0).toLocaleString('vi-VN')} VND` : '',
+      `\n📝 Ghi chú: ${data.note || 'Không có'}`
+    ].filter(line => line).join('\n');
 
     alert(alertMessage);
 
@@ -363,7 +367,7 @@ const mapApiStatusToVietnamese = (s) => {
 const mapBedCountToString = (c) => c === 1 ? 'Giường đơn' : c === 2 ? 'Giường đôi' : `${c} giường`;
 
 const fetchRooms = async () => {
-  isisLoading.value = true;
+  isLoading.value = true;
   try {
     const res = await axios.get(`${apiUrl}/api/occupancy/by-date`, {
       params: {
@@ -378,14 +382,16 @@ const fetchRooms = async () => {
       status: mapApiStatusToVietnamese(r.status),
       type: r.type_name,
       bedSize: mapBedCountToString(r.bed_count),
-      max_occupancy: r.max_occupancy || 0, 
-      max_occupancy_child: r.max_occupancy_child || 0
+      max_occupancy: r.max_occupancy || 0,
+      max_occupancy_child: r.max_occupancy_child || 0,
+      booking_detail_id: r.booking_detail_id || null,
+      payment_status: r.payment_status || 'pending'
     }));
   } catch (e) {
     console.error("Lỗi load phòng:", e);
     alert("Không thể tải thông tin phòng. Vui lòng thử lại.");
   } finally {
-    isisLoading.value = false;
+    isLoading.value = false;
   }
 };
 
@@ -401,13 +407,13 @@ const showAddGuest = (room_id) => {
     customer_id_number: '',
     room_id,
     check_in_date: selectedDate.value,
-    check_in_time: '14:00', 
-    check_out_date: selectedDate.value, // cùng ngày mặc định
+    check_in_time: '14:00',
+    check_out_date: selectedDate.value,
     check_out_time: '12:00',
     pricing_type: 'hourly'
   };
   showForm.value = true;
-  pricePreviewError.value = ''; // Reset thông báo lỗi
+  pricePreviewError.value = '';
   calculateTotalPricePreview();
 };
 
@@ -480,14 +486,18 @@ const showGuestDetails = async (room) => {
   }
 };
 
-const showExtendForm = (room_id) => {
-  extendForm.value = { room_id, check_out_date: '' };
+const showExtendForm = (room) => {
+  if (!room.booking_detail_id) {
+    alert('Không tìm thấy thông tin đặt phòng để gia hạn.');
+    return;
+  }
+  extendForm.value = { booking_detail_id: room.booking_detail_id, check_out_date: '' };
   showExtendModal.value = true;
 };
 
 const submitExtendForm = async () => {
   try {
-    const res = await axios.post(`${apiUrl}/api/rooms/${extendForm.value.room_id}/extend`, { ...extendForm.value });
+    const res = await axios.post(`${apiUrl}/api/booking-details/${extendForm.value.booking_detail_id}/extend`, { ...extendForm.value });
     alert(res.data.message + '\nTổng tiền mới: ' + res.data.total_price);
     showExtendModal.value = false;
     await fetchRooms();
@@ -586,6 +596,7 @@ watch(() => [selectedDate, selectedTime], fetchRooms);
 .room-card:not(.booked) { border-left: 4px solid #3498db; }
 .badge-available { background-color: #eaf6fb; color: #3498db; }
 .badge-booked { background-color: #fef5e7; color: #f39c12; }
+.badge-paid { background-color: #d4edda; color: #155724; margin-left: 0.5rem; }
 
 .room-card .card-header { display: flex; justify-content: space-between; align-items: center; padding: 0.75rem 1rem; border-bottom: 1px solid #f0f2f5; }
 .room-card .room-number { font-size: 1.5rem; font-weight: 700; margin: 0; color: #2c3e50; }
