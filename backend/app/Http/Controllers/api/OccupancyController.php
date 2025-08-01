@@ -744,7 +744,7 @@ class OccupancyController extends Controller
             if ($totalHours < 0) {
                 DB::rollBack();
                 return response()->json([
-                    'message' => "Thời gian trả phòng không hợp lệ (trước thời gian nhận phòng)."
+                    'message' => "Chưa đến ngày trả phòng. Hiện tại là {$actualCheckout->format('d-m-Y H:i')}, nhưng thời gian nhận phòng là {$checkIn->format('d-m-Y H:i')}."
                 ], 400);
             }
 
@@ -876,6 +876,7 @@ class OccupancyController extends Controller
                 'surcharge_reason' => $surchargeReason,
                 'actual_total' => $actualTotal,
                 'calculation_note' => $calculationNote,
+                'note' => $bookingDetail->note ?? 'Không có ghi chú.',
                 'booking_completed' => $allPaid,
             ];
 
