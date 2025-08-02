@@ -34,7 +34,6 @@
                 class="img-fluid rounded" alt="Nội thất khách sạn" />
               <div class="staff-card card shadow">
                 <div class="d-flex align-items-center">
-                  <span class="staff-icon me-3">👥</span>
                   <p class="mb-0"><strong>50+</strong><br />Nhân Viên Kinh Nghiệm</p>
                 </div>
               </div>

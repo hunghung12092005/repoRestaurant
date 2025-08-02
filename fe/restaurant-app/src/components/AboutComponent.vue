@@ -62,32 +62,7 @@
     </section>
 
     <!-- Section 4: Team -->
-    <section class="team-section py-5">
-      <div class="container">
-        <div class="text-center mb-5">
-          <h5 class="text-primary fw-bold">ĐỘI NGŨ</h5>
-          <h2 class="display-sf serif-font">Gặp Gỡ Đội Ngũ Của Chúng Tôi</h2>
-        </div>
-        <!-- Sử dụng row-cols để tạo 5 cột trên màn hình lớn -->
-        <div class="row row-cols-1 row-cols-md-3 row-cols-lg-5 g-4">
-          <div v-for="member in team" :key="member.name" class="col">
-            <div class="card h-100 border-0 shadow-sm text-center team-card">
-              <!-- Sử dụng ảnh chân dung thực tế -->
-              <img :src="member.image" class="card-img-top" :alt="member.name">
-              <div class="card-body">
-                <h5 class="card-title">{{ member.name }}</h5>
-                <p class="card-text text-muted">{{ member.role }}</p>
-                <div class="social-icons">
-                  <a href="#" class="text-secondary mx-1"><i class="bi bi-facebook"></i></a>
-                  <a href="#" class="text-secondary mx-1"><i class="bi bi-linkedin"></i></a>
-                  <a href="#" class="text-secondary mx-1"><i class="bi bi-twitter-x"></i></a>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </section>
+    
 
   </div>
 </template>
