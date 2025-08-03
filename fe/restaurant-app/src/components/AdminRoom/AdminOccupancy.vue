@@ -504,7 +504,7 @@ const showAddGuest = (room_id) => {
     room_id,
     check_in_date: selectedDate.value,
     check_in_time: '14:00',
-    check_out_date: selectedDate.value,
+    check_out_date: '',
     check_out_time: '12:00',
     pricing_type: 'hourly'
   };
