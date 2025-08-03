@@ -75,7 +75,6 @@
               <div v-if="room.status === 'Đã đặt'" class="action-grid">
                 <div class="action-row">
                   <button class="btn btn-sm btn-outline-primary" @click.prevent="showGuestDetails(room)">Chi tiết</button>
-                  <button class="btn btn-sm btn-outline-warning" @click.prevent="showExtendForm(room)" :disabled="room.payment_status === 'completed'">Gia hạn</button>
                 </div>
                 <button class="btn btn-sm btn-outline-danger w-100 mt-2" @click.prevent="checkoutRoom(room)" :disabled="room.payment_status === 'completed'">Trả phòng</button>
               </div>
@@ -186,6 +185,23 @@
         <form @submit.prevent="submitEditForm" class="modal-content modal-custom">
           <div class="modal-header modal-header-custom"><h5 class="modal-title">Sửa thông tin khách hàng</h5><button type="button" class="btn-close" @click="showEditForm = false"></button></div>
           <div class="modal-body p-4">
+            <div class="mb-3">
+  <label class="form-label">Ngày nhận phòng:</label>
+  <input type="date" v-model="editFormData.check_in_date" class="form-control" />
+</div>
+<div class="mb-3">
+  <label class="form-label">Giờ nhận phòng:</label>
+  <input type="time" v-model="editFormData.check_in_time" class="form-control" />
+</div>
+<div class="mb-3">
+  <label class="form-label">Ngày trả phòng:</label>
+  <input type="date" v-model="editFormData.check_out_date" class="form-control" />
+</div>
+<div class="mb-3">
+  <label class="form-label">Giờ trả phòng:</label>
+  <input type="time" v-model="editFormData.check_out_time" class="form-control" />
+</div>
+
             <div class="mb-3"><label class="form-label">Họ tên:</label><input v-model="editFormData.customer_name" required class="form-control" /></div>
             <div class="mb-3"><label class="form-label">SĐT:</label><input v-model="editFormData.customer_phone" class="form-control" /></div>
             <div class="mb-3"><label class="form-label">Email:</label><input v-model="editFormData.customer_email" class="form-control" /></div>
@@ -279,7 +295,7 @@ const formData = ref({
   customer_id_number: '',
   room_id: null,
   check_in_date: '',
-  check_in_time: '14:00',
+  check_in_time: '11:00',
   check_out_date: '',
   check_out_time: '12:00',
   pricing_type: 'hourly'
@@ -290,8 +306,13 @@ const editFormData = ref({
   customer_name: '',
   customer_phone: '',
   customer_email: '',
-  address: ''
+  address: '',
+  check_in_date: '',
+  check_in_time: '',
+  check_out_date: '',
+  check_out_time: ''
 });
+
 const showServiceModal = ref(false);
 const allServices = ref([]);
 const currentBookingDetailId = ref(null);
@@ -352,23 +373,58 @@ const formatDateTime = (date, time) => {
 };
 
 const editCustomerInfo = (customer) => {
-  if (!customer) return;
-  editFormData.value = { ...customer };
+  if (!customer || !guestInfo.value.booking) return;
+  const booking = guestInfo.value.booking;
+
+  editFormData.value = {
+    customer_id: customer.customer_id,
+    customer_name: customer.customer_name || '',
+    customer_phone: customer.customer_phone || '',
+    customer_email: customer.customer_email || '',
+    address: customer.address || '',
+    check_in_date: booking.check_in_date || '',
+    check_in_time: booking.check_in_time || '',
+    check_out_date: booking.check_out_date || '',
+    check_out_time: booking.check_out_time || '',
+  };
+
   showGuestModal.value = false;
   showEditForm.value = true;
 };
 
+
 const submitEditForm = async () => {
   try {
-    const res = await axios.post(`${apiUrl}/api/customers/${editFormData.value.customer_id}/update-name`, { ...editFormData.value });
-    alert(res.data.message || 'Cập nhật thành công.');
+const isValidTime = (val) => typeof val === 'string' && /^\d{2}:\d{2}$/.test(val);
+
+const checkInTime = isValidTime(editFormData.value.check_in_time) ? editFormData.value.check_in_time : '14:00';
+const checkOutTime = isValidTime(editFormData.value.check_out_time) ? editFormData.value.check_out_time : '12:00';
+
+
+
+    const res = await axios.post(`${apiUrl}/api/bookings/${guestInfo.value.booking.booking_id}/update-time`, {
+      check_in_date: editFormData.value.check_in_date,
+      check_in_time: checkInTime,
+      check_out_date: editFormData.value.check_out_date,
+      check_out_time: checkOutTime,
+
+      customer_name: editFormData.value.customer_name,
+      customer_phone: editFormData.value.customer_phone,
+      customer_email: editFormData.value.customer_email,
+      address: editFormData.value.address,
+    });
+
+    alert('Cập nhật thành công!\n' + res.data.message);
     showEditForm.value = false;
     await fetchRooms();
   } catch (e) {
-    alert("Không thể cập nhật.");
-    console.error(e);
+    console.error("Lỗi cập nhật:", e);
+    alert(e.response?.data?.message || "Không thể cập nhật thông tin.");
   }
 };
+
+
+
 
 const onFileChange = (e) => {
   const file = e.target.files[0];
@@ -493,8 +549,13 @@ const fetchRooms = async () => {
 
 const showAddGuest = (room_id) => {
   const now = new Date();
-  const currentTime = selectedTime.value || now.toLocaleTimeString('it-IT', { hour: '2-digit', minute: '2-digit' });
-  const defaultCheckOutTime = new Date(now.getTime() + 4 * 60 * 60 * 1000).toLocaleTimeString('it-IT', { hour: '2-digit', minute: '2-digit' });
+  const checkInDate = now.toISOString().slice(0, 10);
+  const checkInTime = now.toTimeString().slice(0, 5); // 'HH:mm'
+
+  const out = new Date(now.getTime() + 2 * 60 * 60 * 1000);
+  const checkOutTime = out.toTimeString().slice(0, 5);
+  const checkOutDate = out.toISOString().slice(0, 10);
+
   formData.value = {
     customer_name: '',
     customer_phone: '',
@@ -502,12 +563,13 @@ const showAddGuest = (room_id) => {
     address: '',
     customer_id_number: '',
     room_id,
-    check_in_date: selectedDate.value,
-    check_in_time: '14:00',
-    check_out_date: '',
-    check_out_time: '12:00',
+    check_in_date: checkInDate,
+    check_in_time: checkInTime,
+    check_out_date: checkOutDate,
+    check_out_time: checkOutTime,
     pricing_type: 'hourly'
   };
+
   showForm.value = true;
   pricePreviewError.value = '';
   calculateTotalPricePreview();
@@ -582,14 +644,6 @@ const showGuestDetails = async (room) => {
   }
 };
 
-const showExtendForm = (room) => {
-  if (!room.booking_detail_id) {
-    alert('Không tìm thấy thông tin đặt phòng để gia hạn.');
-    return;
-  }
-  extendForm.value = { booking_detail_id: room.booking_detail_id, check_out_date: '' };
-  showExtendModal.value = true;
-};
 
 const submitExtendForm = async () => {
   try {
