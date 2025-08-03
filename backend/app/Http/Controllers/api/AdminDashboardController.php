@@ -56,7 +56,7 @@ class AdminDashboardController extends Controller
         $occupiedRoomsThisMonth = BookingHotel::join($this->bookingDetailsTable, 'booking_hotel.booking_id', '=', $this->bookingDetailsTable . '.booking_id')
             ->where('check_in_date', '<=', $endOfMonth)
             ->where('check_out_date', '>', $startOfMonth)
-            ->whereIn('status', ['confirmed', 'checked_in', 'completed'])
+            ->whereIn('booking_hotel.status', ['confirmed', 'checked_in', 'completed'])
             ->distinct($this->bookingDetailsTable . '.room_id')
             ->count($this->bookingDetailsTable . '.room_id');
         $availableRoomsThisMonth = $totalRooms > $occupiedRoomsThisMonth ? $totalRooms - $occupiedRoomsThisMonth : 0;
@@ -100,7 +100,7 @@ class AdminDashboardController extends Controller
             $occupiedRoomsData[] = BookingHotel::join($this->bookingDetailsTable, 'booking_hotel.booking_id', '=', $this->bookingDetailsTable . '.booking_id')
                 ->where('check_in_date', '<=', $endOfMonth)
                 ->where('check_out_date', '>', $startOfMonth)
-                ->whereIn('status', ['confirmed', 'checked_in', 'completed'])
+                ->whereIn('booking_hotel.status', ['confirmed', 'checked_in', 'completed'])
                 ->distinct($this->bookingDetailsTable . '.room_id')
                 ->count($this->bookingDetailsTable . '.room_id');
 
