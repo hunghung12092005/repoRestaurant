@@ -43,9 +43,4 @@ class BookingHotel extends Model
     {
         return $this->belongsTo(RoomType::class, 'type_id', 'type_id');
     }
-
-    public function bookingRoomStatuses()
-    {
-        return $this->hasMany(BookingRoomStatus::class, 'booking_id', 'booking_id');
-    }
 }

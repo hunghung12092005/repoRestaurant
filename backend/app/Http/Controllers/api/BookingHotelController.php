@@ -986,4 +986,65 @@ class BookingHotelController extends Controller
             ], 500);
         }
     }
+
+    /**
+     * Hủy booking bởi Admin
+     */
+    public function cancelBookingByAdmin(Request $request, $bookingId)
+    {
+        $request->validate([
+            'reason' => 'required|string|max:255',
+        ]);
+
+        try {
+            DB::beginTransaction();
+
+            $booking = BookingHotel::findOrFail($bookingId);
+
+            // Chỉ cho phép admin hủy các đơn đang chờ hoặc đã xác nhận nhưng chưa xếp phòng
+            if (!in_array($booking->status, ['pending_confirmation', 'confirmed_not_assigned'])) {
+                return response()->json([
+                    'error' => 'Chỉ có thể hủy các đơn đang chờ xác nhận hoặc đã xác nhận chưa xếp phòng.'
+                ], 400);
+            }
+
+            // 1. Cập nhật trạng thái của đơn đặt phòng chính
+            $booking->status = 'cancelled';
+            $booking->save();
+
+            // 2. Tạo một bản ghi trong bảng hủy để lưu lại lịch sử
+            // Đây chính là bước "chuyển dữ liệu" bạn yêu cầu
+            CancelBooking::create([
+                'booking_id' => $booking->booking_id,
+                'customer_id' => $booking->customer_id,
+                'cancellation_reason' => 'Hủy bởi Admin: ' . $request->input('reason'),
+                'refund_amount' => 0, // Admin hủy thường không có hoàn tiền tự động
+                'status' => 'processed', // Trạng thái đã xử lý ngay lập tức
+                // Bạn có thể thêm một cột 'cancelled_by_user_id' để lưu ID của admin đã hủy
+            ]);
+            
+            DB::commit();
+
+            Log::info('Admin đã hủy đặt phòng thành công', [
+                'booking_id' => $bookingId,
+                'reason' => $request->input('reason')
+            ]);
+
+            return response()->json([
+                'message' => 'Hủy đặt phòng thành công!',
+                'booking' => $booking // Trả về booking đã cập nhật
+            ], 200);
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+            Log::error('Lỗi khi Admin hủy đặt phòng: ' . $e->getMessage(), [
+                'booking_id' => $bookingId,
+                'trace' => $e->getTraceAsString()
+            ]);
+            return response()->json([
+                'error' => 'Không thể hủy đặt phòng, đã có lỗi xảy ra.',
+                'details' => $e->getMessage()
+            ], 500);
+        }
+    }
 }

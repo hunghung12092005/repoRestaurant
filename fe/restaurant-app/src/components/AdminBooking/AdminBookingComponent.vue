@@ -139,16 +139,6 @@
             <div class="modal-body p-4">
               <loading v-if="dangTai" />
               <div v-else>
-                <!-- Tabs để chuyển đổi giữa chi tiết và lịch sử -->
-                <ul class="nav nav-tabs mb-4">
-                  <li class="nav-item">
-                    <a class="nav-link" :class="{ active: tabHienTai === 'chiTiet' }" @click="tabHienTai = 'chiTiet'">Chi Tiết</a>
-                  </li>
-                  <li class="nav-item">
-                    <a class="nav-link" :class="{ active: tabHienTai === 'lichSu' }" @click="xemLichSuDatPhong">Lịch Sử Đặt Phòng</a>
-                  </li>
-                </ul>
-
                 <!-- Tab Chi Tiết -->
                 <div v-if="tabHienTai === 'chiTiet'">
                   <div class="row g-4 mb-4">
@@ -224,54 +214,56 @@
                     </table>
                   </div>
                 </div>
-
-                <!-- Tab Lịch Sử -->
-                <div v-if="tabHienTai === 'lichSu'">
-                  <h6 class="info-title">Lịch Sử Đặt Phòng</h6>
-                  <div class="table-responsive">
-                    <table class="table booking-table align-middle">
-                      <thead>
-                        <tr>
-                          <th>Mã ĐP</th>
-                          <th>Thời Gian Ở</th>
-                          <th>Tổng Giá</th>
-                          <th class="text-center">Trạng Thái</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        <tr v-if="lichSuDatPhong.length === 0">
-                          <td colspan="4" class="text-center text-muted py-3">Không có lịch sử đặt phòng.</td>
-                        </tr>
-                        <tr v-for="booking in lichSuDatPhong" :key="booking.booking_id">
-                          <td><span class="booking-id">#{{ booking.booking_id }}</span></td>
-                          <td>
-                            <div>Nhận: {{ dinhDangNgayGio(booking.check_in_date, booking.check_in_time) }}</div>
-                            <div>Trả: {{ booking.check_out_datetime || dinhDangNgayGio(booking.check_out_date, booking.check_out_time) }}</div>
-                          </td>
-                          <td><span class="price-tag">{{ dinhDangTien(booking.total_price) }}</span></td>
-                          <td class="text-center">
-                            <span class="badge" :class="layLopTrangThai(booking.status)">
-                              {{ dinhDangTrangThai(booking.status) }}
-                            </span>
-                          </td>
-                        </tr>
-                      </tbody>
-                    </table>
-                  </div>
-                </div>
               </div>
             </div>
             <div v-if="!dangTai && datPhongDuocChon.booking_id" class="modal-footer modal-footer-custom">
-              <div class="me-auto" v-if="['pending_confirmation', 'confirmed_not_assigned'].includes(datPhongDuocChon.status) && coPhongChuaXep">
-                <small class="text-danger">Còn phòng chưa được xếp.</small>
-              </div>
+                <div class="me-auto" v-if="['pending_confirmation', 'confirmed_not_assigned'].includes(datPhongDuocChon.status) && coPhongChuaXep">
+                  <small class="text-danger fw-bold">
+                      <i class="bi bi-exclamation-triangle-fill"></i> Còn phòng chưa được xếp.
+                  </small>
+                </div>
               <button @click="dongModal" class="btn btn-secondary">Đóng</button>
               <button v-if="datPhongDuocChon.status === 'pending_confirmation'" @click="xacNhanDatPhong" class="btn btn-primary">Xác Nhận Đặt Phòng</button>
               <button v-if="datPhongDuocChon.status === 'confirmed_not_assigned' && !coPhongChuaXep" @click="hoanTatXacNhan" class="btn btn-success">Hoàn Tất Xác Nhận</button>
+              <button v-if="['pending_confirmation', 'confirmed_not_assigned'].includes(datPhongDuocChon.status)" @click="openAdminCancelModal(datPhongDuocChon)" class="btn btn-outline-danger">
+                  <i class="bi bi-trash3-fill"></i> Hủy Đơn
+              </button>
               <button v-if="datPhongDuocChon.status === 'pending_cancel' && thongTinHuy?.status === 'requested'" @click="xacNhanHuyDatPhong" class="btn btn-danger">Xác Nhận Hủy</button>
             </div>
           </div>
         </div>
+      </div>
+
+      <!-- Modal Hủy Đơn Hàng Của Admin -->
+      <div v-if="showAdminCancelModal" class="modal-backdrop fade show"></div>
+      <div v-if="showAdminCancelModal" class="modal fade show d-block" tabindex="-1" role="dialog">
+          <div class="modal-dialog modal-dialog-centered" role="document">
+              <div class="modal-content">
+                  <div class="modal-header bg-danger text-white">
+                      <h5 class="modal-title">Xác Nhận Hủy Đơn Hàng</h5>
+                      <button type="button" @click="showAdminCancelModal = false" class="btn-close btn-close-white" aria-label="Close"></button>
+                  </div>
+                  <div class="modal-body">
+                      <p>Bạn có chắc chắn muốn hủy đơn hàng <strong>#{{ bookingToCancel?.booking_id }}</strong> không?</p>
+                      <div class="mb-3">
+                          <label for="admin-cancel-reason" class="form-label"><strong>Lý do hủy (bắt buộc):</strong></label>
+                          <textarea 
+                              id="admin-cancel-reason"
+                              v-model="adminCancelReason"
+                              class="form-control" 
+                              rows="3" 
+                              placeholder="Ví dụ: Khách báo không đến, Hết phòng loại này..."></textarea>
+                      </div>
+                      <div class="alert alert-warning small p-2">
+                          Hành động này không thể hoàn tác. Đơn hàng sẽ được chuyển sang trạng thái "Đã hủy".
+                      </div>
+                  </div>
+                  <div class="modal-footer">
+                      <button type="button" class="btn btn-secondary" @click="showAdminCancelModal = false">Đóng</button>
+                      <button type="button" class="btn btn-danger" @click="executeAdminCancel">Xác Nhận Hủy</button>
+                  </div>
+              </div>
+          </div>
       </div>
     </div>
   </div>
@@ -309,6 +301,46 @@ const sapXepGiam = ref(true);
 const tongSoTrang = ref(1);
 const tongSoBanGhi = ref(0);
 
+const showAdminCancelModal = ref(false);
+const bookingToCancel = ref(null);
+const adminCancelReason = ref('');
+
+const openAdminCancelModal = (booking) => {
+    bookingToCancel.value = booking;
+    adminCancelReason.value = ''; // Reset lý do mỗi lần mở
+    showAdminCancelModal.value = true;
+};
+
+const executeAdminCancel = async () => {
+    if (!adminCancelReason.value.trim()) {
+        alert('Vui lòng nhập lý do hủy đơn hàng.');
+        return;
+    }
+
+    try {
+        const bookingId = bookingToCancel.value.booking_id;
+        
+        await axios.post(`/api/bookings/${bookingId}/admin-cancel`, {
+            reason: adminCancelReason.value,
+        });
+
+        const index = danhSachDatPhong.value.findIndex(item => item.booking_id === bookingId);
+        if (index !== -1) {
+            danhSachDatPhong.value.splice(index, 1);
+        }
+        
+        showAdminCancelModal.value = false;
+        hienModal.value = false; 
+        thongBaoToast.value = 'Hủy thành công! Đơn hàng đã được chuyển vào lịch sử.';
+        showToast();
+
+    } catch (err) {
+        console.error('Lỗi khi admin hủy đơn hàng:', err);
+        const errorMessage = err.response?.data?.error || 'Đã có lỗi xảy ra.';
+        alert(`Lỗi: ${errorMessage}`);
+    }
+};
+
 // Định nghĩa danhSachHienThi với kiểm tra an toàn
 const danhSachHienThi = computed(() => {
   return Array.isArray(danhSachDatPhong.value) ? danhSachDatPhong.value : [];
@@ -344,13 +376,13 @@ const dinhDangNgayGio = (ngay, gio) => {
   });
 };
 
-// Hàm định dạng thời gian sang H:i
+// Hàm định dạng thời gian H:i
 const dinhDangThoiGian = (gio) => {
   if (!gio) return null;
   if (gio.includes(':') && gio.split(':').length >= 2) {
     return gio.slice(0, 5); // Lấy HH:mm
   }
-  return gio; // Giữ nguyên nếu đã là HH:mm
+  return gio; 
 };
 
 // Hàm tìm kiếm
@@ -705,30 +737,6 @@ const xacNhanHuyDatPhong = async () => {
     });
     thongBaoLoi.value = `Lỗi khi xác nhận hủy: ${err.response?.data?.message || err.message}`;
     showToast();
-  }
-};
-
-const xemLichSuDatPhong = async () => {
-  tabHienTai.value = 'lichSu';
-  dangTai.value = true;
-  try {
-    const response = await axios.get('/api/booking-history', {
-      headers: { 'Accept': 'application/json' },
-      timeout: 10000,
-      params: { customer_id: datPhongDuocChon.value.customer_id }
-    });
-    lichSuDatPhong.value = Array.isArray(response.data.data) ? response.data.data : [];
-    if (lichSuDatPhong.value.length === 0) {
-      thongBaoLoi.value = 'Không có lịch sử đặt phòng cho khách hàng này.';
-      showToast();
-    }
-  } catch (err) {
-    console.error('Lỗi khi lấy lịch sử đặt phòng:', err);
-    thongBaoLoi.value = `Lỗi khi lấy lịch sử: ${err.response?.data?.message || err.message}`;
-    showToast();
-    lichSuDatPhong.value = [];
-  } finally {
-    dangTai.value = false;
   }
 };
 

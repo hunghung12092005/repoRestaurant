@@ -116,6 +116,7 @@ Route::patch('/bookings/{bookingId}', [BookingHotelController::class, 'confirmBo
 Route::get('/booking-cancel/{booking_id}', [BookingHotelController::class, 'getCancelInfo']);
 Route::patch('/booking-cancel/{cancel_id}', [BookingHotelController::class, 'confirmCancelBooking']);
 Route::patch('/bookings/{bookingId}/complete', [BookingHotelController::class, 'completeBooking']);
+Route::post('/bookings/{bookingId}/admin-cancel', [BookingHotelController::class, 'cancelBookingByAdmin']);
 
 Route::get('/booking-histories', [BookingHistoryController::class, 'index']);
 Route::get('/booking-histories/{status_id}', [BookingHistoryController::class, 'show']);
