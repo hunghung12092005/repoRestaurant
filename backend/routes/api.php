@@ -115,6 +115,7 @@ Route::post('/assign-room/{bookingDetailId}', [BookingHotelController::class, 'a
 Route::patch('/bookings/{bookingId}', [BookingHotelController::class, 'confirmBooking']);
 Route::get('/booking-cancel/{booking_id}', [BookingHotelController::class, 'getCancelInfo']);
 Route::patch('/booking-cancel/{cancel_id}', [BookingHotelController::class, 'confirmCancelBooking']);
+Route::patch('/bookings/{bookingId}/complete', [BookingHotelController::class, 'completeBooking']);
 
 Route::get('/booking-histories', [BookingHistoryController::class, 'index']);
 Route::get('/booking-histories/{status_id}', [BookingHistoryController::class, 'show']);
