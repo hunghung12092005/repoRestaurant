@@ -1008,19 +1008,15 @@ class BookingHotelController extends Controller
                 ], 400);
             }
 
-            // 1. Cập nhật trạng thái của đơn đặt phòng chính
             $booking->status = 'cancelled';
             $booking->save();
 
-            // 2. Tạo một bản ghi trong bảng hủy để lưu lại lịch sử
-            // Đây chính là bước "chuyển dữ liệu" bạn yêu cầu
             CancelBooking::create([
                 'booking_id' => $booking->booking_id,
                 'customer_id' => $booking->customer_id,
                 'cancellation_reason' => 'Hủy bởi Admin: ' . $request->input('reason'),
-                'refund_amount' => 0, // Admin hủy thường không có hoàn tiền tự động
-                'status' => 'processed', // Trạng thái đã xử lý ngay lập tức
-                // Bạn có thể thêm một cột 'cancelled_by_user_id' để lưu ID của admin đã hủy
+                'refund_amount' => 0, 
+                'status' => 'processed', 
             ]);
             
             DB::commit();
