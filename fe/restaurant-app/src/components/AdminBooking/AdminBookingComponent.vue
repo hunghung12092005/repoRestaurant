@@ -40,6 +40,7 @@
               <select id="status-filter" v-model="locTrangThai" class="form-select" @change="locDanhSach">
                 <option value="">Tất cả</option>
                 <option value="pending_confirmation">Chờ xác nhận</option>
+                <option value="confirmed_not_assigned">Xác nhận chưa xếp phòng</option>
                 <option value="confirmed">Đã xác nhận</option>
                 <option value="pending_cancel">Chờ xác nhận hủy</option>
                 <option value="cancelled">Đã hủy</option>
@@ -64,7 +65,7 @@
 
       <!-- Bảng danh sách đặt phòng -->
       <div class="table-container">
-        <table class="table booking-table align-middle" v-if="danhSachHienThi.length > 0">
+        <table class="table booking-table align-middle" v-if="danhSachHienThi && danhSachHienThi.length > 0">
           <thead>
             <tr>
               <th scope="col" @click="sapXep('booking_id')">Mã ĐP <i v-if="sapXepCot === 'booking_id'" :class="sapXepGiam ? 'bi bi-arrow-down' : 'bi bi-arrow-up'"></i></th>
@@ -83,8 +84,8 @@
                 <div class="description-text">{{ datPhong.customer?.customer_phone || 'Không có SĐT' }}</div>
               </td>
               <td>
-                  <div>Nhận: {{ dinhDangNgay(datPhong.check_in_date) }}</div>
-                  <div>Trả: {{ dinhDangNgay(datPhong.check_out_date) }}</div>
+                <div>Nhận: {{ dinhDangNgayGio(datPhong.check_in_date, datPhong.check_in_time) }}</div>
+                <div>Trả: {{ datPhong.check_out_datetime || dinhDangNgayGio(datPhong.check_out_date, datPhong.check_out_time) }}</div>
               </td>
               <td><span class="price-tag">{{ dinhDangTien(datPhong.total_price) }}</span></td>
               <td class="text-center">
@@ -94,7 +95,7 @@
               </td>
               <td class="text-center action-buttons">
                 <button @click="moModalChiTiet(datPhong)" class="btn btn-outline-primary btn-sm" title="Xem chi tiết">
-                   <i class="bi bi-eye-fill"></i>
+                  <i class="bi bi-eye-fill"></i>
                 </button>
               </td>
             </tr>
@@ -114,7 +115,7 @@
           <li class="page-item" :class="{ disabled: trangHienTai === 1 }">
             <a class="page-link" href="#" @click.prevent="chuyenTrang(trangHienTai - 1)">«</a>
           </li>
-          <li class="page-item" v-for="trang in pageRange" :key="trang" :class="{ active: trang === trangHienTai }">
+          <li class="page-item" v-for="trang in danhSachTrang" :key="trang" :class="{ active: trang === trangHienTai }">
             <a class="page-link" href="#" @click.prevent="chuyenTrang(trang)">{{ trang }}</a>
           </li>
           <li class="page-item" :class="{ disabled: trangHienTai === tongSoTrang }">
@@ -138,102 +139,142 @@
             <div class="modal-body p-4">
               <loading v-if="dangTai" />
               <div v-else>
-                <div class="row g-4 mb-4">
-                  <div class="col-lg-6">
-                    <h6 class="info-title">Thông tin khách hàng</h6>
-                    <ul class="info-list">
-                      <li><span>Họ tên:</span><strong>{{ datPhongDuocChon.customer?.customer_name || 'N/A' }}</strong></li>
-                      <li><span>Điện thoại:</span><strong>{{ datPhongDuocChon.customer?.customer_phone || 'N/A' }}</strong></li>
-                      <li><span>Email:</span><strong>{{ datPhongDuocChon.customer?.customer_email || 'N/A' }}</strong></li>
-                    </ul>
+                <!-- Tab Chi Tiết -->
+                <div v-if="tabHienTai === 'chiTiet'">
+                  <div class="row g-4 mb-4">
+                    <div class="col-lg-6">
+                      <h6 class="info-title">Thông tin khách hàng</h6>
+                      <ul class="info-list">
+                        <li><span>Họ tên:</span><strong>{{ datPhongDuocChon.customer?.customer_name || 'N/A' }}</strong></li>
+                        <li><span>Điện thoại:</span><strong>{{ datPhongDuocChon.customer?.customer_phone || 'N/A' }}</strong></li>
+                        <li><span>Email:</span><strong>{{ datPhongDuocChon.customer?.customer_email || 'N/A' }}</strong></li>
+                      </ul>
+                    </div>
+                    <div class="col-lg-6">
+                      <h6 class="info-title">Thông tin đặt phòng</h6>
+                      <ul class="info-list">
+                        <li><span>Nhận phòng:</span><strong>{{ dinhDangNgayGio(datPhongDuocChon.check_in_date, datPhongDuocChon.check_in_time) }}</strong></li>
+                        <li><span>Trả phòng:</span><strong>{{ datPhongDuocChon.check_out_datetime || dinhDangNgayGio(datPhongDuocChon.check_out_date, datPhongDuocChon.check_out_time) }}</strong></li>
+                        <li><span>Loại đặt:</span><strong>{{ dinhDangLoaiDatPhong(datPhongDuocChon.booking_type) }}</strong></li>
+                        <li><span>Ghi chú:</span><strong>{{ datPhongDuocChon.note || 'Không có' }}</strong></li>
+                      </ul>
+                    </div>
                   </div>
-                  <div class="col-lg-6">
-                    <h6 class="info-title">Thông tin đặt phòng</h6>
-                    <ul class="info-list">
-                      <li><span>Nhận phòng:</span><strong>{{ dinhDangNgay(datPhongDuocChon.check_in_date) }}</strong></li>
-                      <li><span>Trả phòng:</span><strong>{{ dinhDangNgay(datPhongDuocChon.check_out_date) }}</strong></li>
-                      <li><span>Loại đặt:</span><strong>{{ dinhDangLoaiDatPhong(datPhongDuocChon.booking_type) }}</strong></li>
-                      <li><span>Ghi chú:</span><strong>{{ datPhongDuocChon.note || 'Không có' }}</strong></li>
-                    </ul>
+                  <div v-if="thongTinHuy" class="row g-4 mb-4">
+                    <div class="col-12">
+                      <h6 class="info-title text-danger">Thông tin hủy đặt phòng</h6>
+                      <ul class="info-list">
+                        <li><span>Lý do hủy:</span><strong>{{ thongTinHuy.reason || 'Không có' }}</strong></li>
+                        <li><span>Số tiền hoàn lại:</span><strong>{{ dinhDangTien(thongTinHuy.refund_amount) }}</strong></li>
+                        <li><span>Ngân hàng:</span><strong>{{ thongTinHuy.refund_bank || 'N/A' }}</strong></li>
+                        <li><span>Số tài khoản:</span><strong>{{ thongTinHuy.refund_account_number || 'N/A' }}</strong></li>
+                        <li><span>Tên tài khoản:</span><strong>{{ thongTinHuy.refund_account_name || 'N/A' }}</strong></li>
+                        <li><span>Ngày yêu cầu hủy:</span><strong>{{ dinhDangNgay(thongTinHuy.cancellation_date) }}</strong></li>
+                        <li><span>Trạng thái:</span><strong :class="thongTinHuy.status === 'processed' ? 'text-success' : 'text-warning'">{{ dinhDangTrangThaiHuy(thongTinHuy.status) }}</strong></li>
+                      </ul>
+                    </div>
                   </div>
-                </div>
-                <div v-if="thongTinHuy" class="row g-4 mb-4">
-                  <div class="col-12">
-                    <h6 class="info-title text-danger">Thông tin hủy đặt phòng</h6>
-                    <ul class="info-list">
-                      <li><span>Lý do hủy:</span><strong>{{ thongTinHuy.reason || 'Không có' }}</strong></li>
-                      <li><span>Số tiền hoàn lại:</span><strong>{{ dinhDangTien(thongTinHuy.refund_amount) }}</strong></li>
-                      <li><span>Ngân hàng:</span><strong>{{ thongTinHuy.refund_bank || 'N/A' }}</strong></li>
-                      <li><span>Số tài khoản:</span><strong>{{ thongTinHuy.refund_account_number || 'N/A' }}</strong></li>
-                      <li><span>Tên tài khoản:</span><strong>{{ thongTinHuy.refund_account_name || 'N/A' }}</strong></li>
-                      <li><span>Ngày yêu cầu hủy:</span><strong>{{ dinhDangNgay(thongTinHuy.cancellation_date) }}</strong></li>
-                      <li><span>Trạng thái:</span><strong :class="thongTinHuy.status === 'processed' ? 'text-success' : 'text-warning'">{{ dinhDangTrangThaiHuy(thongTinHuy.status) }}</strong></li>
-                    </ul>
+                  <div class="status-bar">
+                    <div>Trạng thái đặt phòng: <span class="badge ms-2" :class="layLopTrangThai(datPhongDuocChon.status)">{{ dinhDangTrangThai(datPhongDuocChon.status) }}</span></div>
+                    <div>Trạng thái thanh toán: <span class="badge ms-2" :class="layLopTrangThaiThanhToan(datPhongDuocChon.payment_status)">{{ datPhongDuocChon.payment_status_display || dinhDangTrangThaiThanhToan(datPhongDuocChon.payment_status) }}</span></div>
+                    <div class="total-price">Tổng cộng: <strong>{{ dinhDangTien(datPhongDuocChon.total_price) }}</strong></div>
                   </div>
-                </div>
-                <div class="status-bar">
-                  <div>Trạng thái đặt phòng: <span class="badge ms-2" :class="layLopTrangThai(datPhongDuocChon.status)">{{ dinhDangTrangThai(datPhongDuocChon.status) }}</span></div>
-                  <div>Trạng thái thanh toán: <span class="badge ms-2" :class="layLopTrangThaiThanhToan(datPhongDuocChon.payment_status)">{{ datPhongDuocChon.payment_status_display || dinhDangTrangThaiThanhToan(datPhongDuocChon.payment_status) }}</span></div>
-                  <div class="total-price">Tổng cộng: <strong>{{ dinhDangTien(datPhongDuocChon.total_price) }}</strong></div>
-                </div>
-                <h6 class="info-title mt-4">Chi Tiết Các Phòng Đã Đặt</h6>
-                <div class="table-responsive">
-                  <table class="table room-assignment-table">
-                    <thead>
-                      <tr>
-                        <th>Loại Phòng Đặt</th>
-                        <th>Phòng Được Xếp</th>
-                        <th class="text-end">Giá</th>
-                        <th style="width: 35%;">Xếp Phòng</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      <tr v-if="chiTietDatPhongHopLe.length === 0"><td colspan="4" class="text-center text-muted py-3">Không có chi tiết phòng.</td></tr>
-                      <tr v-for="chiTiet in chiTietDatPhongHopLe" :key="chiTiet.booking_detail_id">
-                        <td>{{ chiTiet.type_name || 'Không xác định' }}</td>
-                        <td>
-                          <span v-if="chiTiet.room?.room_name && chiTiet.room.room_name !== 'Chưa xếp'" class="text-success fw-bold">{{ chiTiet.room.room_name }}</span>
-                          <span v-else class="text-muted">Chưa xếp</span>
-                        </td>
-                        <td class="text-end">{{ dinhDangTien(chiTiet.total_price) }}</td>
-                        <td>
-                          <div v-if="datPhongDuocChon.status === 'pending_confirmation'">
-                            <select v-if="phongTrong[chiTiet.booking_detail_id]?.length > 0" v-model="chiTiet.room_id" @change="xepPhong(chiTiet)" class="form-select form-select-sm">
-                              <option value="">-- Chọn phòng --</option>
-                              <option v-for="phong in phongTrong[chiTiet.booking_detail_id]" :key="phong.room_id" :value="phong.room_id">{{ phong.room_name }}</option>
-                            </select>
-                            <div v-else class="text-warning small">Hết phòng trống</div>
-                          </div>
-                          <div v-else class="text-muted small">Đã xác nhận, không thể thay đổi</div>
-                        </td>
-                      </tr>
-                    </tbody>
-                  </table>
+                  <h6 class="info-title mt-4">Chi Tiết Các Phòng Đã Đặt</h6>
+                  <div class="table-responsive">
+                    <table class="table room-assignment-table">
+                      <thead>
+                        <tr>
+                          <th>Loại Phòng Đặt</th>
+                          <th>Phòng Được Xếp</th>
+                          <th class="text-end">Giá</th>
+                          <th style="width: 35%;">Xếp Phòng</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        <tr v-if="chiTietDatPhongHopLe.length === 0"><td colspan="4" class="text-center text-muted py-3">Không có chi tiết phòng.</td></tr>
+                        <tr v-for="chiTiet in chiTietDatPhongHopLe" :key="chiTiet.booking_detail_id">
+                          <td>{{ chiTiet.type_name || 'Không xác định' }}</td>
+                          <td>
+                            <span v-if="chiTiet.room?.room_name && chiTiet.room.room_name !== 'Chưa xếp'" class="text-success fw-bold">{{ chiTiet.room.room_name }}</span>
+                            <span v-else class="text-muted">Chưa xếp</span>
+                          </td>
+                          <td class="text-end">{{ dinhDangTien(chiTiet.total_price) }}</td>
+                          <td>
+                            <div v-if="['pending_confirmation', 'confirmed_not_assigned'].includes(datPhongDuocChon.status)">
+                              <select v-if="phongTrong[chiTiet.booking_detail_id]?.length > 0" v-model="chiTiet.room_id" @change="xepPhong(chiTiet)" class="form-select form-select-sm" :disabled="dangXepPhong[chiTiet.booking_detail_id]">
+                                <option value="">-- Chọn phòng --</option>
+                                <option v-for="phong in phongTrong[chiTiet.booking_detail_id]" :key="phong.room_id" :value="phong.room_id">{{ phong.room_name }}</option>
+                              </select>
+                              <div v-else class="text-warning small">Hết phòng trống</div>
+                            </div>
+                            <div v-else class="text-muted small">Không thể xếp phòng ở trạng thái này</div>
+                          </td>
+                        </tr>
+                      </tbody>
+                    </table>
+                  </div>
                 </div>
               </div>
             </div>
             <div v-if="!dangTai && datPhongDuocChon.booking_id" class="modal-footer modal-footer-custom">
-              <div class="me-auto" v-if="datPhongDuocChon.status === 'pending_confirmation' && coPhongChuaXep">
-                <small class="text-danger">Vui lòng xếp tất cả các phòng để xác nhận.</small>
-              </div>
+                <div class="me-auto" v-if="['pending_confirmation', 'confirmed_not_assigned'].includes(datPhongDuocChon.status) && coPhongChuaXep">
+                  <small class="text-danger fw-bold">
+                      <i class="bi bi-exclamation-triangle-fill"></i> Còn phòng chưa được xếp.
+                  </small>
+                </div>
               <button @click="dongModal" class="btn btn-secondary">Đóng</button>
-              <button v-if="datPhongDuocChon.status === 'pending_confirmation'" @click="xacNhanDatPhong" class="btn btn-primary" :disabled="coPhongChuaXep">Xác Nhận Đặt Phòng</button>
+              <button v-if="datPhongDuocChon.status === 'pending_confirmation'" @click="xacNhanDatPhong" class="btn btn-primary">Xác Nhận Đặt Phòng</button>
+              <button v-if="datPhongDuocChon.status === 'confirmed_not_assigned' && !coPhongChuaXep" @click="hoanTatXacNhan" class="btn btn-success">Hoàn Tất Xác Nhận</button>
+              <button v-if="['pending_confirmation', 'confirmed_not_assigned'].includes(datPhongDuocChon.status)" @click="openAdminCancelModal(datPhongDuocChon)" class="btn btn-outline-danger">
+                  <i class="bi bi-trash3-fill"></i> Hủy Đơn
+              </button>
               <button v-if="datPhongDuocChon.status === 'pending_cancel' && thongTinHuy?.status === 'requested'" @click="xacNhanHuyDatPhong" class="btn btn-danger">Xác Nhận Hủy</button>
             </div>
           </div>
         </div>
+      </div>
+
+      <!-- Modal Hủy Đơn Hàng Của Admin -->
+      <div v-if="showAdminCancelModal" class="modal-backdrop fade show"></div>
+      <div v-if="showAdminCancelModal" class="modal fade show d-block" tabindex="-1" role="dialog">
+          <div class="modal-dialog modal-dialog-centered" role="document">
+              <div class="modal-content">
+                  <div class="modal-header bg-danger text-white">
+                      <h5 class="modal-title">Xác Nhận Hủy Đơn Hàng</h5>
+                      <button type="button" @click="showAdminCancelModal = false" class="btn-close btn-close-white" aria-label="Close"></button>
+                  </div>
+                  <div class="modal-body">
+                      <p>Bạn có chắc chắn muốn hủy đơn hàng <strong>#{{ bookingToCancel?.booking_id }}</strong> không?</p>
+                      <div class="mb-3">
+                          <label for="admin-cancel-reason" class="form-label"><strong>Lý do hủy (bắt buộc):</strong></label>
+                          <textarea 
+                              id="admin-cancel-reason"
+                              v-model="adminCancelReason"
+                              class="form-control" 
+                              rows="3" 
+                              placeholder="Ví dụ: Khách báo không đến, Hết phòng loại này..."></textarea>
+                      </div>
+                      <div class="alert alert-warning small p-2">
+                          Hành động này không thể hoàn tác. Đơn hàng sẽ được chuyển sang trạng thái "Đã hủy".
+                      </div>
+                  </div>
+                  <div class="modal-footer">
+                      <button type="button" class="btn btn-secondary" @click="showAdminCancelModal = false">Đóng</button>
+                      <button type="button" class="btn btn-danger" @click="executeAdminCancel">Xác Nhận Hủy</button>
+                  </div>
+              </div>
+          </div>
       </div>
     </div>
   </div>
 </template>
 
 <script setup>
-// --- TOÀN BỘ SCRIPT CỦA BẠN GIỮ NGUYÊN ---
 import { ref, onMounted, computed } from 'vue';
 import axios from 'axios';
 import { Toast } from 'bootstrap';
 import loading from '../loading.vue';
-import { debounce } from 'lodash'; // Thêm lodash để dùng debounce
+import { debounce } from 'lodash';
 
 const danhSachDatPhong = ref([]);
 const hienModal = ref(false);
@@ -245,23 +286,110 @@ const dangTai = ref(false);
 const isLoading = ref(true);
 const thongBaoToast = ref('');
 const thongTinHuy = ref(null);
+const dangXepPhong = ref({});
+const lichSuDatPhong = ref([]);
+const tabHienTai = ref('chiTiet');
 
 const tuKhoaTimKiem = ref('');
 const locTrangThai = ref('');
 const tuNgay = ref('');
 const denNgay = ref('');
 const trangHienTai = ref(1);
-const soBanGhiTrenTrang = ref(10); // Giảm số bản ghi để tăng tốc
+const soBanGhiTrenTrang = ref(10);
 const sapXepCot = ref('booking_id');
 const sapXepGiam = ref(true);
 const tongSoTrang = ref(1);
 const tongSoBanGhi = ref(0);
 
+const showAdminCancelModal = ref(false);
+const bookingToCancel = ref(null);
+const adminCancelReason = ref('');
+
+const openAdminCancelModal = (booking) => {
+    bookingToCancel.value = booking;
+    adminCancelReason.value = ''; // Reset lý do mỗi lần mở
+    showAdminCancelModal.value = true;
+};
+
+const executeAdminCancel = async () => {
+    if (!adminCancelReason.value.trim()) {
+        alert('Vui lòng nhập lý do hủy đơn hàng.');
+        return;
+    }
+
+    try {
+        const bookingId = bookingToCancel.value.booking_id;
+        
+        await axios.post(`/api/bookings/${bookingId}/admin-cancel`, {
+            reason: adminCancelReason.value,
+        });
+
+        const index = danhSachDatPhong.value.findIndex(item => item.booking_id === bookingId);
+        if (index !== -1) {
+            danhSachDatPhong.value.splice(index, 1);
+        }
+        
+        showAdminCancelModal.value = false;
+        hienModal.value = false; 
+        thongBaoToast.value = 'Hủy thành công! Đơn hàng đã được chuyển vào lịch sử.';
+        showToast();
+
+    } catch (err) {
+        console.error('Lỗi khi admin hủy đơn hàng:', err);
+        const errorMessage = err.response?.data?.error || 'Đã có lỗi xảy ra.';
+        alert(`Lỗi: ${errorMessage}`);
+    }
+};
+
+// Định nghĩa danhSachHienThi với kiểm tra an toàn
+const danhSachHienThi = computed(() => {
+  return Array.isArray(danhSachDatPhong.value) ? danhSachDatPhong.value : [];
+});
+
+const danhSachTrang = computed(() => {
+  const maxPages = 10, halfPages = Math.floor(maxPages / 2);
+  let start = Math.max(1, trangHienTai.value - halfPages);
+  let end = Math.min(tongSoTrang.value, start + maxPages - 1);
+  if (end - start + 1 < maxPages) {
+    start = Math.max(1, end - maxPages + 1);
+  }
+  return Array.from({ length: end - start + 1 }, (_, i) => start + i);
+});
+
+const chiTietDatPhongHopLe = computed(() => chiTietDatPhong.value.filter(c => c && c.booking_detail_id));
+
+const coPhongChuaXep = computed(() => {
+  if (!chiTietDatPhong.value || chiTietDatPhong.value.length === 0) return true;
+  return chiTietDatPhong.value.some(c => !c.room_id);
+});
+
+// Hàm định dạng ngày giờ
+const dinhDangNgayGio = (ngay, gio) => {
+  if (!ngay) return 'N/A';
+  const dateTime = gio ? new Date(`${ngay}T${gio}`) : new Date(ngay);
+  return dateTime.toLocaleString('vi-VN', {
+    day: '2-digit',
+    month: '2-digit',
+    year: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
+  });
+};
+
+// Hàm định dạng thời gian H:i
+const dinhDangThoiGian = (gio) => {
+  if (!gio) return null;
+  if (gio.includes(':') && gio.split(':').length >= 2) {
+    return gio.slice(0, 5); // Lấy HH:mm
+  }
+  return gio; 
+};
+
 // Hàm tìm kiếm
 const timKiemDatPhong = async () => {
   if (!tuKhoaTimKiem.value.trim()) {
-    // Nếu ô tìm kiếm rỗng, tải lại toàn bộ danh sách
-    taiDanhSachDatPhong();
+    trangHienTai.value = 1;
+    layDanhSachDatPhong();
     return;
   }
 
@@ -290,7 +418,7 @@ const timKiemDatPhong = async () => {
   }
 };
 
-// Hàm tải danh sách đặt phòng (gọi khi khởi tạo hoặc khi ô tìm kiếm rỗng)
+// Hàm tải danh sách đặt phòng
 const taiDanhSachDatPhong = async () => {
   dangTai.value = true;
   isLoading.value = true;
@@ -316,26 +444,6 @@ const taiDanhSachDatPhong = async () => {
   }
 };
 
-const danhSachHienThi = computed(() => danhSachDatPhong.value);
-
-const danhSachTrang = computed(() => {
-  const maxPages = 10, halfPages = Math.floor(maxPages / 2);
-  let start = Math.max(1, trangHienTai.value - halfPages);
-  let end = Math.min(tongSoTrang.value, start + maxPages - 1);
-  if (end - start + 1 < maxPages) {
-    start = Math.max(1, end - maxPages + 1);
-  }
-  return Array.from({ length: end - start + 1 }, (_, i) => start + i);
-});
-
-const chiTietDatPhongHopLe = computed(() => chiTietDatPhong.value.filter(c => c && c.booking_detail_id));
-
-const coPhongChuaXep = computed(() => {
-  if (!chiTietDatPhong.value || chiTietDatPhong.value.length === 0) return true;
-  return chiTietDatPhong.value.some(c => !c.room_id);
-});
-
-// Debounce tìm kiếm
 const timKiemDatPhongDebounced = debounce(() => {
   trangHienTai.value = 1;
   layDanhSachDatPhong();
@@ -380,6 +488,7 @@ const layDanhSachDatPhong = async () => {
     isLoading.value = false;
   }
 };
+
 const moModalChiTiet = async (datPhong) => {
   datPhongDuocChon.value = datPhong;
   dangTai.value = true;
@@ -387,6 +496,8 @@ const moModalChiTiet = async (datPhong) => {
   thongBaoLoi.value = '';
   phongTrong.value = {};
   thongTinHuy.value = null;
+  lichSuDatPhong.value = [];
+  tabHienTai.value = 'chiTiet';
 
   try {
     // Tải chi tiết đặt phòng
@@ -404,7 +515,7 @@ const moModalChiTiet = async (datPhong) => {
       : [];
 
     // Tải thông tin hủy nếu cần
-    if (datPhong.status === 'pending_cancel' || datPhong.status === 'cancelled') {
+    if (['pending_cancel', 'cancelled'].includes(datPhong.status)) {
       try {
         const cancelRes = await axios.get(`/api/booking-cancel/${datPhong.booking_id}`, {
           headers: { 'Accept': 'application/json' },
@@ -420,37 +531,9 @@ const moModalChiTiet = async (datPhong) => {
       }
     }
 
-    // Tải phòng trống nếu trạng thái là pending_confirmation
-    if (datPhong.status === 'pending_confirmation') {
-      const chiTietCanPhongTrong = chiTietDatPhong.value.filter(c => c.room_type); // Lấy tất cả chi tiết có room_type
-      if (chiTietCanPhongTrong.length > 0) {
-        try {
-          const roomTypes = [...new Set(chiTietCanPhongTrong.map(c => c.room_type))];
-          const phongTrongPromises = roomTypes.map(roomType =>
-            axios.post('/api/available-rooms', {
-              room_type: Number(roomType),
-              check_in_date: datPhong.check_in_date,
-              check_out_date: datPhong.check_out_date
-            }, {
-              headers: { 'Accept': 'application/json' },
-              timeout: 5000,
-            })
-          );
-
-          const phongTrongResponses = await Promise.all(phongTrongPromises);
-          chiTietCanPhongTrong.forEach(chiTiet => {
-            const resPhong = phongTrongResponses.find(resp =>
-              resp.config.data.includes(`"room_type":${chiTiet.room_type}`)
-            );
-            phongTrong.value[chiTiet.booking_detail_id] = Array.isArray(resPhong?.data)
-              ? resPhong.data.filter(room => room.status !== 'occupied') // Lọc phòng không ở trạng thái occupied
-              : [];
-          });
-        } catch (err) {
-          console.error('Lỗi khi lấy phòng trống:', err);
-          thongBaoLoi.value = 'Không thể tải danh sách phòng trống.';
-        }
-      }
+    // Tải phòng trống nếu trạng thái là pending_confirmation hoặc confirmed_not_assigned
+    if (['pending_confirmation', 'confirmed_not_assigned'].includes(datPhong.status)) {
+      await taiPhongTrong(datPhong);
     }
   } catch (err) {
     console.error('Lỗi khi lấy chi tiết đặt phòng:', err);
@@ -462,39 +545,156 @@ const moModalChiTiet = async (datPhong) => {
   }
 };
 
+const taiPhongTrong = async (datPhong) => {
+  try {
+    const chiTietCanPhongTrong = chiTietDatPhong.value.filter(c => c.room_type);
+    if (chiTietCanPhongTrong.length > 0) {
+      const roomTypes = [...new Set(chiTietCanPhongTrong.map(c => c.room_type))];
+      const phongTrongPromises = roomTypes.map(roomType => {
+        if (!roomType || !datPhong.check_in_date || !datPhong.check_out_date) {
+          throw new Error(`Dữ liệu không hợp lệ: room_type=${roomType}, check_in_date=${datPhong.check_in_date}, check_out_date=${datPhong.check_out_date}`);
+        }
+        const payload = {
+          room_type: Number(roomType),
+          check_in_date: datPhong.check_in_date,
+          check_out_date: datPhong.check_out_date,
+          check_in_time: dinhDangThoiGian(datPhong.check_in_time),
+          check_out_time: dinhDangThoiGian(datPhong.check_out_time)
+        };
+        console.log('Payload gửi tới /api/available-rooms:', payload);
+        return axios.get('/api/available-rooms', {
+          params: payload,
+          headers: { 'Accept': 'application/json' },
+          timeout: 5000,
+        });
+      });
+
+      const phongTrongResponses = await Promise.all(phongTrongPromises);
+      chiTietCanPhongTrong.forEach(chiTiet => {
+        const resPhong = phongTrongResponses.find(resp =>
+          resp.config.params.room_type === chiTiet.room_type
+        );
+        let availableRooms = Array.isArray(resPhong?.data)
+          ? resPhong.data.filter(room => room.status !== 'occupied')
+          : [];
+        // Thêm phòng hiện tại vào danh sách nếu đã được gán
+        if (chiTiet.room?.room_id && chiTiet.room.room_name !== 'Chưa xếp') {
+          availableRooms = [
+            ...availableRooms,
+            {
+              room_id: chiTiet.room.room_id,
+              room_name: chiTiet.room.room_name,
+              status: chiTiet.room.status
+            }
+          ];
+        }
+        phongTrong.value[chiTiet.booking_detail_id] = availableRooms;
+      });
+    }
+  } catch (err) {
+    console.error('Lỗi khi lấy phòng trống:', err);
+    console.error('Chi tiết lỗi:', err.response?.data);
+    thongBaoLoi.value = `Không thể tải danh sách phòng trống: ${err.response?.data?.message || err.message}`;
+    showToast();
+  }
+};
+
 const xepPhong = async (chiTiet) => {
   if (!chiTiet.room_id) return;
+
+  dangXepPhong.value[chiTiet.booking_detail_id] = true;
   try {
-    await axios.post(`/api/assign-room/${chiTiet.booking_detail_id}`, { 
+    const payload = { 
       room_id: chiTiet.room_id, 
       check_in_date: datPhongDuocChon.value.check_in_date, 
-      check_out_date: datPhongDuocChon.value.check_out_date 
-    }, { headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' } });
-    const selectedRoom = phongTrong.value[chiTiet.booking_detail_id].find(p => p.room_id == chiTiet.room_id);
-    if (selectedRoom) chiTiet.room = { ...selectedRoom };
+      check_out_date: datPhongDuocChon.value.check_out_date,
+      // Bạn có thể bỏ check_in_time và check_out_time nếu logic backend không dùng đến
+      check_in_time: dinhDangThoiGian(datPhongDuocChon.value.check_in_time),
+      check_out_time: dinhDangThoiGian(datPhongDuocChon.value.check_out_time)
+    };
+    
+    // API call không thay đổi
+    const response = await axios.post(`/api/assign-room/${chiTiet.booking_detail_id}`, payload, { 
+      headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' } 
+    });
+    
+    // Cập nhật giao diện local
+    const selectedRoom = phongTrong.value[chiTiet.booking_detail_id]?.find(p => p.room_id == chiTiet.room_id);
+    if (selectedRoom) {
+      chiTiet.room = { ...selectedRoom };
+    }
+
+    thongBaoToast.value = 'Xếp phòng thành công!';
+    showToast();
+    
+    // Sau khi xếp phòng thành công, ta nên tải lại danh sách phòng trống để đảm bảo tính nhất quán
+    await taiPhongTrong(datPhongDuocChon.value);
+
   } catch (err) {
     console.error('Lỗi khi xếp phòng:', err);
-    alert(`Lỗi khi xếp phòng: ${err.response?.data?.error || err.message}`);
-    chiTiet.room_id = "";
+    thongBaoLoi.value = `Lỗi khi xếp phòng: ${err.response?.data?.error || err.message}`;
+    showToast();
+    
+    // Nếu có lỗi, trả lại giá trị cũ
+    const originalDetail = chiTietDatPhong.value.find(d => d.booking_detail_id === chiTiet.booking_detail_id);
+    chiTiet.room_id = originalDetail.room_id || "";
+  } finally {
+    dangXepPhong.value[chiTiet.booking_detail_id] = false;
   }
 };
 
 const xacNhanDatPhong = async () => {
   try {
-    await axios.patch(`/api/bookings/${datPhongDuocChon.value.booking_id}`, { 
-      status: 'confirmed' 
-    }, { headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' } });
+    const response = await axios.patch(`/api/bookings/${datPhongDuocChon.value.booking_id}`, { 
+      status: 'confirmed_not_assigned'
+    }, { 
+      headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' } 
+    });
+    
+    const index = danhSachDatPhong.value.findIndex(item => item.booking_id === datPhongDuocChon.value.booking_id);
+    if (index !== -1) {
+      danhSachDatPhong.value[index].status = 'confirmed_not_assigned';
+    }
+    datPhongDuocChon.value.status = 'confirmed_not_assigned';
+    thongBaoToast.value = 'Xác nhận đặt phòng thành công!';
+    showToast();
+  } catch (err) {
+    console.error('Lỗi khi xác nhận đặt phòng:', {
+      message: err.message,
+      status: err.response?.status,
+      data: err.response?.data
+    });
+    thongBaoLoi.value = `Lỗi khi xác nhận đặt phòng: ${err.response?.data?.error || err.message}`;
+    showToast();
+  }
+};
+
+const hoanTatXacNhan = async () => {
+  if (coPhongChuaXep.value) {
+    thongBaoLoi.value = 'Vui lòng xếp tất cả các phòng trước khi hoàn tất xác nhận.';
+    showToast();
+    return;
+  }
+  try {
+    const response = await axios.patch(`/api/bookings/${datPhongDuocChon.value.booking_id}/complete`, {}, { 
+      headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' } 
+    });
     
     const index = danhSachDatPhong.value.findIndex(item => item.booking_id === datPhongDuocChon.value.booking_id);
     if (index !== -1) {
       danhSachDatPhong.value[index].status = 'confirmed';
     }
-    thongBaoToast.value = 'Xác nhận đặt phòng thành công!';
+    datPhongDuocChon.value.status = 'confirmed';
+    thongBaoToast.value = 'Hoàn tất xác nhận thành công!';
     showToast();
-    dongModal();
   } catch (err) {
-    console.error('Lỗi khi xác nhận đặt phòng:', err);
-    thongBaoLoi.value = 'Lỗi khi xác nhận đặt phòng!';
+    console.error('Lỗi khi hoàn tất xác nhận:', {
+      message: err.message,
+      status: err.response?.status,
+      data: err.response?.data
+    });
+    thongBaoLoi.value = `Lỗi khi hoàn tất xác nhận: ${err.response?.data?.error || err.response?.data?.details || err.message}`;
+    showToast();
   }
 };
 
@@ -503,6 +703,7 @@ const xacNhanHuyDatPhong = async () => {
     const cancelId = thongTinHuy.value?.cancel_id;
     if (!cancelId) {
       thongBaoLoi.value = 'Không tìm thấy thông tin hủy để xác nhận.';
+      showToast();
       return;
     }
     await axios.patch(`/api/booking-cancel/${cancelId}`, {
@@ -516,14 +717,26 @@ const xacNhanHuyDatPhong = async () => {
     if (index !== -1) {
       danhSachDatPhong.value[index].status = 'cancelled';
     }
+    datPhongDuocChon.value.status = 'cancelled';
+    thongTinHuy.value.status = 'processed';
+    
+    // Cập nhật danh sách phòng trống sau khi hủy
+    if (['pending_confirmation', 'confirmed_not_assigned'].includes(datPhongDuocChon.value.status)) {
+      await taiPhongTrong(datPhongDuocChon.value);
+    }
+
     thongBaoToast.value = 'Xác nhận hủy đặt phòng thành công!';
     showToast();
-    hienModal.value = false;
+    // Cập nhật danh sách đặt phòng để phản ánh trạng thái mới
+    await layDanhSachDatPhong();
   } catch (err) {
     console.error('Lỗi khi xác nhận hủy:', {
-      message: err.message, status: err.response?.status, data: err.response?.data
+      message: err.message,
+      status: err.response?.status,
+      data: err.response?.data
     });
     thongBaoLoi.value = `Lỗi khi xác nhận hủy: ${err.response?.data?.message || err.message}`;
+    showToast();
   }
 };
 
@@ -538,6 +751,8 @@ const dongModal = () => {
   datPhongDuocChon.value = {};
   chiTietDatPhong.value = [];
   thongTinHuy.value = null;
+  lichSuDatPhong.value = [];
+  tabHienTai.value = 'chiTiet';
 };
 
 const chuyenTrang = (trang) => { 
@@ -563,32 +778,41 @@ const dinhDangNgay = (ngay) => ngay ? new Date(ngay).toLocaleDateString('vi-VN')
 const dinhDangTien = (gia) => new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(gia || 0);
 const dinhDangLoaiDatPhong = (loai) => ({ online: 'Trực tuyến', offline: 'Tại chỗ' }[loai] || loai || 'N/A');
 const dinhDangTrangThai = (trangThai) => ({
-  pending_confirmation: 'Chờ xác nhận', confirmed: 'Đã xác nhận',
-  pending_cancel: 'Chờ xác nhận hủy', cancelled: 'Đã hủy'
+  pending_confirmation: 'Chờ xác nhận',
+  confirmed_not_assigned: 'Xác nhận chưa xếp phòng',
+  confirmed: 'Đã xác nhận',
+  pending_cancel: 'Chờ xác nhận hủy',
+  cancelled: 'Đã hủy'
 }[trangThai] || 'Không rõ');
 const dinhDangTrangThaiThanhToan = (trangThai) => ({
-  PENDING: 'Thanh toán tại quầy', PAID: 'Đã thanh toán',
-  REFUNDED: 'Đã hoàn tiền', ERROR: 'Lỗi thanh toán'
+  pending: 'Chưa thanh toán',
+  completed: 'Đã thanh toán',
+  refunded: 'Đã hoàn tiền',
+  error: 'Lỗi thanh toán'
 }[trangThai] || 'Không xác định');
 const dinhDangTrangThaiHuy = (trangThai) => ({
-  requested: 'Yêu cầu hủy', processed: 'Đã hủy', failed: 'Hủy thất bại'
+  requested: 'Yêu cầu hủy',
+  processed: 'Đã hủy',
+  failed: 'Hủy thất bại'
 }[trangThai] || 'Không rõ');
 
 const layLopTrangThai = (trangThai) => {
   switch (trangThai) {
     case 'pending_confirmation': return 'badge-warning';
+    case 'confirmed_not_assigned': return 'badge-info';
     case 'confirmed': return 'badge-success';
     case 'pending_cancel': return 'badge-warning';
     case 'cancelled': return 'badge-danger';
     default: return 'badge-secondary';
   }
 };
+
 const layLopTrangThaiThanhToan = (trangThai) => {
   switch (trangThai) {
-    case 'PENDING': return 'badge-info';
-    case 'PAID': return 'badge-success';
-    case 'ERROR': return 'badge-danger';
-    case 'REFUNDED': return 'badge-secondary';
+    case 'pending': return 'badge-info';
+    case 'completed': return 'badge-success';
+    case 'error': return 'badge-danger';
+    case 'refunded': return 'badge-secondary';
     default: return 'badge-secondary';
   }
 };
@@ -597,7 +821,6 @@ onMounted(() => { layDanhSachDatPhong(); });
 </script>
 
 <style scoped>
-/* Copied styles from other components for consistency */
 @import url('https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@300;400;500;600;700&display=swap');
 @import url('https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css');
 
@@ -660,6 +883,10 @@ onMounted(() => { layDanhSachDatPhong(); });
 .room-assignment-table { font-size: 0.85rem; width: 100%; }
 .room-assignment-table thead th { background-color: #f8f9fa; color: #7f8c8d; font-weight: 600; border-bottom: 2px solid #e5eaee; }
 .room-assignment-table td, .room-assignment-table th { vertical-align: middle; }
+
+.nav-tabs .nav-link { color: #34495e; font-weight: 500; }
+.nav-tabs .nav-link.active { color: #3498db; border-bottom: 2px solid #3498db; }
+.nav-tabs .nav-link:hover { color: #3498db; }
 
 .toast-container { z-index: 1055; }
 </style>

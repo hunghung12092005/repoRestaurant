@@ -27,8 +27,7 @@ import page404 from '../components/404.vue';
 import ChatAdmin from '../components/ChatAdmin.vue';
 import Chat from '../components/Chat.vue';
 import qrCodeCCCD from '../components/qrCodeCCCD.vue';
-import rooms from '../components/booking_room/BookRoomComponent.vue'
-import rooms2 from '../components/booking_room/Booking2.vue'
+import rooms from '../components/booking_room/BookRoomComponent.vue';
 import rooms3 from '../components/booking_room/Booking3.vue'
 import HistoryBooking from '../components/booking_room/HistoryBooking.vue';
 import ThanksBooking from '../components/booking_room/ThanksBooking.vue';

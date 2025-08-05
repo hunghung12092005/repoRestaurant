@@ -373,11 +373,11 @@ body {
 }
 .btn-outline-custom:hover { background-color: #f8f9fa; color: #333; }
 .btn-solid-custom {
-  background-color: #0d6efd; color: white; padding: 9px 20px; border-radius: 4px; border: 1px solid #0d6efd;
-  text-decoration: none; display: inline-block; font-weight: 500;
+  background-color: #A98A66; color: white; padding: 9px 20px; border-radius: 15px; box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+  text-decoration: none; display: inline-block; font-weight: 500; font-size: 1rem;
   transition: background-color 0.2s ease-in-out, border-color 0.2s ease-in-out;
 }
-.btn-solid-custom:hover { background-color: #0b5ed7; border-color: #0b5ed7; }
+.btn-solid-custom:hover { background-color: #937451; box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2); }
 .dropdown-item {
   cursor: pointer; font-size: 0.95rem; font-weight: 500; color: #333;
   padding: 8px 15px; transition: all 0.3s ease;

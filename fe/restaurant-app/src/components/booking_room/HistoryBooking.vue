@@ -209,6 +209,208 @@
   </div>
 </template>
 
+<script setup>
+import { inject, onMounted, ref, computed } from 'vue';
+import axios from 'axios';
+import Loading from '../loading.vue';
+
+const apiUrl = inject('apiUrl');
+const isLoading = ref(false);
+const bookings = ref([]);
+const error = ref(null);
+const cancelDetails = ref({});
+const refundBank = ref({}); // Lưu thông tin hoàn tiền nhập từ form
+//format price
+const formatPrice = (value) => {
+    return new Intl.NumberFormat('vi-VN', {
+        style: 'currency',
+        currency: 'VND',
+    }).format(value);
+};
+const getHistoryBooking = async () => {
+  let token = localStorage.getItem('BookingAuth') || '';
+  const axiosInstance = axios.create({
+    headers: { 'Authorization': `Bearer ${token}` }
+  });
+
+  try {
+    isLoading.value = true;
+    const res = await axiosInstance.get(`${apiUrl}/api/booking-history`);
+    //console.log('Lịch sử đặt phòng:', res.data);
+    if (res.data?.status === 'success') {
+      bookings.value = res.data.data;
+      // Lấy chi tiết huỷ cho các đơn đang pending_cancel
+      for (const b of res.data.data) {
+        if (b.status === 'pending_cancel') {
+          await getCancelBookingDetail(b.booking_id);
+          refundBank.value[b.booking_id] = { bank: '', accountNumber: '' };
+        }
+      }
+    } else {
+      error.value = res.data.message || 'Không thể tải dữ liệu.';
+    }
+  } catch {
+    error.value = 'Chưa có đơn hàng.';
+  } finally {
+    isLoading.value = false;
+  }
+};
+
+const getCancelBookingDetail = async (bookingId) => {
+  try {
+    const token = localStorage.getItem('BookingAuth') || '';
+    const axiosInstance = axios.create({
+      headers: { 'Authorization': `Bearer ${token}` }
+    });
+    const res = await axiosInstance.get(`${apiUrl}/api/cancel-booking/${bookingId}`);
+    if (res.data?.status === 'success') {
+      cancelDetails.value[bookingId] = res.data.data;
+      await loadBankList();
+      //console.log(`Thông tin hủy cho booking ${bookingId}:`, cancelDetails.value[bookingId]);
+    }
+  } catch (e) {
+    console.error(`Không thể lấy thông tin hủy cho booking ${bookingId}`, e);
+  }
+};
+const banks = ref([]);
+
+const loadBankList = async () => {
+  if (banks.value.length > 0) return; // ✅ Đã tải thì không tải lại
+
+  try {
+    const response = await axios.get('https://api.vietqr.io/v2/banks');
+    if (response.data.code === '00') {
+      banks.value = response.data.data;
+    }
+  } catch (error) {
+    console.error('Lỗi tải danh sách ngân hàng:', error);
+  }
+};
+
+const submitRefundInfo = async (bookingId) => {
+  const info = refundBank.value[bookingId];
+
+  if (!info.bank || !info.accountNumber || !info.accountName) {
+    alert('Vui lòng nhập đầy đủ: ngân hàng, số tài khoản và tên chủ tài khoản.');
+    return;
+  }
+
+  try {
+    // const token = localStorage.getItem('BookingAuth') || '';
+    // const axiosInstance = axios.create({
+    //   headers: { Authorization: `Bearer ${token}` }
+    // });
+
+    const response = await axios.post(`${apiUrl}/api/cancel-booking/${bookingId}/bank-info`, {
+      refund_bank: info.bank,
+      refund_account_number: info.accountNumber,
+      refund_account_name: info.accountName
+    });
+
+    if (response.data.status === 'success') {
+      //alert('Cập nhật thông tin hoàn tiền thành công!');
+      getCancelBookingDetail(bookingId); // Cập nhật lại thông tin hủy
+    } else {
+      alert('Có lỗi xảy ra: ' + response.data.message);
+    }
+  } catch (err) {
+    console.error('Lỗi gửi thông tin hoàn tiền:', err);
+    alert('Không thể gửi thông tin. Vui lòng thử lại.');
+  }
+};
+
+const showCancelPopup = ref(false);
+const selectedReason = ref('');
+const customReason = ref('');
+
+// Đây là lý do thật sự sẽ gửi
+const cancellationReason = computed(() =>
+  selectedReason.value === 'Khác' ? customReason.value : selectedReason.value
+);
+const currentBookingId = ref(null);
+
+const confirmCancellation = async () => {
+  if (!cancellationReason.value) {
+    alert('Vui lòng chọn lý do hủy.');
+    return;
+  }
+
+  try {
+    const token = localStorage.getItem('BookingAuth') || '';
+    const axiosInstance = axios.create({
+      headers: { 'Authorization': `Bearer ${token}` }
+    });
+
+    await axiosInstance.delete(`${apiUrl}/api/booking-history/${currentBookingId.value}`, {
+      data: { cancellation_reason: cancellationReason.value }
+    });
+
+    alert('Đã gửi yêu cầu hủy đặt phòng thành công! Chúng tôi sẽ xử lý trong thời gian sớm nhất.');
+    showCancelPopup.value = false; // Đóng popup
+    cancellationReason.value = ''; // Reset lý do
+    getHistoryBooking(); // Cập nhật lịch sử đặt phòng
+  } catch (error) {
+    alert('Không thể hủy đơn. Vui lòng thử lại sau.');
+    console.error('Error cancelling booking:', error);
+  }
+};
+
+const formatDate = (dateString) => {
+  if (!dateString) return 'N/A';
+  return new Date(dateString).toLocaleDateString('vi-VN', {
+    year: 'numeric', month: '2-digit', day: '2-digit',
+  });
+};
+
+const formatCurrency = (amount) => {
+  return (Number(amount) || 0).toLocaleString('vi-VN', {
+    style: 'currency',
+    currency: 'VND'
+  });
+};
+
+const statusMap = {
+  pending_confirmation: 'Đang chờ xác nhận',
+  confirmed_not_assigned: 'Đã xác nhận',
+  confirmed: 'Đã nhận phòng',
+  cancelled: 'Đã hủy',
+  pending_cancel: 'Đang chờ hủy',
+  completed: 'Hoàn thành',
+};
+
+const formatStatus = (status) => statusMap[status] || status;
+const formatStatusClass = (status) => `bg-${status.replace(/_/g, '-')}`;
+
+const formatPayment = (method) => {
+  const map = {
+    thanh_toan_qr: 'QR Code',
+    thanh_toan_tien_mat: 'Tiền mặt',
+    thanh_toan_the: 'Thẻ',
+  };
+  return map[method] || 'Không rõ';
+};
+
+const formatPaymentStatus = (status) => {
+  const map = {
+    pending: 'Đang xử lý',
+    failed: 'Đang xử lý',
+    completed: 'Đã thanh toán',
+  };
+  return map[status] || 'Không rõ';
+};
+
+const canCancelBooking = (booking) => {
+  //console.log('Checking if booking can be cancelled:', booking);
+if (booking.status === 'cancelled') return false;
+  const checkInDate = new Date(booking.check_in_date);
+  const now = new Date();
+  checkInDate.setDate(checkInDate.getDate() - 1);
+  return now < checkInDate;
+};
+
+onMounted(getHistoryBooking);
+</script>
+
 <style scoped>
 /* Base Styles */
 /* Status Colors */
@@ -218,6 +420,10 @@
 }
 .bg-confirmed {
   background-color: #28a745 !important; /* Success green */
+  color: #ffffff !important;
+}
+.bg-confirmed-not-assigned{
+  background-color: #3498db !important; /* Success green */
   color: #ffffff !important;
 }
 .bg-cancelled {
@@ -281,6 +487,10 @@
 }
 .badge.bg-confirmed {
   background-color: #28a745 !important; /* Success green */
+  color: #ffffff !important;
+}
+.badge.bg-confirmed-not-assigned {
+  background-color: #3498db !important; /* Success green */
   color: #ffffff !important;
 }
 .badge.bg-cancelled {
@@ -445,203 +655,3 @@
 }
 
 </style>
-<script setup>
-import { inject, onMounted, ref, computed } from 'vue';
-import axios from 'axios';
-import Loading from '../loading.vue';
-
-const apiUrl = inject('apiUrl');
-const isLoading = ref(false);
-const bookings = ref([]);
-const error = ref(null);
-const cancelDetails = ref({});
-const refundBank = ref({}); // Lưu thông tin hoàn tiền nhập từ form
-//format price
-const formatPrice = (value) => {
-    return new Intl.NumberFormat('vi-VN', {
-        style: 'currency',
-        currency: 'VND',
-    }).format(value);
-};
-const getHistoryBooking = async () => {
-  let token = localStorage.getItem('BookingAuth') || '';
-  const axiosInstance = axios.create({
-    headers: { 'Authorization': `Bearer ${token}` }
-  });
-
-  try {
-    isLoading.value = true;
-    const res = await axiosInstance.get(`${apiUrl}/api/booking-history`);
-    //console.log('Lịch sử đặt phòng:', res.data);
-    if (res.data?.status === 'success') {
-      bookings.value = res.data.data;
-      // Lấy chi tiết huỷ cho các đơn đang pending_cancel
-      for (const b of res.data.data) {
-        if (b.status === 'pending_cancel') {
-          await getCancelBookingDetail(b.booking_id);
-          refundBank.value[b.booking_id] = { bank: '', accountNumber: '' };
-        }
-      }
-    } else {
-      error.value = res.data.message || 'Không thể tải dữ liệu.';
-    }
-  } catch {
-    error.value = 'Chưa có đơn hàng.';
-  } finally {
-    isLoading.value = false;
-  }
-};
-
-const getCancelBookingDetail = async (bookingId) => {
-  try {
-    const token = localStorage.getItem('BookingAuth') || '';
-    const axiosInstance = axios.create({
-      headers: { 'Authorization': `Bearer ${token}` }
-    });
-    const res = await axiosInstance.get(`${apiUrl}/api/cancel-booking/${bookingId}`);
-    if (res.data?.status === 'success') {
-      cancelDetails.value[bookingId] = res.data.data;
-      await loadBankList();
-      //console.log(`Thông tin hủy cho booking ${bookingId}:`, cancelDetails.value[bookingId]);
-    }
-  } catch (e) {
-    console.error(`Không thể lấy thông tin hủy cho booking ${bookingId}`, e);
-  }
-};
-const banks = ref([]);
-
-const loadBankList = async () => {
-  if (banks.value.length > 0) return; // ✅ Đã tải thì không tải lại
-
-  try {
-    const response = await axios.get('https://api.vietqr.io/v2/banks');
-    if (response.data.code === '00') {
-      banks.value = response.data.data;
-    }
-  } catch (error) {
-    console.error('Lỗi tải danh sách ngân hàng:', error);
-  }
-};
-
-const submitRefundInfo = async (bookingId) => {
-  const info = refundBank.value[bookingId];
-
-  if (!info.bank || !info.accountNumber || !info.accountName) {
-    alert('Vui lòng nhập đầy đủ: ngân hàng, số tài khoản và tên chủ tài khoản.');
-    return;
-  }
-
-  try {
-    // const token = localStorage.getItem('BookingAuth') || '';
-    // const axiosInstance = axios.create({
-    //   headers: { Authorization: `Bearer ${token}` }
-    // });
-
-    const response = await axios.post(`${apiUrl}/api/cancel-booking/${bookingId}/bank-info`, {
-      refund_bank: info.bank,
-      refund_account_number: info.accountNumber,
-      refund_account_name: info.accountName
-    });
-
-    if (response.data.status === 'success') {
-      //alert('Cập nhật thông tin hoàn tiền thành công!');
-      getCancelBookingDetail(bookingId); // Cập nhật lại thông tin hủy
-    } else {
-      alert('Có lỗi xảy ra: ' + response.data.message);
-    }
-  } catch (err) {
-    console.error('Lỗi gửi thông tin hoàn tiền:', err);
-    alert('Không thể gửi thông tin. Vui lòng thử lại.');
-  }
-};
-
-const showCancelPopup = ref(false);
-const selectedReason = ref('');
-const customReason = ref('');
-
-// Đây là lý do thật sự sẽ gửi
-const cancellationReason = computed(() =>
-  selectedReason.value === 'Khác' ? customReason.value : selectedReason.value
-);
-const currentBookingId = ref(null);
-
-const confirmCancellation = async () => {
-  if (!cancellationReason.value) {
-    alert('Vui lòng chọn lý do hủy.');
-    return;
-  }
-
-  try {
-    const token = localStorage.getItem('BookingAuth') || '';
-    const axiosInstance = axios.create({
-      headers: { 'Authorization': `Bearer ${token}` }
-    });
-
-    await axiosInstance.delete(`${apiUrl}/api/booking-history/${currentBookingId.value}`, {
-      data: { cancellation_reason: cancellationReason.value }
-    });
-
-    alert('Đã gửi yêu cầu hủy đặt phòng thành công! Chúng tôi sẽ xử lý trong thời gian sớm nhất.');
-    showCancelPopup.value = false; // Đóng popup
-    cancellationReason.value = ''; // Reset lý do
-    getHistoryBooking(); // Cập nhật lịch sử đặt phòng
-  } catch (error) {
-    alert('Không thể hủy đơn. Vui lòng thử lại sau.');
-    console.error('Error cancelling booking:', error);
-  }
-};
-
-const formatDate = (dateString) => {
-  if (!dateString) return 'N/A';
-  return new Date(dateString).toLocaleDateString('vi-VN', {
-    year: 'numeric', month: '2-digit', day: '2-digit',
-  });
-};
-
-const formatCurrency = (amount) => {
-  return (Number(amount) || 0).toLocaleString('vi-VN', {
-    style: 'currency',
-    currency: 'VND'
-  });
-};
-
-const statusMap = {
-  pending_confirmation: 'Đang chờ xác nhận',
-  confirmed: 'Đã xác nhận',
-  cancelled: 'Đã hủy',
-  pending_cancel: 'Đang chờ hủy',
-  completed: 'Hoàn thành',
-};
-
-const formatStatus = (status) => statusMap[status] || status;
-const formatStatusClass = (status) => `bg-${status.replace(/_/g, '-')}`;
-
-const formatPayment = (method) => {
-  const map = {
-    thanh_toan_qr: 'QR Code',
-    thanh_toan_tien_mat: 'Tiền mặt',
-    thanh_toan_the: 'Thẻ',
-  };
-  return map[method] || 'Không rõ';
-};
-
-const formatPaymentStatus = (status) => {
-  const map = {
-    pending: 'Đang xử lý',
-    failed: 'Đang xử lý',
-    completed: 'Đã thanh toán',
-  };
-  return map[status] || 'Không rõ';
-};
-
-const canCancelBooking = (booking) => {
-  //console.log('Checking if booking can be cancelled:', booking);
-if (booking.status === 'cancelled') return false;
-  const checkInDate = new Date(booking.check_in_date);
-  const now = new Date();
-  checkInDate.setDate(checkInDate.getDate() - 1);
-  return now < checkInDate;
-};
-
-onMounted(getHistoryBooking);
-</script>
