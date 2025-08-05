@@ -270,12 +270,12 @@
 </template>
 
 <script setup>
-import { ref, onMounted, computed } from 'vue';
+import { ref, onMounted, computed, inject } from 'vue';
 import axios from 'axios';
 import { Toast } from 'bootstrap';
 import loading from '../loading.vue';
 import { debounce } from 'lodash';
-
+const apiUrl = inject('apiUrl');
 const danhSachDatPhong = ref([]);
 const hienModal = ref(false);
 const datPhongDuocChon = ref({});
@@ -320,7 +320,7 @@ const executeAdminCancel = async () => {
     try {
         const bookingId = bookingToCancel.value.booking_id;
         
-        await axios.post(`/api/bookings/${bookingId}/admin-cancel`, {
+        await axios.post(`${apiUrl}/api/bookings/${bookingId}/admin-cancel`, {
             reason: adminCancelReason.value,
         });
 
@@ -397,7 +397,7 @@ const timKiemDatPhong = async () => {
   thongBaoLoi.value = '';
 
   try {
-    const response = await axios.get('/api/bookings', {
+    const response = await axios.get(`${apiUrl}/api/bookings`, {
       params: {
         search: tuKhoaTimKiem.value.trim(),
       },
@@ -425,7 +425,7 @@ const taiDanhSachDatPhong = async () => {
   thongBaoLoi.value = '';
 
   try {
-    const response = await axios.get('/api/bookings', {
+    const response = await axios.get(`${apiUrl}/api/bookings`, {
       headers: { 'Accept': 'application/json' },
       timeout: 10000,
     });
@@ -463,7 +463,7 @@ const layDanhSachDatPhong = async () => {
       to_date: denNgay.value,
     };
 
-    const res = await axios.get('/api/bookings', {
+    const res = await axios.get(`${apiUrl}/api/bookings`, {
       headers: { 'Accept': 'application/json' },
       params,
     });
@@ -501,7 +501,7 @@ const moModalChiTiet = async (datPhong) => {
 
   try {
     // Tải chi tiết đặt phòng
-    const resDetails = await axios.get(`/api/booking-details/${datPhong.booking_id}`, {
+    const resDetails = await axios.get(`${apiUrl}/api/booking-details/${datPhong.booking_id}`, {
       headers: { 'Accept': 'application/json' },
       timeout: 10000,
     });
@@ -517,7 +517,7 @@ const moModalChiTiet = async (datPhong) => {
     // Tải thông tin hủy nếu cần
     if (['pending_cancel', 'cancelled'].includes(datPhong.status)) {
       try {
-        const cancelRes = await axios.get(`/api/booking-cancel/${datPhong.booking_id}`, {
+        const cancelRes = await axios.get(`${apiUrl}/api/booking-cancel/${datPhong.booking_id}`, {
           headers: { 'Accept': 'application/json' },
           timeout: 5000,
         });
@@ -561,8 +561,8 @@ const taiPhongTrong = async (datPhong) => {
           check_in_time: dinhDangThoiGian(datPhong.check_in_time),
           check_out_time: dinhDangThoiGian(datPhong.check_out_time)
         };
-        console.log('Payload gửi tới /api/available-rooms:', payload);
-        return axios.get('/api/available-rooms', {
+        //console.log('Payload gửi tới /api/available-rooms:', payload);
+        return axios.get(`${apiUrl}/api/available-rooms`, {
           params: payload,
           headers: { 'Accept': 'application/json' },
           timeout: 5000,
@@ -614,7 +614,7 @@ const xepPhong = async (chiTiet) => {
     };
     
     // API call không thay đổi
-    const response = await axios.post(`/api/assign-room/${chiTiet.booking_detail_id}`, payload, { 
+    const response = await axios.post(`${apiUrl}/api/assign-room/${chiTiet.booking_detail_id}`, payload, { 
       headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' } 
     });
     
@@ -645,7 +645,7 @@ const xepPhong = async (chiTiet) => {
 
 const xacNhanDatPhong = async () => {
   try {
-    const response = await axios.patch(`/api/bookings/${datPhongDuocChon.value.booking_id}`, { 
+    const response = await axios.patch(`${apiUrl}/api/bookings/${datPhongDuocChon.value.booking_id}`, { 
       status: 'confirmed_not_assigned'
     }, { 
       headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' } 
@@ -676,7 +676,7 @@ const hoanTatXacNhan = async () => {
     return;
   }
   try {
-    const response = await axios.patch(`/api/bookings/${datPhongDuocChon.value.booking_id}/complete`, {}, { 
+    const response = await axios.patch(`${apiUrl}/api/bookings/${datPhongDuocChon.value.booking_id}/complete`, {}, { 
       headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' } 
     });
     
@@ -706,7 +706,7 @@ const xacNhanHuyDatPhong = async () => {
       showToast();
       return;
     }
-    await axios.patch(`/api/booking-cancel/${cancelId}`, {
+    await axios.patch(`${apiUrl}/api/booking-cancel/${cancelId}`, {
       status: 'processed',
       refund_bank: '',
       refund_account_number: '',
