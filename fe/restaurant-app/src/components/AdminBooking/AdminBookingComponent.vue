@@ -429,11 +429,7 @@ const taiDanhSachDatPhong = async () => {
   thongBaoLoi.value = '';
 
   try {
-<<<<<<< HEAD
-    const response = await axios.get(`${apiUrl}/api/bookings`, {
-=======
     const response = await axios.get(`${apiUrl}api/bookings`, {
->>>>>>> 593e375228b8910165f586f9c8949556f3ce2359
       headers: { 'Accept': 'application/json' },
       timeout: 10000,
     });
@@ -569,11 +565,7 @@ const taiPhongTrong = async (datPhong) => {
           check_in_time: dinhDangThoiGian(datPhong.check_in_time),
           check_out_time: dinhDangThoiGian(datPhong.check_out_time)
         };
-<<<<<<< HEAD
-        //console.log('Payload gửi tới /api/available-rooms:', payload);
-=======
         // Gọi API để lấy danh sách phòng trống
->>>>>>> 593e375228b8910165f586f9c8949556f3ce2359
         return axios.get(`${apiUrl}/api/available-rooms`, {
           params: payload,
           headers: { 'Accept': 'application/json' },
