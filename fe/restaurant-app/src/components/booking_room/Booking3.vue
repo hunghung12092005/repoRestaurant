@@ -54,7 +54,7 @@
                             <div class="card card-body p-3 shadow-sm border-0 rounded-pill cursor-pointer"
                                 data-bs-toggle="modal" data-bs-target="#guestSelectionModal">
                                 <div class="d-flex align-items-center justify-content-between">
-                                    <div class="d-flex align-items-center text-primary fw-bold">
+                                    <div class="d-flex align-items-center text-dark">
                                         <i class="bi bi-person-fill fs-4 me-2"></i>
                                         <span>{{ totalAdults }} Người lớn</span>
                                         <span class="mx-2 text-muted">/</span>
@@ -159,7 +159,7 @@
                         </div>
 
                         <div class="col-md-3">
-                            <button type="submit" class="btn btn-primary w-100 py-3 rounded-pill shadow">
+                            <button type="submit" class="btn btn-solid-custom w-100 py-3 rounded-pill shadow">
                                 <i class="bi bi-search me-2"></i>Tìm Kiếm Phòng
                             </button>
                         </div>
@@ -390,7 +390,7 @@
                     </div>
 
                     <button v-if="isAddbooking" @click="openPopupshowModalBooking"
-                        class="btn btn-gold w-100 py-2 rounded-pill fw-bold fs-5 mt-4 btn-outline-dark">
+                        class="btn btn-solid-custom w-100 py-2 rounded-pill fw-bold fs-5 mt-4 ">
                         Tiến Hành Thanh Toán <i class="bi bi-arrow-right ms-2"></i>
                     </button>
                 </div>
@@ -401,7 +401,7 @@
             <div class="right">
                 <div class="room-card position-relative" v-for="hotel in hotels" :key="hotel.id">
                     <span
-                        class="position-absolute top-0 end-0 badge bg-primary text-white m-2 px-3 py-2 rounded-pill shadow-sm">
+                        class="position-absolute top-0 end-0 badge bg-light text-dark m-2 px-3 py-2 rounded-pill shadow-sm">
                         <i class="bi bi-door-open me-1"></i> {{ hotel.available_rooms }} Phòng
                     </span>
 
@@ -443,7 +443,7 @@
                                 @click="viewHotelDetails(hotel)">
                                 <i class="bi bi-info-circle me-1"></i> Chi tiết
                             </button>
-                            <button class="btn btn-primary rounded-pill px-3 py-2 w-100" @click="addBooking(hotel)">
+                            <button class="btn btn-solid-custom rounded-pill px-3 py-2 w-100" @click="addBooking(hotel)">
                                 <i class="bi bi-bookmark-check me-1"></i> Thêm phòng
                             </button>
                         </div>

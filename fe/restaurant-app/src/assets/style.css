@@ -12,9 +12,18 @@
 } */
 
 /* 
-// Snow
+// nut chung
 //-------------------------------*/
-
+.btn-solid-custom {
+  background-color: #A98A66; color: white; padding: 9px 20px; border-radius: 15px; box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+  text-decoration: none; display: inline-block; font-weight: 500; font-size: 1rem;
+  transition: background-color 0.2s ease-in-out, border-color 0.2s ease-in-out;
+}
+.btn-solid-custom:hover { background-color: #937451; box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2); }
+.dropdown-item {
+  cursor: pointer; font-size: 0.95rem; font-weight: 500; color: #333;
+  padding: 8px 15px; transition: all 0.3s ease;
+}
 /* Animation */
 
 @keyframes snow {

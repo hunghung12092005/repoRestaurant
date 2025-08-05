@@ -20,7 +20,7 @@
               </p>
             </div>
             <div class="col-lg-4 col-md-5 text-md-end text-center">
-              <router-link to="/rooms3" class="btn btn-primary btn-lg rounded-pill px-5 py-3 shadow">
+              <router-link to="/booking_hotel" class="btn btn-primary btn-lg rounded-pill px-5 py-3 shadow">
                 <i class="bi bi-calendar-check me-2"></i> Đặt Phòng Ngay
               </router-link>
             </div>
@@ -108,7 +108,7 @@
         <section class="cta-section text-center mt-5 pt-5">
           <h2 class="mb-3">Sẵn sàng cho một kỳ nghỉ đáng nhớ?</h2>
           <p class="lead text-muted mb-4">Đặt phòng ngay hôm nay để nhận được những ưu đãi tốt nhất từ chúng tôi.</p>
-          <router-link to="/rooms3" class="btn btn-primary btn-lg rounded-pill px-5 py-3 shadow-lg">
+          <router-link to="/booking_hotel" class="btn btn-primary btn-lg rounded-pill px-5 py-3 shadow-lg">
             <i class="bi bi-calendar-check me-2"></i> Đặt Phòng Ngay
           </router-link>
         </section>

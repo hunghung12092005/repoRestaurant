@@ -847,7 +847,7 @@ const fetchUserInfo = () => {
         .then(response => {
             userInfo.value = {
                 ...response.data.user,
-                avatar: response.data.user.avatar || 'https://i.postimg.cc/d3pNGXPN/7c6764b8-de90-474c-9b98-05019aef3193.png'
+                avatar: response.data.user.avatar || 'https://i.postimg.cc/J0d3p6Ww/logo-HXH.png'
             };
             // Khi lấy được thông tin user, gán vào form update profile
             profileForm.name = userInfo.value.name;

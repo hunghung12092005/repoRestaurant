@@ -6,8 +6,8 @@
       <!-- ===== SIDEBAR ĐỘNG CHO ADMIN & STAFF ===== -->
       <div v-if="isAdmin || isStaff" class="sidebar">
         <div class="header text-center p-3 border-bottom">
-          <img src="https://i.postimg.cc/d3pNGXPN/7c6764b8-de90-474c-9b98-05019aef3193.png" alt="Luxuria Logo" class="rounded-circle" />
-          <span class="fw-bold">Ho Xuan Huong Ecosystem</span>
+          <img src="https://i.postimg.cc/J0d3p6Ww/logo-HXH.png" alt="Luxuria Logo" class="rounded-circle" />
+          <span class="fw-bold">Ho Xuan Huong Hotel</span>
         </div>
         <div class="profile text-center p-3 border-bottom">
           <p class="mb-0 text-muted">{{ userInfo.name || 'User' }}</p>
@@ -153,7 +153,7 @@
               </ul>
             </div>
             <a class="navbar-brand mx-auto" href="/">
-              <img src="https://i.postimg.cc/d3pNGXPN/7c6764b8-de90-474c-9b98-05019aef3193.png" alt="Foodie Logo" class="logo-img" />
+              <img src="https://i.postimg.cc/J0d3p6Ww/logo-HXH.png" alt="Foodie Logo" class="logo-img" />
               <span class="d-none d-lg-inline">Hồ Xuân Hương</span>
             </a>
           </div>
@@ -359,7 +359,7 @@ body {
   display: flex; align-items: center; font-weight: 600; color: #333333; transition: color 0.3s ease;
   position: absolute; left: 50%; transform: translateX(-50%); top: 50%; transform: translate(-50%, -50%);
 }
-.logo-img { width: 60px; height: 60px; filter: brightness(0); }
+.logo-img { width: 60px; height: 60px; }
 .navbar-toggler { position: absolute; right: 1rem; top: 50%; transform: translateY(-50%); }
 .navbar-collapse { height: 100%; }
 .navbar-nav { gap: 0.5rem; }
@@ -372,16 +372,7 @@ body {
   background-color: transparent; text-decoration: none; display: inline-block; transition: all 0.2s ease-in-out;
 }
 .btn-outline-custom:hover { background-color: #f8f9fa; color: #333; }
-.btn-solid-custom {
-  background-color: #0d6efd; color: white; padding: 9px 20px; border-radius: 4px; border: 1px solid #0d6efd;
-  text-decoration: none; display: inline-block; font-weight: 500;
-  transition: background-color 0.2s ease-in-out, border-color 0.2s ease-in-out;
-}
-.btn-solid-custom:hover { background-color: #0b5ed7; border-color: #0b5ed7; }
-.dropdown-item {
-  cursor: pointer; font-size: 0.95rem; font-weight: 500; color: #333;
-  padding: 8px 15px; transition: all 0.3s ease;
-}
+
 .dropdown-item:hover { color: var(--main-color) !important; background-color: #f1f1f1; }
 main { min-height: calc(100vh - 80px); width: 100%; padding-top: 80px; }
 footer { background-color: var(--second-color); color: #fff; }
