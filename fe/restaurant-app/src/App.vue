@@ -6,8 +6,8 @@
       <!-- ===== SIDEBAR ĐỘNG CHO ADMIN & STAFF ===== -->
       <div v-if="isAdmin || isStaff" class="sidebar">
         <div class="header text-center p-3 border-bottom">
-          <img src="https://i.postimg.cc/d3pNGXPN/7c6764b8-de90-474c-9b98-05019aef3193.png" alt="Luxuria Logo" class="rounded-circle" />
-          <span class="fw-bold">Ho Xuan Huong Ecosystem</span>
+          <img src="https://i.postimg.cc/J0d3p6Ww/logo-HXH.png" alt="Luxuria Logo" class="rounded-circle" />
+          <span class="fw-bold">Ho Xuan Huong Hotel</span>
         </div>
         <div class="profile text-center p-3 border-bottom">
           <p class="mb-0 text-muted">{{ userInfo.name || 'User' }}</p>
@@ -153,7 +153,7 @@
               </ul>
             </div>
             <a class="navbar-brand mx-auto" href="/">
-              <img src="https://i.postimg.cc/d3pNGXPN/7c6764b8-de90-474c-9b98-05019aef3193.png" alt="Foodie Logo" class="logo-img" />
+              <img src="https://i.postimg.cc/J0d3p6Ww/logo-HXH.png" alt="Foodie Logo" class="logo-img" />
               <span class="d-none d-lg-inline">Hồ Xuân Hương</span>
             </a>
           </div>
@@ -359,7 +359,7 @@ body {
   display: flex; align-items: center; font-weight: 600; color: #333333; transition: color 0.3s ease;
   position: absolute; left: 50%; transform: translateX(-50%); top: 50%; transform: translate(-50%, -50%);
 }
-.logo-img { width: 60px; height: 60px; filter: brightness(0); }
+.logo-img { width: 60px; height: 60px; }
 .navbar-toggler { position: absolute; right: 1rem; top: 50%; transform: translateY(-50%); }
 .navbar-collapse { height: 100%; }
 .navbar-nav { gap: 0.5rem; }

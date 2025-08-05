@@ -2,7 +2,7 @@
   <div class="hxh-spinner-overlay">
     <div class="hxh-loader-container">
       <div class="hxh-logo-wrapper">
-        <img src="https://i.postimg.cc/d3pNGXPN/7c6764b8-de90-474c-9b98-05019aef3193.png" 
+        <img src="https://i.postimg.cc/J0d3p6Ww/logo-HXH.png" 
              alt="HXH Hotel Logo" 
              class="hxh-loading-logo">
         <div class="hxh-logo-aura"></div>
