@@ -287,7 +287,7 @@ const createBookingsByRoomTypeChart = (chartData) => {
 const fetchOverviewData = async () => {
   try {
     isLoading.value = true;
-    const response = await axiosInstance.get('/api/admin/dashboard/overview');
+    const response = await axiosInstance.get(`${apiUrl}/api/admin/dashboard/overview`);
     overviewData.value = response.data || {};
     createRevenueChart(overviewData.value.revenueChart);
     createContentActivityChart(overviewData.value.contentActivityChart);
