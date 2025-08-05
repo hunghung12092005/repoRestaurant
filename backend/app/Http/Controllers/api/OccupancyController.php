@@ -24,8 +24,12 @@ class OccupancyController extends Controller
             $rooms = DB::table('rooms')
                 ->join('room_types', 'rooms.type_id', '=', 'room_types.type_id')
                 ->select(
-                    'rooms.room_id', 'rooms.room_name', 'rooms.floor_number',
-                    'rooms.status', 'room_types.type_name', 'room_types.bed_count'
+                    'rooms.room_id',
+                    'rooms.room_name',
+                    'rooms.floor_number',
+                    'rooms.status',
+                    'room_types.type_name',
+                    'room_types.bed_count'
                 )
                 ->orderBy('rooms.floor_number', 'asc')
                 ->orderBy('rooms.room_name', 'asc')
@@ -36,7 +40,7 @@ class OccupancyController extends Controller
             return response()->json(['message' => 'Không thể lấy dữ liệu phòng.', 'error' => $e->getMessage()], 500);
         }
     }
-    
+
     /**
      * Lấy thông tin khách và booking cho phòng tại thời điểm cụ thể
      */
@@ -189,13 +193,17 @@ class OccupancyController extends Controller
             // Đặt thời gian mặc định
             $checkInTime = $validated['check_in_time'] ?? '14:00';
             $checkOutTime = $validated['check_out_time'] ?? '12:00';
-            $checkIn = Carbon::parse($validated['check_in_date'] . ' ' . $checkInTime);
-            $checkOut = Carbon::parse($validated['check_out_date'] . ' ' . $checkOutTime);
+            if (!isset($validated['check_in_date']) || !isset($validated['check_out_date'])) {
+                return response()->json(['message' => 'Vui lòng chọn ngày nhận và ngày trả phòng.'], 422);
+            }
 
-            // Kiểm tra thời gian hợp lệ
+            $checkIn = Carbon::parse($validated['check_in_date'] . ' ' . ($validated['check_in_time'] ?? '14:00'));
+            $checkOut = Carbon::parse($validated['check_out_date'] . ' ' . ($validated['check_out_time'] ?? '12:00'));
+
             if ($checkOut <= $checkIn) {
-                Log::warning("Thời gian trả phòng không hợp lệ: check_in={$checkIn}, check_out={$checkOut}");
-                return response()->json(['message' => 'Thời gian trả phòng phải sau thời gian nhận phòng.'], 422);
+                return response()->json([
+                    'message' => '⚠️ Giờ trả phòng phải sau giờ nhận phòng. Vui lòng kiểm tra lại.'
+                ], 422);
             }
 
             // Kiểm tra đặt phòng trong cùng ngày
@@ -383,11 +391,23 @@ class OccupancyController extends Controller
             $checkIn = Carbon::parse($validated['check_in_date'] . ' ' . $checkInTime);
             $checkOut = Carbon::parse($validated['check_out_date'] . ' ' . $checkOutTime);
 
-            // Kiểm tra thời gian hợp lệ
-            if ($checkOut <= $checkIn) {
-                Log::warning("Thời gian trả phòng không hợp lệ: check_in={$checkIn}, check_out={$checkOut}");
-                return response()->json(['message' => 'Thời gian trả phòng phải sau thời gian nhận phòng.'], 422);
+            // Kiểm tra thời gian hợp lệ nếu người dùng đã chọn đầy đủ
+            if ($validated['check_in_date'] && $validated['check_out_date']) {
+                if ($checkOut <= $checkIn) {
+                    Log::warning("Thời gian trả phòng không hợp lệ: check_in={$checkIn}, check_out={$checkOut}");
+                    return response()->json([
+                        'message' => '⚠️ Vui lòng chọn thời gian trả phòng sau thời gian nhận phòng.'
+                    ], 422);
+                }
+
+                // Nếu đặt trong cùng ngày, kiểm tra giờ
+                if ($validated['check_in_date'] === $validated['check_out_date'] && $checkOutTime <= $checkInTime) {
+                    return response()->json([
+                        'message' => '⚠️ Giờ trả phòng phải sau giờ nhận phòng trong cùng ngày.'
+                    ], 422);
+                }
             }
+
 
             // Kiểm tra đặt phòng trong cùng ngày
             if ($validated['check_in_date'] === $validated['check_out_date'] && $checkOutTime <= $checkInTime) {
@@ -435,140 +455,7 @@ class OccupancyController extends Controller
     /**
      * Gia hạn thời gian lưu trú cho một phòng cụ thể trong booking.
      */
-    public function extendStay(Request $request, $booking_detail_id)
-    {
-        $request->validate([
-            'check_out_date' => 'required|date|after:now',
-            'check_out_time' => 'nullable|date_format:H:i',
-        ]);
-
-        try {
-            // Tìm chi tiết đặt phòng
-            $bookingDetail = DB::table('booking_hotel_detail')
-                ->where('booking_detail_id', $booking_detail_id)
-                ->first();
-            if (!$bookingDetail) {
-                return response()->json(['message' => 'Không tìm thấy chi tiết đặt phòng.'], 404);
-            }
-
-            $booking = DB::table('booking_hotel')
-                ->where('booking_id', $bookingDetail->booking_id)
-                ->first();
-            if (!$booking) {
-                return response()->json(['message' => 'Không tìm thấy đặt phòng.'], 404);
-            }
-
-            // Kiểm tra phòng
-            $room = DB::table('rooms')->where('room_id', $bookingDetail->room_id)->first();
-            if (!$room) {
-                return response()->json(['message' => 'Không tìm thấy phòng.'], 404);
-            }
-
-            // Lấy bảng giá
-            $now = now();
-            $price = DB::table('prices')
-                ->where('type_id', $room->type_id)
-                ->where('start_date', '<=', $now)
-                ->where('end_date', '>=', $now)
-                ->orderByDesc('priority')
-                ->first();
-            if (!$price) {
-                return response()->json(['message' => 'Không tìm thấy bảng giá phù hợp.'], 400);
-            }
-
-            // Tính giá mới
-            $checkIn = Carbon::parse($booking->check_in_date . ' ' . ($booking->check_in_time ?? '14:00'));
-            $newCheckOut = Carbon::parse($request->check_out_date . ' ' . ($request->check_out_time ?? '12:00'));
-            if ($newCheckOut <= $checkIn) {
-                return response()->json(['message' => 'Ngày giờ trả phải sau ngày nhận.'], 400);
-            }
-
-            // Kiểm tra trùng thời gian với các booking khác
-            $existingBookings = DB::table('booking_hotel_detail as bkd')
-                ->join('booking_hotel as bk', 'bk.booking_id', '=', 'bkd.booking_id')
-                ->where('bkd.room_id', $room->room_id)
-                ->where('bk.status', '!=', 'completed')
-                 ->where('bkd.status', '!=', 'cancelled')
-                ->where('bkd.booking_detail_id', '!=', $booking_detail_id)
-                ->select('bk.booking_id', 'bk.check_in_date', 'bk.check_in_time', 'bk.check_out_date', 'bk.check_out_time')
-                ->get();
-
-            foreach ($existingBookings as $existingBooking) {
-                $existingCheckIn = Carbon::parse($existingBooking->check_in_date . ' ' . ($existingBooking->check_in_time ?? '14:00'));
-                $existingCheckOut = Carbon::parse($existingBooking->check_out_date . ' ' . ($existingBooking->check_out_time ?? '12:00'));
-
-                if ($newCheckOut > $existingCheckIn && $checkIn < $existingCheckOut) {
-                    return response()->json(['message' => 'Phòng đã được đặt trong khoảng thời gian gia hạn.'], 409);
-                }
-            }
-
-            $totalHours = $checkIn->floatDiffInHours($newCheckOut);
-            $newTotal = 0;
-            $note = '';
-
-            if ($totalHours <= 6) {
-                $hours = ceil($totalHours);
-                $newTotal = $hours * $price->hourly_price;
-                $note = "Gia hạn: Ở {$hours} giờ.";
-            } elseif ($totalHours < 24) {
-                $newTotal = $price->price_per_night;
-                $note = "Gia hạn: Ở trên 6 giờ và dưới 1 ngày, tính 1 ngày.";
-            } else {
-                $fullDays = floor($totalHours / 24);
-                $remainingHours = $totalHours - ($fullDays * 24);
-                if ($remainingHours > 6) {
-                    $fullDays += 1;
-                    $newTotal = $fullDays * $price->price_per_night;
-                    $note = "Gia hạn: Ở {$fullDays} ngày (dư > 6 giờ, tính thêm 1 ngày).";
-                } elseif ($remainingHours > 0) {
-                    $extraHours = ceil($remainingHours);
-                    $extraFee = $extraHours * $price->hourly_price;
-                    $newTotal = ($fullDays * $price->price_per_night) + $extraFee;
-                    $note = "Gia hạn: Ở {$fullDays} ngày + thêm {$extraHours} giờ.";
-                } else {
-                    $newTotal = $fullDays * $price->price_per_night;
-                    $note = "Gia hạn: Ở tròn {$fullDays} ngày.";
-                }
-            }
-
-            // Cập nhật booking_hotel_detail
-            DB::table('booking_hotel_detail')
-                ->where('booking_detail_id', $booking_detail_id)
-                ->update([
-                    'gia_phong' => $newTotal,
-                    'total_price' => $newTotal,
-                    'note' => $note,
-                    'updated_at' => now(),
-                ]);
-
-            // Cập nhật booking_room_status
-            DB::table('booking_room_status')
-                ->where('booking_detail_id', $booking_detail_id)
-                ->update([
-                    'check_out' => $newCheckOut,
-                    'room_price' => $newTotal,
-                    'updated_at' => now(),
-                ]);
-
-            // Cập nhật booking_hotel (tạm thời chỉ cập nhật thời gian)
-            DB::table('booking_hotel')
-                ->where('booking_id', $booking->booking_id)
-                ->update([
-                    'check_out_date' => $newCheckOut->toDateString(),
-                    'check_out_time' => $newCheckOut->toTimeString(),
-                    'note' => $note,
-                    'updated_at' => now(),
-                ]);
-
-            return response()->json([
-                'message' => 'Gia hạn thành công.',
-                'total_price' => number_format($newTotal, 0, ',', '.') . ' VND',
-            ]);
-        } catch (\Exception $e) {
-            Log::error('Lỗi gia hạn booking_detail_id ' . $booking_detail_id . ': ' . $e->getMessage());
-            return response()->json(['message' => 'Lỗi khi gia hạn.', 'error' => $e->getMessage()], 500);
-        }
-    }
+    
 
     /**
      * Lấy danh sách dịch vụ.
@@ -589,34 +476,79 @@ class OccupancyController extends Controller
     /**
      * Cập nhật thông tin khách hàng.
      */
-    public function updateCustomerName(Request $request, $customer_id)
+    public function updateBookingTime(Request $request, $booking_id)
     {
         $request->validate([
-            'customer_name' => 'required|string|max:255',
+            'check_in_date' => 'required|date',
+            'check_in_time' => 'sometimes|required|date_format:H:i',
+            'check_out_date' => 'required|date|after_or_equal:check_in_date',
+            'check_out_time' => 'sometimes|required|date_format:H:i',
+            'customer_name' => 'required|string|max:100',
             'customer_phone' => 'nullable|string|max:20',
-            'customer_email' => 'nullable|email|max:255',
-            'address' => 'nullable|string|max:255',
+            'customer_email' => 'nullable|email',
+            'address' => 'nullable|string',
         ]);
 
         try {
-            $updated = DB::table('customers')
-                ->where('customer_id', $customer_id)
-                ->update([
+            // Lấy thông tin booking
+            $booking = DB::table('booking_hotel')->where('booking_id', $booking_id)->first();
+            if (!$booking) {
+                return response()->json(['message' => 'Không tìm thấy booking.'], 404);
+            }
+
+            // Cập nhật thời gian vào bảng booking_hotel
+            DB::table('booking_hotel')->where('booking_id', $booking_id)->update([
+                'check_in_date' => $request->check_in_date,
+                'check_in_time' => $request->check_in_time ?? '14:00',
+                'check_out_date' => $request->check_out_date,
+                'check_out_time' => $request->check_out_time ?? '12:00',
+                'updated_at' => now(),
+            ]);
+
+            // Cập nhật thông tin khách hàng
+            if ($booking->customer_id) {
+                DB::table('customers')->where('customer_id', $booking->customer_id)->update([
                     'customer_name' => $request->customer_name,
                     'customer_phone' => $request->customer_phone,
                     'customer_email' => $request->customer_email,
                     'address' => $request->address,
                     'updated_at' => now(),
                 ]);
-
-            if ($updated) {
-                return response()->json(['message' => 'Cập nhật thông tin khách thành công.']);
-            } else {
-                return response()->json(['message' => 'Không tìm thấy khách hoặc không có thay đổi.'], 404);
             }
+
+            // Cập nhật thời gian vào booking_room_status
+            $checkIn = Carbon::parse($request->check_in_date . ' ' . ($request->check_in_time ?? '14:00'));
+            $checkOut = Carbon::parse($request->check_out_date . ' ' . ($request->check_out_time ?? '12:00'));
+
+            $bookingRoomStatus = DB::table('booking_room_status')
+                ->where('booking_id', $booking_id)
+                ->first();
+
+            if ($bookingRoomStatus) {
+                // Nếu đã có thì cập nhật
+                DB::table('booking_room_status')
+                    ->where('booking_id', $booking_id)
+                    ->update([
+                        'check_in' => $checkIn,
+                        'check_out' => $checkOut,
+                        'updated_at' => now(),
+                    ]);
+            } else {
+                // Nếu chưa có thì tạo mới
+                DB::table('booking_room_status')->insert([
+                    'booking_id' => $booking_id,
+                    'check_in' => $checkIn,
+                    'check_out' => $checkOut,
+                    'status' => 'booked', // hoặc trạng thái mặc định của bạn
+                    'created_at' => now(),
+                    'updated_at' => now(),
+                ]);
+            }
+
+            return response()->json(['message' => 'Cập nhật thời gian và thông tin khách hàng thành công.']);
         } catch (\Exception $e) {
-            Log::error('Lỗi cập nhật khách ' . $customer_id . ': ' . $e->getMessage());
-            return response()->json(['message' => 'Lỗi khi cập nhật khách.', 'error' => $e->getMessage()], 500);
+            Log::error("Lỗi updateBookingTime booking_id={$booking_id}: " . $e->getMessage());
+            return response()->json(['message' => 'Lỗi khi cập nhật dữ liệu.', 'error' => $e->getMessage()], 500);
         }
     }
 
@@ -667,11 +599,11 @@ class OccupancyController extends Controller
                     ->whereNotNull('bk.check_out_date')
                     ->where(function ($query) use ($date, $time) {
                         $query->whereDate('bk.check_in_date', '<=', $date)
-                              ->whereDate('bk.check_out_date', '>=', $date);
+                            ->whereDate('bk.check_out_date', '>=', $date);
 
                         if ($time) {
                             $query->whereRaw('CONCAT(bk.check_in_date, " ", COALESCE(bk.check_in_time, "14:00")) <= ?', [$date . ' ' . $time])
-                                  ->whereRaw('CONCAT(bk.check_out_date, " ", COALESCE(bk.check_out_time, "12:00")) >= ?', [$date . ' ' . $time]);
+                                ->whereRaw('CONCAT(bk.check_out_date, " ", COALESCE(bk.check_out_time, "12:00")) >= ?', [$date . ' ' . $time]);
                         }
                     })
                     ->select(
@@ -919,7 +851,6 @@ class OccupancyController extends Controller
             DB::commit();
 
             return response()->json($response);
-
         } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
             DB::rollBack();
             Log::warning("Lỗi thanh toán: Không tìm thấy bản ghi cần thiết. " . $e->getMessage());
@@ -936,38 +867,6 @@ class OccupancyController extends Controller
         }
     }
 
-    /**
-     * Yêu cầu hủy đặt phòng từ phía Admin.
-     */
-    // public function requestCancellation(Request $request, $booking_id)
-    // {
-    //     try {
-    //         $booking = BookingHotel::findOrFail($booking_id);
-
-    //         if (in_array($booking->status, ['cancelled', 'completed'])) {
-    //             return response()->json(['message' => 'Đặt phòng đã hoàn thành hoặc đã bị hủy. Không thể yêu cầu hủy.'], 400);
-    //         }
-
-    //         if ($booking->status === 'cancellation_requested') {
-    //             return response()->json(['message' => 'Đặt phòng này đã được yêu cầu hủy trước đó.'], 400);
-    //         }
-
-    //         $booking->status = 'cancellation_requested';
-    //         $booking->save();
-
-    //         return response()->json(['message' => 'Yêu cầu hủy đặt phòng đã được gửi thành công.']);
-
-    //     } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
-    //         return response()->json(['message' => 'Không tìm thấy đơn đặt phòng này.'], 404);
-    //     } catch (\Exception $e) {
-    //         Log::error('Lỗi yêu cầu hủy booking ' . $booking_id . ': ' . $e->getMessage(), ['exception' => $e]);
-    //         return response()->json(['message' => 'Lỗi máy chủ khi yêu cầu hủy.', 'error' => $e->getMessage()], 500);
-    //     }
-    // }
-
-    /**
-     * Xác nhận hủy đặt phòng.
-     */
     public function confirmCancellation(Request $request, $booking_id)
     {
         try {
@@ -1002,70 +901,68 @@ class OccupancyController extends Controller
         }
     }
     public function getFutureBookings()
-{
-    $now = Carbon::now();
+    {
+        $now = Carbon::now();
 
-    $futureBookings = BookingHotelDetail::with(['room', 'booking.customer'])
-        ->whereHas('booking', function ($query) use ($now) {
-            $query->where('status', '!=', 'cancelled')
-                  ->whereRaw("STR_TO_DATE(CONCAT(check_in_date, ' ', check_in_time), '%Y-%m-%d %H:%i:%s') > ?", [$now]);
-        })
-        ->get()
-        ->map(function ($item) {
-            return [
-                'id' => $item->booking_detail_id,
-                'room_name' => optional($item->room)->room_name,
-                'customer_name' => optional($item->booking->customer)->customer_name ?? 'Không rõ',
-                'check_in_time' => optional($item->booking)->check_in_date . ' ' . optional($item->booking)->check_in_time,
-            ];
-        });
+        $futureBookings = BookingHotelDetail::with(['room', 'booking.customer'])
+            ->whereHas('booking', function ($query) use ($now) {
+                $query->where('status', '!=', 'cancelled')
+                    ->whereRaw("STR_TO_DATE(CONCAT(check_in_date, ' ', check_in_time), '%Y-%m-%d %H:%i:%s') > ?", [$now]);
+            })
+            ->get()
+            ->map(function ($item) {
+                return [
+                    'id' => $item->booking_detail_id,
+                    'room_name' => optional($item->room)->room_name,
+                    'customer_name' => optional($item->booking->customer)->customer_name ?? 'Không rõ',
+                    'check_in_time' => optional($item->booking)->check_in_date . ' ' . optional($item->booking)->check_in_time,
+                ];
+            });
 
-    return response()->json($futureBookings);
-}
-
-public function cancelNow(Request $request)
-{
-    $request->validate([
-        'detail_id' => 'required|exists:booking_hotel_detail,booking_detail_id',
-        'reason' => 'nullable|string',
-    ]);
-
-    $detail = BookingHotelDetail::with('booking')->findOrFail($request->detail_id);
-    $booking = $detail->booking;
-
-    $checkIn = Carbon::parse($booking->check_in_date . ' ' . $booking->check_in_time);
-    $now = Carbon::now();
-
-    if ($now->gte($checkIn)) {
-        return response()->json([
-            'message' => 'Không thể hủy vì đã đến giờ check-in hoặc đang sử dụng.'
-        ], 422);
+        return response()->json($futureBookings);
     }
 
-    // Ghi nhận yêu cầu hủy vào bảng cancelbooking
-    CancelBooking::create([
-        'booking_id' => $booking->booking_id,
-        'customer_id' => $booking->customer_id,
-        'cancellation_reason' => $request->reason ?? 'Không có lý do',
-        'refund_amount' => 0.00,
-        'status' => 'requested',
-    ]);
+    public function cancelNow(Request $request)
+    {
+        $request->validate([
+            'detail_id' => 'required|exists:booking_hotel_detail,booking_detail_id',
+            'reason' => 'nullable|string',
+        ]);
 
-    $booking->status = 'cancelled';
-    $booking->save();
+        $detail = BookingHotelDetail::with('booking')->findOrFail($request->detail_id);
+        $booking = $detail->booking;
 
-    $detail->status = 'cancelled';
-    $detail->save();
+        $checkIn = Carbon::parse($booking->check_in_date . ' ' . $booking->check_in_time);
+        $now = Carbon::now();
 
-    // Trả phòng nếu có phòng gắn với booking detail
-    $room = $detail->room;
-    if ($room) {
-        $room->status = 'available';
-        $room->save();
+        if ($now->gte($checkIn)) {
+            return response()->json([
+                'message' => 'Không thể hủy vì đã đến giờ check-in hoặc đang sử dụng.'
+            ], 422);
+        }
+
+        // Ghi nhận yêu cầu hủy vào bảng cancelbooking
+        CancelBooking::create([
+            'booking_id' => $booking->booking_id,
+            'customer_id' => $booking->customer_id,
+            'cancellation_reason' => $request->reason ?? 'Không có lý do',
+            'refund_amount' => 0.00,
+            'status' => 'requested',
+        ]);
+
+        $booking->status = 'cancelled';
+        $booking->save();
+
+        $detail->status = 'cancelled';
+        $detail->save();
+
+        // Trả phòng nếu có phòng gắn với booking detail
+        $room = $detail->room;
+        if ($room) {
+            $room->status = 'available';
+            $room->save();
+        }
+
+        return response()->json(['message' => 'Đã hủy phòng thành công.']);
     }
-
-    return response()->json(['message' => 'Đã hủy phòng thành công.']);
-}
-
-
 }
