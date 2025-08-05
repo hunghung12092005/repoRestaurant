@@ -372,16 +372,7 @@ body {
   background-color: transparent; text-decoration: none; display: inline-block; transition: all 0.2s ease-in-out;
 }
 .btn-outline-custom:hover { background-color: #f8f9fa; color: #333; }
-.btn-solid-custom {
-  background-color: #A98A66; color: white; padding: 9px 20px; border-radius: 15px; box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
-  text-decoration: none; display: inline-block; font-weight: 500; font-size: 1rem;
-  transition: background-color 0.2s ease-in-out, border-color 0.2s ease-in-out;
-}
-.btn-solid-custom:hover { background-color: #937451; box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2); }
-.dropdown-item {
-  cursor: pointer; font-size: 0.95rem; font-weight: 500; color: #333;
-  padding: 8px 15px; transition: all 0.3s ease;
-}
+
 .dropdown-item:hover { color: var(--main-color) !important; background-color: #f1f1f1; }
 main { min-height: calc(100vh - 80px); width: 100%; padding-top: 80px; }
 footer { background-color: var(--second-color); color: #fff; }
