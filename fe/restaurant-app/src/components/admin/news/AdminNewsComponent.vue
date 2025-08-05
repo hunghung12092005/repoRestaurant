@@ -175,76 +175,58 @@
     
     <!-- Modal Chi tiết -->
     <div class="modal fade" id="detailNewsModal" tabindex="-1" aria-labelledby="detailNewsModalLabel" aria-hidden="true">
-      <div class="modal-dialog modal-xl modal-dialog-centered modal-dialog-scrollable">
-        <div class="modal-content modal-custom">
-          <div class="modal-header modal-header-custom">
-            <h5 class="modal-title" id="detailNewsModalLabel">Chi tiết Tin tức</h5>
-            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Đóng"></button>
-          </div>
-          <div class="modal-body p-4 news-detail-modal-body">
-            <!-- Trạng thái đang tải -->
-            <div v-if="!selectedNewsDetail" class="d-flex justify-content-center align-items-center" style="min-height: 400px;">
-              <div class="spinner-border text-primary" role="status">
-                <span class="visually-hidden">Đang tải...</span>
-              </div>
-              <p class="ms-3 mb-0">Đang tải chi tiết tin tức...</p>
+    <div class="modal-dialog modal-xl modal-dialog-centered modal-dialog-scrollable">
+      <div class="modal-content modal-custom">
+        <div class="modal-header modal-header-custom">
+          <h5 class="modal-title" id="detailNewsModalLabel">Chi tiết Tin tức</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Đóng"></button>
+        </div>
+        <div class="modal-body p-4 news-detail-modal-body">
+          <div v-if="!selectedNewsDetail" class="d-flex justify-content-center align-items-center" style="min-height: 400px;">
+            <div class="spinner-border text-primary" role="status">
+              <span class="visually-hidden">Đang tải...</span>
             </div>
-
-            <!-- Nội dung chi tiết -->
-            <div v-else>
-              <!-- Tiêu đề -->
-              <h2 class="mb-3">{{ selectedNewsDetail.title }}</h2>
-
-              <!-- Thông tin meta -->
-              <div class="metadata text-muted mb-4 pb-3 border-bottom">
-                <span class="me-3" title="Tác giả"><i class="bi bi-person-fill me-1"></i>{{ selectedNewsDetail.author?.name || 'Không rõ' }}</span>
-                <span class="me-3" title="Danh mục"><i class="bi bi-folder-fill me-1"></i>{{ selectedNewsDetail.category?.name || 'N/A' }}</span>
-                
-                <!-- === SỬA LỖI TẠI ĐÂY === -->
-                <span class="me-3" title="Ngày đăng">
-                  <i class="bi bi-calendar-event me-1"></i>
-                  {{ formatDate(selectedNewsDetail.created_at || selectedNewsDetail.updated_at) }}
-                </span>
-                
-                <span class="badge me-2" :class="selectedNewsDetail.status ? 'badge-success' : 'badge-secondary'">
-                  {{ selectedNewsDetail.status ? 'Hiển thị' : 'Ẩn' }}
-                </span>
-                <span v-if="selectedNewsDetail.is_pinned" class="badge badge-info">
-                  <i class="bi bi-pin-angle-fill me-1"></i>Ghim
-                </span>
-              </div>
-
-              <!-- Ảnh đại diện -->
-              <img v-if="selectedNewsDetail.thumbnail" :src="getImageUrl(selectedNewsDetail.thumbnail)" class="img-fluid rounded mb-4 w-100" style="max-height: 450px; object-fit: cover;" alt="Thumbnail">
-              
-              <!-- Tóm tắt -->
-              <p v-if="selectedNewsDetail.summary" class="lead fst-italic border-start border-3 border-primary ps-3 mb-4 bg-light p-3 rounded">
-                {{ selectedNewsDetail.summary }}
-              </p>
-
-              <!-- Nội dung chính -->
-              <div class="content-wrapper" v-html="selectedNewsDetail.content"></div>
-
-              <!-- Tags -->
-              <div v-if="selectedNewsDetail.tags && selectedNewsDetail.tags.length > 0" class="mt-4 pt-3 border-top">
-                  <h6 class="mb-2">Tags:</h6>
-                  <span v-for="tag in selectedNewsDetail.tags.split(',')" :key="tag.trim()" class="badge bg-secondary me-2 mb-2 p-2">
-                      {{ tag.trim() }}
-                  </span>
-              </div>
+            <p class="ms-3 mb-0">Đang tải chi tiết tin tức...</p>
+          </div>
+          <div v-else>
+            <h2 class="mb-3">{{ selectedNewsDetail.title }}</h2>
+            <div class="metadata text-muted mb-4 pb-3 border-bottom">
+              <span class="me-3" title="Tác giả"><i class="bi bi-person-fill me-1"></i>{{ selectedNewsDetail.author?.name || 'Không rõ' }}</span>
+              <span class="me-3" title="Danh mục"><i class="bi bi-folder-fill me-1"></i>{{ selectedNewsDetail.category?.name || 'N/A' }}</span>
+              <span class="me-3" title="Ngày đăng">
+                <i class="bi bi-calendar-event me-1"></i>
+                {{ formatDate(selectedNewsDetail.publish_date) }}
+              </span>
+              <span class="badge me-2" :class="selectedNewsDetail.status ? 'badge-success' : 'badge-secondary'">
+                {{ selectedNewsDetail.status ? 'Hiển thị' : 'Ẩn' }}
+              </span>
+              <span v-if="selectedNewsDetail.is_pinned" class="badge badge-info">
+                <i class="bi bi-pin-angle-fill me-1"></i>Ghim
+              </span>
+            </div>
+            <img v-if="selectedNewsDetail.thumbnail" :src="getImageUrl(selectedNewsDetail.thumbnail)" class="img-fluid rounded mb-4 w-100" style="max-height: 450px; object-fit: cover;" alt="Thumbnail">
+            <p v-if="selectedNewsDetail.summary" class="lead fst-italic border-start border-3 border-primary ps-3 mb-4 bg-light p-3 rounded">
+              {{ selectedNewsDetail.summary }}
+            </p>
+            <div class="content-wrapper" v-html="selectedNewsDetail.content"></div>
+            <div v-if="selectedNewsDetail.tags && selectedNewsDetail.tags.length > 0" class="mt-4 pt-3 border-top">
+              <h6 class="mb-2">Tags:</h6>
+              <span v-for="tag in selectedNewsDetail.tags.split(',')" :key="tag.trim()" class="badge bg-secondary me-2 mb-2 p-2">
+                {{ tag.trim() }}
+              </span>
             </div>
           </div>
-          <div class="modal-footer modal-footer-custom">
-            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Đóng</button>
-          </div>
+        </div>
+        <div class="modal-footer modal-footer-custom">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Đóng</button>
         </div>
       </div>
     </div>
   </div>
+  </div>
 </template>
 
 <script setup>
-// Script không thay đổi, vì logic xử lý đã đúng
 import { ref, onMounted, inject, computed } from 'vue';
 import axios from 'axios';
 import { Modal } from 'bootstrap';
@@ -308,9 +290,22 @@ const showNotification = (message, type = 'success') => {
 };
 
 const formatDate = (dateString) => {
-    if (!dateString) return 'N/A';
-    const options = { day: '2-digit', month: '2-digit', year: 'numeric' };
-    return new Date(dateString).toLocaleDateString('vi-VN', options);
+    if (!dateString) {
+        console.warn('No valid date provided for formatting');
+        return 'N/A';
+    }
+    try {
+        const date = new Date(dateString);
+        if (isNaN(date.getTime())) {
+            console.warn('Invalid date format:', dateString);
+            return 'N/A';
+        }
+        const options = { day: '2-digit', month: '2-digit', year: 'numeric' };
+        return date.toLocaleDateString('vi-VN', options);
+    } catch (error) {
+        console.error('Error formatting date:', error);
+        return 'N/A';
+    }
 };
 
 const getImageUrl = (filename) => {
@@ -386,12 +381,17 @@ const openModal = (editMode = false, item = null) => {
 };
 
 const openDetailModal = async (item) => {
-    selectedNewsDetail.value = null; 
+    selectedNewsDetail.value = null;
     detailModalInstance.show();
     try {
         const response = await axiosInstance.get(`/api/news/${item.id}`, { params: { from_admin: true } });
         selectedNewsDetail.value = response.data;
+        if (!selectedNewsDetail.value.publish_date) {
+            console.warn('API response missing publish_date:', response.data);
+            showNotification('Dữ liệu ngày đăng không khả dụng.', 'warning');
+        }
     } catch (error) {
+        console.error('Error fetching news detail:', error);
         showNotification('Không thể tải chi tiết tin tức.', 'error');
         detailModalInstance.hide();
     }
