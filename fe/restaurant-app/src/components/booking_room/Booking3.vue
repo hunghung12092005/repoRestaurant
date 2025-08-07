@@ -66,11 +66,12 @@
 
                             <div class="modal fade" id="guestSelectionModal" tabindex="-1"
                                 aria-labelledby="guestSelectionModalLabel" aria-hidden="true">
-                                <div class="modal-dialog modal-lg">
-                                    <div class="modal-content rounded-4 border-0 shadow-lg overflow-hidden">
+                                <div class="modal-dialog modal-lg mt-5">
+                                    <div class="modal-content rounded-4 border-0 shadow-lg overflow-hidden"
+                                        style="background-color: #fff;">
                                         <!-- Header -->
-                                        <div class="modal-header bg-primary text-white border-0 py-4 px-4">
-                                            <h5 class="modal-title fs-5 fw-bold d-flex align-items-center gap-2"
+                                        <div class="modal-header text-white py-4 px-4">
+                                            <h5 class="modal-title fs-5 fw-bold d-flex align-items-center gap-2 text-dark"
                                                 id="guestSelectionModalLabel">
                                                 <i class="bi bi-people-fill fs-4"></i> Chọn Số Lượng Khách
                                             </h5>
@@ -82,14 +83,7 @@
                                         <div class="modal-body px-4 pt-4">
                                             <div v-for="(room, index) in rooms" :key="index"
                                                 class="mb-4 pb-4 border-bottom">
-
-                                                <!-- Tiêu đề phòng -->
                                                 <div class="d-flex justify-content-between align-items-center mb-3">
-                                                    <h6
-                                                        class="mb-0 fw-semibold d-flex align-items-center gap-2 text-dark">
-                                                        <i class="bi bi-door-closed text-primary fs-5"></i> Phòng {{
-                                                            index + 1 }}
-                                                    </h6>
                                                     <button v-if="rooms.length > 1" type="button"
                                                         class="btn btn-outline-danger btn-sm rounded-pill px-3"
                                                         @click="removeRoomFromModal(index)">
@@ -98,41 +92,50 @@
                                                 </div>
 
                                                 <!-- Người lớn -->
+                                                <!-- Người lớn -->
                                                 <div class="row align-items-center mb-3">
                                                     <div class="col-6 text-muted">Người lớn:</div>
                                                     <div class="col-6 text-end">
                                                         <div class="d-inline-flex align-items-center gap-2">
-                                                            <button
-                                                                class="btn btn-outline-secondary rounded-circle px-3 py-1 fs-5"
+                                                            <!-- <button
+                                                                class="btn  no-radius px-3 py-1 fs-5"
                                                                 type="button" @click="decreaseAdults(index)"
-                                                                :disabled="room.adults <= 1">−</button>
-                                                            <span class="fw-bold fs-5"
-                                                                style="width: 32px; text-align: center;">{{ room.adults
-                                                                }}</span>
-                                                            <button
-                                                                class="btn btn-outline-secondary rounded-circle px-3 py-1 fs-5"
-                                                                type="button" @click="increaseAdults(index)">+</button>
+                                                                :disabled="room.adults <= 1">−</button> -->
+                                                            <input type="number"
+                                                                class="form-control text-center no-radius"
+                                                                v-model.number="room.adults"
+                                                                @input="validateAdults(index)" min="1" max="19"
+                                                                style="width: 60px;" />
+                                                            <!-- <button
+                                                                class="btn  no-radius px-3 py-1 fs-5"
+                                                                type="button" @click="increaseAdults(index)">+</button> -->
                                                         </div>
+                                                        <small v-if="room.errorAdults" class="text-danger">{{
+                                                            room.errorAdults }}</small>
                                                     </div>
                                                 </div>
 
                                                 <!-- Trẻ em -->
                                                 <div class="row align-items-center">
-                                                    <div class="col-6 text-muted">Trẻ em:</div>
+                                                    <div class="col-6 text-muted">Trẻ em (dưới 12 tuổi):</div>
                                                     <div class="col-6 text-end">
                                                         <div class="d-inline-flex align-items-center gap-2">
-                                                            <button
-                                                                class="btn btn-outline-secondary rounded-circle px-3 py-1 fs-5"
+                                                            <!-- <button
+                                                                class="btn  no-radius px-3 py-1 fs-5"
                                                                 type="button" @click="decreaseChildren(index)"
-                                                                :disabled="room.children <= 0">−</button>
-                                                            <span class="fw-bold fs-5"
-                                                                style="width: 32px; text-align: center;">{{
-                                                                    room.children }}</span>
-                                                            <button
-                                                                class="btn btn-outline-secondary rounded-circle px-3 py-1 fs-5"
+                                                                :disabled="room.children <= 0">−</button> -->
+                                                            <input type="number"
+                                                                class="form-control text-center no-radius"
+                                                                v-model.number="room.children"
+                                                                @input="validateChildren(index)" min="0"
+                                                                style="width: 60px;" />
+                                                            <!-- <button
+                                                                class="btn  no-radius px-3 py-1 fs-5"
                                                                 type="button"
-                                                                @click="increaseChildren(index)">+</button>
+                                                                @click="increaseChildren(index)">+</button> -->
                                                         </div>
+                                                        <small v-if="room.errorChildren" class="text-danger">{{
+                                                            room.errorChildren }}</small>
                                                     </div>
                                                 </div>
 
@@ -146,7 +149,7 @@
                                                 data-bs-dismiss="modal" @click="delSelection">
                                                 <i class="bi bi-x-lg me-1"></i> Hủy
                                             </button>
-                                            <button type="button" class="btn btn-primary rounded-pill px-4 py-2"
+                                            <button type="button" class="btn btn-solid-custom rounded-pill px-4 py-2"
                                                 data-bs-dismiss="modal" @click="confirmSelection">
                                                 <i class="bi bi-check2-circle me-1"></i> Xác nhận
                                             </button>
@@ -154,8 +157,6 @@
                                     </div>
                                 </div>
                             </div>
-
-
                         </div>
 
                         <div class="col-md-3">
@@ -329,15 +330,16 @@
         <!-- adjb -->
         <!-- Mobile Fixed Payment Button -->
         <div class="mobile-checkout-bar d-md-none">
-             <div v-if="capacityWarning" class="alert alert-danger my-2">
-                    {{ capacityWarning }}
-                </div>
+            <div v-if="capacityWarning" class="alert alert-danger my-2">
+                {{ capacityWarning }}
+            </div>
             <div class="d-flex justify-content-between align-items-center px-3 py-2">
                 <div class="fw-bold text-gold">
                     {{ formatPrice(totalPrice) }}
                 </div>
-               
-                <button v-if="isAddbooking" @click="openPopupshowModalBooking" class="btn btn-dark btn-sm rounded-pill px-3">
+
+                <button v-if="isAddbooking" @click="openPopupshowModalBooking"
+                    class="btn btn-dark btn-sm rounded-pill px-3">
                     Thanh Toán <i class="bi bi-arrow-right ms-1"></i>
                 </button>
             </div>
@@ -366,7 +368,7 @@
                                     <p class="mb-0 text-gold fw-bold">
                                         {{ formatPrice(room.price) }}
                                         <span class="small text-charcoal-light">
-                                            / {{ room.total_days }} Đêm / {{ room.so_phong }} Phòng
+                                            / {{ room.total_days }} Đêm / 1 Phòng
                                         </span>
                                     </p>
                                 </div>
@@ -415,8 +417,7 @@
                         </h2>
 
                         <p v-if="hotel.surcharges > 0" class="text-warning mb-2">
-                            <i class="bi bi-exclamation-triangle me-1"></i>
-                            Phụ thu: {{ formatPrice(hotel.surcharges) }}
+                            <i class="bi bi-exclamation-triangle me-1"></i> Phụ thu: {{ formatPrice(hotel.surcharges) }}
                         </p>
 
                         <h3>{{ hotel.name }}</h3>
@@ -434,18 +435,29 @@
                             <div>
                                 <img
                                     src="https://media.istockphoto.com/id/1346028094/vi/vec-to/bi%E1%BB%83u-t%C6%B0%E1%BB%A3ng-th%C3%B4ng-tin-ph%C3%A1c-th%E1%BA%A3o-m%C3%A9t-vu%C3%B4ng.jpg?s=1024x1024&w=is&k=20&c=vPR7HFKEmPUCYAOQOxqpyNgWXfusGobjlkLiBZc0NNI=" />
-                                {{ hotel.m2 }} m2
+                                {{ hotel.m2 }} m²
                             </div>
                         </div>
 
-                        <div class="mt-auto d-flex gap-2">
-                            <button class="btn btn-outline-dark rounded-pill px-3 py-2 w-100"
-                                @click="viewHotelDetails(hotel)">
-                                <i class="bi bi-info-circle me-1"></i> Chi tiết
-                            </button>
-                            <button class="btn btn-solid-custom rounded-pill px-3 py-2 w-100" @click="addBooking(hotel)">
-                                <i class="bi bi-bookmark-check me-1"></i> Thêm phòng
-                            </button>
+                        <div class="mt-auto d-flex justify-content-end align-items-center">
+                            <div class="d-flex justify-content-between align-items-center ">
+                                <!-- <button class="btn btn-outline-dark rounded-pill px-3 py-2"
+                                    @click="viewHotelDetails(hotel)">
+                                    <i class="bi bi-info-circle me-1"></i> Xem chi tiết
+                                </button> -->
+                                <span>SO luong phong : </span>
+
+                                 <div class="booking-container d-flex ">
+                                    <button class="btn" @click="decreaseRooms">-</button>
+                                    <input type="number" v-model.number="roomCount" min="1" class="form-control mx-2"
+                                        style="width: 60px; text-align: center;" />
+                                    <button class="btn" @click="increaseRooms">+</button>
+                                </div>
+                                <button class="btn btn-solid-custom rounded-pill px-3 py-2" @click="bookRooms(hotel)">
+                                    <i class="bi bi-bookmark-check me-1"></i> Thêm phòng
+                                </button>
+                               
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -820,12 +832,12 @@ const userInfoRaw = localStorage.getItem('userInfo');
 const fullName = ref('');
 
 if (userInfoRaw) {
-  try {
-    const userInfo = JSON.parse(userInfoRaw);
-    fullName.value = userInfo.name || '';
-  } catch (e) {
-    console.error('Lỗi parse userInfo:', e);
-  }
+    try {
+        const userInfo = JSON.parse(userInfoRaw);
+        fullName.value = userInfo.name || '';
+    } catch (e) {
+        console.error('Lỗi parse userInfo:', e);
+    }
 }
 const orderNotes = ref('');
 const createAccount = ref('true');
@@ -929,6 +941,23 @@ const groupedRooms = computed(() => {
 const capacityWarning = ref("");
 const isAddbooking = ref(true);
 //  Thêm phòng vào mảng (không gộp)
+const roomCount = ref(1);
+const increaseRooms = () => {
+    roomCount.value++;
+};
+
+const decreaseRooms = () => {
+    if (roomCount.value > 1) {
+        roomCount.value--;
+    }
+};
+
+const bookRooms = (hotel) => {
+    for (let i = 0; i < roomCount.value; i++) {
+        addBooking(hotel);
+    }
+};
+
 const checkCapacity = () => {
     const totalMaxAdults = selectedRooms.value.reduce((sum, room) => sum + (room.max_occupancy || 0), 0);
     const totalMaxChildren = selectedRooms.value.reduce((sum, room) => sum + (room.max_occupancy_child || 0), 0);
