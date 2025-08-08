@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Cập nhật xếp phòng cho đặt phòng #{{ $booking->booking_id }}</title>
+    <title>Cập nhật xếp phòng cho đặt phòng Mã đơn: {{ $booking->booking_id }}</title>
     <style>
         body { font-family: Arial, sans-serif; color: #333; margin: 0; padding: 20px; }
         h1 { color: #2c3e50; text-align: center; }
@@ -17,7 +17,7 @@
     <div class="logo-container">
         <img src="https://i.postimg.cc/J0d3p6Ww/logo-HXH.png" alt="HXH Luxury Hotel" class="logo">
     </div>
-    <h1>Cập nhật xếp phòng cho đặt phòng #{{ $booking->booking_id }}</h1>
+    <h1>Cập nhật xếp phòng cho đặt phòng Mã đơn: {{ $booking->booking_id }}</h1>
     <p>Kính gửi {{ $booking->customer->customer_name ?? 'Quý khách' }},</p>
     <p>Đặt phòng của bạn đã được gán phòng.</p>
     <p>Chi tiết đặt phòng:</p>
