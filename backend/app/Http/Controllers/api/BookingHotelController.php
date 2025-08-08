@@ -263,11 +263,13 @@ class BookingHotelController extends Controller
             $request->validate([
                 'name' => 'required|string',
                 'phone' => 'required',
+                'email' => 'required',
             ]);
 
             $customer = Customer::firstOrCreate(['customer_phone' => $request->phone], [
                 'customer_name' => $request->name,
                 'customer_phone' => $request->phone,
+                'customer_email' => $request->email,
                 'address' => $request->address ?? 'Unknown',
             ]);
 

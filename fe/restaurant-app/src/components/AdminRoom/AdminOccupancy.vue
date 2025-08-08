@@ -322,7 +322,7 @@ const showExtendModal = ref(false);
 const extendForm = ref({ booking_detail_id: null, check_out_date: '' });
 const additionalFee = ref(0);
 const surchargeReason = ref('');
-const apiKey = 'XXjjI5g9j7gk4NcZE9Dh9PPLCrvrR6zJ';
+const apiKey = 'UIOieiMUjnqR7UCrJrtF30wQaw8Jc4ys';
 const imageFile = ref(null);
 
 const serviceTotal = computed(() => allServices.value.reduce((sum, s) => sum + s.price * s.quantity, 0));

@@ -57,7 +57,7 @@
               <input id="from-date" v-model="tuNgay" type="date" class="form-control" @change="locDanhSach">
             </div>
             <div class="col-lg-3 col-md-4">
-              <label for="to-date" class="form-label">Đến ngày nhận phòng</label>
+              <label for="to-date" class="form-label">Đến ngày trả phòng</label>
               <input id="to-date" v-model="denNgay" type="date" class="form-control" @change="locDanhSach">
             </div>
           </div>
