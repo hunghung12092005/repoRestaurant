@@ -190,7 +190,7 @@ class BookingHotelController extends Controller
                         ->where(function ($q) use ($checkInDate, $checkOutDate) {
                             $q->where(function ($subq) use ($checkInDate, $checkOutDate) {
                                 $subq->where('check_in_date', '<', $checkOutDate)
-                                     ->where('check_out_date', '>', $checkInDate);
+                                    ->where('check_out_date', '>', $checkInDate);
                             });
                         });
                 })->exists();
@@ -208,28 +208,6 @@ class BookingHotelController extends Controller
 
             $bookingDetail->room_id = $request->room_id;
             $bookingDetail->save();
-
-            // Gửi email thông báo gán phòng
-            $customer = Customer::find($booking->customer_id);
-            if ($customer && $customer->customer_email) {
-                $room = Room::find($request->room_id);
-                $roomType = RoomType::find($bookingDetail->room_type);
-                $additionalInfo = [
-                    'room_name' => $room ? $room->room_name : 'N/A',
-                    'room_type' => $roomType ? $roomType->type_name : 'N/A',
-                ];
-                Mail::to($customer->customer_email)->send(new BookingStatusUpdated($booking, 'room_assigned', $additionalInfo));
-                Log::info('Đã gửi email thông báo gán phòng', [
-                    'booking_id' => $booking->booking_id,
-                    'customer_email' => $customer->customer_email,
-                    'room_id' => $request->room_id
-                ]);
-            } else {
-                Log::warning('Không thể gửi email vì khách hàng không có email', [
-                    'booking_id' => $booking->booking_id,
-                    'customer_id' => $booking->customer_id
-                ]);
-            }
 
             Log::info('Xếp phòng thành công', [
                 'booking_detail_id' => $bookingDetailId,
@@ -411,6 +389,9 @@ class BookingHotelController extends Controller
         }
     }
 
+    /**
+     * Xóa lịch sử booking
+     */
     public function deleteBookingHistory(Request $request, $id)
     {
         // Log::info('Đã vào controller!');
@@ -482,6 +463,9 @@ class BookingHotelController extends Controller
         ], 200);
     }
 
+    /**
+     * Xác nhận hủy booking
+     */
     public function confirmCancelBooking(Request $request, $cancel_id)
     {
         try {
@@ -550,6 +534,9 @@ class BookingHotelController extends Controller
         }
     }
 
+    /**
+     * Lấy thông tin hủy booking
+     */
     public function getCancelInfo($booking_id)
     {
         try {
@@ -592,6 +579,9 @@ class BookingHotelController extends Controller
         }
     }
 
+    /**
+     * Hiển thị thông tin hủy booking
+     */
     public function showBookingCancel($bookingId)
     {
         try {
@@ -633,6 +623,9 @@ class BookingHotelController extends Controller
         }
     }
 
+    /**
+     * Cập nhật thông tin ngân hàng cho yêu cầu hủy
+     */
     public function updateBankInfo(Request $request, $bookingId)
     {
         $request->validate([
