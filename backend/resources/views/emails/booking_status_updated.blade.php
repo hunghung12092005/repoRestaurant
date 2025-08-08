@@ -19,14 +19,14 @@
     </div>
     <h1>Cập nhật trạng thái đặt phòng Mã đơn: {{ $booking->booking_id }}</h1>
     <p>Kính gửi {{ $booking->customer->customer_name ?? 'Quý khách' }},</p>
-    <p>Đặt phòng của bạn đã được cập nhật trạng thái thành: <strong>
+    <p>Đơn đặt phòng của bạn đang ở trạng thái: <strong>
         @switch($status)
             @case('confirmed_not_assigned') Đã xác nhận, chưa xếp phòng @break
             @case('confirmed') Đã hoàn tất xác nhận @break
             @case('cancelled') Đã hủy @break
             @case('room_assigned') Đã xếp phòng @break
-            @case('pending_confirmation') Đang chờ xác nhận @break
-            @case('pending_cancel') Đang chờ hủy @break
+            @case('pending_confirmation') Chờ xác nhận @break
+            @case('pending_cancel') Chờ hủy @break
             @default {{ $status }} @break
         @endswitch
     </strong>.</p>
