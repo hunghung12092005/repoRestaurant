@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\api;
 
 use App\Http\Controllers\Controller;
+use App\Mail\BookingStatusUpdated;
 use App\Models\BookingHotel;
 use App\Models\BookingHotelDetail;
 use App\Models\BookingHotelService;
@@ -20,6 +21,7 @@ use Carbon\Carbon;
 use Illuminate\Support\Facades\Cache;
 use GuzzleHttp\Client;
 use GuzzleHttp\Exception\RequestException;
+use Illuminate\Support\Facades\Mail;
 
 class BookingHotelController extends Controller
 {
@@ -193,7 +195,6 @@ class BookingHotelController extends Controller
                         });
                 })->exists();
 
-
             if ($isRoomOccupied) {
                 Log::warning('Phòng đã được xếp cho booking khác trong khoảng thời gian này', [
                     'room_id' => $request->room_id,
@@ -207,6 +208,28 @@ class BookingHotelController extends Controller
 
             $bookingDetail->room_id = $request->room_id;
             $bookingDetail->save();
+
+            // Gửi email thông báo gán phòng
+            $customer = Customer::find($booking->customer_id);
+            if ($customer && $customer->customer_email) {
+                $room = Room::find($request->room_id);
+                $roomType = RoomType::find($bookingDetail->room_type);
+                $additionalInfo = [
+                    'room_name' => $room ? $room->room_name : 'N/A',
+                    'room_type' => $roomType ? $roomType->type_name : 'N/A',
+                ];
+                Mail::to($customer->customer_email)->send(new BookingStatusUpdated($booking, 'room_assigned', $additionalInfo));
+                Log::info('Đã gửi email thông báo gán phòng', [
+                    'booking_id' => $booking->booking_id,
+                    'customer_email' => $customer->customer_email,
+                    'room_id' => $request->room_id
+                ]);
+            } else {
+                Log::warning('Không thể gửi email vì khách hàng không có email', [
+                    'booking_id' => $booking->booking_id,
+                    'customer_id' => $booking->customer_id
+                ]);
+            }
 
             Log::info('Xếp phòng thành công', [
                 'booking_detail_id' => $bookingDetailId,
@@ -335,6 +358,26 @@ class BookingHotelController extends Controller
                     ]);
                 }
             }
+
+            // Gửi email thông báo tạo booking
+            $customer = Customer::find($customerId);
+            if ($customer && $customer->customer_email) {
+                $additionalInfo = [
+                    'total_rooms' => $bookingDetails['total_rooms'],
+                    'booking_type' => $bookingDetails['booking_type'],
+                ];
+                Mail::to($customer->customer_email)->send(new BookingStatusUpdated($booking, 'pending_confirmation', $additionalInfo));
+                Log::info('Đã gửi email thông báo tạo booking', [
+                    'booking_id' => $booking->booking_id,
+                    'customer_email' => $customer->customer_email
+                ]);
+            } else {
+                Log::warning('Không thể gửi email vì khách hàng không có email', [
+                    'booking_id' => $booking->booking_id,
+                    'customer_id' => $customerId
+                ]);
+            }
+
             return response()->json(['message' => 'Booking created successfully!']);
         } catch (\Exception $e) {
             return response()->json(['error' => 'An error occurred: ' . $e->getMessage()], 500);
@@ -365,6 +408,7 @@ class BookingHotelController extends Controller
             ], 500);
         }
     }
+
     public function deleteBookingHistory(Request $request, $id)
     {
         // Log::info('Đã vào controller!');
@@ -409,6 +453,25 @@ class BookingHotelController extends Controller
             'status' => 'requested',
         ]);
 
+        // Gửi email thông báo yêu cầu hủy
+        $customer = Customer::find($sub);
+        if ($customer && $customer->customer_email) {
+            $additionalInfo = [
+                'cancellation_reason' => $request->input('cancellation_reason', 'Không có lý do cụ thể'),
+                'refund_amount' => $refundAmount
+            ];
+            Mail::to($customer->customer_email)->send(new BookingStatusUpdated($booking, 'pending_cancel', $additionalInfo));
+            Log::info('Đã gửi email thông báo yêu cầu hủy', [
+                'booking_id' => $booking->booking_id,
+                'customer_email' => $customer->customer_email
+            ]);
+        } else {
+            Log::warning('Không thể gửi email vì khách hàng không có email', [
+                'booking_id' => $booking->booking_id,
+                'customer_id' => $sub
+            ]);
+        }
+
         Log::info('Tạo yêu cầu hủy thành công', ['cancel_id' => $cancel->cancel_id, 'booking_id' => $booking->booking_id]);
 
         return response()->json([
@@ -447,6 +510,28 @@ class BookingHotelController extends Controller
 
             $booking->status = 'cancelled';
             $booking->save();
+
+            // Gửi email thông báo xác nhận hủy
+            $customer = Customer::find($booking->customer_id);
+            if ($customer && $customer->customer_email) {
+                $additionalInfo = [
+                    'cancellation_reason' => $cancel->cancellation_reason,
+                    'refund_amount' => $cancel->refund_amount,
+                    'refund_bank' => $cancel->refund_bank,
+                    'refund_account_number' => $cancel->refund_account_number,
+                    'refund_account_name' => $cancel->refund_account_name,
+                ];
+                Mail::to($customer->customer_email)->send(new BookingStatusUpdated($booking, 'cancelled', $additionalInfo));
+                Log::info('Đã gửi email thông báo xác nhận hủy', [
+                    'booking_id' => $booking->booking_id,
+                    'customer_email' => $customer->customer_email
+                ]);
+            } else {
+                Log::warning('Không thể gửi email vì khách hàng không có email', [
+                    'booking_id' => $booking->booking_id,
+                    'customer_id' => $booking->customer_id
+                ]);
+            }
 
             Log::info('Xác nhận hủy thành công', ['cancel_id' => $cancel_id, 'booking_id' => $cancel->booking_id]);
 
@@ -545,6 +630,7 @@ class BookingHotelController extends Controller
             ], 500);
         }
     }
+
     public function updateBankInfo(Request $request, $bookingId)
     {
         $request->validate([
@@ -578,6 +664,7 @@ class BookingHotelController extends Controller
             ]
         ]);
     }
+
     /**
      * Tạo link thanh toán PayOS
      */
@@ -652,7 +739,7 @@ class BookingHotelController extends Controller
                 'booking_hotel.check_in_date',
                 'booking_hotel.check_in_time',
                 'booking_hotel.check_out_date',
-                'booking_hotel.check_out_time', 
+                'booking_hotel.check_out_time',
                 'booking_hotel.total_price',
                 'booking_hotel.status',
                 'booking_hotel.payment_status',
@@ -740,7 +827,7 @@ class BookingHotelController extends Controller
                 $booking->payment_status_display = $paymentStatusDisplay;
 
                 // Thêm định dạng thời gian trả phòng
-                $booking->check_out_datetime = $booking->check_out_date && $booking->check_out_time 
+                $booking->check_out_datetime = $booking->check_out_date && $booking->check_out_time
                     ? Carbon::createFromFormat('Y-m-d H:i:s', $booking->check_out_date . ' ' . $booking->check_out_time)->format('d/m/Y H:i')
                     : ($booking->check_out_date ? Carbon::createFromFormat('Y-m-d', $booking->check_out_date)->format('d/m/Y') : 'Chưa xác định');
 
@@ -1008,6 +1095,25 @@ class BookingHotelController extends Controller
             $booking->status = 'confirmed_not_assigned';
             $booking->save();
 
+            // Gửi email thông báo xác nhận
+            $customer = Customer::find($booking->customer_id);
+            if ($customer && $customer->customer_email) {
+                $additionalInfo = [
+                    'check_in_date' => Carbon::parse($booking->check_in_date)->format('d/m/Y'),
+                    'check_out_date' => Carbon::parse($booking->check_out_date)->format('d/m/Y'),
+                ];
+                Mail::to($customer->customer_email)->send(new BookingStatusUpdated($booking, 'confirmed_not_assigned', $additionalInfo));
+                Log::info('Đã gửi email thông báo xác nhận', [
+                    'booking_id' => $booking->booking_id,
+                    'customer_email' => $customer->customer_email
+                ]);
+            } else {
+                Log::warning('Không thể gửi email vì khách hàng không có email', [
+                    'booking_id' => $booking->booking_id,
+                    'customer_id' => $booking->customer_id
+                ]);
+            }
+
             Log::info('Xác nhận đặt phòng thành công', [
                 'booking_id' => $bookingId,
                 'new_status' => 'confirmed_not_assigned'
@@ -1063,6 +1169,33 @@ class BookingHotelController extends Controller
             $booking->status = 'confirmed';
             $booking->save();
 
+            // Gửi email thông báo hoàn tất xác nhận
+            $customer = Customer::find($booking->customer_id);
+            if ($customer && $customer->customer_email) {
+                $bookingDetails = BookingHotelDetail::where('booking_id', $booking->booking_id)
+                    ->with('room', 'roomType')
+                    ->get();
+                $rooms = $bookingDetails->map(function ($detail) {
+                    return [
+                        'room_name' => $detail->room ? $detail->room->room_name : 'N/A',
+                        'room_type' => $detail->roomType ? $detail->roomType->type_name : 'N/A',
+                    ];
+                })->toArray();
+                $additionalInfo = [
+                    'rooms' => $rooms,
+                ];
+                Mail::to($customer->customer_email)->send(new BookingStatusUpdated($booking, 'confirmed', $additionalInfo));
+                Log::info('Đã gửi email thông báo hoàn tất xác nhận', [
+                    'booking_id' => $booking->booking_id,
+                    'customer_email' => $customer->customer_email
+                ]);
+            } else {
+                Log::warning('Không thể gửi email vì khách hàng không có email', [
+                    'booking_id' => $booking->booking_id,
+                    'customer_id' => $booking->customer_id
+                ]);
+            }
+
             Log::info('Hoàn tất xác nhận booking thành công', [
                 'booking_id' => $bookingId,
                 'new_status' => 'confirmed'
@@ -1112,10 +1245,28 @@ class BookingHotelController extends Controller
                 'booking_id' => $booking->booking_id,
                 'customer_id' => $booking->customer_id,
                 'cancellation_reason' => 'Hủy bởi Admin: ' . $request->input('reason'),
-                'refund_amount' => 0, 
-                'status' => 'processed', 
+                'refund_amount' => 0,
+                'status' => 'processed',
             ]);
-            
+
+            // Gửi email thông báo hủy
+            $customer = Customer::find($booking->customer_id);
+            if ($customer && $customer->customer_email) {
+                $additionalInfo = [
+                    'cancellation_reason' => 'Hủy bởi Admin: ' . $request->input('reason'),
+                ];
+                Mail::to($customer->customer_email)->send(new BookingStatusUpdated($booking, 'cancelled', $additionalInfo));
+                Log::info('Đã gửi email thông báo hủy bởi admin', [
+                    'booking_id' => $booking->booking_id,
+                    'customer_email' => $customer->customer_email
+                ]);
+            } else {
+                Log::warning('Không thể gửi email vì khách hàng không có email', [
+                    'booking_id' => $booking->booking_id,
+                    'customer_id' => $booking->customer_id
+                ]);
+            }
+
             DB::commit();
 
             Log::info('Admin đã hủy đặt phòng thành công', [
@@ -1125,9 +1276,8 @@ class BookingHotelController extends Controller
 
             return response()->json([
                 'message' => 'Hủy đặt phòng thành công!',
-                'booking' => $booking // Trả về booking đã cập nhật
+                'booking' => $booking
             ], 200);
-
         } catch (\Exception $e) {
             DB::rollBack();
             Log::error('Lỗi khi Admin hủy đặt phòng: ' . $e->getMessage(), [
@@ -1182,6 +1332,7 @@ class BookingHotelController extends Controller
 
             DB::beginTransaction();
 
+            $assignedRooms = [];
             foreach ($bookingDetails as $bookingDetail) {
                 // Lấy danh sách phòng trống cho loại phòng
                 $occupiedRoomIds = BookingHotelDetail::whereHas('booking', function ($query) use ($checkInDate, $checkOutDate) {
@@ -1219,9 +1370,32 @@ class BookingHotelController extends Controller
                 $bookingDetail->room_id = $availableRooms->room_id;
                 $bookingDetail->save();
 
+                $assignedRooms[] = [
+                    'room_name' => $availableRooms->room_name,
+                    'room_type' => $bookingDetail->roomType ? $bookingDetail->roomType->type_name : 'N/A',
+                ];
+
                 Log::info('Xếp phòng ngẫu nhiên thành công', [
                     'booking_detail_id' => $bookingDetail->booking_detail_id,
                     'room_id' => $availableRooms->room_id
+                ]);
+            }
+
+            // Gửi email thông báo xếp phòng ngẫu nhiên
+            $customer = Customer::find($booking->customer_id);
+            if ($customer && $customer->customer_email) {
+                $additionalInfo = [
+                    'rooms' => $assignedRooms,
+                ];
+                Mail::to($customer->customer_email)->send(new BookingStatusUpdated($booking, 'room_assigned', $additionalInfo));
+                Log::info('Đã gửi email thông báo xếp phòng ngẫu nhiên', [
+                    'booking_id' => $booking->booking_id,
+                    'customer_email' => $customer->customer_email
+                ]);
+            } else {
+                Log::warning('Không thể gửi email vì khách hàng không có email', [
+                    'booking_id' => $booking->booking_id,
+                    'customer_id' => $booking->customer_id
                 ]);
             }
 
