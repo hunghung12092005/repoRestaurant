@@ -447,7 +447,7 @@
                                 </button> -->
                                 <span>SO luong phong : </span>
 
-                                 <div class="booking-container d-flex ">
+                                <div class="booking-container d-flex ">
                                     <button class="btn" @click="decreaseRooms">-</button>
                                     <input type="number" v-model.number="roomCount" min="1" class="form-control mx-2"
                                         style="width: 60px; text-align: center;" />
@@ -456,7 +456,7 @@
                                 <button class="btn btn-solid-custom rounded-pill px-3 py-2" @click="bookRooms(hotel)">
                                     <i class="bi bi-bookmark-check me-1"></i> Thêm phòng
                                 </button>
-                               
+
                             </div>
                         </div>
                     </div>
@@ -512,6 +512,11 @@
                                     <input type="number" class="form-control" id="phone" v-model="phoneNumber" required>
                                 </div>
                                 <div class="mb-3">
+                                    <label for="email" class="form-label">Email <span class="text-muted small">(Bắt
+                                            buộc)</span></label>
+                                    <input type="email" class="form-control" id="email" v-model="email" required>
+                                </div>
+                                <div class="mb-3">
                                     <label for="orderNotes" class="form-label">Ghi chú Đặt hàng (Tùy chọn)</label>
                                     <textarea class="form-control" id="orderNotes" v-model="orderNotes"
                                         rows="3"></textarea>
@@ -547,45 +552,45 @@
                                         <p>Phụ thụ sức chứa:</p>
                                         <p>{{ formatPrice(surchargeSucChua) }}</p>
                                     </div>
-                                    <div v-for="(room, index) in selectedRooms" :key="index">
+                                    <!-- <div v-for="(room, index) in selectedRooms" :key="index">
                                         <div class="total">
                                             <p>Phòng {{ index + 1 }} :
                                                 <span class="text-secondary fw-normal">{{ room.name
-                                                    }}</span>
+                                                }}</span>
                                             </p>
                                             <p>{{
                                                 formatPrice(room.price) }}</p>
                                         </div>
+                                    </div> -->
+                                    <div v-for="(room, index) in groupedRooms" :key="index"
+                                        class="d-flex align-items-center justify-content-between mb-3 p-3 bg-light-gold rounded-3 shadow-sm">
+                                        <div>
+                                            <h6 class="mb-1 text-charcoal fw-bold">
+                                                {{ room.name }} <span class="text-muted">(x{{ room.so_phong }})</span>
+                                            </h6>
+                                            <p class="mb-1 text-muted-dark small">{{ room.description.substring(0, 50)
+                                                }}...</p>
+                                            <p class="mb-0 text-gold fw-bold">
+                                                {{ formatPrice(room.price) }}
+                                                <span class="small text-charcoal-light">
+                                                    / {{ room.total_days }} Đêm / 1 Phòng
+                                                </span>
+                                            </p>
+                                        </div>
+                                        <!-- <button @click="removeAllRoomsByName(room.name)"
+                                            class="btn btn-outline-danger btn-sm rounded-circle ms-3"
+                                            title="Xóa tất cả phòng này">
+                                            <i class="bi bi-x-lg"></i>
+                                        </button> -->
                                     </div>
                                     <!-- Displaying selected room details -->
                                     <div class="container my-5 py-4">
-                                        <!-- <h2 class="text-center fw-bold mb-4 text-dark fs-4">
-                                            <span class="d-inline-block pb-2 border-bottom border-3 border-info">Thông
-                                                Tin Đặt Phòng</span>
-                                        </h2>
-
-                                        <div class="row g-3 justify-content-center">
-                                            <div v-for="(room, index) in selectedRooms" :key="index"
-                                                class="col-12 col-md-6 col-lg-4">
-                                                <div class="card shadow-sm border-0 rounded-3">
-                                                    <div class="card-body p-4 bg-light">
-                                                        <h6 class="mb-0 fw-bold text-primary">Phòng {{ index + 1 }}:
-                                                            <span class="text-secondary fw-normal">{{ room.name
-                                                            }}</span>
-                                                        </h6>
-                                                        <span class="fw-bold text-success fs-5">{{
-                                                            formatPrice(room.price) }}</span>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </div> -->
-
                                         <div
-                                            class="d-flex flex-column flex-md-row justify-content-between align-items-md-center mt-4 py-4 px-4 border border-info rounded-3 shadow-lg">
+                                            class="d-flex flex-column flex-md-row justify-content-between align-items-md-center mt-4 py-4 px-4 border border-dark rounded-3 shadow-lg">
                                             <h6 class="mb-2 mb-md-0 fw-bold text-uppercase text-dark">Tổng Cộng Thanh
-                                                Toán: </h6>
-                                            <p class="h4 mb-0 fw-bolder text-primary"> {{
-                                                formatPrice(totalCostForAllRooms) }}</p>
+                                                Toán </h6>
+                                            <p class="h4 ml-2 mb-0 fw-bolder text-dark"> <span>: {{
+                                                formatPrice(totalCostForAllRooms) }}</span></p>
                                         </div>
                                     </div>
 
@@ -828,6 +833,7 @@ const selectedHotelBooking = ref(null);
 
 const currentDateTime = new Date().toLocaleString();
 const phoneNumber = ref('');
+const email = ref('');
 const userInfoRaw = localStorage.getItem('userInfo');
 const fullName = ref('');
 
@@ -1214,17 +1220,21 @@ const getRoomPrices = async () => {
 //boooking
 
 // Xử lý booking
+const returnout = ref(false);
 const confirmBooking = async () => {
     // Kiểm tra thông tin bắt buộc
-    if (!fullName.value || !phoneNumber.value) {
-        alert('Vui lòng nhập đầy đủ họ tên và số điện thoại.');
+    if (!fullName.value || !phoneNumber.value || !email.value) {
+        alert('Vui lòng nhập đầy đủ thông tin.');
+        returnout.value = true;
         return;
     }
     // Kiểm tra xem có ít nhất một phòng đã chọn không
     if (selectedRooms.value.length === 0) {
         alert('Vui lòng chọn ít nhất một phòng trước khi đặt.');
+        returnout.value = true;
         return;
     }
+    returnout.value = false;
     selectedRooms.totalPrice = totalCostForAllRooms.value; //gia tong
     // console.log("totalPrice:", selectedRooms.totalPrice); // Log the updated totalPrice
     // console.log("selectedRooms:", selectedRooms.value); // Log the selected rooms
@@ -1263,15 +1273,18 @@ const confirmBooking = async () => {
     //    // baseURL: apiUrl, // Đặt base URL nếu cần
     //     headers: {} // Không thêm header nào
     // });
+    const dataUser = {
+        name: fullName.value,
+        phone: phoneNumber.value,
+        email: email.value,
+        address: '', // Có thể thêm địa chỉ nếu cần
+    };
     try {
-        const authResponse = await axios.post(`${apiUrl}/api/generate-token`, {
-            name: fullName.value,
-            phone: phoneNumber.value,
-            address: '', // Có thể thêm địa chỉ nếu cần
-        });
+        //console.log('Đang xác thực người dùng...', dataUser);
+        const authResponse = await axios.post(`${apiUrl}/api/generate-token`, dataUser);
         token = authResponse.data.token;
         localStorage.setItem('BookingAuth', token);
-        // console.log(localStorage.getItem('BookingAuth'))
+        //console.log(localStorage.getItem('BookingAuth'))
 
         //console.log('Token xác thực:', token);
     } catch (error) {
@@ -1374,7 +1387,7 @@ const payQr = async () => {
     }
 }
 //check de gui sms
-const checkAndSendOtp = () => {
+const checkAndSendOtp = async () => {
     if (!phoneNumber.value) {
         alert('Vui lòng nhập số điện thoại!');
         // Tập trung vào input số điện thoại
@@ -1393,8 +1406,10 @@ const checkAndSendOtp = () => {
 
     if (isDuplicate) {
         // Nếu đã xác thực rồi thì thực hiện luôn
-        confirmBooking();
-        router.push('/thanksBooking');
+        await confirmBooking();
+        if (returnout.value != true) {
+            router.push('/thanksBooking');
+        }
     } else {
         // Gửi OTP rồi đợi xác thực mới thực hiện
         sendOtpSMS();
@@ -1488,7 +1503,9 @@ const verifyCode = async () => {
         //  Sau xác thực thì tiếp tục hành động: bạn chọn 1 trong 2 bên dưới
         if (paymentMethod.value === 'thanh_toan_sau') {
             await confirmBooking();
-            router.push('/thanksBooking');
+            if (returnout.value != true) {
+                router.push('/thanksBooking');
+            }
         } else if (paymentMethod.value === 'thanh_toan_qr') {
             await payQr();
         }
