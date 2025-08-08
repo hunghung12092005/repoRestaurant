@@ -84,7 +84,7 @@
                   <div class="text" v-else>{{ msg.message }}</div>
 
                   <!-- Nếu có file đính kèm -->
-                  <img v-if="msg.file" :src="msg.file" class="image-preview mt-2" />
+                  <img style="width: 100px;" v-if="msg.file" :src="msg.file" class="image-preview mt-2" />
                 </div>
 
                 <!-- Avatar người dùng -->
@@ -895,7 +895,8 @@ onMounted(() => {
 
 .image-preview {
   margin-top: 8px;
-  max-width: 100px;
+  /* max-width: 100px; */
+  width: 400px;
   border-radius: 8px;
 }
 

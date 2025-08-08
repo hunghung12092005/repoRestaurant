@@ -121,6 +121,7 @@ Route::get('/booking-cancel/{booking_id}', [BookingHotelController::class, 'getC
 Route::patch('/booking-cancel/{cancel_id}', [BookingHotelController::class, 'confirmCancelBooking']);
 Route::patch('/bookings/{bookingId}/complete', [BookingHotelController::class, 'completeBooking']);
 Route::post('/bookings/{bookingId}/admin-cancel', [BookingHotelController::class, 'cancelBookingByAdmin']);
+Route::post('/bookings/{bookingId}/assign-random-rooms', [BookingHotelController::class, 'assignRandomRooms']);
 
 Route::get('/booking-histories', [BookingHistoryController::class, 'index']);
 Route::get('/booking-histories/{status_id}', [BookingHistoryController::class, 'show']);
@@ -162,7 +163,7 @@ Route::get('/chat-ai/hotel-links', [ChatAIController::class, 'hotelLinks']);
 //gui anh socket
 Route::post('/upload', [FileController::class, 'upload']);
 //api webhook
-Route::get('/webhook-url', [WebhookController::class, 'handleWebhook']);
+Route::post('/webhook-url', [WebhookController::class, 'handleWebhook']);
 //giam gia
 Route::post('/discount', [CouponsController::class, 'getDiscountAmount'])->middleware('throttle:100,60');
 Route::prefix('discount-codes')->controller(CouponsController::class)->group(function () {

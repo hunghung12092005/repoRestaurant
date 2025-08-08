@@ -153,7 +153,7 @@
               </ul>
             </div>
             <a class="navbar-brand mx-auto" href="/">
-              <img src="https://i.postimg.cc/J0d3p6Ww/logo-HXH.png" alt="Foodie Logo" class="logo-img" />
+              <img src="https://i.postimg.cc/J0d3p6Ww/logo-HXH.png" alt="Foodie Logo" class="logo-img"/>
               <span class="d-none d-lg-inline">Hồ Xuân Hương</span>
             </a>
           </div>
@@ -359,7 +359,7 @@ body {
   display: flex; align-items: center; font-weight: 600; color: #333333; transition: color 0.3s ease;
   position: absolute; left: 50%; transform: translateX(-50%); top: 50%; transform: translate(-50%, -50%);
 }
-.logo-img { width: 60px; height: 60px; }
+.logo-img { width: 60px; height: 50px;margin: 0 10px 0 10px;}
 .navbar-toggler { position: absolute; right: 1rem; top: 50%; transform: translateY(-50%); }
 .navbar-collapse { height: 100%; }
 .navbar-nav { gap: 0.5rem; }

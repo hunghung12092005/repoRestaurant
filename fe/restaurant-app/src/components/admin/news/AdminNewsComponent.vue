@@ -103,7 +103,7 @@
       </ul>
     </nav>
 
-    <!-- Modal Tạo/Sửa (GIỮ NGUYÊN ID VÀ CLASS FADE) -->
+    <!-- Modal Tạo/Sửa -->
     <div class="modal fade" id="newsModal" tabindex="-1" aria-labelledby="newsModalLabel" aria-hidden="true">
       <div class="modal-dialog modal-xl modal-dialog-centered">
         <div class="modal-content modal-custom">
@@ -175,13 +175,58 @@
     
     <!-- Modal Chi tiết -->
     <div class="modal fade" id="detailNewsModal" tabindex="-1" aria-labelledby="detailNewsModalLabel" aria-hidden="true">
-        <!-- ... Nội dung modal chi tiết không thay đổi ... -->
+    <div class="modal-dialog modal-xl modal-dialog-centered modal-dialog-scrollable">
+      <div class="modal-content modal-custom">
+        <div class="modal-header modal-header-custom">
+          <h5 class="modal-title" id="detailNewsModalLabel">Chi tiết Tin tức</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Đóng"></button>
+        </div>
+        <div class="modal-body p-4 news-detail-modal-body">
+          <div v-if="!selectedNewsDetail" class="d-flex justify-content-center align-items-center" style="min-height: 400px;">
+            <div class="spinner-border text-primary" role="status">
+              <span class="visually-hidden">Đang tải...</span>
+            </div>
+            <p class="ms-3 mb-0">Đang tải chi tiết tin tức...</p>
+          </div>
+          <div v-else>
+            <h2 class="mb-3">{{ selectedNewsDetail.title }}</h2>
+            <div class="metadata text-muted mb-4 pb-3 border-bottom">
+              <span class="me-3" title="Tác giả"><i class="bi bi-person-fill me-1"></i>{{ selectedNewsDetail.author?.name || 'Không rõ' }}</span>
+              <span class="me-3" title="Danh mục"><i class="bi bi-folder-fill me-1"></i>{{ selectedNewsDetail.category?.name || 'N/A' }}</span>
+              <span class="me-3" title="Ngày đăng">
+                <i class="bi bi-calendar-event me-1"></i>
+                {{ formatDate(selectedNewsDetail.publish_date) }}
+              </span>
+              <span class="badge me-2" :class="selectedNewsDetail.status ? 'badge-success' : 'badge-secondary'">
+                {{ selectedNewsDetail.status ? 'Hiển thị' : 'Ẩn' }}
+              </span>
+              <span v-if="selectedNewsDetail.is_pinned" class="badge badge-info">
+                <i class="bi bi-pin-angle-fill me-1"></i>Ghim
+              </span>
+            </div>
+            <img v-if="selectedNewsDetail.thumbnail" :src="getImageUrl(selectedNewsDetail.thumbnail)" class="img-fluid rounded mb-4 w-100" style="max-height: 450px; object-fit: cover;" alt="Thumbnail">
+            <p v-if="selectedNewsDetail.summary" class="lead fst-italic border-start border-3 border-primary ps-3 mb-4 bg-light p-3 rounded">
+              {{ selectedNewsDetail.summary }}
+            </p>
+            <div class="content-wrapper" v-html="selectedNewsDetail.content"></div>
+            <div v-if="selectedNewsDetail.tags && selectedNewsDetail.tags.length > 0" class="mt-4 pt-3 border-top">
+              <h6 class="mb-2">Tags:</h6>
+              <span v-for="tag in selectedNewsDetail.tags.split(',')" :key="tag.trim()" class="badge bg-secondary me-2 mb-2 p-2">
+                {{ tag.trim() }}
+              </span>
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer modal-footer-custom">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Đóng</button>
+        </div>
+      </div>
     </div>
+  </div>
   </div>
 </template>
 
 <script setup>
-// ... TOÀN BỘ SCRIPT CỦA BẠN GIỮ NGUYÊN ...
 import { ref, onMounted, inject, computed } from 'vue';
 import axios from 'axios';
 import { Modal } from 'bootstrap';
@@ -245,7 +290,22 @@ const showNotification = (message, type = 'success') => {
 };
 
 const formatDate = (dateString) => {
-    return dateString ? new Date(dateString).toLocaleDateString('vi-VN') : 'N/A';
+    if (!dateString) {
+        console.warn('No valid date provided for formatting');
+        return 'N/A';
+    }
+    try {
+        const date = new Date(dateString);
+        if (isNaN(date.getTime())) {
+            console.warn('Invalid date format:', dateString);
+            return 'N/A';
+        }
+        const options = { day: '2-digit', month: '2-digit', year: 'numeric' };
+        return date.toLocaleDateString('vi-VN', options);
+    } catch (error) {
+        console.error('Error formatting date:', error);
+        return 'N/A';
+    }
 };
 
 const getImageUrl = (filename) => {
@@ -326,7 +386,12 @@ const openDetailModal = async (item) => {
     try {
         const response = await axiosInstance.get(`/api/news/${item.id}`, { params: { from_admin: true } });
         selectedNewsDetail.value = response.data;
+        if (!selectedNewsDetail.value.publish_date) {
+            console.warn('API response missing publish_date:', response.data);
+            showNotification('Dữ liệu ngày đăng không khả dụng.', 'warning');
+        }
     } catch (error) {
+        console.error('Error fetching news detail:', error);
         showNotification('Không thể tải chi tiết tin tức.', 'error');
         detailModalInstance.hide();
     }
@@ -413,7 +478,7 @@ onMounted(() => {
 </script>
 
 <style scoped>
-/* Copied styles from other components for consistency */
+/* Styles không thay đổi */
 @import url('https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@300;400;500;600;700&display=swap');
 @import url('https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css');
 
@@ -460,14 +525,13 @@ onMounted(() => {
 
 .editor-container { border: 1px solid #e5eaee; border-radius: 8px; overflow: hidden; }
 :deep(.ql-toolbar.ql-snow) { border-bottom: 1px solid #e5eaee; }
-/* === [THAY ĐỔI CHÍNH Ở ĐÂY] === */
 :deep(.ql-editor) {
-  height: 400px;      /* Đặt chiều cao cố định */
-  overflow-y: auto;   /* Thêm thanh cuộn khi nội dung tràn */
+  height: 400px;
+  overflow-y: auto;
   font-size: 1rem;
 }
 
-.news-detail-modal-body .metadata { font-size: 0.9rem; display: flex; flex-wrap: wrap; gap: 5px; align-items: center; }
+.news-detail-modal-body .metadata { font-size: 0.9rem; display: flex; flex-wrap: wrap; gap: 5px 15px; align-items: center; }
 .news-detail-modal-body .content-wrapper { line-height: 1.7; word-wrap: break-word; }
 .news-detail-modal-body .content-wrapper :deep(p) { margin-bottom: 1rem; }
 .news-detail-modal-body .content-wrapper :deep(h1),
