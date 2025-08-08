@@ -3,7 +3,7 @@
   <div class="page-container">
     <!-- Tiêu đề trang -->
     <div class="page-header mb-4">
-      <h1 class="page-title">Sơ đồ Phòng</h1>
+      <h1 class="page-title">Sơ Đồ Phòng</h1>
       <p class="page-subtitle">Quản lý trạng thái và thao tác với các phòng trong khách sạn.</p>
     </div>
     <!-- Bộ lọc -->
