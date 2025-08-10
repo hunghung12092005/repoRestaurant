@@ -445,7 +445,7 @@
                                     @click="viewHotelDetails(hotel)">
                                     <i class="bi bi-info-circle me-1"></i> Xem chi tiết
                                 </button> -->
-                                <span>SO luong phong : </span>
+                                <span>Số lượng phòng: </span>
 
                                 <div class="booking-container d-flex ">
                                     <button class="btn" @click="decreaseRooms">-</button>

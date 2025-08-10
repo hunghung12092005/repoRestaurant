@@ -34,7 +34,7 @@
           <ul class="footer-links list-unstyled">
             <li><a href="/">Trang chủ</a></li>
             <li><a href="/about">Giới thiệu</a></li>
-            <li><a href="/rooms3">Đặt phòng</a></li>
+            <li><a href="/booking_hotel">Đặt phòng</a></li>
             <li><a href="/news">Tin tức</a></li>
             <li><a href="/contact">Liên hệ</a></li>
           </ul>
