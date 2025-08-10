@@ -141,7 +141,7 @@ const toggleChatContainer = () => {
   showChat.value = !showChat.value;
 };
 
-const API_KEY = 'AIzaSyDdyQPlin693Vo16vKOWnI38qLJ5U2z5LQ';
+const API_KEY = ' ';
 const apiUrl = inject('apiUrl');
 const showPopup = ref(false);
 
