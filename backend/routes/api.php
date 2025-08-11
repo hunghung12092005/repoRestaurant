@@ -46,7 +46,13 @@ Route::post('/bookings/{booking_id}/request-cancellation', [OccupancyController:
 Route::post('/bookings/{booking_id}/confirm-cancellation', [OccupancyController::class, 'confirmCancellation']);
 Route::get('/occupancy/future-bookings', [OccupancyController::class, 'getFutureBookings']);
 Route::post('/occupancy/cancel-now', [OccupancyController::class, 'cancelNow']);
-
+Route::post('/occupancy/add-multiple', [OccupancyController::class, 'addMultipleBookings']);
+Route::get('/bookings/{booking_id}/details', [OccupancyController::class, 'getBookingDetails']);
+Route::get('/bookings/unpaid-list', [OccupancyController::class, 'getUnpaidBookings']);
+Route::patch('/bookings/pay-by-booking', [OccupancyController::class, 'payByBookingId']);
+//roi phong
+Route::get('/rooms/availableleaveroom/{typeId}/{roomId}', [OccupancyController::class, 'getAvailableRoomsLeaveRoom']);
+Route::post('/change-room', [OccupancyController::class, 'changeRoom']);
 // Cập nhật thông tin khách hàng
 Route::post('/contacts', [ContactController::class, 'store']);
 Route::get('/admin/contacts', [ContactController::class, 'index']);
@@ -125,6 +131,7 @@ Route::get('/booking-cancel/{booking_id}', [BookingHotelController::class, 'getC
 Route::patch('/booking-cancel/{cancel_id}', [BookingHotelController::class, 'confirmCancelBooking']);
 Route::patch('/bookings/{bookingId}/complete', [BookingHotelController::class, 'completeBooking']);
 Route::post('/bookings/{bookingId}/admin-cancel', [BookingHotelController::class, 'cancelBookingByAdmin']);
+Route::post('/bookings/{bookingId}/assign-random-rooms', [BookingHotelController::class, 'assignRandomRooms']);
 
 Route::get('/booking-histories', [BookingHistoryController::class, 'index']);
 Route::get('/booking-histories/{status_id}', [BookingHistoryController::class, 'show']);

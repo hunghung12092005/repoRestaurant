@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Xác nhận đặt phòng Mã đơn: {{ $booking->booking_id }}</title>
+    <style>
+        body { font-family: Arial, sans-serif; color: #333; margin: 0; padding: 20px; }
+        h1 { color: #2c3e50; text-align: center; }
+        p, ul { font-size: 16px; line-height: 1.6; }
+        ul { list-style-type: none; padding: 0; }
+        li { margin: 10px 0; }
+        .logo-container { text-align: center; margin-bottom: 20px; }
+        .logo { max-width: 150px; }
+        .footer { margin-top: 20px; text-align: center; color: #666; }
+    </style>
+</head>
+<body>
+    <div class="logo-container">
+        <img src="https://i.postimg.cc/D0jQGLMp/logo-HXH.png" alt="HXH Luxury Hotel" class="logo">
+    </div>
+    <h1>Xác nhận đặt phòng Mã đơn: {{ $booking->booking_id }}</h1>
+    <p>Kính gửi {{ $booking->customer->customer_name ?? 'Quý khách' }},</p>
+    <p>Đặt phòng của bạn đã được xác nhận thành công.</p>
+    <p>Chi tiết đặt phòng:</p>
+    <ul>
+        <li>Mã đặt phòng: {{ $booking->booking_id }}</li>
+        <li>Ngày nhận phòng: {{ $additionalInfo['check_in_date'] }}</li>
+        <li>Ngày trả phòng: {{ $additionalInfo['check_out_date'] }}</li>
+        <li>Số phòng: {{ $booking->total_rooms }}</li>
+        <li>Loại đơn đặt phòng: {{ $booking->booking_type === 'online' ? 'Trực tuyến' : ($booking->booking_type === 'offline' ? 'Tại quầy' : $booking->booking_type) }}</li>
+        <li>Tổng giá: {{ number_format($booking->total_price, 0, ',', '.') }} VND</li>
+    </ul>
+    <p>Chúng tôi sẽ sớm gán phòng cho bạn. Vui lòng theo dõi email để nhận thông tin cập nhật.</p>
+    <div class="footer">
+        <p>Cảm ơn bạn đã chọn HXH Luxury Hotel!</p>
+        <p>Trân trọng,<br>HXH Luxury Hotel</p>
+    </div>
+</body>
+</html>
