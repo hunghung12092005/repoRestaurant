@@ -15,7 +15,7 @@
 </head>
 <body>
     <div class="logo-container">
-        <img src="https://i.postimg.cc/J0d3p6Ww/logo-HXH.png" alt="HXH Luxury Hotel" class="logo">
+        <img src="https://i.postimg.cc/D0jQGLMp/logo-HXH.png" alt="HXH Luxury Hotel" class="logo">
     </div>
     <h1>Cập nhật trạng thái đặt phòng Mã đơn: {{ $booking->booking_id }}</h1>
     <p>Kính gửi {{ $booking->customer->customer_name ?? 'Quý khách' }},</p>

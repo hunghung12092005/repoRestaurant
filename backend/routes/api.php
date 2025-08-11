@@ -45,6 +45,11 @@ Route::post('/bookings/{booking_id}/request-cancellation', [OccupancyController:
 Route::post('/bookings/{booking_id}/confirm-cancellation', [OccupancyController::class, 'confirmCancellation']);
 Route::get('/occupancy/future-bookings', [OccupancyController::class, 'getFutureBookings']);
 Route::post('/occupancy/cancel-now', [OccupancyController::class, 'cancelNow']);
+Route::post('/occupancy/add-multiple', [OccupancyController::class, 'addMultipleBookings']);
+Route::get('/bookings/{booking_id}/details', [OccupancyController::class, 'getBookingDetails']);
+Route::get('/bookings/unpaid-list', [OccupancyController::class, 'getUnpaidBookings']);
+Route::patch('/bookings/pay-by-booking', [OccupancyController::class, 'payByBookingId']);
+
 
 // Cập nhật thông tin khách hàng
 Route::post('/contacts', [ContactController::class, 'store']);
