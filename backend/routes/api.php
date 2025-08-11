@@ -51,6 +51,9 @@ Route::get('/bookings/unpaid-list', [OccupancyController::class, 'getUnpaidBooki
 Route::patch('/bookings/pay-by-booking', [OccupancyController::class, 'payByBookingId']);
 Route::get('/booking-histories', [BookingHotelController::class, 'getHistoryBookings']);
 
+//roi phong
+Route::get('/rooms/availableleaveroom/{typeId}/{roomId}', [OccupancyController::class, 'getAvailableRoomsLeaveRoom']);
+Route::post('/change-room', [OccupancyController::class, 'changeRoom']);
 // Cập nhật thông tin khách hàng
 Route::post('/contacts', [ContactController::class, 'store']);
 Route::get('/admin/contacts', [ContactController::class, 'index']);
