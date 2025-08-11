@@ -555,7 +555,7 @@ class OccupancyController extends Controller
     /**
      * Lấy danh sách phòng theo ngày và thời gian.
      */
-    public function getRoomsByDate(Request $request)
+   public function getRoomsByDate(Request $request)
 {
     $date = $request->input('date', now()->toDateString());
     $time = $request->input('time', now()->toTimeString('minute'));
@@ -843,7 +843,7 @@ class OccupancyController extends Controller
                     'status' => 'completed',
                     'payment_status' => 'completed',
                     'total_price' => $booking_total,
-                    'actual_check_out_time' => $actualCheckout,
+                    'check_out_time' => $actualCheckout,
                     'updated_at' => $now,
                 ]);
 
@@ -1189,140 +1189,159 @@ class OccupancyController extends Controller
         }
     }
     public function payByBookingId(Request $request)
-    {
-        $request->validate([
-            'booking_id' => 'required|exists:booking_hotel,booking_id',
-            'rooms' => 'required|array|min:1',
-            'rooms.*.booking_detail_id' => 'required|exists:booking_hotel_detail,booking_detail_id',
-            'rooms.*.services' => 'array',
-            'rooms.*.additional_fee' => 'nullable|numeric',
-            'rooms.*.surcharge_reason' => 'nullable|string',
-        ]);
+{
+    $request->validate([
+        'booking_id' => 'required|exists:booking_hotel,booking_id',
+        'rooms' => 'required|array|min:1',
+        'rooms.*.booking_detail_id' => 'required|exists:booking_hotel_detail,booking_detail_id',
+        'rooms.*.services' => 'array',
+        'rooms.*.additional_fee' => 'nullable|numeric',
+        'rooms.*.surcharge_reason' => 'nullable|string',
+    ]);
 
-        DB::beginTransaction();
+    DB::beginTransaction();
+    try {
+        $now = now();
+        $booking_id = $request->booking_id;
 
-        try {
-            $now = now();
-            $booking_id = $request->booking_id;
+        foreach ($request->rooms as $room) {
+            $detailId = $room['booking_detail_id'];
 
-            foreach ($request->rooms as $room) {
-                $detailId = $room['booking_detail_id'];
-                $bookingDetail = BookingHotelDetail::with('booking')->findOrFail($detailId);
-                $booking = $bookingDetail->booking;
+            $bookingDetail = BookingHotelDetail::with('booking')->find($detailId);
+            if (!$bookingDetail) {
+                throw new \Exception("Không tìm thấy booking detail ID {$detailId}");
+            }
 
-                // Bỏ qua nếu đã thanh toán
-                $alreadyPaid = DB::table('booking_room_status')
-                    ->where('booking_detail_id', $detailId)
-                    ->where('total_paid', '>', 0)
-                    ->exists();
+            $booking = $bookingDetail->booking;
 
-                if ($alreadyPaid) continue;
+            // Bỏ qua nếu đã thanh toán
+            $alreadyPaid = DB::table('booking_room_status')
+                ->where('booking_detail_id', $detailId)
+                ->where('total_paid', '>', 0)
+                ->exists();
 
-                // Lấy giá
-                $roomModel = Room::with('roomType')->findOrFail($bookingDetail->room_id);
-                $price = Price::where('type_id', $roomModel->type_id)
-                    ->where('start_date', '<=', $now)
-                    ->where('end_date', '>=', $now)
-                    ->orderByDesc('priority')
-                    ->first();
+            if ($alreadyPaid) {
+                continue;
+            }
 
-                if (!$price) throw new \Exception("Không tìm thấy bảng giá cho phòng {$roomModel->room_name}");
+            // Lấy giá phòng
+            $roomModel = Room::with('roomType')->find($bookingDetail->room_id);
+            if (!$roomModel) {
+                throw new \Exception("Không tìm thấy phòng ID {$bookingDetail->room_id}");
+            }
 
-                // Tính lại tiền phòng theo thời gian
-                $checkIn = Carbon::parse($booking->check_in_date . ' ' . ($booking->check_in_time ?? '14:00'));
-                $checkOut = now();
-                $hours = $checkIn->floatDiffInHours($checkOut);
+            $price = Price::where('type_id', $roomModel->type_id)
+                ->where('start_date', '<=', $now)
+                ->where('end_date', '>=', $now)
+                ->orderByDesc('priority')
+                ->first();
 
-                $roomPrice = 0;
-                if ($hours <= 2) {
-                    $roomPrice = 2 * $price->hourly_price;
-                } elseif ($hours <= 6) {
-                    $roomPrice = ceil($hours) * $price->hourly_price;
-                } else {
-                    $roomPrice = ceil($hours / 24) * $price->price_per_night;
-                }
+            if (!$price) {
+                throw new \Exception("Không tìm thấy bảng giá cho phòng {$roomModel->room_name}");
+            }
 
-                // Dịch vụ
-                $totalService = 0;
-                if (!empty($room['services'])) {
-                    foreach ($room['services'] as $s) {
-                        $service = \App\Models\Service::find($s['service_id']);
-                        if ($service && $s['quantity'] > 0) {
-                            $totalService += $service->price * $s['quantity'];
-                            DB::table('booking_hotel_service')->insert([
-                                'booking_detail_id' => $detailId,
-                                'service_id' => $service->service_id,
-                                'quantity' => $s['quantity'],
-                                'price' => $service->price,
-                                'total' => $service->price * $s['quantity'],
-                                'created_at' => $now,
-                                'updated_at' => $now,
-                            ]);
-                        }
+            // Tính tiền phòng
+            $checkIn = Carbon::parse($booking->check_in_date . ' ' . ($booking->check_in_time ?? '14:00'));
+            $checkOut = now();
+            $hours = $checkIn->floatDiffInHours($checkOut);
+
+            if ($hours <= 2) {
+                $roomPrice = 2 * $price->hourly_price;
+            } elseif ($hours <= 6) {
+                $roomPrice = ceil($hours) * $price->hourly_price;
+            } else {
+                $roomPrice = ceil($hours / 24) * $price->price_per_night;
+            }
+
+            // Dịch vụ
+            $totalService = 0;
+            if (!empty($room['services'])) {
+                foreach ($room['services'] as $s) {
+                    $service = \App\Models\Service::find($s['service_id']);
+                    if ($service && $s['quantity'] > 0) {
+                        $totalService += $service->price * $s['quantity'];
+
+                        DB::table('booking_hotel_service')->insert([
+                            'booking_detail_id' => $detailId,
+                            'service_id' => $service->service_id,
+                            'quantity' => $s['quantity'],
+                            'price' => $service->price,
+                            'total' => $service->price * $s['quantity'],
+                            'created_at' => $now,
+                            'updated_at' => $now,
+                        ]);
                     }
                 }
+            }
 
-                $additionalFee = $room['additional_fee'] ?? 0;
-                $surchargeReason = $room['surcharge_reason'] ?? null;
-                $total = $roomPrice + $totalService + $additionalFee;
+            $additionalFee = $room['additional_fee'] ?? 0;
+            $surchargeReason = $room['surcharge_reason'] ?? null;
+            $total = $roomPrice + $totalService + $additionalFee;
 
-                // Cập nhật detail
-                $bookingDetail->update([
-                    'gia_phong' => $roomPrice,
-                    'gia_dich_vu' => $totalService,
-                    'total_price' => $total,
+            // Update booking detail
+            $bookingDetail->update([
+                'gia_phong' => $roomPrice,
+                'gia_dich_vu' => $totalService,
+                'total_price' => $total,
+                'updated_at' => $now,
+            ]);
+
+            // Update or insert status
+            DB::table('booking_room_status')->updateOrInsert(
+                ['booking_detail_id' => $detailId],
+                [
+                    'customer_id' => $booking->customer_id,
+                    'booking_id' => $booking_id,
+                    'room_id' => $bookingDetail->room_id,
+                    'check_in' => $checkIn,
+                    'check_out' => $checkOut,
+                    'room_price' => $roomPrice,
+                    'service_price' => $totalService,
+                    'surcharge' => $additionalFee,
+                    'surcharge_reason' => $surchargeReason,
+                    'total_paid' => $total,
                     'updated_at' => $now,
-                ]);
+                    'created_at' => DB::raw('COALESCE(created_at, NOW())'), // tránh overwrite
+                ]
+            );
 
-                // Cập nhật status
-                DB::table('booking_room_status')->updateOrInsert(
-                    ['booking_detail_id' => $detailId],
-                    [
-                        'customer_id' => $booking->customer_id,
-                        'booking_id' => $booking_id,
-                        'room_id' => $bookingDetail->room_id,
-                        'check_in' => $checkIn,
-                        'check_out' => $checkOut,
-                        'room_price' => $roomPrice,
-                        'service_price' => $totalService,
-                        'surcharge' => $additionalFee,
-                        'surcharge_reason' => $surchargeReason,
-                        'total_paid' => $total,
-                        'updated_at' => $now,
-                        'created_at' => $now, // nếu bạn đang dùng timestamps
-                    ]
-                );
-
-
-
-                // Cập nhật trạng thái phòng
-                DB::table('rooms')->where('room_id', $bookingDetail->room_id)->update(['status' => 'available']);
-            }
-
-            // Kiểm tra đã thanh toán hết chưa
-            $totalPaid = DB::table('booking_room_status')
-                ->where('booking_id', $booking_id)
-                ->sum('total_paid');
-
-            $totalRoom = DB::table('booking_hotel_detail')->where('booking_id', $booking_id)->count();
-            $paidRoom = DB::table('booking_room_status')->where('booking_id', $booking_id)->where('total_paid', '>', 0)->count();
-
-            if ($totalRoom === $paidRoom) {
-                DB::table('booking_hotel')->where('booking_id', $booking_id)->update([
-                    'status' => 'completed',
-                    'payment_status' => 'completed',
-                    'total_price' => $totalPaid,
-                    'actual_check_out_time' => now(),
-                    'updated_at' => now(),
-                ]);
-            }
-
-            DB::commit();
-            return response()->json(['message' => 'Thanh toán nhóm thành công.']);
-        } catch (\Exception $e) {
-            DB::rollBack();
-            Log::error("Lỗi thanh toán nhóm: " . $e->getMessage());
-            return response()->json(['message' => 'Lỗi thanh toán nhóm.', 'error' => $e->getMessage()], 500);
+            // Update trạng thái phòng
+            DB::table('rooms')
+                ->where('room_id', $bookingDetail->room_id)
+                ->update(['status' => 'available']);
         }
+
+        // Kiểm tra đã thanh toán hết chưa
+        $totalPaid = DB::table('booking_room_status')
+            ->where('booking_id', $booking_id)
+            ->sum('total_paid');
+
+        $totalRoom = DB::table('booking_hotel_detail')->where('booking_id', $booking_id)->count();
+        $paidRoom = DB::table('booking_room_status')->where('booking_id', $booking_id)->where('total_paid', '>', 0)->count();
+
+        if ($totalRoom === $paidRoom) {
+            DB::table('booking_hotel')->where('booking_id', $booking_id)->update([
+                'status' => 'completed',
+                'payment_status' => 'completed',
+                'total_price' => $totalPaid,
+                'check_out_time' => now(),
+                'updated_at' => now(),
+            ]);
+        }
+
+        DB::commit();
+        return response()->json(['message' => 'Thanh toán nhóm thành công.']);
+    } catch (\Exception $e) {
+        DB::rollBack();
+        Log::error("Lỗi thanh toán nhóm: " . $e->getMessage(), [
+            'trace' => $e->getTraceAsString(),
+            'request' => $request->all()
+        ]);
+        return response()->json([
+            'message' => 'Lỗi thanh toán nhóm.',
+            'error' => $e->getMessage()
+        ], 500);
     }
+}
+
 }

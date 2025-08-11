@@ -171,7 +171,7 @@
                   <h6 class="info-title">Thông tin phòng</h6>
                   <ul class="info-list">
                     <li><span>Phòng:</span><strong>{{ guestInfo.room.room_name }} (Tầng {{ guestInfo.room.floor_number
-                        }})</strong></li>
+                    }})</strong></li>
                     <li><span>Loại phòng:</span><strong>{{ guestInfo.room.type_name }}</strong></li>
                   </ul>
                 </div>
@@ -420,56 +420,92 @@
     </div>
 
     <!-- Modal Thanh Toán Nhóm -->
-    <div v-if="showPayGroupModal" class="modal-backdrop fade show"></div>
-    <div v-if="showPayGroupModal" class="modal fade show d-block" tabindex="-1">
-      <div class="modal-dialog modal-xl modal-dialog-centered">
-        <div class="modal-content modal-custom">
-          <div class="modal-header modal-header-custom">
-            <h5 class="modal-title">Thanh toán nhóm</h5>
-            <button type="button" class="btn-close" @click="showPayGroupModal = false"></button>
-          </div>
-          <div class="modal-body p-4">
-            <label class="form-label">Chọn Booking ID:</label>
-            <select class="form-select mb-3" v-model="selectedBookingId" @change="loadBookingGroupRooms">
-              <option disabled value="">-- Chọn Booking ID --</option>
-              <option v-for="booking in unpaidBookings" :key="booking.booking_id" :value="booking.booking_id">
-                {{ booking.booking_id }} - {{ booking.customer_name }}
-              </option>
-            </select>
+    <!-- Backdrop -->
+  <div v-if="showPayGroupModal" class="modal-backdrop fade show"></div>
 
-            <div v-if="bookingGroupRooms.length > 0">
-              <div v-for="(room, index) in bookingGroupRooms" :key="room.booking_detail_id"
-                class="border rounded p-3 mb-3 bg-light">
-                <h6>Phòng {{ room.room_name }} ({{ room.type_name }})</h6>
-                <div v-for="(service, sIndex) in room.services" :key="sIndex"
-                  class="d-flex justify-content-between align-items-center">
+  <!-- Modal -->
+  <div v-if="showPayGroupModal" class="modal fade show d-block" tabindex="-1">
+    <div class="modal-dialog modal-xl modal-dialog-centered">
+      <div class="modal-content shadow-lg rounded-3">
+        
+        <!-- Header -->
+        <div class="modal-header bg-primary text-white">
+          <h5 class="modal-title fw-bold">
+            <i class="bi bi-credit-card-2-front me-2"></i> Thanh toán nhóm
+          </h5>
+          <button type="button" class="btn-close btn-close-white" @click="showPayGroupModal = false"></button>
+        </div>
+
+        <!-- Body -->
+        <div class="modal-body p-4 bg-light">
+
+          <!-- Chọn Booking -->
+          <label class="form-label fw-semibold">Chọn Booking ID:</label>
+          <select class="form-select mb-4" v-model="selectedBookingId" @change="loadBookingGroupRooms">
+            <option disabled value="">-- Chọn Booking ID --</option>
+            <option v-for="booking in unpaidBookings" :key="booking.booking_id" :value="booking.booking_id">
+              {{ booking.booking_id }} - {{ booking.customer_name }}
+            </option>
+          </select>
+
+          <!-- Danh sách phòng -->
+          <div v-if="bookingGroupRooms.length > 0">
+            <div 
+              v-for="room in bookingGroupRooms" 
+              :key="room.booking_detail_id"
+              class="card mb-3 shadow-sm"
+              :class="{ 'opacity-50': room.is_paid }"
+            >
+              <div class="card-header d-flex justify-content-between align-items-center">
+                <span class="fw-bold">
+                  <i class="bi bi-door-open me-1"></i> 
+                  {{ room.room_name }} ({{ room.type_name }})
+                </span>
+                <span v-if="room.is_paid" class="badge bg-success">Đã thanh toán</span>
+              </div>
+
+              <div class="card-body bg-white">
+                <!-- Dịch vụ -->
+                <h6 class="fw-semibold mb-2">Dịch vụ:</h6>
+                <div v-for="(service, sIndex) in room.services" :key="sIndex" class="d-flex justify-content-between align-items-center border-bottom py-2">
                   <span>{{ service.service_name }} ({{ formatPrice(service.price) }})</span>
                   <div class="d-flex align-items-center">
-                    <button class="btn btn-sm btn-outline-secondary"
-                      @click="service.quantity = Math.max(service.quantity - 1, 0)">-</button>
-                    <input type="number" v-model.number="service.quantity"
-                      class="form-control form-control-sm text-center mx-2" min="0" />
-                    <button class="btn btn-sm btn-outline-secondary" @click="service.quantity++">+</button>
+                    <button class="btn btn-sm btn-outline-secondary" @click="service.quantity = Math.max(service.quantity - 1, 0)" :disabled="room.is_paid">-</button>
+                    <input type="number" v-model.number="service.quantity" class="form-control form-control-sm text-center mx-2" min="0" :disabled="room.is_paid"/>
+                    <button class="btn btn-sm btn-outline-secondary" @click="service.quantity++" :disabled="room.is_paid">+</button>
                   </div>
                 </div>
-                <div class="mt-2">
-                  <label>Phụ thu:</label>
-                  <input type="number" v-model.number="room.additional_fee" class="form-control form-control-sm"
-                    placeholder="0" />
-                  <label>Lý do phụ thu:</label>
-                  <input type="text" v-model="room.surcharge_reason" class="form-control form-control-sm" />
+
+                <!-- Tổng tiền dịch vụ -->
+                <div class="mt-2 text-end fw-bold text-primary">
+                  Tổng tiền dịch vụ: {{ formatPrice(calcServiceTotal(room.services)) }}
+                </div>
+
+                <!-- Phụ thu -->
+                <div class="mt-3">
+                  <label class="form-label">Phụ thu:</label>
+                  <input type="number" v-model.number="room.additional_fee" class="form-control form-control-sm" placeholder="0" :disabled="room.is_paid"/>
+                  <label class="form-label mt-2">Lý do phụ thu:</label>
+                  <input type="text" v-model="room.surcharge_reason" class="form-control form-control-sm" :disabled="room.is_paid"/>
                 </div>
               </div>
             </div>
-            <div v-else class="alert alert-warning">Chưa có phòng nào trong booking này hoặc đã thanh toán.</div>
           </div>
-          <div class="modal-footer modal-footer-custom">
-            <button class="btn btn-secondary" @click="showPayGroupModal = false">Hủy</button>
-            <button class="btn btn-success" @click="submitPayGroup">Thanh toán tất cả</button>
-          </div>
+          <div v-else class="alert alert-warning">Chưa có phòng nào trong booking này hoặc đã thanh toán.</div>
+        </div>
+
+        <!-- Footer -->
+        <div class="modal-footer">
+          <button class="btn btn-secondary" @click="showPayGroupModal = false">
+            <i class="bi bi-x-circle me-1"></i> Hủy
+          </button>
+          <button class="btn btn-success" @click="submitPayGroup" :disabled="!bookingGroupRooms.length">
+            <i class="bi bi-check-circle me-1"></i> Thanh toán tất cả
+          </button>
         </div>
       </div>
     </div>
+  </div>
 
   </template>
 
@@ -491,10 +527,10 @@ const showForm = ref(false);
 const totalPricePreview = ref(null);
 const pricePreviewError = ref('');
 const formData = ref({
-  customer_name: 'dadd',
+  customer_name: 'name',
   customer_phone: '0325697601',
-  customer_email: 'hung@gmail.com',
-  address: '',
+  customer_email: 'hxh@gmail.com',
+  address: '123 sam son',
   customer_id_number: '123456789122',
   room_id: null,
   check_in_date: '',
@@ -506,11 +542,11 @@ const formData = ref({
 const showEditForm = ref(false);
 const editFormData = ref({
   customer_id: null,
-  customer_name: 'hunk',
+  customer_name: 'name',
   customer_phone: '0325697601',
-  customer_email: 'hung@gmail.com',
+  customer_email: 'hxh@gmail.com',
   address: 'adda',
-  check_in_date: '',
+  check_in_date: '123 sam son',
   check_in_time: '',
   check_out_date: '',
   check_out_time: ''
@@ -559,9 +595,9 @@ const openMultiBookingModal = () => {
   showMultiBookingModal.value = true;
   multiBookings.value = [{
     room_id: null,
-    customer_name: 'aknd',
+    customer_name: 'name',
     customer_phone: '0325697601',
-    customer_email: 'vla@gmail.com',
+    customer_email: 'hxh@gmail.com',
     customer_id_number: '123456789122',
     check_in_date: checkInDate,
     check_in_time: checkInTime,
@@ -584,7 +620,7 @@ const addBooking = () => {
     room_id: null,
     customer_name: 'name',
     customer_phone: '0325697601',
-    customer_email: 'adk@gmail.com',
+    customer_email: 'hxh@gmail.com',
     customer_id_number: '123456789122',
     check_in_date: checkInDate,
     check_in_time: checkInTime,
@@ -633,7 +669,7 @@ const submitMultiBookings = async () => {
     showMultiBookingModal.value = false;
     multiBookings.value = [];
     await fetchRooms();
-        // window.location.reload();
+    // window.location.reload();
 
   } catch (e) {
     console.error('Lỗi đặt nhiều phòng:', e);
@@ -777,12 +813,12 @@ const checkoutRoom = async (room) => {
   }
 };
 const updateRoomInGroups = (roomId) => {
- // console.log("Updating room status for roomId:", roomId);
-  
+  // console.log("Updating room status for roomId:", roomId);
+
   // Sửa trực tiếp vào filteredRooms (nguồn gốc của groupedAndSortedRooms)
   const room = filteredRooms.value.find(r => r.room_id === roomId);
   console.log("Updating room in filteredRooms:", room);
-  
+
   if (room) {
     //console.log("Found room in filteredRooms:", room);
     room.status = 'Còn trống';
@@ -805,7 +841,7 @@ const confirmPayment = async () => {
     });
     const data = response.data;
     console.log("Thanh toán thành công:", data.booking_detail_id);
-    
+
     updateRoomInGroups(data.room_id);
 
     //console.log("Thanh toán thành công:", data.room_id);
@@ -1041,6 +1077,9 @@ const openPayGroupModal = async () => {
   }
 };
 
+// Tính tổng tiền dịch vụ của 1 phòng
+const calcServiceTotal = (services) =>
+  services.reduce((sum, s) => sum + (s.price * (s.quantity || 0)), 0);
 // Tải các phòng thuộc booking_id
 const loadBookingGroupRooms = async () => {
   try {
@@ -1089,6 +1128,8 @@ const submitPayGroup = async () => {
         surcharge_reason: room.surcharge_reason || ''
       }))
     };
+    console.log("Submitting pay group with payload:", payload);
+
 
     const res = await axios.patch(`${apiUrl}/api/bookings/pay-by-booking`, payload);
 
