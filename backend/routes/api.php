@@ -49,7 +49,7 @@ Route::post('/occupancy/add-multiple', [OccupancyController::class, 'addMultiple
 Route::get('/bookings/{booking_id}/details', [OccupancyController::class, 'getBookingDetails']);
 Route::get('/bookings/unpaid-list', [OccupancyController::class, 'getUnpaidBookings']);
 Route::patch('/bookings/pay-by-booking', [OccupancyController::class, 'payByBookingId']);
-
+Route::get('/booking-histories', [BookingHotelController::class, 'getHistoryBookings']);
 
 // Cập nhật thông tin khách hàng
 Route::post('/contacts', [ContactController::class, 'store']);
