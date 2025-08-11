@@ -1368,7 +1368,8 @@ class OccupancyController extends Controller
     {
         $request->validate([
             'booking_detail_id' => 'required',
-            'new_room_id' => 'required'
+            'new_room_id' => 'required',
+            'reason' => 'required|string' // validate lý do
         ]);
 
         // Lấy booking detail
@@ -1378,10 +1379,17 @@ class OccupancyController extends Controller
         // Cập nhật phòng trong booking detail
         $detail->room_id = $request->new_room_id;
         $detail->save();
+
         // Cập nhật trạng thái phòng mới => Occupied
         Room::where('room_id', $request->new_room_id)->update(['status' => 'occupied']);
+
+        // Cập nhật room_id + lý do vào BookingHistory
         BookingHistory::where('booking_detail_id', $request->booking_detail_id)
-    ->update(['room_id' => $request->new_room_id]);
+            ->update([
+                'room_id' => $request->new_room_id,
+                'surcharge_reason' => $request->reason // lưu lý do đổi phòng vào cột status
+            ]);
+
         return response()->json([
             'success' => true,
             'message' => 'Room changed successfully',

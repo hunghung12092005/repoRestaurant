@@ -130,7 +130,7 @@
                   <tr v-for="room in availableRoomsLeaveRoom" :key="room.room_id">
                     <td>{{ room.room_name }}</td>
                     <td>{{ room.floor_number }}</td>
-                    <td>{{ room.status }}</td>
+                    <td>Còn trống</td>
                     <td>
                       <button class="btn btn-primary btn-sm" @click="selectRoom(room)">
                         Chuyển sang
@@ -664,18 +664,23 @@ const addBooking = () => {
   const checkOutDate = out.toISOString().slice(0, 10);
   const checkOutTime = out.toTimeString().slice(0, 5);
 
-  multiBookings.value.push({
-    room_id: null,
-    customer_name: 'name',
-    customer_phone: '0325697601',
-    customer_email: 'hxh@gmail.com',
-    customer_id_number: '123456789122',
-    check_in_date: checkInDate,
-    check_in_time: checkInTime,
-    check_out_date: checkOutDate,
-    check_out_time: checkOutTime,
-    pricing_type: 'hourly'
-  });
+  // multiBookings.value.push({
+  //   room_id: null,
+  //   customer_name: 'name',
+  //   customer_phone: '0325697601',
+  //   customer_email: 'hxh@gmail.com',
+  //   customer_id_number: '123456789122',
+  //   check_in_date: checkInDate,
+  //   check_in_time: checkInTime,
+  //   check_out_date: checkOutDate,
+  //   check_out_time: checkOutTime,
+  //   pricing_type: 'hourly'
+  // });
+  const base = multiBookings.value[0];
+   multiBookings.value.push({
+      ...base,
+      room_id: null, // reset lại phòng
+    });
 };
 
 
@@ -811,9 +816,6 @@ const submitEditForm = async () => {
     alert(e.response?.data?.message || "Không thể cập nhật thông tin.");
   }
 };
-
-
-
 
 const onFileChange = (e) => {
   const file = e.target.files[0];
@@ -1085,9 +1087,6 @@ const submitExtendForm = async () => {
   }
 };
 
-
-
-
 const getActualCheckout = (booking) => {
   if (!booking || !booking.actual_check_out_time) return 'Chưa trả';
   return booking.actual_check_out_time;
@@ -1235,16 +1234,22 @@ const openRoomChangePopup = async (room) => {
   }
 };
 
-
 const selectRoom = async (room) => {
   console.log("Sbooking_detail_idLeaveRoom:", booking_detail_idLeaveRoom.value);
   console.log("Selected room for change:", room);
   console.log("room_id new:", room.room_id);
 
+  // Hiển thị popup nhập lý do
+  const reason = prompt("Nhập lý do đổi phòng:");
+  if (reason === null || reason.trim() === "") {
+    return alert("Bạn phải nhập lý do để đổi phòng!");
+  }
+
   try {
     const res = await axios.post(`${apiUrl}/api/change-room`, {
       booking_detail_id: booking_detail_idLeaveRoom.value,
-      new_room_id: room.room_id
+      new_room_id: room.room_id,
+      reason: reason.trim() // gửi thêm lý do
     });
 
     if (res.data.success) {
@@ -1252,13 +1257,13 @@ const selectRoom = async (room) => {
       // Optional: Cập nhật lại UI hoặc gọi API load data mới
       fetchRooms();
       showPopupLeaveRoom.value = false;
-
     }
   } catch (error) {
     console.error(error);
     alert('Có lỗi xảy ra khi đổi phòng!');
   }
 };
+
 
 
 </script>

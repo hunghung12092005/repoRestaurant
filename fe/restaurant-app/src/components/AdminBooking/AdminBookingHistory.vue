@@ -81,6 +81,7 @@
                   <p class="info-item"><i class="bi bi-telephone me-2"></i>{{ booking.customer_phone }}</p>
                   <p class="info-item"><i class="bi bi-envelope me-2"></i>{{ booking.customer_email || 'Chưa cung cấp' }}</p>
                   <p class="info-item"><i class="bi bi-person-badge me-2"></i>CCCD: {{ booking.customer_id_number || 'Chưa cung cấp' }}</p>
+                  <p class="info-item"><i class="bi bi-person-badge me-2"></i>Ghi chu: {{ booking.surcharge_reason || '' }}</p>
                 </div>
                 
                 <!-- Cột thời gian lưu trú -->
@@ -248,7 +249,7 @@ const fetchBookings = async () => {
         service_price: b.service_price,
         surcharge: b.surcharge,
         total_paid: b.total_paid,
-        
+        surcharge_reason: b.surcharge_reason || 'N/A',
         payment_method_display: paymentMethodMap[paymentMethodRaw] || paymentMethodRaw || 'N/A',
         payment_status_display: paymentStatusMap[paymentStatusRaw] || paymentStatusRaw || 'N/A',
         status_display: statusDisplayMap[statusRaw] || statusRaw || 'N/A',
