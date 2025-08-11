@@ -1106,7 +1106,7 @@ const groupedAndSortedRooms = computed(() => {
     if (!groups[room.floor]) groups[room.floor] = [];
     groups[room.floor].push(room);
   }
-  console.log('Grouped rooms:', groups);
+ // console.log('Grouped rooms:', groups);
   return Object.keys(groups).sort((a, b) => a - b).map(f => ({ floor: f, rooms: groups[f] }));
 });
 
@@ -1214,7 +1214,6 @@ const availableRoomsLeaveRoom = ref([])
 const selectedRoomLeaveRoom = ref(null)
 const booking_detail_idLeaveRoom = ref(null);
 const openRoomChangePopup = async (room) => {
-
   booking_detail_idLeaveRoom.value = room.booking_detail_id;
   console.log("Opening room change popup for room:", room);
   console.log("Rời phòng:", room.room_type, "Room ID:", room.room_id);
@@ -1223,7 +1222,10 @@ const openRoomChangePopup = async (room) => {
     const { data } = await axios.get(
       `${apiUrl}/api/rooms/availableleaveroom/${room.room_type}/${room.room_id}`
     );
-    availableRoomsLeaveRoom.value = data;
+
+    // Loại bỏ phòng hiện tại
+    availableRoomsLeaveRoom.value = data.filter(r => r.room_id !== room.room_id);
+
     console.log("Available rooms for change:", availableRoomsLeaveRoom.value);
 
     showPopupLeaveRoom.value = true;
@@ -1232,6 +1234,7 @@ const openRoomChangePopup = async (room) => {
     alert("Không thể tải danh sách phòng");
   }
 };
+
 
 const selectRoom = async (room) => {
   console.log("Sbooking_detail_idLeaveRoom:", booking_detail_idLeaveRoom.value);

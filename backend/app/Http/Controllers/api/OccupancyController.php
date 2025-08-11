@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\api;
 
 use App\Http\Controllers\Controller;
+use App\Models\BookingHistory;
 use App\Models\BookingHotel;
 use App\Models\BookingHotelDetail;
 use App\Models\CancelBooking;
@@ -1379,7 +1380,8 @@ class OccupancyController extends Controller
         $detail->save();
         // Cập nhật trạng thái phòng mới => Occupied
         Room::where('room_id', $request->new_room_id)->update(['status' => 'occupied']);
-
+        BookingHistory::where('booking_detail_id', $request->booking_detail_id)
+    ->update(['room_id' => $request->new_room_id]);
         return response()->json([
             'success' => true,
             'message' => 'Room changed successfully',
