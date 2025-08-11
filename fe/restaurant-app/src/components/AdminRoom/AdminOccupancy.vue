@@ -628,12 +628,13 @@ const submitMultiBookings = async () => {
     };
 
     const res = await axios.post(`${apiUrl}/api/occupancy/add-multiple`, payload);
-
+    console.log('Đặt nhiều phòng thành công:', res.data);
     alert(res.data.message + '\nMã booking nhóm: ' + res.data.booking_id);
     showMultiBookingModal.value = false;
     multiBookings.value = [];
-    window.location.reload();
     await fetchRooms();
+        // window.location.reload();
+
   } catch (e) {
     console.error('Lỗi đặt nhiều phòng:', e);
     alert(e.response?.data?.message || 'Lỗi khi đặt nhiều phòng.');
@@ -706,9 +707,6 @@ const submitEditForm = async () => {
 
     const checkInTime = isValidTime(editFormData.value.check_in_time) ? editFormData.value.check_in_time : '14:00';
     const checkOutTime = isValidTime(editFormData.value.check_out_time) ? editFormData.value.check_out_time : '12:00';
-
-
-
     const res = await axios.post(`${apiUrl}/api/bookings/${guestInfo.value.booking.booking_id}/update-time`, {
       check_in_date: editFormData.value.check_in_date,
       check_in_time: checkInTime,
@@ -783,8 +781,10 @@ const updateRoomInGroups = (roomId) => {
   
   // Sửa trực tiếp vào filteredRooms (nguồn gốc của groupedAndSortedRooms)
   const room = filteredRooms.value.find(r => r.room_id === roomId);
+  console.log("Updating room in filteredRooms:", room);
+  
   if (room) {
-    console.log("Found room in filteredRooms:", room);
+    //console.log("Found room in filteredRooms:", room);
     room.status = 'Còn trống';
     room.booking_detail_id = null;
   }
@@ -804,7 +804,8 @@ const confirmPayment = async () => {
       surcharge_reason: surchargeReason.value
     });
     const data = response.data;
-
+    console.log("Thanh toán thành công:", data.booking_detail_id);
+    
     updateRoomInGroups(data.room_id);
 
     //console.log("Thanh toán thành công:", data.room_id);
