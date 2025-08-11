@@ -92,8 +92,7 @@
                   <button class="btn btn-sm btn-outline-danger w-100 mt-2" @click.prevent="checkoutRoom(room)"
                     :disabled="room.payment_status === 'completed'">Trả phòng</button>
                   <button class="btn btn-sm btn-outline-danger w-100 mt-2"
-                    @click.prevent="openRoomChangePopup(room)">Chuyen
-                    phòng</button>
+                    @click.prevent="openRoomChangePopup(room)">Chuyển phòng</button>
                 </div>
                 <button v-else class="btn btn-sm btn-outline-primary w-100"
                   @click.prevent="showAddGuest(room.room_id)"><i class="bi bi-person-plus-fill me-1"></i> Thêm
