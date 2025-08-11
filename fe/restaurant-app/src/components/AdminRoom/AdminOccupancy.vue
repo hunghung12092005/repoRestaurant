@@ -93,6 +93,9 @@
                   </div>
                   <button class="btn btn-sm btn-outline-danger w-100 mt-2" @click.prevent="checkoutRoom(room)"
                     :disabled="room.payment_status === 'completed'">Trả phòng</button>
+                  <button class="btn btn-sm btn-outline-danger w-100 mt-2"
+                    @click.prevent="openRoomChangePopup(room)">Chuyen
+                    phòng</button>
                 </div>
                 <button v-else class="btn btn-sm btn-outline-primary w-100"
                   @click.prevent="showAddGuest(room.room_id)"><i class="bi bi-person-plus-fill me-1"></i> Thêm
@@ -104,7 +107,49 @@
         </div>
       </div>
       <div v-else class="alert alert-light text-center">Không có phòng nào khớp với bộ lọc hiện tại.</div>
-
+      <!-- popup roi phong -->
+      <div v-if="showPopupLeaveRoom" class="modal-backdrop fade show"></div>
+      <div v-if="showPopupLeaveRoom" class="modal fade show d-block" tabindex="-1">
+        <div class="modal-dialog modal-lg modal-dialog-centered">
+          <div class="modal-content modal-custom">
+            <div class="modal-header modal-header-custom">
+              <h5 class="modal-title">Chọn phòng mới</h5>
+              <button type="button" class="btn-close" @click="showPopupLeaveRoom = false"></button>
+            </div>
+            <div class="modal-body p-4">
+              <table v-if="availableRoomsLeaveRoom.length" class="table table-striped table-bordered">
+                <thead>
+                  <tr>
+                    <th>Tên phòng</th>
+                    <th>Tầng</th>
+                    <th>Trạng thái</th>
+                    <th></th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr v-for="room in availableRoomsLeaveRoom" :key="room.room_id">
+                    <td>{{ room.room_name }}</td>
+                    <td>{{ room.floor_number }}</td>
+                    <td>{{ room.status }}</td>
+                    <td>
+                      <button class="btn btn-primary btn-sm" @click="selectRoom(room)">
+                        Chuyển sang
+                      </button>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+              <div v-else class="text-center text-muted">Không có phòng trống để chuyển</div>
+            </div>
+            <div class="modal-footer modal-footer-custom">
+              <button type="button" class="btn btn-secondary" @click="showPopupLeaveRoom = false">
+                Đóng
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+      <!-- end roi phong -->
       <!-- Modal Thêm Khách -->
       <div v-if="showForm" class="modal-backdrop fade show"></div>
       <div v-if="showForm" class="modal fade show d-block" tabindex="-1">
@@ -421,91 +466,94 @@
 
     <!-- Modal Thanh Toán Nhóm -->
     <!-- Backdrop -->
-  <div v-if="showPayGroupModal" class="modal-backdrop fade show"></div>
+    <div v-if="showPayGroupModal" class="modal-backdrop fade show"></div>
 
-  <!-- Modal -->
-  <div v-if="showPayGroupModal" class="modal fade show d-block" tabindex="-1">
-    <div class="modal-dialog modal-xl modal-dialog-centered">
-      <div class="modal-content shadow-lg rounded-3">
-        
-        <!-- Header -->
-        <div class="modal-header bg-primary text-white">
-          <h5 class="modal-title fw-bold">
-            <i class="bi bi-credit-card-2-front me-2"></i> Thanh toán nhóm
-          </h5>
-          <button type="button" class="btn-close btn-close-white" @click="showPayGroupModal = false"></button>
-        </div>
+    <!-- Modal -->
+    <div v-if="showPayGroupModal" class="modal fade show d-block" tabindex="-1">
+      <div class="modal-dialog modal-xl modal-dialog-centered">
+        <div class="modal-content shadow-lg rounded-3">
 
-        <!-- Body -->
-        <div class="modal-body p-4 bg-light">
+          <!-- Header -->
+          <div class="modal-header bg-primary text-white">
+            <h5 class="modal-title fw-bold">
+              <i class="bi bi-credit-card-2-front me-2"></i> Thanh toán nhóm
+            </h5>
+            <button type="button" class="btn-close btn-close-white" @click="showPayGroupModal = false"></button>
+          </div>
 
-          <!-- Chọn Booking -->
-          <label class="form-label fw-semibold">Chọn Booking ID:</label>
-          <select class="form-select mb-4" v-model="selectedBookingId" @change="loadBookingGroupRooms">
-            <option disabled value="">-- Chọn Booking ID --</option>
-            <option v-for="booking in unpaidBookings" :key="booking.booking_id" :value="booking.booking_id">
-              {{ booking.booking_id }} - {{ booking.customer_name }}
-            </option>
-          </select>
+          <!-- Body -->
+          <div class="modal-body p-4 bg-light">
 
-          <!-- Danh sách phòng -->
-          <div v-if="bookingGroupRooms.length > 0">
-            <div 
-              v-for="room in bookingGroupRooms" 
-              :key="room.booking_detail_id"
-              class="card mb-3 shadow-sm"
-              :class="{ 'opacity-50': room.is_paid }"
-            >
-              <div class="card-header d-flex justify-content-between align-items-center">
-                <span class="fw-bold">
-                  <i class="bi bi-door-open me-1"></i> 
-                  {{ room.room_name }} ({{ room.type_name }})
-                </span>
-                <span v-if="room.is_paid" class="badge bg-success">Đã thanh toán</span>
-              </div>
+            <!-- Chọn Booking -->
+            <label class="form-label fw-semibold">Chọn Booking ID:</label>
+            <select class="form-select mb-4" v-model="selectedBookingId" @change="loadBookingGroupRooms">
+              <option disabled value="">-- Chọn Booking ID --</option>
+              <option v-for="booking in unpaidBookings" :key="booking.booking_id" :value="booking.booking_id">
+                {{ booking.booking_id }} - {{ booking.customer_name }}
+              </option>
+            </select>
 
-              <div class="card-body bg-white">
-                <!-- Dịch vụ -->
-                <h6 class="fw-semibold mb-2">Dịch vụ:</h6>
-                <div v-for="(service, sIndex) in room.services" :key="sIndex" class="d-flex justify-content-between align-items-center border-bottom py-2">
-                  <span>{{ service.service_name }} ({{ formatPrice(service.price) }})</span>
-                  <div class="d-flex align-items-center">
-                    <button class="btn btn-sm btn-outline-secondary" @click="service.quantity = Math.max(service.quantity - 1, 0)" :disabled="room.is_paid">-</button>
-                    <input type="number" v-model.number="service.quantity" class="form-control form-control-sm text-center mx-2" min="0" :disabled="room.is_paid"/>
-                    <button class="btn btn-sm btn-outline-secondary" @click="service.quantity++" :disabled="room.is_paid">+</button>
+            <!-- Danh sách phòng -->
+            <div v-if="bookingGroupRooms.length > 0">
+              <div v-for="room in bookingGroupRooms" :key="room.booking_detail_id" class="card mb-3 shadow-sm"
+                :class="{ 'opacity-50': room.is_paid }">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                  <span class="fw-bold">
+                    <i class="bi bi-door-open me-1"></i>
+                    {{ room.room_name }} ({{ room.type_name }})
+                  </span>
+                  <span v-if="room.is_paid" class="badge bg-success">Đã thanh toán</span>
+                </div>
+
+                <div class="card-body bg-white">
+                  <!-- Dịch vụ -->
+                  <h6 class="fw-semibold mb-2">Dịch vụ:</h6>
+                  <div v-for="(service, sIndex) in room.services" :key="sIndex"
+                    class="d-flex justify-content-between align-items-center border-bottom py-2">
+                    <span>{{ service.service_name }} ({{ formatPrice(service.price) }})</span>
+                    <div class="d-flex align-items-center">
+                      <button class="btn btn-sm btn-outline-secondary"
+                        @click="service.quantity = Math.max(service.quantity - 1, 0)"
+                        :disabled="room.is_paid">-</button>
+                      <input type="number" v-model.number="service.quantity"
+                        class="form-control form-control-sm text-center mx-2" min="0" :disabled="room.is_paid" />
+                      <button class="btn btn-sm btn-outline-secondary" @click="service.quantity++"
+                        :disabled="room.is_paid">+</button>
+                    </div>
                   </div>
-                </div>
 
-                <!-- Tổng tiền dịch vụ -->
-                <div class="mt-2 text-end fw-bold text-primary">
-                  Tổng tiền dịch vụ: {{ formatPrice(calcServiceTotal(room.services)) }}
-                </div>
+                  <!-- Tổng tiền dịch vụ -->
+                  <div class="mt-2 text-end fw-bold text-primary">
+                    Tổng tiền dịch vụ: {{ formatPrice(calcServiceTotal(room.services)) }}
+                  </div>
 
-                <!-- Phụ thu -->
-                <div class="mt-3">
-                  <label class="form-label">Phụ thu:</label>
-                  <input type="number" v-model.number="room.additional_fee" class="form-control form-control-sm" placeholder="0" :disabled="room.is_paid"/>
-                  <label class="form-label mt-2">Lý do phụ thu:</label>
-                  <input type="text" v-model="room.surcharge_reason" class="form-control form-control-sm" :disabled="room.is_paid"/>
+                  <!-- Phụ thu -->
+                  <div class="mt-3">
+                    <label class="form-label">Phụ thu:</label>
+                    <input type="number" v-model.number="room.additional_fee" class="form-control form-control-sm"
+                      placeholder="0" :disabled="room.is_paid" />
+                    <label class="form-label mt-2">Lý do phụ thu:</label>
+                    <input type="text" v-model="room.surcharge_reason" class="form-control form-control-sm"
+                      :disabled="room.is_paid" />
+                  </div>
                 </div>
               </div>
             </div>
+            <div v-else class="alert alert-warning">Chưa có phòng nào trong booking này hoặc đã thanh toán.</div>
           </div>
-          <div v-else class="alert alert-warning">Chưa có phòng nào trong booking này hoặc đã thanh toán.</div>
-        </div>
 
-        <!-- Footer -->
-        <div class="modal-footer">
-          <button class="btn btn-secondary" @click="showPayGroupModal = false">
-            <i class="bi bi-x-circle me-1"></i> Hủy
-          </button>
-          <button class="btn btn-success" @click="submitPayGroup" :disabled="!bookingGroupRooms.length">
-            <i class="bi bi-check-circle me-1"></i> Thanh toán tất cả
-          </button>
+          <!-- Footer -->
+          <div class="modal-footer">
+            <button class="btn btn-secondary" @click="showPayGroupModal = false">
+              <i class="bi bi-x-circle me-1"></i> Hủy
+            </button>
+            <button class="btn btn-success" @click="submitPayGroup" :disabled="!bookingGroupRooms.length">
+              <i class="bi bi-check-circle me-1"></i> Thanh toán tất cả
+            </button>
+          </div>
         </div>
       </div>
     </div>
-  </div>
 
   </template>
 
@@ -884,12 +932,26 @@ const mapBedCountToString = (c) => c === 1 ? 'Giường đơn' : c === 2 ? 'Giư
 const fetchRooms = async () => {
   isLoading.value = true;
   try {
+    let timeValue = selectedTime.value;
+
+    if (timeValue) {
+      let date = new Date(`1970-01-01T${timeValue}:00`);
+      date.setMinutes(date.getMinutes() + 4);
+
+      // format lại thành HH:mm
+      let hours = String(date.getHours()).padStart(2, '0');
+      let minutes = String(date.getMinutes()).padStart(2, '0');
+      timeValue = `${hours}:${minutes}`;
+    }
+
     const res = await axios.get(`${apiUrl}/api/occupancy/by-date`, {
       params: {
         date: selectedDate.value,
-        time: selectedTime.value || undefined
+        time: timeValue || undefined
       }
     });
+    console.log(timeValue);
+    
     allRooms.value = res.data.map(r => ({
       room_id: r.room_id,
       number: r.room_name,
@@ -902,6 +964,7 @@ const fetchRooms = async () => {
       booking_detail_id: r.booking_detail_id || null,
       payment_status: r.payment_status || 'pending',
       group_id: r.group_id || null,
+      room_type: r.type_id || null,
     }));
   } catch (e) {
     console.error("Lỗi load phòng:", e);
@@ -1143,6 +1206,54 @@ const submitPayGroup = async () => {
     console.error("Lỗi thanh toán nhóm:", error);
     const errMsg = error.response?.data?.message || 'Lỗi khi thanh toán nhóm.';
     alert(errMsg);
+  }
+};
+
+const showPopupLeaveRoom = ref(false)
+const availableRoomsLeaveRoom = ref([])
+const selectedRoomLeaveRoom = ref(null)
+const booking_detail_idLeaveRoom = ref(null);
+const openRoomChangePopup = async (room) => {
+
+  booking_detail_idLeaveRoom.value = room.booking_detail_id;
+  console.log("Opening room change popup for room:", room);
+  console.log("Rời phòng:", room.room_type, "Room ID:", room.room_id);
+
+  try {
+    const { data } = await axios.get(
+      `${apiUrl}/api/rooms/availableleaveroom/${room.room_type}/${room.room_id}`
+    );
+    availableRoomsLeaveRoom.value = data;
+    console.log("Available rooms for change:", availableRoomsLeaveRoom.value);
+
+    showPopupLeaveRoom.value = true;
+  } catch (error) {
+    console.error(error);
+    alert("Không thể tải danh sách phòng");
+  }
+};
+
+const selectRoom = async (room) => {
+  console.log("Sbooking_detail_idLeaveRoom:", booking_detail_idLeaveRoom.value);
+  console.log("Selected room for change:", room);
+  console.log("room_id new:", room.room_id);
+
+  try {
+    const res = await axios.post(`${apiUrl}/api/change-room`, {
+      booking_detail_id: booking_detail_idLeaveRoom.value,
+      new_room_id: room.room_id
+    });
+
+    if (res.data.success) {
+      alert('Đổi phòng thành công!');
+      // Optional: Cập nhật lại UI hoặc gọi API load data mới
+      fetchRooms();
+      showPopupLeaveRoom.value = false;
+
+    }
+  } catch (error) {
+    console.error(error);
+    alert('Có lỗi xảy ra khi đổi phòng!');
   }
 };
 
