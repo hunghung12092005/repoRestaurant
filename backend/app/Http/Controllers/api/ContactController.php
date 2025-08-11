@@ -9,7 +9,10 @@ use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Mail;
 use App\Mail\ContactReplyMail;
 use Illuminate\Support\Facades\Log;
-
+use App\Models\User;
+use App\Models\Notification;
+use App\Events\NewNotification;
+use Illuminate\Support\Str;
 
 class ContactController extends Controller
 {
@@ -35,10 +38,10 @@ class ContactController extends Controller
         $validator = Validator::make($request->all(), [
             'name' => 'required|string|max:255',
             'email' => 'required|email|max:255',
-            'phone' => 'nullable|string|regex:/^([0-9\s\-\+\(\)]*)$/|min:10|max:15', // <-- THÊM DÒNG NÀY
+            'phone' => 'nullable|string|regex:/^([0-9\s\-\+\(\)]*)$/|min:10|max:15',
             'message' => 'required|string',
         ], [
-            'phone.regex' => 'Số điện thoại không hợp lệ.' // Thông báo lỗi tùy chỉnh
+            'phone.regex' => 'Số điện thoại không hợp lệ.'
         ]);
 
         if ($validator->fails()) {
@@ -49,6 +52,31 @@ class ContactController extends Controller
         }
 
         $contact = Contact::create($request->all());
+
+        // ===== BẮT ĐẦU PHẦN THÊM MỚI =====
+        // Gửi thông báo real-time tới admin/staff
+        $adminsAndStaff = User::whereIn('role', ['admin', 'staff'])->get();
+
+        foreach ($adminsAndStaff as $user) {
+            // 1. Tạo bản ghi Notification trong database
+            $notification = new Notification(); // Sử dụng \App\Models\Notification đầy đủ hoặc use ở trên
+            $notification->id = Str::uuid();
+            $notification->type = 'NEW_CONTACT';
+            $notification->notifiable_type = User::class;
+            $notification->notifiable_id = $user->id;
+            $notification->subject_type = Contact::class;
+            $notification->subject_id = $contact->id;
+            $notification->data = [
+                'message' => "Bạn có một liên hệ mới từ {$contact->name}.",
+                'link' => '/admin/contacts'
+            ];
+            $notification->save();
+
+            // 2. Phát sóng sự kiện tới frontend
+            broadcast(new NewNotification($notification))->toOthers();
+        }
+        // ===== KẾT THÚC PHẦN THÊM MỚI =====
+
 
         return response()->json([
             'status' => true,

@@ -80,4 +80,9 @@ class User extends Authenticatable implements JWTSubject
         // Sử dụng ?? [] để tránh lỗi nếu permissions là null
         return in_array($permission, $this->permissions ?? []);
     }
+
+    public function notifications()
+    {
+        return $this->morphMany(\App\Models\Notification::class, 'notifiable')->orderBy('created_at', 'desc');
+    }
 }

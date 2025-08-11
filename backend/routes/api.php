@@ -22,6 +22,7 @@ use App\Http\Controllers\ChatAIController;
 use App\Http\Controllers\CouponsController;
 use App\Http\Controllers\FileController;
 use App\Http\Controllers\WebhookController;
+use App\Http\Controllers\api\NotificationController;
 use App\Models\BookingHistory;
 use Illuminate\Support\Facades\Storage;
 
@@ -96,6 +97,14 @@ Route::prefix('prices')->group(function () {
     Route::post('/', [PriceController::class, 'store']);
     Route::put('/{id}', [PriceController::class, 'update']);
     Route::delete('/{id}', [PriceController::class, 'destroy']);
+});
+
+Route::middleware('auth:api')->group(function () {
+    Route::get('/notifications', [NotificationController::class, 'index']);
+    Route::post('/notifications/{id}/mark-as-read', [NotificationController::class, 'markAsRead']);
+    Route::post('/notifications/mark-all-as-read', [NotificationController::class, 'markAllAsRead']);
+    
+    
 });
 
 Route::get('/admin/dashboard/overview', [AdminDashboardController::class, 'getSystemOverview']);

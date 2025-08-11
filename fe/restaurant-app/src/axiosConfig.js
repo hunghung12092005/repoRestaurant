@@ -1,13 +1,29 @@
 // axiosConfig.js
 import axios from 'axios';
 
-// Cấu hình Axios để gửi token trong header
-axios.interceptors.request.use(config => {
-    const token = localStorage.getItem('tokenJwt');
-    if (token) {
-        config.headers.Authorization = `Bearer ${token}`;
+const axiosInstance = axios.create({
+    baseURL: 'http://127.0.0.1:8000', // <-- THÊM DÒNG NÀY
+    headers: {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json',
     }
-    return config;
 });
 
-export default axios;
+// Cấu hình Axios để gửi token trong header
+axiosInstance.interceptors.request.use(
+    (config) => {
+        const token = localStorage.getItem('tokenJwt');
+        if (token) {
+            // Đảm bảo rằng header Authorization được đặt đúng
+            config.headers['Authorization'] = `Bearer ${token}`;
+        }
+        return config;
+    },
+    (error) => {
+        // Xử lý lỗi request
+        return Promise.reject(error);
+    }
+);
+
+// 3. Export instance đã được cấu hình
+export default axiosInstance;
