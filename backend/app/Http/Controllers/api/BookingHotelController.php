@@ -11,6 +11,10 @@ use App\Models\CancelBooking;
 use App\Models\Customer;
 use App\Models\Room;
 use App\Models\RoomType;
+use App\Models\User;
+use App\Models\Notification;
+use App\Events\NewNotification;
+use Illuminate\Support\Str;
 use Illuminate\Http\Request;
 use Tymon\JWTAuth\Facades\JWTAuth;
 use Illuminate\Support\Facades\Log;
@@ -266,6 +270,7 @@ class BookingHotelController extends Controller
      */
     public function storeBooking(Request $request)
     {
+        DB::beginTransaction();
         try {
             $bookingDetails = $request->validate([
                 'check_in_date' => 'required|date',
@@ -357,9 +362,35 @@ class BookingHotelController extends Controller
                     'customer_id' => $customerId
                 ]);
             }
+            
+            $adminsAndStaff = User::whereIn('role', ['admin', 'staff'])->get();
+
+            foreach ($adminsAndStaff as $adminUser) {
+                // 1. Tạo bản ghi Notification trong database
+                $notification = new Notification();
+                $notification->id = Str::uuid();
+                $notification->type = 'NEW_BOOKING'; // Loại thông báo mới
+                $notification->notifiable_type = User::class;
+                $notification->notifiable_id = $adminUser->id; // Người nhận là admin/staff
+                $notification->subject_type = BookingHotel::class;
+                $notification->subject_id = $booking->booking_id; // Đối tượng là booking vừa tạo
+                $notification->data = [
+                    'message' => "Bạn có một đặt phòng mới từ KH {$customer->customer_name} (Mã: {$booking->booking_id}).",
+                    // Thay đổi link này cho phù hợp với route quản lý booking của bạn
+                    'link' => '/admin/bookings' 
+                ];
+                $notification->save();
+
+                // 2. Phát sóng sự kiện tới frontend
+                broadcast(new NewNotification($notification))->toOthers();
+            }
+            // ===== KẾT THÚC PHẦN THÊM MỚI =====
+
+            DB::commit(); // Hoàn tất transaction
 
             return response()->json(['message' => 'Booking created successfully!']);
         } catch (\Exception $e) {
+            DB::rollBack(); // Rollback transaction nếu có lỗi
             return response()->json(['error' => 'An error occurred: ' . $e->getMessage()], 500);
         }
     }

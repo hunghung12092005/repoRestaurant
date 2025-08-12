@@ -84,6 +84,8 @@ const getNotificationDetails = (type) => {
       return { icon: 'bi bi-person-plus-fill', color: 'var(--bs-primary)' }; // Màu xanh dương
     case 'NEW_COMMENT':
       return { icon: 'bi bi-chat-left-text-fill', color: 'var(--bs-success)' }; // Màu xanh lá
+    case 'NEW_BOOKING':
+      return { icon: 'bi bi-calendar-check-fill', color: 'var(--bs-warning)' }; 
     default:
       return { icon: 'bi bi-bell-fill', color: 'var(--bs-secondary)' }; // Màu xám
   }
@@ -163,10 +165,19 @@ const toggleDropdown = () => {
 
 const listenForNotifications = () => {
   if (userInfo.value && userInfo.value.id) {
+    // Lắng nghe sự kiện trên kênh riêng của user
     echo.private(`App.Models.User.${userInfo.value.id}`)
       .listen('.new-notification', (data) => {
-        notifications.value.unshift(data);
-        unreadCount.value++;
+        // 1. Thêm thông báo mới vào đầu danh sách (chỉ khi dropdown đang mở)
+        // Dòng này không ảnh hưởng đến việc cập nhật số.
+        // Đây là một tối ưu để không render lại danh sách khi không cần thiết.
+        if (isOpen.value) {
+           notifications.value.unshift(data);
+        }
+
+        // 2. TĂNG SỐ ĐẾM CHƯA ĐỌC
+        // Dòng này chạy MỖI KHI có thông báo mới, bất kể dropdown mở hay đóng.
+        unreadCount.value++; 
       });
   }
 };
