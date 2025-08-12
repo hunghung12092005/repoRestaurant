@@ -651,18 +651,21 @@ class OccupancyController extends Controller
 
                 // Gán booking info nhưng KHÔNG ghi đè lại trạng thái phòng đã lấy từ DB
                 if ($bookingInfo) {
-                    //return[$bookingInfo];
                     Log::info('Tìm thấy booking', ['room_id' => $room->room_id, 'booking_id' => $bookingInfo->booking_id]);
                     $room->booking_id = $bookingInfo->booking_id;
                     $room->booking_detail_id = $bookingInfo->booking_detail_id;
                     $room->payment_status = 'pending'; // nếu bạn cần
-                    $room->status = 'occupied';
                     if ($bookingInfo->trang_thai === 'hoan_thanh') {
                         $room->status = 'available';
                         $room->booking_detail_id = null;
                         $room->booking_id = null;
+                    }elseif ($bookingInfo->booking_detail_id === null) {
+                        $room->status = 'available';
+                    }else{
+                         $room->status = 'occupied';
                     }
                 } else {
+                    $room->status = 'available'; // Nếu không có booking thì phòng có thể được đặt
                     Log::info('Không tìm thấy booking', ['room_id' => $room->room_id]);
                     $room->booking_id = null;
                     $room->booking_detail_id = null;
