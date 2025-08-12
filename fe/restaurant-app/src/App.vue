@@ -80,9 +80,7 @@
           <template v-if="hasPermission('manage_news')">
             <li class="nav-item">
               <a class="nav-link collapsible-toggle" href="#" @click.prevent="newsManagementOpen = !newsManagementOpen">
-                <span>
-                  <i class="bi bi-newspaper"></i> Quản lý Tin tức
-                </span>
+                <span><i class="bi bi-newspaper"></i> Quản lý Tin tức</span>
                 <i class="bi bi-chevron-down toggle-icon" :class="{ 'rotated': newsManagementOpen }"></i>
               </a>
               <ul class="nav-submenu" :class="{ 'open': newsManagementOpen }">
@@ -95,7 +93,7 @@
               </ul>
             </li>
           </template>
-          <!-- Quản lý Liên hệ -->
+          
           <li v-if="hasPermission('manage_contacts')" class="nav-item">
             <router-link class="nav-link" to="/admin/contacts"><i class="bi bi-envelope"></i>Quản lý liên
               hệ</router-link>
@@ -125,8 +123,8 @@
 
         <div class="navbar-top" :class="{ 'scrolled': navbarSticky }">
           <div class="d-flex align-items-center">
-            <i class="bi bi-bell mx-3"></i>
-            <span>{{ userInfo.name || 'User' }}</span>
+            <NotificationBell v-if="isLogin && (isAdmin || isStaff)" />
+            <span class="ms-2">{{ userInfo.name || 'User' }}</span>
           </div>
         </div>
         <main class="admin-main">
@@ -211,6 +209,8 @@ import axiosConfig from './axiosConfig.js';
 import Footer from './components/Footer.vue';
 import chatbot from './components/Chat.vue';
 import socket from './socket.js';
+import NotificationBell from './components/NotificationBell.vue';
+
 const route = useRoute();
 const router = useRouter();
 const headerRef = ref(null);

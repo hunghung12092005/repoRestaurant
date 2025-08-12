@@ -4,8 +4,13 @@ namespace App\Http\Controllers\api;
 
 use App\Http\Controllers\Controller;
 use App\Models\NewsComment;
+use App\Models\News;
+use App\Models\User;
+use App\Models\Notification;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
+use App\Events\NewNotification;
+use Illuminate\Support\Str;
 // Auth không còn cần thiết trong hàm store nữa
 // use Illuminate\Support\Facades\Auth;
 
@@ -59,6 +64,31 @@ class NewsCommentController extends Controller
         
         // Load thông tin người dùng vào bình luận vừa tạo để trả về cho client
         $comment->load('user:id,name');
+        
+        $news = News::find($newsId);
+        $author = $news->user;
+
+        $adminsAndStaff = User::whereIn('role', ['admin', 'staff'])->get();
+        foreach ($adminsAndStaff as $user) {
+            // Tạo bản ghi Notification trong database
+            $notification = new Notification();
+            $notification->id = Str::uuid();
+            $notification->type = 'NEW_COMMENT';
+            $notification->notifiable_type = User::class;
+            $notification->notifiable_id = $user->id;
+            $notification->subject_type = NewsComment::class;
+            $notification->subject_id = $comment->id;
+            $notification->data = [
+                'message' => "{$comment->user->name} đã bình luận về bài viết \"{$news->title}\".",
+                'link' => "/admin/news-comments"
+            ];
+            $notification->save();
+
+            // Phát sóng sự kiện tới frontend
+            broadcast(new NewNotification($notification))->toOthers();
+
+
+        }
 
         return response()->json($comment, 201);
     }
