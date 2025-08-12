@@ -84,7 +84,7 @@
                   <div class="text" v-else>{{ msg.message }}</div>
 
                   <!-- Nếu có file đính kèm -->
-                  <img style="width: 100px;" v-if="msg.file" :src="msg.file" class="image-preview mt-2" />
+                  <img style="width: 1000px; height: 100px;" v-if="msg.file" :src="msg.file" />
                 </div>
 
                 <!-- Avatar người dùng -->
@@ -102,9 +102,6 @@
             </div>
           </div>
         </div>
-
-
-
         <!-- Footer -->
         <div class="chat-footer">
           <div class="tools">
@@ -141,7 +138,7 @@ const toggleChatContainer = () => {
   showChat.value = !showChat.value;
 };
 
-const API_KEY = ' ';
+const API_KEY = 'AIzaSyCjQJbHsnVRT-rExPn0MX_grBKnhAySI6M';
 const apiUrl = inject('apiUrl');
 const showPopup = ref(false);
 
@@ -238,7 +235,7 @@ const showSuggestions = ref(false);
 const messagesRef = ref(null);
 const socketId = ref('');
 const file = ref(null);
-const MAX_FILE_SIZE = 0.5 * 1024 * 1024; // 0.5 MB
+const MAX_FILE_SIZE = 2 * 1024 * 1024; // 0.5 MB
 var user = JSON.parse(localStorage.getItem('userInfo'))?.name || 'HXH CLIENT';
 var userId = JSON.parse(localStorage.getItem('userInfo'))?.id || 'defaultUserId';
 
@@ -311,7 +308,7 @@ const sendMessage = async (suggestion = null) => {
   if (!msg && !file.value) return;
 
   if (file.value && file.value.size > MAX_FILE_SIZE) {
-    alert('File size exceeds limit of 0.5MB. Please choose a smaller file.');
+    alert('Chon anh khong qua 2 MB.');
     return;
   }
 
@@ -879,7 +876,8 @@ onMounted(() => {
 }
 
 .bubble-ai img {
-  max-width: 10px;
+  max-width: 90%;
+  height: auto;
   border-radius: 8px;
 }
 
@@ -893,12 +891,7 @@ onMounted(() => {
   margin-bottom: 4px;
 }
 
-.image-preview {
-  margin-top: 8px;
-  /* max-width: 100px; */
-  width: 400px;
-  border-radius: 8px;
-}
+/*  */
 
 .message.loading .bubble {
   font-style: italic;

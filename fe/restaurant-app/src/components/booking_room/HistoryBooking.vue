@@ -27,12 +27,14 @@
             </div>
             <div v-if="selectedReason === 'Khác'" class="form-group animate__animated animate__fadeIn">
               <label for="customReason">Vui lòng mô tả chi tiết:</label>
-              <textarea v-model="customReason" id="customReason" class="form-control" rows="3" placeholder="..."></textarea>
+              <textarea v-model="customReason" id="customReason" class="form-control" rows="3"
+                placeholder="..."></textarea>
             </div>
           </div>
           <div class="modal-footer">
             <button class="btn btn-secondary" @click="showCancelPopup = false">Quay lại</button>
-            <button class="btn btn-danger" @click="confirmCancellation" :disabled="!selectedReason || (selectedReason === 'Khác' && !customReason)">
+            <button class="btn btn-danger" @click="confirmCancellation"
+              :disabled="!selectedReason || (selectedReason === 'Khác' && !customReason)">
               <i class="bi bi-trash3-fill me-2"></i> Gửi Yêu Cầu Hủy
             </button>
           </div>
@@ -61,66 +63,76 @@
 
         <!-- DANH SÁCH ĐẶT PHÒNG -->
         <div v-else class="booking-list">
-          <div v-for="booking in bookings" :key="booking.booking_id" 
-               class="booking-card animate__animated animate__fadeInUp" 
-               :class="'status-border-' + booking.status">
-            
+          <div v-for="booking in bookings" :key="booking.booking_id"
+            class="booking-card animate__animated animate__fadeInUp" :class="'status-border-' + booking.status">
+
             <!-- CARD ĐANG CHỜ HỦY -->
             <template v-if="booking.status === 'pending_cancel'">
-               <div class="card-header">
-                  <h4 class="pending-cancel-title"><i class="bi bi-arrow-clockwise"></i> Yêu Cầu Hủy #{{ booking.booking_id }}</h4>
-                  <span class="status-badge" :class="'status-' + booking.status">{{ formatStatus(booking.status) }}</span>
-               </div>
-               <div class="card-body">
-                  <div v-if="cancelDetails[booking.booking_id]" class="cancellation-details">
-                     <div><i class="bi bi-card-text"></i><strong>Lý do:</strong><span>{{ cancelDetails[booking.booking_id].reason }}</span></div>
-                     <div><i class="bi bi-calendar-week"></i><strong>Ngày yêu cầu:</strong><span>{{ formatDate(cancelDetails[booking.booking_id].created_at) }}</span></div>
-                     <div class="refund-info"><i class="bi bi-box-arrow-in-left"></i><strong>Tiền hoàn dự kiến:</strong><span class="price">{{ formatPrice(cancelDetails[booking.booking_id].refund_amount) }}</span></div>
-                  </div>
-                   <div v-else class="text-center py-4">
-                      <div class="spinner-border text-secondary spinner-border-sm" role="status"></div>
-                      <p class="mt-2 text-muted small">Đang tải chi tiết...</p>
-                   </div>
-                  <div class="refund-form-container" v-if="cancelDetails[booking.booking_id]?.refund_amount > 0">
-                     <h5 class="refund-form-title"><i class="bi bi-bank"></i> Thông Tin Nhận Tiền</h5>
-                     <template v-if="cancelDetails[booking.booking_id]?.refund_bank">
-                        <div class="refund-display">
-                           <p><strong>Ngân hàng:</strong> {{ cancelDetails[booking.booking_id].refund_bank }}</p>
-                           <p><strong>Số tài khoản:</strong> {{ cancelDetails[booking.booking_id].refund_account_number }}</p>
-                           <p><strong>Chủ tài khoản:</strong> {{ cancelDetails[booking.booking_id].refund_account_name }}</p>
-                           <div class="alert-success"><i class="bi bi-check-circle-fill me-2"></i>Đã nhận thông tin. Chúng tôi sẽ xử lý sớm.</div>
-                        </div>
-                     </template>
-                     <template v-else>
-                        <div class="form-group">
-                           <label>Ngân hàng</label>
-                           <select class="form-control" v-model="refundBank[booking.booking_id].bank">
-                              <option value="" disabled>-- Chọn ngân hàng --</option>
-                              <option v-for="bank in banks" :key="bank.code" :value="bank.name">{{ bank.short_name }} - {{ bank.name }}</option>
-                           </select>
-                        </div>
-                        <div class="form-group">
-                           <label>Số tài khoản</label>
-                           <input type="text" class="form-control" v-model="refundBank[booking.booking_id].accountNumber" placeholder="Nhập số tài khoản">
-                        </div>
-                        <div class="form-group">
-                           <label>Tên chủ tài khoản (Viết hoa không dấu)</label>
-                           <input type="text" class="form-control" v-model="refundBank[booking.booking_id].accountName" placeholder="NGUYEN VAN A">
-                        </div>
-                        <button class="btn btn-primary w-100 mt-2" @click="submitRefundInfo(booking.booking_id)">
-                           <i class="bi bi-send-fill me-2"></i> Gửi
-                        </button>
-                     </template>
-                  </div>
-               </div>
+              <div class="card-header">
+                <h4 class="pending-cancel-title"><i class="bi bi-arrow-clockwise"></i> Yêu Cầu Hủy #{{
+                  booking.booking_id }}</h4>
+                <span class="status-badge" :class="'status-' + booking.status">{{ formatStatus(booking.status) }}</span>
+              </div>
+              <div class="card-body">
+                <div v-if="cancelDetails[booking.booking_id]" class="cancellation-details">
+                  <div><i class="bi bi-card-text"></i><strong>Lý do:</strong><span>{{
+                    cancelDetails[booking.booking_id].reason }}</span></div>
+                  <div><i class="bi bi-calendar-week"></i><strong>Ngày yêu cầu:</strong><span>{{
+                    formatDate(cancelDetails[booking.booking_id].created_at) }}</span></div>
+                  <div class="refund-info"><i class="bi bi-box-arrow-in-left"></i><strong>Tiền hoàn dự
+                      kiến:</strong><span class="price">{{ formatPrice(cancelDetails[booking.booking_id].refund_amount)
+                      }}</span></div>
+                </div>
+                <div v-else class="text-center py-4">
+                  <div class="spinner-border text-secondary spinner-border-sm" role="status"></div>
+                  <p class="mt-2 text-muted small">Đang tải chi tiết...</p>
+                </div>
+                <div class="refund-form-container" v-if="cancelDetails[booking.booking_id]?.refund_amount > 0">
+                  <h5 class="refund-form-title"><i class="bi bi-bank"></i> Thông Tin Nhận Tiền</h5>
+                  <template v-if="cancelDetails[booking.booking_id]?.refund_bank">
+                    <div class="refund-display">
+                      <p><strong>Ngân hàng:</strong> {{ cancelDetails[booking.booking_id].refund_bank }}</p>
+                      <p><strong>Số tài khoản:</strong> {{ cancelDetails[booking.booking_id].refund_account_number }}
+                      </p>
+                      <p><strong>Chủ tài khoản:</strong> {{ cancelDetails[booking.booking_id].refund_account_name }}</p>
+                      <div class="alert-success"><i class="bi bi-check-circle-fill me-2"></i>Đã nhận thông tin. Chúng
+                        tôi sẽ xử lý sớm.</div>
+                    </div>
+                  </template>
+                  <template v-else>
+                    <div class="form-group">
+                      <label>Ngân hàng</label>
+                      <select class="form-control" v-model="refundBank[booking.booking_id].bank">
+                        <option value="" disabled>-- Chọn ngân hàng --</option>
+                        <option v-for="bank in banks" :key="bank.code" :value="bank.name">{{ bank.short_name }} - {{
+                          bank.name }}</option>
+                      </select>
+                    </div>
+                    <div class="form-group">
+                      <label>Số tài khoản</label>
+                      <input type="text" class="form-control" v-model="refundBank[booking.booking_id].accountNumber"
+                        placeholder="Nhập số tài khoản">
+                    </div>
+                    <div class="form-group">
+                      <label>Tên chủ tài khoản (Viết hoa không dấu)</label>
+                      <input type="text" class="form-control" v-model="refundBank[booking.booking_id].accountName"
+                        placeholder="NGUYEN VAN A">
+                    </div>
+                    <button class="btn btn-primary w-100 mt-2" @click="submitRefundInfo(booking.booking_id)">
+                      <i class="bi bi-send-fill me-2"></i> Gửi
+                    </button>
+                  </template>
+                </div>
+              </div>
             </template>
-            
+
             <!-- CARD THÔNG THƯỜNG -->
             <template v-else>
               <div class="card-main-content">
                 <div class="card-header">
                   <h3>{{ booking.room_type_info ? booking.room_type_info.type_name : 'Thông tin phòng' }}</h3>
-                  <span class="status-badge" :class="'status-' + booking.status">{{ formatStatus(booking.status) }}</span>
+                  <span class="status-badge" :class="'status-' + booking.status">{{ formatStatus(booking.status)
+                    }}</span>
                 </div>
                 <div class="card-body">
                   <div class="info-grid">
@@ -157,12 +169,14 @@
                     <span>{{ formatPayment(booking.payment_method) }}</span>
                   </div>
                   <div class="payment-item">
-                     <i :class="booking.payment_status === 'paid' ? 'bi-check-circle-fill text-success' : 'bi-hourglass-split text-warning'"></i>
-                     <span>{{ formatPaymentStatus(booking.payment_status) }}</span>
+                    <i
+                      :class="booking.payment_status === 'paid' ? 'bi-check-circle-fill text-success' : 'bi-hourglass-split text-warning'"></i>
+                    <span>{{ formatPaymentStatus(booking.payment_status) }}</span>
                   </div>
                 </div>
                 <div class="card-actions">
-                  <button v-if="canCancelBooking(booking)" class="btn btn-light-danger" @click="showCancelPopup = true; currentBookingId = booking.booking_id">
+                  <button v-if="canCancelBooking(booking)" class="btn btn-light-danger"
+                    @click="showCancelPopup = true; currentBookingId = booking.booking_id">
                     <i class="bi bi-x-lg"></i> Hủy
                   </button>
                   <span class="update-time">Lần cuối cập nhật: {{ formatDate(booking.updated_at) }}</span>
@@ -189,10 +203,10 @@ const cancelDetails = ref({});
 const refundBank = ref({}); // Lưu thông tin hoàn tiền nhập từ form
 //format price
 const formatPrice = (value) => {
-    return new Intl.NumberFormat('vi-VN', {
-        style: 'currency',
-        currency: 'VND',
-    }).format(value);
+  return new Intl.NumberFormat('vi-VN', {
+    style: 'currency',
+    currency: 'VND',
+  }).format(value);
 };
 const getHistoryBooking = async () => {
   let token = localStorage.getItem('BookingAuth') || '';
@@ -225,6 +239,7 @@ const getHistoryBooking = async () => {
 
 const getCancelBookingDetail = async (bookingId) => {
   try {
+    isLoading.value = true;
     const token = localStorage.getItem('BookingAuth') || '';
     const axiosInstance = axios.create({
       headers: { 'Authorization': `Bearer ${token}` }
@@ -237,6 +252,8 @@ const getCancelBookingDetail = async (bookingId) => {
     }
   } catch (e) {
     console.error(`Không thể lấy thông tin hủy cho booking ${bookingId}`, e);
+  }finally {
+    isLoading.value = false;
   }
 };
 const banks = ref([]);
@@ -245,12 +262,15 @@ const loadBankList = async () => {
   if (banks.value.length > 0) return; // ✅ Đã tải thì không tải lại
 
   try {
+    isLoading.value = true;
     const response = await axios.get('https://api.vietqr.io/v2/banks');
     if (response.data.code === '00') {
       banks.value = response.data.data;
     }
   } catch (error) {
     console.error('Lỗi tải danh sách ngân hàng:', error);
+  }finally {
+    isLoading.value = false;
   }
 };
 
@@ -267,7 +287,7 @@ const submitRefundInfo = async (bookingId) => {
     // const axiosInstance = axios.create({
     //   headers: { Authorization: `Bearer ${token}` }
     // });
-
+    isLoading.value = true;
     const response = await axios.post(`${apiUrl}/api/cancel-booking/${bookingId}/bank-info`, {
       refund_bank: info.bank,
       refund_account_number: info.accountNumber,
@@ -283,6 +303,8 @@ const submitRefundInfo = async (bookingId) => {
   } catch (err) {
     console.error('Lỗi gửi thông tin hoàn tiền:', err);
     alert('Không thể gửi thông tin. Vui lòng thử lại.');
+  }finally  {
+    isLoading.value = false;
   }
 };
 
@@ -303,6 +325,7 @@ const confirmCancellation = async () => {
   }
 
   try {
+    isLoading.value = true;
     const token = localStorage.getItem('BookingAuth') || '';
     const axiosInstance = axios.create({
       headers: { 'Authorization': `Bearer ${token}` }
@@ -319,6 +342,8 @@ const confirmCancellation = async () => {
   } catch (error) {
     alert('Không thể hủy đơn. Vui lòng thử lại sau.');
     console.error('Error cancelling booking:', error);
+  }finally {
+    isLoading.value = false;
   }
 };
 
@@ -368,7 +393,7 @@ const formatPaymentStatus = (status) => {
 
 const canCancelBooking = (booking) => {
   //console.log('Checking if booking can be cancelled:', booking);
-if (booking.status === 'cancelled') return false;
+  if (booking.status === 'cancelled') return false;
   const checkInDate = new Date(booking.check_in_date);
   const now = new Date();
   checkInDate.setDate(checkInDate.getDate() - 1);
@@ -388,19 +413,23 @@ onMounted(getHistoryBooking);
   min-height: 100vh;
   padding: 2rem 1rem;
 }
+
 .history-container {
   max-width: 950px;
   margin: 0 auto;
 }
+
 .page-header {
   text-align: center;
   margin-bottom: 3rem;
 }
+
 .page-header h1 {
   font-size: 2.8rem;
   font-weight: 800;
   color: #2d3748;
 }
+
 .page-header p {
   font-size: 1.1rem;
   color: #718096;
@@ -412,6 +441,7 @@ onMounted(getHistoryBooking);
   text-align: center;
   padding: 3rem 1rem;
 }
+
 .icon-wrapper {
   width: 90px;
   height: 90px;
@@ -421,17 +451,39 @@ onMounted(getHistoryBooking);
   justify-content: center;
   margin-bottom: 1.5rem;
 }
-.icon-wrapper.empty { background-color: #e6fffa; color: #38b2ac; }
-.icon-wrapper.error { background-color: #fed7d7; color: #e53e3e; }
-.icon-wrapper i { font-size: 2.5rem; }
-.info-state h2 { font-size: 1.8rem; font-weight: 700; color: #2d3748; }
-.info-state p { color: #718096; max-width: 400px; margin: 0.5rem auto 1.5rem; }
+
+.icon-wrapper.empty {
+  background-color: #e6fffa;
+  color: #38b2ac;
+}
+
+.icon-wrapper.error {
+  background-color: #fed7d7;
+  color: #e53e3e;
+}
+
+.icon-wrapper i {
+  font-size: 2.5rem;
+}
+
+.info-state h2 {
+  font-size: 1.8rem;
+  font-weight: 700;
+  color: #2d3748;
+}
+
+.info-state p {
+  color: #718096;
+  max-width: 400px;
+  margin: 0.5rem auto 1.5rem;
+}
 
 /* --- BOOKING LIST & CARD --- */
 .booking-list {
   display: grid;
   gap: 1.5rem;
 }
+
 .booking-card {
   background-color: #fff;
   border-radius: 12px;
@@ -440,11 +492,16 @@ onMounted(getHistoryBooking);
   transition: all 0.3s ease-in-out;
   border-left: 5px solid;
 }
+
 .booking-card:hover {
   box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
   transform: translateY(-4px);
 }
-.card-main-content { flex-grow: 1; }
+
+.card-main-content {
+  flex-grow: 1;
+}
+
 .card-header {
   padding: 1rem 1.5rem;
   display: flex;
@@ -452,16 +509,42 @@ onMounted(getHistoryBooking);
   align-items: center;
   border-bottom: 1px solid #edf2f7;
 }
-.card-header h3 { font-size: 1.25rem; font-weight: 800; color: #2d3748; margin: 0; }
-.card-body { padding: 1.5rem; }
+
+.card-header h3 {
+  font-size: 1.25rem;
+  font-weight: 800;
+  color: #2d3748;
+  margin: 0;
+}
+
+.card-body {
+  padding: 1.5rem;
+}
+
 .info-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
   gap: 1.5rem;
 }
-.info-item { display: flex; flex-direction: column; }
-.info-item label { font-size: 0.8rem; font-weight: 600; color: #a0aec0; text-transform: uppercase; }
-.info-item span { font-size: 1rem; font-weight: 700; color: #4a5568; }
+
+.info-item {
+  display: flex;
+  flex-direction: column;
+}
+
+.info-item label {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: #a0aec0;
+  text-transform: uppercase;
+}
+
+.info-item span {
+  font-size: 1rem;
+  font-weight: 700;
+  color: #4a5568;
+}
+
 .note {
   margin-top: 1.5rem;
   padding: 1rem;
@@ -471,13 +554,29 @@ onMounted(getHistoryBooking);
   color: #4a5568;
   border-left: 3px solid #cbd5e0;
 }
-.note strong { color: #2d3748; }
+
+.note strong {
+  color: #2d3748;
+}
 
 /* Status Borders */
-.status-border-pending_confirmation, .status-border-confirmed_not_assigned { border-color: #4299e1; }
-.status-border-confirmed, .status-border-completed { border-color: #48bb78; }
-.status-border-cancelled { border-color: #f56565; }
-.status-border-pending_cancel { border-color: #ed8936; }
+.status-border-pending_confirmation,
+.status-border-confirmed_not_assigned {
+  border-color: #4299e1;
+}
+
+.status-border-confirmed,
+.status-border-completed {
+  border-color: #48bb78;
+}
+
+.status-border-cancelled {
+  border-color: #f56565;
+}
+
+.status-border-pending_cancel {
+  border-color: #ed8936;
+}
 
 /* Status Badges */
 .status-badge {
@@ -487,10 +586,28 @@ onMounted(getHistoryBooking);
   font-weight: 700;
   text-transform: uppercase;
 }
-.status-pending_confirmation, .status-confirmed_not_assigned { background-color: #bee3f8; color: #2b6cb0; }
-.status-confirmed, .status-completed { background-color: #c6f6d5; color: #2f855a; }
-.status-cancelled { background-color: #fed7d7; color: #9b2c2c; }
-.status-pending_cancel { background-color: #feebc8; color: #9c4221; }
+
+.status-pending_confirmation,
+.status-confirmed_not_assigned {
+  background-color: #bee3f8;
+  color: #2b6cb0;
+}
+
+.status-confirmed,
+.status-completed {
+  background-color: #c6f6d5;
+  color: #2f855a;
+}
+
+.status-cancelled {
+  background-color: #fed7d7;
+  color: #9b2c2c;
+}
+
+.status-pending_cancel {
+  background-color: #feebc8;
+  color: #9c4221;
+}
 
 /* --- CARD DETAILS PANEL (RIGHT) --- */
 .card-details-panel {
@@ -502,19 +619,29 @@ onMounted(getHistoryBooking);
   display: flex;
   flex-direction: column;
 }
-.price-section { text-align: center; }
-.price-section label { color: #718096; font-size: 0.9rem; }
+
+.price-section {
+  text-align: center;
+}
+
+.price-section label {
+  color: #718096;
+  font-size: 0.9rem;
+}
+
 .price-section .price {
   display: block;
   font-size: 2rem;
   font-weight: 800;
   color: #2d3748;
 }
+
 .payment-details {
   margin-top: 1.5rem;
   padding-top: 1.5rem;
   border-top: 1px solid #e2e8f0;
 }
+
 .payment-item {
   display: flex;
   align-items: center;
@@ -522,16 +649,36 @@ onMounted(getHistoryBooking);
   color: #4a5568;
   font-size: 0.9rem;
 }
-.payment-item:not(:last-child) { margin-bottom: 0.75rem; }
-.payment-item i { font-size: 1.2rem; color: #a0aec0; }
-.payment-item i.text-success { color: #48bb78; }
-.payment-item i.text-warning { color: #ed8936; }
+
+.payment-item:not(:last-child) {
+  margin-bottom: 0.75rem;
+}
+
+.payment-item i {
+  font-size: 1.2rem;
+  color: #a0aec0;
+}
+
+.payment-item i.text-success {
+  color: #48bb78;
+}
+
+.payment-item i.text-warning {
+  color: #ed8936;
+}
+
 .card-actions {
   margin-top: auto;
   padding-top: 1rem;
   text-align: center;
 }
-.update-time { display: block; font-size: 0.75rem; color: #a0aec0; margin-top: 0.5rem; }
+
+.update-time {
+  display: block;
+  font-size: 0.75rem;
+  color: #a0aec0;
+  margin-top: 0.5rem;
+}
 
 /* --- PENDING CANCEL CARD --- */
 .pending-cancel-title {
@@ -543,26 +690,36 @@ onMounted(getHistoryBooking);
   align-items: center;
   gap: 0.5rem;
 }
+
 .cancellation-details {
   display: grid;
   gap: 0.75rem;
   font-size: 0.95rem;
   color: #4a5568;
 }
+
 .cancellation-details div {
-  display: flex; align-items: center; gap: 0.75rem;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
 }
-.cancellation-details i { color: #a0aec0; }
+
+.cancellation-details i {
+  color: #a0aec0;
+}
+
 .cancellation-details .refund-info {
   background-color: #f7fafc;
   padding: 0.75rem;
   border-radius: 8px;
   margin-top: 0.5rem;
 }
+
 .cancellation-details .refund-info .price {
   font-weight: 700;
   color: #2f855a;
 }
+
 .refund-form-container {
   margin-top: 1.5rem;
   padding: 1.5rem;
@@ -570,16 +727,25 @@ onMounted(getHistoryBooking);
   background-color: #f7fafc;
   border: 1px solid #e2e8f0;
 }
+
 .refund-form-title {
   text-align: center;
   font-weight: 700;
   color: #2d3748;
   margin-bottom: 1rem;
 }
-.refund-display { font-size: 0.9rem; }
-.refund-display p { margin-bottom: 0.5rem; }
+
+.refund-display {
+  font-size: 0.9rem;
+}
+
+.refund-display p {
+  margin-bottom: 0.5rem;
+}
+
 .alert-success {
-  margin-top: 1rem; padding: 0.75rem; background-color: #c6f6d5;
+  margin-top: 1rem;
+  padding: 0.75rem; background-color: #c6f6d5;
   color: #2f855a; border-radius: 6px; text-align: center;
   font-weight: 600; font-size: 0.9rem;
 }

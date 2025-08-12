@@ -611,16 +611,23 @@ class OccupancyController extends Controller
                     ->select(
                         'bk.booking_id',
                         'bk.status as booking_status',
-                        'bkd.booking_detail_id'
+                        'bkd.booking_detail_id',
+                        'bkd.trang_thai'
                     )
                     ->first();
 
                 // Gán booking info nhưng KHÔNG ghi đè lại trạng thái phòng đã lấy từ DB
                 if ($bookingInfo) {
+                    //return[$bookingInfo];
                     Log::info('Tìm thấy booking', ['room_id' => $room->room_id, 'booking_id' => $bookingInfo->booking_id]);
+            
                     $room->booking_id = $bookingInfo->booking_id;
                     $room->booking_detail_id = $bookingInfo->booking_detail_id;
                     $room->payment_status = 'pending'; // nếu bạn cần
+                    $room->status = 'occupied'; // trạng thái booking
+                    if ($bookingInfo->trang_thai === 'hoan_thanh') {
+                        $room->status = 'available'; // nếu booking đã yêu cầu hủy
+                    }
                 } else {
                     Log::info('Không tìm thấy booking', ['room_id' => $room->room_id]);
                     $room->booking_id = null;
@@ -771,7 +778,8 @@ class OccupancyController extends Controller
                 'gia_dich_vu' => $totalServiceFee,
                 'total_price' => $recalculatedRoomPrice + $totalServiceFee,
                 'note' => $note,
-                'status' => 'paid',
+                //'status' => 'paid',
+                'trang_thai' => 'hoan_thanh',
                 'updated_at' => $now,
             ]);
 
@@ -787,7 +795,7 @@ class OccupancyController extends Controller
                         'room_price' => $recalculatedRoomPrice,
                         'service_price' => $totalServiceFee,
                         'surcharge' => $additionalFee,
-                        'surcharge_reason' => $surchargeReason,
+                        //'surcharge_reason' => $surchargeReason,
                         'total_paid' => $actualTotal,
                         'check_out' => $actualCheckout,
                         'updated_at' => $now,

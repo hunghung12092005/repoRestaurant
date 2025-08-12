@@ -5,4 +5,10 @@ const socket = io('https://socket.hxhhotel.online', {
   secure: true,
 });
 
+// const socket = io('http://localhost:6001', {
+//   transports: ['websocket'],
+//   secure: true,
+// });
+
+
 export default socket;

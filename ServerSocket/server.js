@@ -99,6 +99,10 @@ io.on('connection', (socket) => {
 
         // Gửi lại cho admin
         io.emit('chat messageSendAdmin', data);
+         // Thông báo cho admin có tin nhắn mới
+    io.emit('notification', {
+        message: `Có tin nhắn mới từ ${data.user}`
+    });
 
         const recipientId = '6'; // ID của admin
         const key = `chat:${data.userId}:${recipientId}`;
