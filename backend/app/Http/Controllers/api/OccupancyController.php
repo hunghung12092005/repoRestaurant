@@ -787,7 +787,7 @@ class OccupancyController extends Controller
                         'room_price' => $recalculatedRoomPrice,
                         'service_price' => $totalServiceFee,
                         'surcharge' => $additionalFee,
-                        'surcharge_reason' => $surchargeReason,
+                        //'surcharge_reason' => $surchargeReason,
                         'total_paid' => $actualTotal,
                         'check_out' => $actualCheckout,
                         'updated_at' => $now,

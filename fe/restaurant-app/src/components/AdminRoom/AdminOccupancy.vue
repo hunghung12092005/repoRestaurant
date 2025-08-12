@@ -554,6 +554,16 @@
         </div>
       </div>
     </div>
+<!-- Toast Container -->
+<div class="position-fixed top-0 end-0 p-3" style="z-index: 1055; max-width: 320px;">
+  <div id="myToast" class="toast align-items-center text-bg-primary border-0 shadow-lg rounded-3" role="alert" aria-live="assertive" aria-atomic="true">
+    <div class="d-flex">
+      <div id="toastMessage" class="toast-body fw-semibold">
+      </div>
+      <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+    </div>
+  </div>
+</div>
 
   </template>
 
@@ -1253,7 +1263,7 @@ const selectRoom = async (room) => {
     });
 
     if (res.data.success) {
-      alert('Đổi phòng thành công!');
+      showToast("Chuyên phòng thành công", "success");
       // Optional: Cập nhật lại UI hoặc gọi API load data mới
       fetchRooms();
       showPopupLeaveRoom.value = false;
@@ -1264,6 +1274,25 @@ const selectRoom = async (room) => {
   }
 };
 
+function showToast(message, type = 'primary') {
+    const toastEl = document.getElementById('myToast');
+    const toastBody = document.getElementById('toastMessage');
+
+    // Đổi màu dựa trên loại (primary, success, danger, warning, info)
+    toastEl.className = `toast align-items-center text-bg-${type} border-0 shadow-lg`;
+
+    // Gán nội dung
+    toastBody.textContent = message;
+
+    // Khởi tạo và show toast
+    const toast = new bootstrap.Toast(toastEl, { delay: 2000 });
+    toast.show();
+  }
+
+
+// Ví dụ gọi
+// showToast("Đặt phòng thành công!", "success");
+// showToast("Có lỗi xảy ra!", "error");
 
 
 </script>
