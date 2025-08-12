@@ -41,9 +41,9 @@
               <router-link class="nav-link" to="/admin/amenities"><i class='bi bi-gem'></i> Quản Lý Tiện Nghi</router-link>
             </li>
             <!-- Quản lý mã giảm giá -->
-            <li v-if="hasPermission('manage_coupons')" class="nav-item">
+            <!-- <li v-if="hasPermission('manage_coupons')" class="nav-item">
               <router-link class="nav-link" to="/admin/coupons"><i class="bi bi-ticket-perforated"></i>Quản Lý Mã Giảm Giá</router-link>
-            </li>
+            </li> -->
           </template>
 
           <!-- Tiêu đề phân vùng: QUYỀN THEO PHÂN QUYỀN -->
