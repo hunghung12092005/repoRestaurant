@@ -16,6 +16,8 @@ class BookingHotelDetail extends Model
         'total_price',
         'room_id',
         'note',
+        'status',
+        'trang_thai',
     ];
 
     public function roomType()

@@ -1112,7 +1112,7 @@ const groupedAndSortedRooms = computed(() => {
     if (!groups[room.floor]) groups[room.floor] = [];
     groups[room.floor].push(room);
   }
- // console.log('Grouped rooms:', groups);
+  console.log('Grouped rooms:', groups);
   return Object.keys(groups).sort((a, b) => a - b).map(f => ({ floor: f, rooms: groups[f] }));
 });
 
