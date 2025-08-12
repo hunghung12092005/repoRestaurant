@@ -569,7 +569,7 @@
                                                 {{ room.name }} <span class="text-muted">(x{{ room.so_phong }})</span>
                                             </h6>
                                             <p class="mb-1 text-muted-dark small">{{ room.description.substring(0, 50)
-                                                }}...</p>
+                                            }}...</p>
                                             <p class="mb-0 text-gold fw-bold">
                                                 {{ formatPrice(room.price) }}
                                                 <span class="small text-charcoal-light">
@@ -1247,10 +1247,24 @@ const confirmBooking = async () => {
         }));
     });// tao mang moi  
     // Khởi tạo bookingDetails
+    const now = new Date();
+    const hours = now.getHours();
+    const minutes = now.getMinutes();
+
+    let currentTime;
+
+    if (hours > 14 || (hours === 14 && minutes > 0)) {
+        // Lớn hơn 14:00 → lấy giờ hiện tại
+        currentTime = now.toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' });
+    } else {
+        // Nhỏ hơn hoặc bằng 14:00 → lấy 14:00
+        currentTime = '14:00';
+    }//console.log(currentTime); // Ví dụ: "14:35"
+
     const bookingDetails = {
         check_in_date: checkin.value,
         check_out_date: checkOut.value,
-        check_in_time: '14:00',
+        check_in_time: currentTime,
         check_out_time: '12:00',
         total_rooms: selectedRooms.totalRooms,
         total_price: selectedRooms.totalPrice,

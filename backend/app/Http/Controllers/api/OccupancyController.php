@@ -218,7 +218,7 @@ class OccupancyController extends Controller
                 ->where('bkd.room_id', $room_id)
                 ->where('bk.status', '!=', 'completed')
                 ->where('bkd.status', '!=', 'cancelled')
-                ->select('bk.booking_id', 'bk.check_in_date', 'bk.check_in_time', 'bk.check_out_date', 'bk.check_out_time')
+                ->select('bk.booking_id', 'bk.check_in_date', 'bk.check_in_time', 'bk.check_out_date', 'bk.check_out_time', 'bkd.booking_detail_id', 'bkd.trang_thai')
                 ->get();
 
             $isOverlapping = false;
@@ -227,7 +227,7 @@ class OccupancyController extends Controller
                 $existingCheckOut = Carbon::parse($booking->check_out_date . ' ' . ($booking->check_out_time ?? '12:00'));
 
                 // Kiểm tra xung đột thời gian
-                if ($checkIn < $existingCheckOut && $checkOut > $existingCheckIn) {
+                if ($checkIn < $existingCheckOut && $checkOut > $existingCheckIn && $booking->trang_thai !== 'hoan_thanh') {
                     $isOverlapping = true;
                     Log::info("Xung đột thời gian với booking_id: {$booking->booking_id}, existing_check_in={$existingCheckIn}, existing_check_out={$existingCheckOut}");
 
@@ -344,6 +344,7 @@ class OccupancyController extends Controller
                 'booking_id' => $bookingId,
                 'booking_detail_id' => $bookingDetailId,
                 'total_price' => $total_price,
+                'room_id' => $room_id,
             ]);
         } catch (\Exception $e) {
             Log::error("Lỗi đặt phòng {$room_id}: " . $e->getMessage());
@@ -540,7 +541,7 @@ class OccupancyController extends Controller
                     'booking_id' => $booking_id,
                     'check_in' => $checkIn,
                     'check_out' => $checkOut,
-                    'status' => 'booked', // hoặc trạng thái mặc định của bạn
+                    //'status' => 'booked', // hoặc trạng thái mặc định của bạn
                     'created_at' => now(),
                     'updated_at' => now(),
                 ]);
@@ -592,13 +593,42 @@ class OccupancyController extends Controller
             foreach ($rooms as $room) {
                 Log::info('Kiểm tra booking liên quan phòng', ['room_id' => $room->room_id]);
 
+                // $bookingInfo = DB::table('booking_hotel_detail as bkd')
+                //     ->join('booking_hotel as bk', 'bk.booking_id', '=', 'bkd.booking_id')
+                //     ->where('bkd.room_id', $room->room_id)
+                //     ->whereIn('bk.status', ['pending', 'confirmed', 'cancellation_requested'])
+                //     ->where('bkd.status', 'active')  // chỉ lấy booking còn hiệu lực
+                //     ->whereNotNull('bk.check_in_date')
+                //     ->whereNotNull('bk.check_out_date')
+                //     ->whereDate('bk.check_in_date', '<=', $date)
+                //     ->whereDate('bk.check_out_date', '>=', $date)
+
+                //     // ->where(function ($query) use ($date, $time) {
+                //     //     $query->whereDate('bk.check_in_date', '<=', $date)
+                //     //         ->whereDate('bk.check_out_date', '>=', $date);
+
+                //     //     if ($time) {
+                //     //         $query->whereRaw('CONCAT(bk.check_in_date, " ", COALESCE(bk.check_in_time, "14:00")) <= ?', [$date . ' ' . $time])
+                //     //             ->whereRaw('CONCAT(bk.check_out_date, " ", COALESCE(bk.check_out_time, "12:00")) >= ?', [$date . ' ' . $time]);
+                //     //     }
+                //     // })
+                //     ->select(
+                //         'bk.booking_id',
+                //         'bk.status as booking_status',
+                //         'bkd.booking_detail_id',
+                //         'bkd.trang_thai'
+                //     )
+                //     ->first();
+                // doan nay xu ly lai logic khi thanh toan hoan thanh phong do co the dung tiep
                 $bookingInfo = DB::table('booking_hotel_detail as bkd')
                     ->join('booking_hotel as bk', 'bk.booking_id', '=', 'bkd.booking_id')
                     ->where('bkd.room_id', $room->room_id)
                     ->whereIn('bk.status', ['pending', 'confirmed', 'cancellation_requested'])
-                    ->where('bkd.status', 'active')  // chỉ lấy booking còn hiệu lực
+                    ->where('bkd.status', 'active')
                     ->whereNotNull('bk.check_in_date')
                     ->whereNotNull('bk.check_out_date')
+                    ->whereDate('bk.check_in_date', '<=', $date)
+                    ->whereDate('bk.check_out_date', '>=', $date)
                     ->where(function ($query) use ($date, $time) {
                         $query->whereDate('bk.check_in_date', '<=', $date)
                             ->whereDate('bk.check_out_date', '>=', $date);
@@ -614,19 +644,23 @@ class OccupancyController extends Controller
                         'bkd.booking_detail_id',
                         'bkd.trang_thai'
                     )
+                    ->orderByDesc('bk.check_in_date') // Ưu tiên booking mới nhất theo ngày check-in
+                    ->orderByDesc('bk.booking_id')    // Nếu ngày trùng thì lấy booking_id mới nhất
                     ->first();
+
 
                 // Gán booking info nhưng KHÔNG ghi đè lại trạng thái phòng đã lấy từ DB
                 if ($bookingInfo) {
                     //return[$bookingInfo];
                     Log::info('Tìm thấy booking', ['room_id' => $room->room_id, 'booking_id' => $bookingInfo->booking_id]);
-            
                     $room->booking_id = $bookingInfo->booking_id;
                     $room->booking_detail_id = $bookingInfo->booking_detail_id;
                     $room->payment_status = 'pending'; // nếu bạn cần
-                    $room->status = 'occupied'; // trạng thái booking
+                    $room->status = 'occupied';
                     if ($bookingInfo->trang_thai === 'hoan_thanh') {
-                        $room->status = 'available'; // nếu booking đã yêu cầu hủy
+                        $room->status = 'available';
+                        $room->booking_detail_id = null;
+                        $room->booking_id = null;
                     }
                 } else {
                     Log::info('Không tìm thấy booking', ['room_id' => $room->room_id]);
@@ -778,7 +812,7 @@ class OccupancyController extends Controller
                 'gia_dich_vu' => $totalServiceFee,
                 'total_price' => $recalculatedRoomPrice + $totalServiceFee,
                 'note' => $note,
-                //'status' => 'paid',
+                //'status' => 'cancelled',
                 'trang_thai' => 'hoan_thanh',
                 'updated_at' => $now,
             ]);

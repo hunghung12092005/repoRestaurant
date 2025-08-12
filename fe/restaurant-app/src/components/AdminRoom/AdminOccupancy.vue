@@ -738,8 +738,6 @@ const submitMultiBookings = async () => {
 };
 
 
-
-
 const openFutureBookings = async () => {
   try {
     const res = await axios.get(`${apiUrl}/api/occupancy/future-bookings`);
@@ -777,6 +775,8 @@ const formatDateTime = (date, time) => {
 };
 
 const editCustomerInfo = (customer) => {
+  console.log("Editing customer info:", customer);
+  
   if (!customer || !guestInfo.value.booking) return;
   const booking = guestInfo.value.booking;
 
@@ -796,11 +796,9 @@ const editCustomerInfo = (customer) => {
   showEditForm.value = true;
 };
 
-
 const submitEditForm = async () => {
   try {
     const isValidTime = (val) => typeof val === 'string' && /^\d{2}:\d{2}$/.test(val);
-
     const checkInTime = isValidTime(editFormData.value.check_in_time) ? editFormData.value.check_in_time : '14:00';
     const checkOutTime = isValidTime(editFormData.value.check_out_time) ? editFormData.value.check_out_time : '12:00';
     const res = await axios.post(`${apiUrl}/api/bookings/${guestInfo.value.booking.booking_id}/update-time`, {
@@ -808,13 +806,11 @@ const submitEditForm = async () => {
       check_in_time: checkInTime,
       check_out_date: editFormData.value.check_out_date,
       check_out_time: checkOutTime,
-
       customer_name: editFormData.value.customer_name,
       customer_phone: editFormData.value.customer_phone,
       customer_email: editFormData.value.customer_email,
       address: editFormData.value.address,
     });
-
     alert('Cập nhật thành công!\n' + res.data.message);
     showEditForm.value = false;
     await fetchRooms();
@@ -874,10 +870,10 @@ const updateRoomInGroups = (roomId) => {
 
   // Sửa trực tiếp vào filteredRooms (nguồn gốc của groupedAndSortedRooms)
   const room = filteredRooms.value.find(r => r.room_id === roomId);
-  console.log("Updating room in filteredRooms:", room);
+  //console.log("Updating room in filteredRooms:", room);
 
   if (room) {
-    //console.log("Found room in filteredRooms:", room);
+    console.log("Found room in filteredRooms:", room);
     room.status = 'Còn trống';
     room.booking_detail_id = null;
   }
@@ -897,10 +893,7 @@ const confirmPayment = async () => {
       surcharge_reason: surchargeReason.value
     });
     const data = response.data;
-    console.log("Thanh toán thành công:", data.booking_detail_id);
-
-    updateRoomInGroups(data.room_id);
-
+    console.log("Thanh toán thành công:", data);
     //console.log("Thanh toán thành công:", data.room_id);
 
     const alertMessage = [
@@ -923,6 +916,8 @@ const confirmPayment = async () => {
     selectedDate.value = now.toISOString().slice(0, 10);
     selectedTime.value = now.toTimeString().slice(0, 5);
     await fetchRooms();
+        updateRoomInGroups(data.room_id);
+
   } catch (error) {
     console.error("Lỗi thanh toán:", error);
     const errorMessage = error.response?.data?.message || "Không thể thanh toán phòng.";
@@ -959,7 +954,10 @@ const fetchRooms = async () => {
         time: timeValue || undefined
       }
     });
-    console.log(timeValue);
+    console.log( {
+        date: selectedDate.value,
+        time: timeValue || undefined
+      });
     
     allRooms.value = res.data.map(r => ({
       room_id: r.room_id,
@@ -993,12 +991,12 @@ const showAddGuest = (room_id) => {
   const checkOutDate = out.toISOString().slice(0, 10);
 
   formData.value = {
-    customer_name: '',
-    customer_phone: '',
-    customer_email: '',
-    address: '',
-    customer_id_number: '',
-    room_id,
+    customer_name: 'tesst',
+    customer_phone: '0325697601',
+    customer_email: '0325697601@gmail.com',
+    address: '0325697601',
+    customer_id_number: '032569760112',
+    room_id,  
     check_in_date: checkInDate,
     check_in_time: checkInTime,
     check_out_date: checkOutDate,
@@ -1019,6 +1017,7 @@ const submitCustomerForm = async () => {
       check_in_time: formData.value.check_in_time || '14:00',
       check_out_time: formData.value.check_out_time || '12:00'
     });
+    console.log("Dữ liệu gửi thành công:", res.data);
     alert(`${res.data.message}\nTổng tiền: ${Number(res.data.total_price).toLocaleString('vi-VN')} VND`);
     showForm.value = false;
     await fetchRooms();
