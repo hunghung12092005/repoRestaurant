@@ -31,7 +31,6 @@
       <div class="card filter-card mb-4">
         <div class="card-body">
           <div class="row g-3 align-items-end">
-            <!-- Input tìm kiếm (giữ nguyên) -->
             <div class="col-lg-4 col-md-12">
               <label for="search-input" class="form-label">Tìm kiếm</label>
               <input
@@ -42,8 +41,6 @@
                 @keyup.enter="locDanhSach"
               />
             </div>
-
-            <!-- Bộ lọc trạng thái (giữ nguyên) -->
             <div class="col-lg-3 col-md-6">
               <label for="status-filter" class="form-label">Trạng thái</label>
               <select id="status-filter" v-model="locTrangThai" class="form-select" @change="locDanhSach">
@@ -52,10 +49,9 @@
                 <option value="confirmed_not_assigned">Xác nhận chưa xếp phòng</option>
                 <option value="confirmed">Đã xác nhận</option>
                 <option value="pending_cancel">Chờ xác nhận hủy</option>
+                <option value="cancelled">Đã hủy</option>
               </select>
             </div>
-
-            <!-- BỘ LỌC THỜI GIAN MỚI -->
             <div class="col-lg-5 col-md-6">
               <label for="datetime-filter" class="form-label">Kiểm tra tại thời điểm</label>
               <div class="input-group">
@@ -64,7 +60,8 @@
                   v-model="locTaiThoiDiem" 
                   type="datetime-local" 
                   class="form-control" 
-                  @change="locDanhSach">
+                  @change="locDanhSach"
+                />
                 <button class="btn btn-outline-secondary" type="button" @click="xoaLocThoiGian" title="Xóa bộ lọc thời gian">
                   <i class="bi bi-x-lg"></i>
                 </button>
@@ -94,7 +91,7 @@
           </thead>
           <tbody>
             <tr v-for="datPhong in danhSachHienThi" :key="datPhong.booking_id">
-              <td><span class="booking-id">#{{ datPhong.booking_id }}</span></td>
+              <td><span class="booking-id">Mã đơn: {{ datPhong.booking_id }}</span></td>
               <td>
                 <div class="type-name">{{ datPhong.customer?.customer_name || 'Không xác định' }}</div>
                 <div class="description-text">{{ datPhong.customer?.customer_phone || 'Không có SĐT' }}</div>
@@ -149,7 +146,7 @@
         <div class="modal-dialog modal-xl modal-dialog-centered" role="document">
           <div class="modal-content modal-custom">
             <div class="modal-header modal-header-custom">
-              <h5 class="modal-title">Chi Tiết Đặt Phòng #{{ datPhongDuocChon.booking_id }}</h5>
+              <h5 class="modal-title">Chi Tiết Đặt Phòng Mã đơn: {{ datPhongDuocChon.booking_id }}</h5>
               <button type="button" @click="dongModal" class="btn-close" aria-label="Close"></button>
             </div>
             <div class="modal-body p-4">
@@ -207,8 +204,10 @@
                           <th style="width: 35%;">Xếp Phòng</th>
                         </tr>
                       </thead>
-                      <tbody>                  
-                        <tr v-if="chiTietDatPhongHopLe.length === 0"><td colspan="5" class="text-center text-muted py-3">Không có chi tiết phòng.</td></tr>
+                      <tbody>
+                        <tr v-if="chiTietDatPhongHopLe.length === 0">
+                          <td colspan="5" class="text-center text-muted py-3">Không có chi tiết phòng.</td>
+                        </tr>
                         <tr v-for="(chiTiet, index) in chiTietDatPhongHopLe" :key="chiTiet.booking_detail_id">
                           <td class="text-center fw-bold">{{ index + 1 }}</td>
                           <td>{{ chiTiet.type_name || 'Không xác định' }}</td>
@@ -219,7 +218,13 @@
                           <td class="text-end">{{ dinhDangTien(chiTiet.total_price) }}</td>
                           <td>
                             <div v-if="['confirmed_not_assigned'].includes(datPhongDuocChon.status)">
-                              <select v-if="phongTrong[chiTiet.booking_detail_id]?.length > 0" v-model="chiTiet.room_id" @change="xepPhong(chiTiet)" class="form-select form-select-sm" :disabled="dangXepPhong[chiTiet.booking_detail_id]">
+                              <select
+                                v-if="phongTrong[chiTiet.booking_detail_id]?.length > 0"
+                                v-model="chiTiet.room_id"
+                                @change="xepPhong(chiTiet)"
+                                class="form-select form-select-sm"
+                                :disabled="dangXepPhong[chiTiet.booking_detail_id]"
+                              >
                                 <option value="">-- Chọn phòng --</option>
                                 <option v-for="phong in phongTrong[chiTiet.booking_detail_id]" :key="phong.room_id" :value="phong.room_id">{{ phong.room_name }}</option>
                               </select>
@@ -241,13 +246,50 @@
                 </small>
               </div>
               <button @click="dongModal" class="btn btn-secondary">Đóng</button>
-              <button v-if="datPhongDuocChon.status === 'pending_confirmation'" @click="xacNhanDatPhong" class="btn btn-primary">Xác Nhận Đặt Phòng</button>
-              <button v-if="datPhongDuocChon.status === 'confirmed_not_assigned'" @click="xepPhongNgauNhien" class="btn btn-info">Xếp Phòng Ngẫu Nhiên</button>
-              <button v-if="datPhongDuocChon.status === 'confirmed_not_assigned' && !coPhongChuaXep" @click="hoanTatXacNhan" class="btn btn-success">Hoàn Tất Xác Nhận</button>
-              <button v-if="['pending_confirmation', 'confirmed_not_assigned'].includes(datPhongDuocChon.status)" @click="openAdminCancelModal(datPhongDuocChon)" class="btn btn-outline-danger">
+              <button
+                v-if="datPhongDuocChon.status === 'pending_confirmation'"
+                @click="xacNhanDatPhong"
+                class="btn btn-primary"
+                :disabled="dangXuLyXacNhan"
+              >
+                <span v-if="dangXuLyXacNhan" class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+                {{ dangXuLyXacNhan ? 'Đang xử lý...' : 'Xác Nhận Đặt Phòng' }}
+              </button>
+              <button
+                v-if="datPhongDuocChon.status === 'confirmed_not_assigned'"
+                @click="xepPhongNgauNhien"
+                class="btn btn-info"
+                :disabled="dangXuLyXepPhong"
+              >
+                <span v-if="dangXuLyXepPhong" class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+                {{ dangXuLyXepPhong ? 'Đang xếp phòng...' : 'Xếp Phòng Ngẫu Nhiên' }}
+              </button>
+              <button
+                v-if="datPhongDuocChon.status === 'confirmed_not_assigned' && !coPhongChuaXep"
+                @click="hoanTatXacNhan"
+                class="btn btn-success"
+                :disabled="dangXuLyHoanTat"
+              >
+                <span v-if="dangXuLyHoanTat" class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+                {{ dangXuLyHoanTat ? 'Đang xử lý...' : 'Hoàn Tất Xác Nhận' }}
+              </button>
+              <button
+                v-if="['pending_confirmation', 'confirmed_not_assigned'].includes(datPhongDuocChon.status)"
+                @click="openAdminCancelModal(datPhongDuocChon)"
+                class="btn btn-outline-danger"
+                :disabled="dangXuLyHuy"
+              >
                 <i class="bi bi-trash3-fill"></i> Hủy Đơn
               </button>
-              <button v-if="datPhongDuocChon.status === 'pending_cancel' && thongTinHuy?.status === 'requested'" @click="xacNhanHuyDatPhong" class="btn btn-danger">Xác Nhận Hủy</button>
+              <button
+                v-if="datPhongDuocChon.status === 'pending_cancel' && thongTinHuy?.status === 'requested'"
+                @click="xacNhanHuyDatPhong"
+                class="btn btn-danger"
+                :disabled="dangXuLyHuy"
+              >
+                <span v-if="dangXuLyHuy" class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+                {{ dangXuLyHuy ? 'Đang xử lý...' : 'Xác Nhận Hủy' }}
+              </button>
             </div>
           </div>
         </div>
@@ -263,23 +305,33 @@
               <button type="button" @click="showAdminCancelModal = false" class="btn-close btn-close-white" aria-label="Close"></button>
             </div>
             <div class="modal-body">
-              <p>Bạn có chắc chắn muốn hủy đơn hàng <strong>#{{ bookingToCancel?.booking_id }}</strong> không?</p>
+              <p>Bạn có chắc chắn muốn hủy đơn hàng <strong>Mã đơn: {{ bookingToCancel?.booking_id }}</strong> không?</p>
               <div class="mb-3">
                 <label for="admin-cancel-reason" class="form-label"><strong>Lý do hủy (bắt buộc):</strong></label>
-                <textarea 
+                <textarea
                   id="admin-cancel-reason"
                   v-model="adminCancelReason"
-                  class="form-control" 
-                  rows="3" 
-                  placeholder="Ví dụ: Khách báo không đến, Hết phòng loại này..."></textarea>
+                  class="form-control"
+                  rows="3"
+                  placeholder="Ví dụ: Khách báo không đến, Hết phòng loại này..."
+                  :disabled="dangXuLyHuy"
+                ></textarea>
               </div>
               <div class="alert alert-warning small p-2">
                 Hành động này không thể hoàn tác. Đơn hàng sẽ được chuyển sang trạng thái "Đã hủy".
               </div>
             </div>
             <div class="modal-footer">
-              <button type="button" class="btn btn-secondary" @click="showAdminCancelModal = false">Đóng</button>
-              <button type="button" class="btn btn-danger" @click="executeAdminCancel">Xác Nhận Hủy</button>
+              <button type="button" class="btn btn-secondary" @click="showAdminCancelModal = false" :disabled="dangXuLyHuy">Đóng</button>
+              <button
+                type="button"
+                class="btn btn-danger"
+                @click="executeAdminCancel"
+                :disabled="dangXuLyHuy"
+              >
+                <span v-if="dangXuLyHuy" class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+                {{ dangXuLyHuy ? 'Đang xử lý...' : 'Xác Nhận Hủy' }}
+              </button>
             </div>
           </div>
         </div>
@@ -287,7 +339,6 @@
     </div>
   </div>
 </template>
-
 <script setup>
 import { ref, onMounted, computed, inject } from 'vue';
 import axios from 'axios';
@@ -299,8 +350,7 @@ const getFormattedCurrentDateTime = () => {
   const now = new Date();
   const timezoneOffset = now.getTimezoneOffset();
   const localTime = new Date(now.getTime() - (timezoneOffset * 60 * 1000));
-  const formattedString = localTime.toISOString().slice(0, 16);
-  return formattedString;
+  return localTime.toISOString().slice(0, 16);
 };
 
 const apiUrl = inject('apiUrl');
@@ -315,20 +365,21 @@ const isLoading = ref(true);
 const thongBaoToast = ref('');
 const thongTinHuy = ref(null);
 const dangXepPhong = ref({});
+const dangXuLyXacNhan = ref(false);
+const dangXuLyXepPhong = ref(false);
+const dangXuLyHoanTat = ref(false);
+const dangXuLyHuy = ref(false);
 const lichSuDatPhong = ref([]);
 const tabHienTai = ref('chiTiet');
-
 const tuKhoaTimKiem = ref('');
 const locTrangThai = ref('');
-const locTaiThoiDiem = ref(getFormattedCurrentDateTime()); 
-
+const locTaiThoiDiem = ref(getFormattedCurrentDateTime());
 const trangHienTai = ref(1);
 const soBanGhiTrenTrang = ref(10);
 const sapXepCot = ref('booking_id');
 const sapXepGiam = ref(true);
 const tongSoTrang = ref(1);
 const tongSoBanGhi = ref(0);
-
 const showAdminCancelModal = ref(false);
 const bookingToCancel = ref(null);
 const adminCancelReason = ref('');
@@ -339,16 +390,25 @@ const openAdminCancelModal = (booking) => {
   showAdminCancelModal.value = true;
 };
 
-const executeAdminCancel = async () => {
+const executeAdminCancel = debounce(async () => {
   if (!adminCancelReason.value.trim()) {
     thongBaoLoi.value = 'Vui lòng nhập lý do hủy đơn hàng.';
     showToast('errorToast');
     return;
   }
+  if (!bookingToCancel.value || !bookingToCancel.value.booking_id) {
+    thongBaoLoi.value = 'Không tìm thấy thông tin đặt phòng để hủy.';
+    showToast('errorToast');
+    return;
+  }
+  dangXuLyHuy.value = true;
   try {
     const bookingId = bookingToCancel.value.booking_id;
-    await axios.post(`${apiUrl}/api/bookings/${bookingId}/admin-cancel`, {
+    const response = await axios.post(`${apiUrl}/api/bookings/${bookingId}/admin-cancel`, {
       reason: adminCancelReason.value,
+    }, {
+      headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+      timeout: 10000,
     });
     const index = danhSachDatPhong.value.findIndex(item => item.booking_id === bookingId);
     if (index !== -1) {
@@ -356,14 +416,29 @@ const executeAdminCancel = async () => {
     }
     showAdminCancelModal.value = false;
     hienModal.value = false;
-    thongBaoToast.value = 'Hủy thành công! Đơn hàng đã được chuyển vào lịch sử.';
+    thongBaoToast.value = response.data.message || 'Hủy thành công! Đơn hàng đã được chuyển vào lịch sử.';
     showToast('successToast');
+    await layDanhSachDatPhong(); // Cập nhật lại danh sách
   } catch (err) {
-    console.error('Lỗi khi admin hủy đơn hàng:', err);
-    thongBaoLoi.value = err.response?.data?.error || 'Đã có lỗi xảy ra khi hủy đơn hàng.';
+    console.error('Lỗi khi admin hủy đơn hàng:', {
+      message: err.message,
+      status: err.response?.status,
+      data: err.response?.data,
+    });
+    let errorMessage = 'Đã có lỗi xảy ra khi hủy đơn hàng.';
+    if (err.response?.status === 400) {
+      errorMessage = err.response.data.error || 'Đặt phòng không thể hủy do trạng thái không hợp lệ.';
+    } else if (err.response?.status === 404) {
+      errorMessage = 'Không tìm thấy đặt phòng.';
+    } else if (err.response?.status === 422) {
+      errorMessage = 'Dữ liệu không hợp lệ, vui lòng kiểm tra lý do hủy.';
+    }
+    thongBaoLoi.value = errorMessage;
     showToast('errorToast');
+  } finally {
+    dangXuLyHuy.value = false;
   }
-};
+}, 300);
 
 const danhSachHienThi = computed(() => {
   return Array.isArray(danhSachDatPhong.value) ? danhSachDatPhong.value : [];
@@ -409,7 +484,7 @@ const dinhDangThoiGian = (gio) => {
 const timKiemDatPhong = async () => {
   if (!tuKhoaTimKiem.value.trim()) {
     trangHienTai.value = 1;
-    layDanhSachDatPhong();
+    await layDanhSachDatPhong();
     return;
   }
   dangTai.value = true;
@@ -538,9 +613,7 @@ const moModalChiTiet = async (datPhong) => {
       } catch (err) {
         console.error('Lỗi khi lấy thông tin hủy:', err);
         thongBaoLoi.value = 'Không thể tải thông tin hủy.';
-        hienModal.value = false;
-        dangTai.value = false;
-        return;
+        showToast('errorToast');
       }
     }
     if (['confirmed_not_assigned'].includes(datPhong.status)) {
@@ -625,7 +698,7 @@ const xepPhong = async (chiTiet) => {
     if (selectedRoom) {
       chiTiet.room = { ...selectedRoom };
     }
-    thongBaoToast.value = 'Xếp phòng thành công!';
+    thongBaoToast.value = response.data.message || 'Xếp phòng thành công!';
     showToast('successToast');
     await taiPhongTrong(datPhongDuocChon.value);
   } catch (err) {
@@ -640,6 +713,7 @@ const xepPhong = async (chiTiet) => {
 };
 
 const xepPhongNgauNhien = async () => {
+  dangXuLyXepPhong.value = true;
   try {
     const payload = {
       check_in_date: datPhongDuocChon.value.check_in_date,
@@ -661,17 +735,20 @@ const xepPhongNgauNhien = async () => {
           type_name: c.roomType?.type_name || 'N/A'
         }))
       : [];
-    thongBaoToast.value = 'Xếp phòng ngẫu nhiên thành công!';
+    thongBaoToast.value = response.data.message || 'Xếp phòng ngẫu nhiên thành công!';
     showToast('successToast');
     await taiPhongTrong(datPhongDuocChon.value);
   } catch (err) {
     console.error('Lỗi khi xếp phòng ngẫu nhiên:', err);
     thongBaoLoi.value = `Lỗi khi xếp phòng ngẫu nhiên: ${err.response?.data?.error || err.message}`;
     showToast('errorToast');
+  } finally {
+    dangXuLyXepPhong.value = false;
   }
 };
 
 const xacNhanDatPhong = async () => {
+  dangXuLyXacNhan.value = true;
   try {
     const response = await axios.patch(`${apiUrl}/api/bookings/${datPhongDuocChon.value.booking_id}`, { 
       status: 'confirmed_not_assigned'
@@ -683,8 +760,9 @@ const xacNhanDatPhong = async () => {
       danhSachDatPhong.value[index].status = 'confirmed_not_assigned';
     }
     datPhongDuocChon.value.status = 'confirmed_not_assigned';
-    thongBaoToast.value = 'Xác nhận đặt phòng thành công!';
+    thongBaoToast.value = response.data.message || 'Xác nhận đặt phòng thành công!';
     showToast('successToast');
+    await taiPhongTrong(datPhongDuocChon.value);
   } catch (err) {
     console.error('Lỗi khi xác nhận đặt phòng:', {
       message: err.message,
@@ -693,6 +771,8 @@ const xacNhanDatPhong = async () => {
     });
     thongBaoLoi.value = err.response?.data?.error || 'Lỗi khi xác nhận đặt phòng. Vui lòng thử lại.';
     showToast('errorToast');
+  } finally {
+    dangXuLyXacNhan.value = false;
   }
 };
 
@@ -702,6 +782,7 @@ const hoanTatXacNhan = async () => {
     showToast('errorToast');
     return;
   }
+  dangXuLyHoanTat.value = true;
   try {
     const response = await axios.patch(`${apiUrl}/api/bookings/${datPhongDuocChon.value.booking_id}/complete`, {}, { 
       headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' } 
@@ -711,7 +792,7 @@ const hoanTatXacNhan = async () => {
       danhSachDatPhong.value[index].status = 'confirmed';
     }
     datPhongDuocChon.value.status = 'confirmed';
-    thongBaoToast.value = 'Hoàn tất xác nhận thành công!';
+    thongBaoToast.value = response.data.message || 'Hoàn tất xác nhận thành công!';
     showToast('successToast');
   } catch (err) {
     console.error('Lỗi khi hoàn tất xác nhận:', {
@@ -721,33 +802,35 @@ const hoanTatXacNhan = async () => {
     });
     thongBaoLoi.value = `Lỗi khi hoàn tất xác nhận: ${err.response?.data?.error || err.response?.data?.details || err.message}`;
     showToast('errorToast');
+  } finally {
+    dangXuLyHoanTat.value = false;
   }
 };
 
 const xacNhanHuyDatPhong = async () => {
+  if (!thongTinHuy.value?.cancel_id) {
+    thongBaoLoi.value = 'Không tìm thấy thông tin hủy để xác nhận.';
+    showToast('errorToast');
+    return;
+  }
+  dangXuLyHuy.value = true;
   try {
-    const cancelId = thongTinHuy.value?.cancel_id;
-    if (!cancelId) {
-      thongBaoLoi.value = 'Không tìm thấy thông tin hủy để xác nhận.';
-      showToast('errorToast');
-      return;
-    }
-    await axios.patch(`${apiUrl}/api/booking-cancel/${cancelId}`, {
+    const cancelId = thongTinHuy.value.cancel_id;
+    const response = await axios.patch(`${apiUrl}/api/booking-cancel/${cancelId}`, {
       status: 'processed',
       refund_bank: '',
       refund_account_number: '',
       refund_account_name: ''
-    }, { headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' } });
+    }, { 
+      headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' } 
+    });
     const index = danhSachDatPhong.value.findIndex(item => item.booking_id === datPhongDuocChon.value.booking_id);
     if (index !== -1) {
       danhSachDatPhong.value[index].status = 'cancelled';
     }
     datPhongDuocChon.value.status = 'cancelled';
     thongTinHuy.value.status = 'processed';
-    if (['pending_confirmation', 'confirmed_not_assigned'].includes(datPhongDuocChon.value.status)) {
-      await taiPhongTrong(datPhongDuocChon.value);
-    }
-    thongBaoToast.value = 'Xác nhận hủy đặt phòng thành công!';
+    thongBaoToast.value = response.data.message || 'Xác nhận hủy đặt phòng thành công!';
     showToast('successToast');
     await layDanhSachDatPhong();
   } catch (err) {
@@ -756,15 +839,19 @@ const xacNhanHuyDatPhong = async () => {
       status: err.response?.status,
       data: err.response?.data
     });
-    thongBaoLoi.value = `Lỗi khi xác nhận hủy: ${err.response?.data?.message || err.message}`;
+    thongBaoLoi.value = `Lỗi khi xác nhận hủy: ${err.response?.data?.error || err.message}`;
     showToast('errorToast');
+  } finally {
+    dangXuLyHuy.value = false;
   }
 };
 
 const showToast = (toastId) => {
   const toastElement = document.getElementById(toastId);
-  const toast = new Toast(toastElement, { autohide: true, delay: 3000 });
-  toast.show();
+  if (toastElement) {
+    const toast = new Toast(toastElement, { autohide: true, delay: 3000 });
+    toast.show();
+  }
 };
 
 const dongModal = () => {
@@ -840,7 +927,6 @@ const layLopTrangThaiThanhToan = (trangThai) => {
 
 onMounted(() => { layDanhSachDatPhong(); });
 </script>
-
 <style scoped>
 @import url('https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@300;400;500;600;700&display=swap');
 @import url('https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css');
@@ -859,6 +945,7 @@ onMounted(() => { layDanhSachDatPhong(); });
 .form-label { font-weight: 500; margin-bottom: 0.5rem; font-size: 0.875rem; }
 .form-control, .form-select { border-radius: 8px; border: 1px solid #e5eaee; transition: all 0.2s ease-in-out; }
 .form-control:focus, .form-select:focus { border-color: #3498db; box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.15); }
+.form-control:disabled, .form-select:disabled { background-color: #f8f9fa; opacity: 0.7; }
 
 .table-container { background-color: #ffffff; border-radius: 12px; box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05); overflow: hidden; }
 .booking-table { font-size: 0.9rem; border-collapse: separate; border-spacing: 0; width: 100%; }
@@ -889,6 +976,8 @@ onMounted(() => { layDanhSachDatPhong(); });
 .modal-footer-custom { background-color: #f4f7f9; border-top: 1px solid #e5eaee; padding: 1rem 1.5rem; display: flex; align-items: center; }
 
 .action-buttons .btn { margin: 0 2px; }
+.btn:disabled { opacity: 0.6; cursor: not-allowed; }
+.spinner-border-sm { margin-right: 0.5rem; }
 
 .info-title { font-weight: 600; color: #34495e; margin-bottom: 1rem; font-size: 1rem; padding-bottom: 0.5rem; border-bottom: 2px solid #3498db; display: inline-block; }
 .info-list { list-style: none; padding: 0; margin: 0; }
