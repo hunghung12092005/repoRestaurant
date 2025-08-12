@@ -20,25 +20,29 @@
         <ul class="nav flex-column">
           <!-- Tiêu đề phân vùng: TRANG QUẢN TRỊ -->
           <li class="nav-section-title">TRANG QUẢN TRỊ</li>
-          <li class="nav-item"><router-link class="nav-link" to="/admin/dashboard"><i class="bi bi-grid-1x2"></i> Trang thống kê</router-link></li>
-          <li class="nav-item"><router-link class="nav-link" to="/admin/occupancy"><i class="bi bi-map"></i> Quản lý sơ đồ phòng</router-link></li>
-          <li class="nav-item"><router-link class="nav-link" to="/admin/bookings"><i class="bi bi-journal-check"></i> Quản lý đặt phòng</router-link></li>
-          <li class="nav-item"><router-link class="nav-link" to="/admin/booking-histories"><i class="bi bi-clock-history"></i> Lịch sử đặt phòng</router-link></li>
+          <li class="nav-item"><router-link class="nav-link" to="/admin/dashboard"><i class="bi bi-grid-1x2"></i> Trang Thống Kê</router-link></li>
+          <li class="nav-item"><router-link class="nav-link" to="/admin/occupancy"><i class="bi bi-map"></i> Quản Lý Sơ Đồ Phòng</router-link></li>
+          <li class="nav-item"><router-link class="nav-link" to="/admin/bookings"><i class="bi bi-journal-check"></i> Quản Lý Đặt Phòng</router-link></li>
+          <li class="nav-item"><router-link class="nav-link" to="/admin/booking-histories"><i class="bi bi-clock-history"></i> Lịch Sử Đặt Phòng</router-link></li>
 
           <!-- Tiêu đề phân vùng: QUẢN LÝ PHÒNG -->
           <li class="nav-section-title">QUẢN LÝ PHÒNG</li>
-          <li><router-link class="nav-link" to="/admin/room-types"><i class="bi bi-tags"></i> Danh mục phòng</router-link></li>
-          <li><router-link class="nav-link" to="/admin/prices"><i class='bx bxs-dollar-circle'></i> Quản lý giá phòng</router-link></li>
-          <li><router-link class="nav-link" to="/admin/rooms"><i class='bx bx-bed'></i> Quản lý phòng</router-link></li>
+          <li><router-link class="nav-link" to="/admin/room-types"><i class="bi bi-tags"></i> Danh Mục Phòng</router-link></li>
+          <li><router-link class="nav-link" to="/admin/prices"><i class='bx bxs-dollar-circle'></i> Quản Lý Giá Phòng</router-link></li>
+          <li><router-link class="nav-link" to="/admin/rooms"><i class='bx bx-bed'></i> Quản Lý Phòng</router-link></li>
 
           <!-- Tiêu đề phân vùng: QUẢN LÝ DỊCH VỤ & TIỆN NGHI -->
           <li class="nav-section-title">QUẢN LÝ DỊCH VỤ & TIỆN NGHI</li>
           <template v-if="isAdmin">
             <li class="nav-item">
-              <router-link class="nav-link" to="/admin/services"><i class="bi bi-box-seam"></i> Quản lý dịch vụ</router-link>
+              <router-link class="nav-link" to="/admin/services"><i class="bi bi-box-seam"></i> Quản Lý Dịch Vụ</router-link>
             </li>
             <li class="nav-item">
-              <router-link class="nav-link" to="/admin/amenities"><i class='bi bi-gem'></i> Quản lý tiện nghi</router-link>
+              <router-link class="nav-link" to="/admin/amenities"><i class='bi bi-gem'></i> Quản Lý Tiện Nghi</router-link>
+            </li>
+            <!-- Quản lý mã giảm giá -->
+            <li v-if="hasPermission('manage_coupons')" class="nav-item">
+              <router-link class="nav-link" to="/admin/coupons"><i class="bi bi-ticket-perforated"></i>Quản Lý Mã Giảm Giá</router-link>
             </li>
           </template>
 
@@ -49,33 +53,33 @@
             <li class="nav-item">
               <a class="nav-link collapsible-toggle" href="#" @click.prevent="newsManagementOpen = !newsManagementOpen">
                 <span>
-                  <i class="bi bi-newspaper"></i> Quản lý Tin tức
+                  <i class="bi bi-newspaper"></i> Quản Lý Tin Tức
                 </span>
                 <i class="bi bi-chevron-down toggle-icon" :class="{ 'rotated': newsManagementOpen }"></i>
               </a>
               <ul class="nav-submenu" :class="{ 'open': newsManagementOpen }">
-                <li><router-link class="nav-link" to="/admin/news"><i class="bi bi-newspaper"></i>Tin tức</router-link></li>
-                <li><router-link class="nav-link" to="/admin/news-categories"><i class="bi bi-tags"></i>Danh mục Tin tức</router-link></li>
-                <li><router-link class="nav-link" to="/admin/news-comments"><i class="bi bi-chat-dots"></i>Bình luận</router-link></li>
+                <li><router-link class="nav-link" to="/admin/news"><i class="bi bi-newspaper"></i>Tin Tức</router-link></li>
+                <li><router-link class="nav-link" to="/admin/news-categories"><i class="bi bi-tags"></i>Danh Mục Tin Tức</router-link></li>
+                <li><router-link class="nav-link" to="/admin/news-comments"><i class="bi bi-chat-dots"></i>Bình Luận</router-link></li>
               </ul>
             </li>
           </template>
           <!-- Quản lý Liên hệ -->
           <li v-if="hasPermission('manage_contacts')" class="nav-item">
-            <router-link class="nav-link" to="/admin/contacts"><i class="bi bi-envelope"></i>Quản lý liên hệ</router-link>
+            <router-link class="nav-link" to="/admin/contacts"><i class="bi bi-envelope"></i>Quản Lý Liên Hệ</router-link>
           </li>
-          <!-- Quản lý coupons -->
-          <li v-if="hasPermission('manage_coupons')" class="nav-item">
-            <router-link class="nav-link" to="/admin/coupons"><i class="bi bi-ticket-perforated"></i>Quản lý discount</router-link>
+          <!-- Quản lý Đánh giá -->
+          <li v-if="hasPermission('manage_reviews')" class="nav-item">
+            <router-link class="nav-link" to="/admin/reviews"><i class="bi bi-star"></i>Quản Lý Đánh Giá</router-link>
           </li>
           <!-- Quản lý Tài khoản -->
-          <li v-if="hasPermission('manage_users')" class="nav-item"><router-link class="nav-link" to="/admin/users"><i class="bi bi-people"></i>Quản lý tài khoản</router-link></li>
+          <li v-if="hasPermission('manage_users')" class="nav-item"><router-link class="nav-link" to="/admin/users"><i class="bi bi-people"></i>Quản Lý Tài Khoản</router-link></li>
           <!-- Training AI -->
           <li v-if="hasPermission('manage_ai_training')" class="nav-item"><router-link class="nav-link" to="/admin/traningAI"><i class="bi bi-robot"></i>Training AI</router-link></li>
           <!-- Chat Admin -->
           <li v-if="hasPermission('manage_admin_chat')" class="nav-item"><router-link class="nav-link" to="/admin/ChatAdmin"><i class="bi bi-chat-dots"></i>Chat Admin</router-link></li>
 
-          <li class="nav-item"><router-link class="nav-link" to="/"><i class="bi bi-box-arrow-left"></i>Thoát trang quản trị</router-link></li>
+          <li class="nav-item"><router-link class="nav-link" to="/"><i class="bi bi-box-arrow-left"></i>Thoát Trang Quản Trị</router-link></li>
         </ul>
       </div>
 
