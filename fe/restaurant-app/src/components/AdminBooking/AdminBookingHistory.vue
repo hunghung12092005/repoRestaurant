@@ -176,29 +176,32 @@ const formatCurrency = (amount) => {
 };
 
 const statusDisplayMap = {
-  'pending_confirmation': 'Chờ xác nhận',
-  'confirmed': 'Đã xác nhận',
-  'cancelled': 'Đã hủy',
-  'completed': 'Hoàn thành',
-  'pending_cancel': 'Chờ hủy'
+  'pending_confirmation': 'Chờ Xác Nhận',
+  'confirmed': 'Đã Xác Nhận',
+  'cancelled': 'Đã Hủy',
+  'completed': 'Hoàn Thành',
+  'pending_cancel': 'Chờ Hủy'
 };
 
 const paymentMethodMap = {
-  'cash': 'Tiền mặt',
-  'bank_transfer': 'Chuyển khoản',
-  'credit_card': 'Thẻ tín dụng',
+  'cash': 'Tiền Mặt',
+  'bank_transfer': 'Chuyển Khoản',
+  'credit_card': 'Thẻ Tín Dụng',
   'momo': 'Ví Momo',
-  'at_hotel': 'Tại khách sạn',
-  'thanh_toan_ngay': 'Thanh toán ngay',
-  'thanh_toan_qr': 'Thanh toán QR',
+  'at_hotel': 'Tại Khách Sạn',
+  'thanh_toan_ngay': 'Thanh Toán Ngay',
+  'thanh_toan_qr': 'Thanh Toán QR',
+  'thanh_toan_sau': 'Thanh Toán Sau',
 };
 
 const paymentStatusMap = {
-  'paid': 'Đã thanh toán',
-  'unpaid': 'Chưa thanh toán',
-  'partially_paid': 'Thanh toán một phần',
-  'refunded': 'Đã hoàn tiền',
-  'completed': 'Đã thanh toán',
+  'pending': 'Chưa Thanh Toán',
+  'completed': 'Đã Thanh Toán',
+  'unpaid': 'Chưa Thanh Toán',
+  'partially_paid': 'Thanh Toán Một Phần',
+  'refunded': 'Đã Hoàn Tiền',
+  'failed': 'Thanh Toán Thất Bại',
+  'cancelled': 'Đã Hủy',
 };
 
 const statusClass = (status) => {
