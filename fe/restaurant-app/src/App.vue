@@ -1,8 +1,32 @@
 <template>
   <div>
     <!-- ========== PHẦN GIAO DIỆN QUẢN TRỊ (ADMIN & STAFF) ========== -->
+
     <div v-if="$route.path.startsWith('/admin')" class="d-flex">
-      
+      <div class="toast-container position-fixed top-0 start-0 p-3">
+    <div v-if="showToast" class="toast align-items-center text-bg-light show" role="alert" aria-live="assertive" aria-atomic="true">
+      <div class="d-flex">
+        <div class="toast-header">
+          <strong class="me-auto">Thông báo mới</strong>
+          <button type="button" class="btn-close" @click="showToast = false" aria-label="Close"></button>
+        </div>
+      </div>
+      <div class="toast-body">
+        {{ latestNotification.message }} - {{ latestNotification.timestamp }}
+      </div>
+      <div class="toast-footer">
+        <button class="btn btn-light mt-2" @click="showMoreNotifications">Xem thêm</button>
+      </div>
+    </div>
+
+    <div v-if="showMore" class="mt-3">
+      <div v-for="(notification, index) in recentNotifications" :key="index" class="toast align-items-center text-bg-light show mb-2" role="alert">
+        <div class="toast-body">
+          {{ notification.message }} - {{ notification.timestamp }}
+        </div>
+      </div>
+    </div>
+  </div>
       <!-- ===== SIDEBAR ĐỘNG CHO ADMIN & STAFF ===== -->
       <div v-if="isAdmin || isStaff" class="sidebar">
         <div class="header text-center p-3 border-bottom">
@@ -20,25 +44,33 @@
         <ul class="nav flex-column">
           <!-- Tiêu đề phân vùng: TRANG QUẢN TRỊ -->
           <li class="nav-section-title">TRANG QUẢN TRỊ</li>
-          <li class="nav-item"><router-link class="nav-link" to="/admin/dashboard"><i class="bi bi-grid-1x2"></i> Trang thống kê</router-link></li>
-          <li class="nav-item"><router-link class="nav-link" to="/admin/occupancy"><i class="bi bi-map"></i> Quản lý sơ đồ phòng</router-link></li>
-          <li class="nav-item"><router-link class="nav-link" to="/admin/bookings"><i class="bi bi-journal-check"></i> Quản lý đặt phòng</router-link></li>
-          <li class="nav-item"><router-link class="nav-link" to="/admin/booking-histories"><i class="bi bi-clock-history"></i> Lịch sử đặt phòng</router-link></li>
+          <li class="nav-item"><router-link class="nav-link" to="/admin/dashboard"><i class="bi bi-grid-1x2"></i> Trang
+              thống kê</router-link></li>
+          <li class="nav-item"><router-link class="nav-link" to="/admin/occupancy"><i class="bi bi-map"></i> Quản lý sơ
+              đồ phòng</router-link></li>
+          <li class="nav-item"><router-link class="nav-link" to="/admin/bookings"><i class="bi bi-journal-check"></i>
+              Quản lý đặt phòng</router-link></li>
+          <li class="nav-item"><router-link class="nav-link" to="/admin/booking-histories"><i
+                class="bi bi-clock-history"></i> Lịch sử đặt phòng</router-link></li>
 
           <!-- Tiêu đề phân vùng: QUẢN LÝ PHÒNG -->
           <li class="nav-section-title">QUẢN LÝ PHÒNG</li>
-          <li><router-link class="nav-link" to="/admin/room-types"><i class="bi bi-tags"></i> Danh mục phòng</router-link></li>
-          <li><router-link class="nav-link" to="/admin/prices"><i class='bx bxs-dollar-circle'></i> Quản lý giá phòng</router-link></li>
+          <li><router-link class="nav-link" to="/admin/room-types"><i class="bi bi-tags"></i> Danh mục
+              phòng</router-link></li>
+          <li><router-link class="nav-link" to="/admin/prices"><i class='bx bxs-dollar-circle'></i> Quản lý giá
+              phòng</router-link></li>
           <li><router-link class="nav-link" to="/admin/rooms"><i class='bx bx-bed'></i> Quản lý phòng</router-link></li>
 
           <!-- Tiêu đề phân vùng: QUẢN LÝ DỊCH VỤ & TIỆN NGHI -->
           <li class="nav-section-title">QUẢN LÝ DỊCH VỤ & TIỆN NGHI</li>
           <template v-if="isAdmin">
             <li class="nav-item">
-              <router-link class="nav-link" to="/admin/services"><i class="bi bi-box-seam"></i> Quản lý dịch vụ</router-link>
+              <router-link class="nav-link" to="/admin/services"><i class="bi bi-box-seam"></i> Quản lý dịch
+                vụ</router-link>
             </li>
             <li class="nav-item">
-              <router-link class="nav-link" to="/admin/amenities"><i class='bi bi-gem'></i> Quản lý tiện nghi</router-link>
+              <router-link class="nav-link" to="/admin/amenities"><i class='bi bi-gem'></i> Quản lý tiện
+                nghi</router-link>
             </li>
           </template>
 
@@ -54,33 +86,43 @@
                 <i class="bi bi-chevron-down toggle-icon" :class="{ 'rotated': newsManagementOpen }"></i>
               </a>
               <ul class="nav-submenu" :class="{ 'open': newsManagementOpen }">
-                <li><router-link class="nav-link" to="/admin/news"><i class="bi bi-newspaper"></i>Tin tức</router-link></li>
-                <li><router-link class="nav-link" to="/admin/news-categories"><i class="bi bi-tags"></i>Danh mục Tin tức</router-link></li>
-                <li><router-link class="nav-link" to="/admin/news-comments"><i class="bi bi-chat-dots"></i>Bình luận</router-link></li>
+                <li><router-link class="nav-link" to="/admin/news"><i class="bi bi-newspaper"></i>Tin tức</router-link>
+                </li>
+                <li><router-link class="nav-link" to="/admin/news-categories"><i class="bi bi-tags"></i>Danh mục Tin
+                    tức</router-link></li>
+                <li><router-link class="nav-link" to="/admin/news-comments"><i class="bi bi-chat-dots"></i>Bình
+                    luận</router-link></li>
               </ul>
             </li>
           </template>
           <!-- Quản lý Liên hệ -->
           <li v-if="hasPermission('manage_contacts')" class="nav-item">
-            <router-link class="nav-link" to="/admin/contacts"><i class="bi bi-envelope"></i>Quản lý liên hệ</router-link>
+            <router-link class="nav-link" to="/admin/contacts"><i class="bi bi-envelope"></i>Quản lý liên
+              hệ</router-link>
           </li>
           <!-- Quản lý coupons -->
           <li v-if="hasPermission('manage_coupons')" class="nav-item">
-            <router-link class="nav-link" to="/admin/coupons"><i class="bi bi-ticket-perforated"></i>Quản lý discount</router-link>
+            <router-link class="nav-link" to="/admin/coupons"><i class="bi bi-ticket-perforated"></i>Quản lý
+              discount</router-link>
           </li>
           <!-- Quản lý Tài khoản -->
-          <li v-if="hasPermission('manage_users')" class="nav-item"><router-link class="nav-link" to="/admin/users"><i class="bi bi-people"></i>Quản lý tài khoản</router-link></li>
+          <li v-if="hasPermission('manage_users')" class="nav-item"><router-link class="nav-link" to="/admin/users"><i
+                class="bi bi-people"></i>Quản lý tài khoản</router-link></li>
           <!-- Training AI -->
-          <li v-if="hasPermission('manage_ai_training')" class="nav-item"><router-link class="nav-link" to="/admin/traningAI"><i class="bi bi-robot"></i>Training AI</router-link></li>
+          <li v-if="hasPermission('manage_ai_training')" class="nav-item"><router-link class="nav-link"
+              to="/admin/traningAI"><i class="bi bi-robot"></i>Training AI</router-link></li>
           <!-- Chat Admin -->
-          <li v-if="hasPermission('manage_admin_chat')" class="nav-item"><router-link class="nav-link" to="/admin/ChatAdmin"><i class="bi bi-chat-dots"></i>Chat Admin</router-link></li>
+          <li v-if="hasPermission('manage_admin_chat')" class="nav-item"><router-link class="nav-link"
+              to="/admin/ChatAdmin"><i class="bi bi-chat-dots"></i>Chat Admin</router-link></li>
 
-          <li class="nav-item"><router-link class="nav-link" to="/"><i class="bi bi-box-arrow-left"></i>Thoát trang quản trị</router-link></li>
+          <li class="nav-item"><router-link class="nav-link" to="/"><i class="bi bi-box-arrow-left"></i>Thoát trang quản
+              trị</router-link></li>
         </ul>
       </div>
 
       <!-- Main Content -->
       <div class="main-content">
+
         <div class="navbar-top" :class="{ 'scrolled': navbarSticky }">
           <div class="d-flex align-items-center">
             <i class="bi bi-bell mx-3"></i>
@@ -99,7 +141,8 @@
       <header ref="headerRef">
         <nav class="navbar navbar-expand-lg navbar-light fixed-top" :class="{ 'scrolled': navbarSticky }">
           <div class="container-fluid">
-            <button class="navbar-toggler" type="button" @click="toggleMenu" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+            <button class="navbar-toggler" type="button" @click="toggleMenu" aria-controls="navbarNav"
+              aria-expanded="false" aria-label="Toggle navigation">
               <span class="navbar-toggler-icon"></span>
             </button>
             <div class="collapse navbar-collapse" id="navbarNav" ref="navbarRef" :class="{ 'show': navbarActive }">
@@ -107,10 +150,13 @@
                 <li class="nav-item"><router-link class="nav-link" to="/">Trang chủ</router-link></li>
                 <li class="nav-item"><router-link class="nav-link" to="/about">Giới thiệu</router-link></li>
                 <li class="nav-item dropdown">
-                  <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">Các loại phòng</a>
+                  <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown"
+                    aria-expanded="false">Các loại phòng</a>
                   <ul class="dropdown-menu">
                     <li v-for="roomType in roomTypes" :key="roomType.type_id">
-                      <router-link class="dropdown-item" :to="{ name: 'RoomTypeDetail', params: { id: roomType.type_id } }">{{ roomType.type_name }}</router-link>
+                      <router-link class="dropdown-item"
+                        :to="{ name: 'RoomTypeDetail', params: { id: roomType.type_id } }">{{ roomType.type_name
+                        }}</router-link>
                     </li>
                   </ul>
                 </li>
@@ -118,7 +164,8 @@
                 <li class="nav-item"><router-link class="nav-link" to="/contact">Liên hệ</router-link></li>
               </ul>
               <ul class="navbar-nav navbar-nav-right align-items-center">
-                <li class="nav-item"><router-link class="nav-link" to="/HistoryBooking">Lịch Sử Đặt Phòng</router-link></li>
+                <li class="nav-item"><router-link class="nav-link" to="/HistoryBooking">Lịch Sử Đặt Phòng</router-link>
+                </li>
                 <template v-if="!isLogin">
                   <li class="nav-item">
                     <router-link class="btn btn-outline-custom" to="/login">Đăng Nhập</router-link>
@@ -126,10 +173,12 @@
                 </template>
                 <template v-if="isLogin">
                   <li class="nav-item dropdown">
-                    <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">{{ userInfo.name }}</a>
+                    <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown"
+                      aria-expanded="false">{{ userInfo.name }}</a>
                     <ul class="dropdown-menu dropdown-menu-end">
                       <li><router-link class="dropdown-item" to="/userprofile">Thông Tin User</router-link></li>
-                      <li v-if="isAdmin || isStaff"><router-link class="dropdown-item" to="/admin">Vào trang quản lý</router-link></li>
+                      <li v-if="isAdmin || isStaff"><router-link class="dropdown-item" to="/admin">Vào trang quản
+                          lý</router-link></li>
                       <li><a class="dropdown-item logout-link" @click.prevent="logout">Đăng Xuất</a></li>
                     </ul>
                   </li>
@@ -140,7 +189,7 @@
               </ul>
             </div>
             <a class="navbar-brand mx-auto" href="/">
-              <img src="https://i.postimg.cc/J0d3p6Ww/logo-HXH.png" alt="Foodie Logo" class="logo-img"/>
+              <img src="https://i.postimg.cc/J0d3p6Ww/logo-HXH.png" alt="Foodie Logo" class="logo-img" />
               <span class="d-none d-lg-inline">Hồ Xuân Hương</span>
             </a>
           </div>
@@ -152,7 +201,7 @@
       <Footer></Footer>
     </div>
   </div>
-  
+
 </template>
 
 <script setup>
@@ -161,7 +210,7 @@ import { useRoute, useRouter } from 'vue-router';
 import axiosConfig from './axiosConfig.js';
 import Footer from './components/Footer.vue';
 import chatbot from './components/Chat.vue';
-
+import socket from './socket.js';
 const route = useRoute();
 const router = useRouter();
 const headerRef = ref(null);
@@ -174,17 +223,17 @@ const isAdmin = ref(false);
 const isStaff = ref(false);
 const roomTypes = ref([]);
 const lastScrollPosition = ref(0);
-const servicesAmenitiesOpen = ref(false); 
+const servicesAmenitiesOpen = ref(false);
 const roomManagementOpen = ref(false);
 const newsManagementOpen = ref(false);
 
 const apiUrl = 'http://127.0.0.1:8000';
 provide('apiUrl', apiUrl);
 const setUserRoles = (user) => {
-    userInfo.value = user || {};
-    isLogin.value = !!user;
-    isAdmin.value = user?.role === 'admin';
-    isStaff.value = user?.role === 'staff';
+  userInfo.value = user || {};
+  isLogin.value = !!user;
+  isAdmin.value = user?.role === 'admin';
+  isStaff.value = user?.role === 'staff';
 };
 
 const updateAndRefreshUserInfo = (updatedUser) => {
@@ -290,7 +339,40 @@ const handleUrlParams = () => {
       console.error('Error parsing user from URL:', e);
     }
   }
-}; 
+};
+
+socket.on('connect', () => {
+  console.log(`Connected with socket ID: ${socket.id}`);
+
+  socket.on('notification', (data) => {
+    addNotification(data.message);
+  });
+  // console.log(users.value);
+});
+
+const notifications = ref([]);
+const showToast = ref(false);
+const showMore = ref(false);
+const latestNotification = ref({});
+const recentNotifications = ref([]);
+const addNotification = (message) => {
+  const timestamp = new Date().toLocaleString(); // Lấy thời gian hiện tại
+  notifications.value.push({ message, timestamp });
+
+  // Cập nhật thông báo mới nhất
+  latestNotification.value = { message, timestamp };
+  showToast.value = true;
+
+  // Giới hạn số lượng thông báo hiển thị
+  if (notifications.value.length > 10) {
+    notifications.value.shift(); // Xóa thông báo cũ nhất
+  }
+};
+
+const showMoreNotifications = () => {
+  showMore.value = !showMore.value;
+  recentNotifications.value = notifications.value.slice(-10); // Lấy 10 thông báo mới nhất
+};
 
 onMounted(() => {
   restoreUserSession();
@@ -300,6 +382,8 @@ onMounted(() => {
   window.addEventListener('scroll', handleScroll);
   document.addEventListener('click', handleOutsideClick);
 });
+
+
 
 onUnmounted(() => {
   window.removeEventListener('scroll', handleScroll);
@@ -514,8 +598,10 @@ footer {
 .sidebar .nav-link i {
   margin-right: 12px;
   font-size: 1.2rem;
-  width: 20px; /* Căn chỉnh icon */
-  text-align: center; /* Căn chỉnh icon */
+  width: 20px;
+  /* Căn chỉnh icon */
+  text-align: center;
+  /* Căn chỉnh icon */
 }
 
 .sidebar .collapsible-toggle {
@@ -632,7 +718,7 @@ footer {
   background-color: transparent;
 }
 
-.admin-main > * {
+.admin-main>* {
   width: 100%;
   background: #ffffff;
   border-radius: 10px;

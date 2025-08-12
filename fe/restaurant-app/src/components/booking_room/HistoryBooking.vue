@@ -1,17 +1,21 @@
 <template>
   <div class="container py-5">
     <div class="text-center mb-5">
-      <h2 class="fw-bold text-uppercase border-bottom pb-3 d-inline-block border-3 border-primary animate__animated animate__fadeInDown">
+      <h2
+        class="fw-bold text-uppercase border-bottom pb-3 d-inline-block border-3 border-primary animate__animated animate__fadeInDown">
         Lịch sử Đặt phòng
       </h2>
     </div>
 
-    <div v-if="showCancelPopup" class="modal fade show d-block animate__animated animate__fadeIn" tabindex="-1" role="dialog" aria-labelledby="cancelModalLabel" aria-hidden="true">
+    <div v-if="showCancelPopup" class="modal fade show d-block animate__animated animate__fadeIn" tabindex="-1"
+      role="dialog" aria-labelledby="cancelModalLabel" aria-hidden="true">
       <div class="modal-dialog modal-dialog-centered" role="document">
         <div class="modal-content animate__animated animate__zoomIn">
           <div class="modal-header bg-danger text-white">
-            <h5 class="modal-title" id="cancelModalLabel"><i class="bi bi-exclamation-triangle-fill me-2"></i> Xác nhận hủy đặt phòng</h5>
-            <button type="button" class="btn-close btn-close-white" @click="showCancelPopup = false" aria-label="Close"></button>
+            <h5 class="modal-title" id="cancelModalLabel"><i class="bi bi-exclamation-triangle-fill me-2"></i> Xác nhận
+              hủy đặt phòng</h5>
+            <button type="button" class="btn-close btn-close-white" @click="showCancelPopup = false"
+              aria-label="Close"></button>
           </div>
           <div class="modal-body">
             <p class="text-muted mb-3">Vui lòng chọn lý do hủy đặt phòng của bạn:</p>
@@ -28,7 +32,8 @@
 
             <div v-if="selectedReason === 'Khác'" class="mb-3">
               <label for="customReason" class="form-label fw-bold">Lý do khác:</label>
-              <textarea v-model="customReason" class="form-control" rows="3" placeholder="Nhập lý do hủy chi tiết..." id="customReason"></textarea>
+              <textarea v-model="customReason" class="form-control" rows="3" placeholder="Nhập lý do hủy chi tiết..."
+                id="customReason"></textarea>
             </div>
           </div>
           <div class="modal-footer">
@@ -41,11 +46,13 @@
 
     <Loading v-if="isLoading" />
 
-    <div v-else-if="error" class="alert alert-danger text-center shadow-sm py-4 animate__animated animate__fadeIn" role="alert">
+    <div v-else-if="error" class="alert alert-danger text-center shadow-sm py-4 animate__animated animate__fadeIn"
+      role="alert">
       <i class="bi bi-exclamation-octagon-fill me-2"></i> {{ error }}
     </div>
 
-    <div v-else-if="bookings.length === 0" class="alert alert-info text-center shadow-sm py-4 animate__animated animate__fadeIn" role="alert">
+    <div v-else-if="bookings.length === 0"
+      class="alert alert-info text-center shadow-sm py-4 animate__animated animate__fadeIn" role="alert">
       <p class="lead mb-3"><i class="bi bi-info-circle-fill me-2"></i> Bạn chưa có lịch sử đặt phòng nào.</p>
       <p class="mb-0">Hãy khám phá các phòng của chúng tôi để bắt đầu đặt phòng ngay!</p>
       <router-link to="/booking_hotel" class="btn btn-primary mt-3 animate__animated animate__pulse animate__infinite">
@@ -54,11 +61,13 @@
     </div>
 
     <div v-else class="row g-4 justify-content-center">
-      <div v-for="booking in bookings" :key="booking.booking_id" class="col-12 col-md-10 col-lg-8 animate__animated animate__fadeInUp">
-        
-        <div v-if="booking.status === 'pending_cancel'" class="card shadow-lg border-warning border-4 rounded-4 p-4 position-relative overflow-hidden">
+      <div v-for="booking in bookings" :key="booking.booking_id"
+        class="col-12 col-md-10 col-lg-8 animate__animated animate__fadeInUp">
+
+        <div v-if="booking.status === 'pending_cancel'"
+          class="card shadow-lg border-warning border-4 rounded-4 p-4 position-relative overflow-hidden">
           <div class="ribbon-warning"><span>Đang chờ hủy</span></div>
-          
+
           <div class="d-flex justify-content-between align-items-center mb-4 pb-3 border-bottom border-warning-subtle">
             <h4 class="mb-0 text-warning fw-bold">
               <i class="bi bi-hourglass-split me-2"></i> Đơn hủy: #{{ booking.booking_id }}
@@ -68,13 +77,18 @@
           <div v-if="cancelDetails[booking.booking_id]">
             <div class="row g-2 mb-3">
               <div class="col-12">
-                <p class="mb-1 text-muted"><strong><i class="bi bi-chat-left-text-fill me-2"></i>Lý do hủy:</strong> <span class="fw-semibold text-dark">{{ cancelDetails[booking.booking_id].reason }}</span></p>
+                <p class="mb-1 text-muted"><strong><i class="bi bi-chat-left-text-fill me-2"></i>Lý do hủy:</strong>
+                  <span class="fw-semibold text-dark">{{ cancelDetails[booking.booking_id].reason }}</span></p>
               </div>
               <div class="col-12">
-                <p class="mb-1 text-muted"><strong><i class="bi bi-currency-dollar me-2"></i>Hoàn lại cho khách:</strong> <span class="text-success fw-bold fs-5">{{ formatPrice(cancelDetails[booking.booking_id].refund_amount) }}</span></p>
+                <p class="mb-1 text-muted"><strong><i class="bi bi-currency-dollar me-2"></i>Hoàn lại cho
+                    khách:</strong> <span class="text-success fw-bold fs-5">{{
+                      formatPrice(cancelDetails[booking.booking_id].refund_amount) }}</span></p>
               </div>
               <div class="col-12">
-                <p class="mb-0 text-muted"><strong><i class="bi bi-calendar-event me-2"></i>Thời gian yêu cầu:</strong> <span class="fw-semibold text-dark">{{ formatDate(cancelDetails[booking.booking_id].created_at) }}</span></p>
+                <p class="mb-0 text-muted"><strong><i class="bi bi-calendar-event me-2"></i>Thời gian yêu cầu:</strong>
+                  <span class="fw-semibold text-dark">{{ formatDate(cancelDetails[booking.booking_id].created_at)
+                    }}</span></p>
               </div>
             </div>
           </div>
@@ -85,9 +99,11 @@
             Đang tải thông tin hủy...
           </div>
 
-          <div class="mt-4 pt-3 border-top border-warning-subtle" v-if="cancelDetails[booking.booking_id]?.refund_amount > 0">
+          <div class="mt-4 pt-3 border-top border-warning-subtle"
+            v-if="cancelDetails[booking.booking_id]?.refund_amount > 0">
             <h5 class="fw-bold text-primary mb-3"><i class="bi bi-bank me-2"></i> Thông tin hoàn tiền:</h5>
-            <p class="text-muted small mb-3">Vui lòng nhập chính xác thông tin ngân hàng để quá trình hoàn tiền được thuận lợi.</p>
+            <p class="text-muted small mb-3">Vui lòng nhập chính xác thông tin ngân hàng để quá trình hoàn tiền được
+              thuận lợi.</p>
 
             <template v-if="cancelDetails[booking.booking_id]?.refund_bank">
               <div class="card bg-light p-3 mb-3">
@@ -105,7 +121,8 @@
                 </div>
               </div>
               <div class="alert alert-success mt-3 py-2 text-center animate__animated animate__fadeIn">
-                <i class="bi bi-check-circle-fill me-2"></i> Thông tin hoàn tiền đã được gửi thành công. Chúng tôi sẽ xử lý sớm nhất có thể.
+                <i class="bi bi-check-circle-fill me-2"></i> Thông tin hoàn tiền đã được gửi thành công. Chúng tôi sẽ xử
+                lý sớm nhất có thể.
               </div>
             </template>
 
@@ -121,11 +138,13 @@
               </div>
               <div class="mb-3">
                 <label class="form-label fw-bold">Số tài khoản:</label>
-                <input type="text" class="form-control form-control-lg" v-model="refundBank[booking.booking_id].accountNumber" placeholder="Nhập số tài khoản">
+                <input type="text" class="form-control form-control-lg"
+                  v-model="refundBank[booking.booking_id].accountNumber" placeholder="Nhập số tài khoản">
               </div>
               <div class="mb-3">
                 <label class="form-label fw-bold">Tên tài khoản (Chủ tài khoản):</label>
-                <input type="text" class="form-control form-control-lg" v-model="refundBank[booking.booking_id].accountName" placeholder="Nhập tên chủ tài khoản">
+                <input type="text" class="form-control form-control-lg"
+                  v-model="refundBank[booking.booking_id].accountName" placeholder="Nhập tên chủ tài khoản">
               </div>
               <div class="d-grid">
                 <button class="btn btn-primary btn-lg mt-3" @click="submitRefundInfo(booking.booking_id)">
@@ -165,26 +184,31 @@
             </div>
             <div class="col-sm-6">
               <p class="mb-0 text-muted"><i class="bi bi-bookmark me-2"></i> <strong>Loại đặt:</strong></p>
-              <p class="mb-0 fw-semibold">{{ booking.booking_type === 'online' ? 'Đặt online' : booking.booking_type }}</p>
+              <p class="mb-0 fw-semibold">{{ booking.booking_type === 'online' ? 'Đặt online' : booking.booking_type }}
+              </p>
             </div>
           </div>
 
           <hr class="my-4">
 
           <div class="row g-3 mb-4">
-           
+
             <div class="col-sm-6">
-              <p class="mb-0 text-muted"><i class="bi bi-cash-stack me-2"></i> <strong>Hình thức thanh toán:</strong></p>
+              <p class="mb-0 text-muted"><i class="bi bi-cash-stack me-2"></i> <strong>Hình thức thanh toán:</strong>
+              </p>
               <p class="mb-0 fw-bold">{{ formatPayment(booking.payment_method) }}</p>
             </div>
             <div class="col-sm-6">
-              <p class="mb-0 text-muted"><i class="bi bi-credit-card-fill me-2"></i> <strong>Trạng thái thanh toán:</strong></p>
-              <p :class="['mb-0 fw-bold', booking.payment_status === 'paid' ? 'text-success' : 'text-danger']">{{ formatPaymentStatus(booking.payment_status) }}</p>
+              <p class="mb-0 text-muted"><i class="bi bi-credit-card-fill me-2"></i> <strong>Trạng thái thanh
+                  toán:</strong></p>
+              <p :class="['mb-0 fw-bold', booking.payment_status === 'paid' ? 'text-success' : 'text-danger']">{{
+                formatPaymentStatus(booking.payment_status) }}</p>
             </div>
             <div class="col-12">
-               <span :class="['badge position-absolute top-0 end-0 mt-3 me-3 px-3 py-2 rounded-pill fw-bold', formatStatusClass(booking.status)]">
-            {{ formatStatus(booking.status) }}
-          </span>
+              <span
+                :class="['badge position-absolute top-0 end-0 mt-3 me-3 px-3 py-2 rounded-pill fw-bold', formatStatusClass(booking.status)]">
+                {{ formatStatus(booking.status) }}
+              </span>
             </div>
             <div class="col-12">
               <p class="mb-0 text-muted"><i class="bi bi-wallet-fill me-2"></i> <strong>Tổng tiền:</strong></p>
@@ -198,10 +222,13 @@
           </div>
 
           <div class="d-flex justify-content-between align-items-center mt-4 pt-3 border-top">
-            <button v-if="canCancelBooking(booking)" class="btn btn-outline-danger btn-lg-sm py-2 px-3 animate__animated animate__pulse animate__infinite" @click="showCancelPopup = true; currentBookingId = booking.booking_id">
+            <button v-if="canCancelBooking(booking)"
+              class="btn btn-outline-danger btn-lg-sm py-2 px-3 animate__animated animate__pulse animate__infinite"
+              @click="showCancelPopup = true; currentBookingId = booking.booking_id">
               <i class="bi bi-x-circle-fill me-2"></i> Hủy đặt phòng
             </button>
-            <small class="text-muted fst-italic ms-auto"><i class="bi bi-arrow-clockwise me-2"></i>Cập nhật cuối: {{ formatDate(booking.updated_at) }}</small>
+            <small class="text-muted fst-italic ms-auto"><i class="bi bi-arrow-clockwise me-2"></i>Cập nhật cuối: {{
+              formatDate(booking.updated_at) }}</small>
           </div>
         </div>
       </div>
@@ -222,10 +249,10 @@ const cancelDetails = ref({});
 const refundBank = ref({}); // Lưu thông tin hoàn tiền nhập từ form
 //format price
 const formatPrice = (value) => {
-    return new Intl.NumberFormat('vi-VN', {
-        style: 'currency',
-        currency: 'VND',
-    }).format(value);
+  return new Intl.NumberFormat('vi-VN', {
+    style: 'currency',
+    currency: 'VND',
+  }).format(value);
 };
 const getHistoryBooking = async () => {
   let token = localStorage.getItem('BookingAuth') || '';
@@ -401,7 +428,7 @@ const formatPaymentStatus = (status) => {
 
 const canCancelBooking = (booking) => {
   //console.log('Checking if booking can be cancelled:', booking);
-if (booking.status === 'cancelled') return false;
+  if (booking.status === 'cancelled') return false;
   const checkInDate = new Date(booking.check_in_date);
   const now = new Date();
   checkInDate.setDate(checkInDate.getDate() - 1);
@@ -415,29 +442,43 @@ onMounted(getHistoryBooking);
 /* Base Styles */
 /* Status Colors */
 .bg-pending-confirmation {
-  background-color: #0cd4e6 !important; /* Warning yellow */
-  color: #343a40 !important; /* Dark text for contrast */
+  background-color: #0cd4e6 !important;
+  /* Warning yellow */
+  color: #343a40 !important;
+  /* Dark text for contrast */
 }
+
 .bg-confirmed {
-  background-color: #28a745 !important; /* Success green */
+  background-color: #28a745 !important;
+  /* Success green */
   color: #ffffff !important;
 }
-.bg-confirmed-not-assigned{
-  background-color: #3498db !important; /* Success green */
+
+.bg-confirmed-not-assigned {
+  background-color: #3498db !important;
+  /* Success green */
   color: #ffffff !important;
 }
+
 .bg-cancelled {
-  background-color: #dc3545 !important; /* Danger red */
+  background-color: #dc3545 !important;
+  /* Danger red */
   color: #ffffff !important;
 }
+
 .bg-completed {
-  background-color: #17a2b8 !important; /* Info blue */
+  background-color: #17a2b8 !important;
+  /* Info blue */
   color: #ffffff !important;
 }
-.bg-new, .bg-pending-payment {
-  background-color: #0d6efd !important; /* Primary blue for new/pending payment */
+
+.bg-new,
+.bg-pending-payment {
+  background-color: #0d6efd !important;
+  /* Primary blue for new/pending payment */
   color: #ffffff !important;
 }
+
 .container {
   max-width: 1200px;
   margin: 0 auto;
@@ -453,16 +494,22 @@ onMounted(getHistoryBooking);
 
 /* Card Enhancements */
 .card {
-  border: none; /* Remove default card border */
-  border-radius: 1rem; /* More rounded corners */
-  overflow: hidden; /* Ensures ribbon stays within bounds */
+  border: none;
+  /* Remove default card border */
+  border-radius: 1rem;
+  /* More rounded corners */
+  overflow: hidden;
+  /* Ensures ribbon stays within bounds */
   transition: transform 0.3s ease, box-shadow 0.3s ease;
-  background-color: #ffffff; /* Ensure white background for cards */
+  background-color: #ffffff;
+  /* Ensure white background for cards */
 }
 
 .card:hover {
-  transform: translateY(-8px); /* Slightly more pronounced lift on hover */
-  box-shadow: 0 1rem 2rem rgba(0, 0, 0, 0.1); /* Stronger shadow on hover */
+  transform: translateY(-8px);
+  /* Slightly more pronounced lift on hover */
+  box-shadow: 0 1rem 2rem rgba(0, 0, 0, 0.1);
+  /* Stronger shadow on hover */
 }
 
 .card-header-custom {
@@ -476,33 +523,48 @@ onMounted(getHistoryBooking);
 .badge {
   font-size: 0.9rem;
   padding: 0.5em 0.9em;
-  border-radius: 50rem; /* Pill shape */
-  min-width: 90px; /* Ensure consistent width for badges */
+  border-radius: 50rem;
+  /* Pill shape */
+  min-width: 90px;
+  /* Ensure consistent width for badges */
   text-align: center;
 }
 
 .badge.bg-pending_confirmation {
-  background-color: #ffc107 !important; /* Warning yellow */
-  color: #343a40 !important; /* Dark text for contrast */
+  background-color: #ffc107 !important;
+  /* Warning yellow */
+  color: #343a40 !important;
+  /* Dark text for contrast */
 }
+
 .badge.bg-confirmed {
-  background-color: #28a745 !important; /* Success green */
+  background-color: #28a745 !important;
+  /* Success green */
   color: #ffffff !important;
 }
+
 .badge.bg-confirmed-not-assigned {
-  background-color: #3498db !important; /* Success green */
+  background-color: #3498db !important;
+  /* Success green */
   color: #ffffff !important;
 }
+
 .badge.bg-cancelled {
-  background-color: #dc3545 !important; /* Danger red */
+  background-color: #dc3545 !important;
+  /* Danger red */
   color: #ffffff !important;
 }
+
 .badge.bg-completed {
-  background-color: #17a2b8 !important; /* Info blue */
+  background-color: #17a2b8 !important;
+  /* Info blue */
   color: #ffffff !important;
 }
-.badge.bg-new, .badge.bg-pending_payment {
-  background-color: #0d6efd !important; /* Primary blue for new/pending payment */
+
+.badge.bg-new,
+.badge.bg-pending_payment {
+  background-color: #0d6efd !important;
+  /* Primary blue for new/pending payment */
   color: #ffffff !important;
 }
 
@@ -543,7 +605,7 @@ onMounted(getHistoryBooking);
   width: 225px;
   padding: 8px 0;
   background-color: #f0ad4e;
-  box-shadow: 0 5px 10px rgba(0,0,0,.1);
+  box-shadow: 0 5px 10px rgba(0, 0, 0, .1);
   color: #343a40;
   font-size: 0.9rem;
   font-weight: bold;
@@ -557,17 +619,22 @@ onMounted(getHistoryBooking);
 
 /* Modal Overlays and Animations */
 .modal.show {
-  background-color: rgba(0, 0, 0, 0.6); /* Darker overlay */
-  animation: fadeIn 0.3s ease-out; /* Fade in animation for modal backdrop */
+  background-color: rgba(0, 0, 0, 0.6);
+  /* Darker overlay */
+  animation: fadeIn 0.3s ease-out;
+  /* Fade in animation for modal backdrop */
 }
 
 .modal-content {
-  border-radius: 0.75rem; /* Rounded corners for modal */
-  overflow: hidden; /* Ensures internal elements conform to border-radius */
+  border-radius: 0.75rem;
+  /* Rounded corners for modal */
+  overflow: hidden;
+  /* Ensures internal elements conform to border-radius */
 }
 
 .modal-header {
-  border-bottom: none; /* Clean header */
+  border-bottom: none;
+  /* Clean header */
   padding: 1.25rem 1.5rem;
 }
 
@@ -580,12 +647,14 @@ onMounted(getHistoryBooking);
 }
 
 .modal-footer {
-  border-top: none; /* Clean footer */
+  border-top: none;
+  /* Clean footer */
   padding: 1.25rem 1.5rem;
 }
 
 /* Form Control Focus */
-.form-control:focus, .form-select:focus {
+.form-control:focus,
+.form-select:focus {
   border-color: #86b7fe;
   box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25);
 }
@@ -601,6 +670,7 @@ onMounted(getHistoryBooking);
   background-color: #0d6efd;
   border-color: #0d6efd;
 }
+
 .btn-primary:hover {
   background-color: #0b5ed7;
   border-color: #0a58ca;
@@ -610,48 +680,78 @@ onMounted(getHistoryBooking);
   color: #dc3545;
   border-color: #dc3545;
 }
+
 .btn-outline-danger:hover {
   background-color: #dc3545;
   color: #fff;
 }
 
 /* Utility Classes */
-.fw-bold { font-weight: 700 !important; }
-.fw-semibold { font-weight: 600 !important; }
+.fw-bold {
+  font-weight: 700 !important;
+}
+
+.fw-semibold {
+  font-weight: 600 !important;
+}
 
 /* Icons */
 .bi {
-  vertical-align: -0.125em; /* Align icons better with text */
+  vertical-align: -0.125em;
+  /* Align icons better with text */
 }
 
 /* Animations */
 @keyframes fadeIn {
-  from { opacity: 0; }
-  to { opacity: 1; }
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
 }
 
 @keyframes zoomIn {
-  from { transform: scale(0.9); opacity: 0; }
-  to { transform: scale(1); opacity: 1; }
+  from {
+    transform: scale(0.9);
+    opacity: 0;
+  }
+
+  to {
+    transform: scale(1);
+    opacity: 1;
+  }
 }
 
 @keyframes pulse {
-  0% { transform: scale(1); }
-  50% { transform: scale(1.03); }
-  100% { transform: scale(1); }
+  0% {
+    transform: scale(1);
+  }
+
+  50% {
+    transform: scale(1.03);
+  }
+
+  100% {
+    transform: scale(1);
+  }
 }
 
 .animate__animated.animate__fadeInDown {
   animation-duration: 0.8s;
 }
-.animate__animated.animate__fadeIn, .animate__animated.animate__fadeInUp {
+
+.animate__animated.animate__fadeIn,
+.animate__animated.animate__fadeInUp {
   animation-duration: 0.6s;
 }
+
 .animate__animated.animate__zoomIn {
   animation-duration: 0.4s;
 }
+
 .animate__animated.animate__pulse {
   animation-duration: 1.5s;
 }
-
 </style>
