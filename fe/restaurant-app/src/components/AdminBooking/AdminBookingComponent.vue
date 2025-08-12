@@ -31,17 +31,20 @@
       <div class="card filter-card mb-4">
         <div class="card-body">
           <div class="row g-3 align-items-end">
+            <!-- Input tìm kiếm (giữ nguyên) -->
             <div class="col-lg-4 col-md-12">
               <label for="search-input" class="form-label">Tìm kiếm</label>
               <input
                 type="text"
                 class="form-control"
                 v-model="tuKhoaTimKiem"
-                placeholder="Tìm kiếm theo mã đặt phòng, tên khách hàng, số điện thoại..."
-                @keyup.enter="timKiemDatPhong"
+                placeholder="Tìm kiếm theo mã, tên khách hàng..."
+                @keyup.enter="locDanhSach"
               />
             </div>
-            <div class="col-lg-2 col-md-4">
+
+            <!-- Bộ lọc trạng thái (giữ nguyên) -->
+            <div class="col-lg-3 col-md-6">
               <label for="status-filter" class="form-label">Trạng thái</label>
               <select id="status-filter" v-model="locTrangThai" class="form-select" @change="locDanhSach">
                 <option value="">Tất cả</option>
@@ -49,16 +52,23 @@
                 <option value="confirmed_not_assigned">Xác nhận chưa xếp phòng</option>
                 <option value="confirmed">Đã xác nhận</option>
                 <option value="pending_cancel">Chờ xác nhận hủy</option>
-                <option value="cancelled">Đã hủy</option>
               </select>
             </div>
-            <div class="col-lg-3 col-md-4">
-              <label for="from-date" class="form-label">Từ ngày nhận phòng</label>
-              <input id="from-date" v-model="tuNgay" type="date" class="form-control" @change="locDanhSach">
-            </div>
-            <div class="col-lg-3 col-md-4">
-              <label for="to-date" class="form-label">Đến ngày trả phòng</label>
-              <input id="to-date" v-model="denNgay" type="date" class="form-control" @change="locDanhSach">
+
+            <!-- BỘ LỌC THỜI GIAN MỚI -->
+            <div class="col-lg-5 col-md-6">
+              <label for="datetime-filter" class="form-label">Kiểm tra tại thời điểm</label>
+              <div class="input-group">
+                <input 
+                  id="datetime-filter" 
+                  v-model="locTaiThoiDiem" 
+                  type="datetime-local" 
+                  class="form-control" 
+                  @change="locDanhSach">
+                <button class="btn btn-outline-secondary" type="button" @click="xoaLocThoiGian" title="Xóa bộ lọc thời gian">
+                  <i class="bi bi-x-lg"></i>
+                </button>
+              </div>
             </div>
           </div>
         </div>
@@ -190,15 +200,17 @@
                     <table class="table room-assignment-table">
                       <thead>
                         <tr>
+                          <th class="text-center">STT</th>
                           <th>Loại Phòng Đặt</th>
                           <th>Phòng Được Xếp</th>
                           <th class="text-end">Giá</th>
                           <th style="width: 35%;">Xếp Phòng</th>
                         </tr>
                       </thead>
-                      <tbody>
-                        <tr v-if="chiTietDatPhongHopLe.length === 0"><td colspan="4" class="text-center text-muted py-3">Không có chi tiết phòng.</td></tr>
-                        <tr v-for="chiTiet in chiTietDatPhongHopLe" :key="chiTiet.booking_detail_id">
+                      <tbody>                  
+                        <tr v-if="chiTietDatPhongHopLe.length === 0"><td colspan="5" class="text-center text-muted py-3">Không có chi tiết phòng.</td></tr>
+                        <tr v-for="(chiTiet, index) in chiTietDatPhongHopLe" :key="chiTiet.booking_detail_id">
+                          <td class="text-center fw-bold">{{ index + 1 }}</td>
                           <td>{{ chiTiet.type_name || 'Không xác định' }}</td>
                           <td>
                             <span v-if="chiTiet.room?.room_name && chiTiet.room.room_name !== 'Chưa xếp'" class="text-success fw-bold">{{ chiTiet.room.room_name }}</span>
@@ -283,6 +295,14 @@ import { Toast } from 'bootstrap';
 import loading from '../loading.vue';
 import { debounce } from 'lodash';
 
+const getFormattedCurrentDateTime = () => {
+  const now = new Date();
+  const timezoneOffset = now.getTimezoneOffset();
+  const localTime = new Date(now.getTime() - (timezoneOffset * 60 * 1000));
+  const formattedString = localTime.toISOString().slice(0, 16);
+  return formattedString;
+};
+
 const apiUrl = inject('apiUrl');
 const danhSachDatPhong = ref([]);
 const hienModal = ref(false);
@@ -300,8 +320,8 @@ const tabHienTai = ref('chiTiet');
 
 const tuKhoaTimKiem = ref('');
 const locTrangThai = ref('');
-const tuNgay = ref('');
-const denNgay = ref('');
+const locTaiThoiDiem = ref(getFormattedCurrentDateTime()); 
+
 const trangHienTai = ref(1);
 const soBanGhiTrenTrang = ref(10);
 const sapXepCot = ref('booking_id');
@@ -321,33 +341,30 @@ const openAdminCancelModal = (booking) => {
 
 const executeAdminCancel = async () => {
   if (!adminCancelReason.value.trim()) {
-    alert('Vui lòng nhập lý do hủy đơn hàng.');
+    thongBaoLoi.value = 'Vui lòng nhập lý do hủy đơn hàng.';
+    showToast('errorToast');
     return;
   }
-
   try {
     const bookingId = bookingToCancel.value.booking_id;
     await axios.post(`${apiUrl}/api/bookings/${bookingId}/admin-cancel`, {
       reason: adminCancelReason.value,
     });
-
     const index = danhSachDatPhong.value.findIndex(item => item.booking_id === bookingId);
     if (index !== -1) {
       danhSachDatPhong.value.splice(index, 1);
     }
-    
     showAdminCancelModal.value = false;
     hienModal.value = false;
     thongBaoToast.value = 'Hủy thành công! Đơn hàng đã được chuyển vào lịch sử.';
     showToast('successToast');
   } catch (err) {
     console.error('Lỗi khi admin hủy đơn hàng:', err);
-    thongBaoLoi.value = err.response?.data?.error || 'Đã có lỗi xảy ra.';
+    thongBaoLoi.value = err.response?.data?.error || 'Đã có lỗi xảy ra khi hủy đơn hàng.';
     showToast('errorToast');
   }
 };
 
-// Định nghĩa danhSachHienThi với kiểm tra an toàn
 const danhSachHienThi = computed(() => {
   return Array.isArray(danhSachDatPhong.value) ? danhSachDatPhong.value : [];
 });
@@ -369,7 +386,6 @@ const coPhongChuaXep = computed(() => {
   return chiTietDatPhong.value.some(c => !c.room_id);
 });
 
-// Hàm định dạng ngày giờ
 const dinhDangNgayGio = (ngay, gio) => {
   if (!ngay) return 'N/A';
   const dateTime = gio ? new Date(`${ngay}T${gio}`) : new Date(ngay);
@@ -382,26 +398,22 @@ const dinhDangNgayGio = (ngay, gio) => {
   });
 };
 
-// Hàm định dạng thời gian H:i
 const dinhDangThoiGian = (gio) => {
   if (!gio) return null;
   if (gio.includes(':') && gio.split(':').length >= 2) {
-    return gio.slice(0, 5); // Lấy HH:mm
+    return gio.slice(0, 5);
   }
   return gio;
 };
 
-// Hàm tìm kiếm
 const timKiemDatPhong = async () => {
   if (!tuKhoaTimKiem.value.trim()) {
     trangHienTai.value = 1;
     layDanhSachDatPhong();
     return;
   }
-
   dangTai.value = true;
   thongBaoLoi.value = '';
-
   try {
     const response = await axios.get(`${apiUrl}/api/bookings`, {
       params: {
@@ -410,7 +422,6 @@ const timKiemDatPhong = async () => {
       headers: { 'Accept': 'application/json' },
       timeout: 10000,
     });
-
     danhSachDatPhong.value = Array.isArray(response.data.data) ? response.data.data : [];
     if (danhSachDatPhong.value.length === 0) {
       thongBaoLoi.value = 'Không tìm thấy đặt phòng nào phù hợp.';
@@ -424,18 +435,15 @@ const timKiemDatPhong = async () => {
   }
 };
 
-// Hàm tải danh sách đặt phòng
 const taiDanhSachDatPhong = async () => {
   dangTai.value = true;
   isLoading.value = true;
   thongBaoLoi.value = '';
-
   try {
     const response = await axios.get(`${apiUrl}/api/bookings`, {
       headers: { 'Accept': 'application/json' },
       timeout: 10000,
     });
-
     danhSachDatPhong.value = Array.isArray(response.data.data) ? response.data.data : [];
     if (danhSachDatPhong.value.length === 0) {
       thongBaoLoi.value = 'Không có đặt phòng nào trong hệ thống.';
@@ -455,6 +463,13 @@ const timKiemDatPhongDebounced = debounce(() => {
   layDanhSachDatPhong();
 }, 500);
 
+const xoaLocThoiGian = () => {
+  if (locTaiThoiDiem.value) {
+    locTaiThoiDiem.value = '';
+    locDanhSach();
+  }
+};
+
 const layDanhSachDatPhong = async () => {
   isLoading.value = true;
   try {
@@ -465,15 +480,12 @@ const layDanhSachDatPhong = async () => {
       sort_order: sapXepGiam.value ? 'desc' : 'asc',
       search: tuKhoaTimKiem.value,
       status: locTrangThai.value,
-      from_date: tuNgay.value,
-      to_date: denNgay.value,
+      active_at: locTaiThoiDiem.value,
     };
-
     const res = await axios.get(`${apiUrl}/api/bookings`, {
       headers: { 'Accept': 'application/json' },
       params,
     });
-
     if (res.data && Array.isArray(res.data.data)) {
       danhSachDatPhong.value = res.data.data;
       tongSoTrang.value = res.data.last_page || 1;
@@ -504,14 +516,11 @@ const moModalChiTiet = async (datPhong) => {
   thongTinHuy.value = null;
   lichSuDatPhong.value = [];
   tabHienTai.value = 'chiTiet';
-
   try {
-    // Tải chi tiết đặt phòng
     const resDetails = await axios.get(`${apiUrl}/api/booking-details/${datPhong.booking_id}`, {
       headers: { 'Accept': 'application/json' },
       timeout: 10000,
     });
-
     chiTietDatPhong.value = Array.isArray(resDetails.data)
       ? resDetails.data.map(c => ({
           ...c,
@@ -519,8 +528,6 @@ const moModalChiTiet = async (datPhong) => {
           type_name: c.roomType?.type_name || 'N/A'
         }))
       : [];
-
-    // Tải thông tin hủy nếu cần
     if (['pending_cancel', 'cancelled'].includes(datPhong.status)) {
       try {
         const cancelRes = await axios.get(`${apiUrl}/api/booking-cancel/${datPhong.booking_id}`, {
@@ -536,8 +543,6 @@ const moModalChiTiet = async (datPhong) => {
         return;
       }
     }
-
-    // Tải phòng trống nếu trạng thái là confirmed_not_assigned
     if (['confirmed_not_assigned'].includes(datPhong.status)) {
       await taiPhongTrong(datPhong);
     }
@@ -574,7 +579,6 @@ const taiPhongTrong = async (datPhong) => {
           timeout: 5000,
         });
       });
-
       const phongTrongResponses = await Promise.all(phongTrongPromises);
       chiTietCanPhongTrong.forEach(chiTiet => {
         const resPhong = phongTrongResponses.find(resp =>
@@ -605,7 +609,6 @@ const taiPhongTrong = async (datPhong) => {
 
 const xepPhong = async (chiTiet) => {
   if (!chiTiet.room_id) return;
-
   dangXepPhong.value[chiTiet.booking_detail_id] = true;
   try {
     const payload = { 
@@ -615,25 +618,20 @@ const xepPhong = async (chiTiet) => {
       check_in_time: dinhDangThoiGian(datPhongDuocChon.value.check_in_time),
       check_out_time: dinhDangThoiGian(datPhongDuocChon.value.check_out_time)
     };
-    
     const response = await axios.post(`${apiUrl}/api/assign-room/${chiTiet.booking_detail_id}`, payload, { 
       headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' } 
     });
-    
     const selectedRoom = phongTrong.value[chiTiet.booking_detail_id]?.find(p => p.room_id == chiTiet.room_id);
     if (selectedRoom) {
       chiTiet.room = { ...selectedRoom };
     }
-
     thongBaoToast.value = 'Xếp phòng thành công!';
     showToast('successToast');
-    
     await taiPhongTrong(datPhongDuocChon.value);
   } catch (err) {
     console.error('Lỗi khi xếp phòng:', err);
     thongBaoLoi.value = `Lỗi khi xếp phòng: ${err.response?.data?.error || err.message}`;
     showToast('errorToast');
-    
     const originalDetail = chiTietDatPhong.value.find(d => d.booking_detail_id === chiTiet.booking_detail_id);
     chiTiet.room_id = originalDetail.room_id || "";
   } finally {
@@ -649,17 +647,13 @@ const xepPhongNgauNhien = async () => {
       check_in_time: dinhDangThoiGian(datPhongDuocChon.value.check_in_time),
       check_out_time: dinhDangThoiGian(datPhongDuocChon.value.check_out_time)
     };
-
     const response = await axios.post(`${apiUrl}/api/bookings/${datPhongDuocChon.value.booking_id}/assign-random-rooms`, payload, {
       headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' }
     });
-
-    // Cập nhật lại chi tiết booking để hiển thị phòng đã xếp
     const resDetails = await axios.get(`${apiUrl}/api/booking-details/${datPhongDuocChon.value.booking_id}`, {
       headers: { 'Accept': 'application/json' },
       timeout: 10000,
     });
-
     chiTietDatPhong.value = Array.isArray(resDetails.data)
       ? resDetails.data.map(c => ({
           ...c,
@@ -667,11 +661,8 @@ const xepPhongNgauNhien = async () => {
           type_name: c.roomType?.type_name || 'N/A'
         }))
       : [];
-
     thongBaoToast.value = 'Xếp phòng ngẫu nhiên thành công!';
     showToast('successToast');
-
-    // Tải lại danh sách phòng trống
     await taiPhongTrong(datPhongDuocChon.value);
   } catch (err) {
     console.error('Lỗi khi xếp phòng ngẫu nhiên:', err);
@@ -687,7 +678,6 @@ const xacNhanDatPhong = async () => {
     }, { 
       headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' } 
     });
-    
     const index = danhSachDatPhong.value.findIndex(item => item.booking_id === datPhongDuocChon.value.booking_id);
     if (index !== -1) {
       danhSachDatPhong.value[index].status = 'confirmed_not_assigned';
@@ -716,7 +706,6 @@ const hoanTatXacNhan = async () => {
     const response = await axios.patch(`${apiUrl}/api/bookings/${datPhongDuocChon.value.booking_id}/complete`, {}, { 
       headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' } 
     });
-    
     const index = danhSachDatPhong.value.findIndex(item => item.booking_id === datPhongDuocChon.value.booking_id);
     if (index !== -1) {
       danhSachDatPhong.value[index].status = 'confirmed';
@@ -749,18 +738,15 @@ const xacNhanHuyDatPhong = async () => {
       refund_account_number: '',
       refund_account_name: ''
     }, { headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' } });
-    
     const index = danhSachDatPhong.value.findIndex(item => item.booking_id === datPhongDuocChon.value.booking_id);
     if (index !== -1) {
       danhSachDatPhong.value[index].status = 'cancelled';
     }
     datPhongDuocChon.value.status = 'cancelled';
     thongTinHuy.value.status = 'processed';
-    
     if (['pending_confirmation', 'confirmed_not_assigned'].includes(datPhongDuocChon.value.status)) {
       await taiPhongTrong(datPhongDuocChon.value);
     }
-
     thongBaoToast.value = 'Xác nhận hủy đặt phòng thành công!';
     showToast('successToast');
     await layDanhSachDatPhong();

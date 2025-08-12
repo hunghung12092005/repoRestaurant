@@ -49,6 +49,8 @@ Route::post('/occupancy/add-multiple', [OccupancyController::class, 'addMultiple
 Route::get('/bookings/{booking_id}/details', [OccupancyController::class, 'getBookingDetails']);
 Route::get('/bookings/unpaid-list', [OccupancyController::class, 'getUnpaidBookings']);
 Route::patch('/bookings/pay-by-booking', [OccupancyController::class, 'payByBookingId']);
+Route::get('/booking-histories', [BookingHotelController::class, 'getHistoryBookings']);
+
 //roi phong
 Route::get('/rooms/availableleaveroom/{typeId}/{roomId}', [OccupancyController::class, 'getAvailableRoomsLeaveRoom']);
 Route::post('/change-room', [OccupancyController::class, 'changeRoom']);

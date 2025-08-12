@@ -1,66 +1,64 @@
-  <template>
-    <loading v-if="isLoading"></loading>
-    <div class="page-container">
-      <!-- Tiêu đề trang -->
-      <div class="page-header mb-4">
-        <h1 class="page-title">Sơ đồ Phòng</h1>
-        <p class="page-subtitle">Quản lý trạng thái và thao tác với các phòng trong khách sạn.</p>
-      </div>
-      <!-- Bộ lọc -->
-      <div class="card filter-card mb-4">
-        <div class="card-body">
-          <div class="row g-3 align-items-end">
-            <div class="col-lg-2 col-md-6">
-              <label for="filter-date" class="form-label">Xem theo ngày</label>
-              <input type="date" id="filter-date" class="form-control" v-model="selectedDate" @change="fetchRooms" />
-            </div>
-            <div class="col-lg-2 col-md-6">
-              <label for="filter-time" class="form-label">Thời gian</label>
-              <input type="time" id="filter-time" class="form-control" v-model="selectedTime" @change="fetchRooms" />
-            </div>
-            <div class="col-lg-2 col-md-6">
-              <label for="status" class="form-label">Trạng thái</label>
-              <select id="status" class="form-select" v-model="selectedStatus">
-                <option>Tất cả</option>
-                <option>Còn trống</option>
-                <option>Đã đặt</option>
-              </select>
-            </div>
-            <div class="col-lg-2 col-md-6">
-              <label for="room-type" class="form-label">Loại phòng</label>
-              <select id="room-type" class="form-select" v-model="selectedRoomType">
-                <option v-for="type in roomTypes" :key="type" :value="type">{{ type }}</option>
-              </select>
-            </div>
-            <div class="col-lg-2 col-md-6">
-              <label for="floor" class="form-label">Tầng</label>
-              <select id="floor" class="form-select" v-model="selectedFloor">
-                <option v-for="floor in floors" :key="floor" :value="floor">{{ floor }}</option>
-              </select>
-            </div>
-            <div class="col-lg-2 col-md-12 text-end">
-              <button @click="openFutureBookings" class="btn btn-outline-danger w-100">
-                <i class="bi bi-calendar-x me-2"></i>Hủy phòng trước
-              </button>
-            </div>
-
-            <div class="col-lg-2 col-md-12 text-end">
-              <button @click="openMultiBookingModal" class="btn btn-outline-success w-100">
-                <i class="bi bi-plus-square me-2"></i>Đặt nhiều phòng
-              </button>
-            </div>
-            <div class="col-lg-2 col-md-12 text-end">
-              <button @click="openPayGroupModal" class="btn btn-outline-warning w-100">
-                <i class="bi bi-cash-stack me-2"></i> Thanh toán nhóm
-              </button>
-            </div>
-
-            <div class="col-lg-2 col-md-12 text-end">
-              <button @click="clearFilters" class="btn btn-outline-secondary w-100">
-                <i class="bi bi-arrow-clockwise me-2"></i>Xóa lọc
-              </button>
-            </div>
+<template>
+  <loading v-if="isLoading"></loading>
+  <div class="page-container">
+    <!-- Tiêu đề trang -->
+    <div class="page-header mb-4">
+      <h1 class="page-title">Sơ Đồ Phòng</h1>
+      <p class="page-subtitle">Quản lý trạng thái và thao tác với các phòng trong khách sạn.</p>
+    </div>
+    <!-- Bộ lọc -->
+    <div class="card filter-card mb-4">
+      <div class="card-body">
+        <div class="row g-3 align-items-end">
+          <div class="col-lg-2 col-md-6">
+            <label for="filter-date" class="form-label">Xem theo ngày</label>
+            <input type="date" id="filter-date" class="form-control" v-model="selectedDate" @change="fetchRooms" />
           </div>
+          <div class="col-lg-2 col-md-6">
+            <label for="filter-time" class="form-label">Thời gian</label>
+            <input type="time" id="filter-time" class="form-control" v-model="selectedTime" @change="fetchRooms" />
+          </div>
+          <div class="col-lg-2 col-md-6">
+            <label for="status" class="form-label">Trạng thái</label>
+            <select id="status" class="form-select" v-model="selectedStatus">
+              <option>Tất cả</option>
+              <option>Còn trống</option>
+              <option>Đã đặt</option>
+            </select>
+          </div>
+          <div class="col-lg-2 col-md-6">
+            <label for="room-type" class="form-label">Loại phòng</label>
+            <select id="room-type" class="form-select" v-model="selectedRoomType">
+              <option v-for="type in roomTypes" :key="type" :value="type">{{ type }}</option>
+            </select>
+          </div>
+          <div class="col-lg-2 col-md-6">
+            <label for="floor" class="form-label">Tầng</label>
+            <select id="floor" class="form-select" v-model="selectedFloor">
+              <option v-for="floor in floors" :key="floor" :value="floor">{{ floor }}</option>
+            </select>
+          </div>
+          <div class="col-lg-2 col-md-12 text-end">
+            <button @click="openFutureBookings" class="btn btn-outline-danger w-100">
+              <i class="bi bi-calendar-x me-2"></i>Hủy phòng trước
+            </button>
+          </div>
+          <div class="col-lg-2 col-md-12 text-end">
+            <button @click="openMultiBookingModal" class="btn btn-outline-success w-100">
+              <i class="bi bi-plus-square me-2"></i>Đặt nhiều phòng
+            </button>
+          </div>
+          <div class="col-lg-2 col-md-12 text-end">
+            <button @click="openPayGroupModal" class="btn btn-outline-warning w-100">
+              <i class="bi bi-cash-stack me-2"></i> Thanh toán nhóm
+            </button>
+          </div>
+          <div class="col-lg-2 col-md-12 text-end">
+            <button @click="clearFilters" class="btn btn-outline-secondary w-100">
+              <i class="bi bi-arrow-clockwise me-2"></i>Xóa lọc
+            </button>
+          </div>
+        </div>
         </div>
       </div>
 
@@ -94,8 +92,7 @@
                   <button class="btn btn-sm btn-outline-danger w-100 mt-2" @click.prevent="checkoutRoom(room)"
                     :disabled="room.payment_status === 'completed'">Trả phòng</button>
                   <button class="btn btn-sm btn-outline-danger w-100 mt-2"
-                    @click.prevent="openRoomChangePopup(room)">Chuyen
-                    phòng</button>
+                    @click.prevent="openRoomChangePopup(room)">Chuyển phòng</button>
                 </div>
                 <button v-else class="btn btn-sm btn-outline-primary w-100"
                   @click.prevent="showAddGuest(room.room_id)"><i class="bi bi-person-plus-fill me-1"></i> Thêm
