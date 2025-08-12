@@ -1,210 +1,177 @@
 <template>
-  <div class="container py-5">
-    <div class="text-center mb-5">
-      <h2 class="fw-bold text-uppercase border-bottom pb-3 d-inline-block border-3 border-primary animate__animated animate__fadeInDown">
-        Lịch sử Đặt phòng
-      </h2>
-    </div>
+  <div class="history-wrapper">
+    <div class="history-container">
+      <header class="page-header animate__animated animate__fadeInDown">
+        <h1>Chuyến Đi Của Bạn</h1>
+        <p>Xem lại và quản lý tất cả các đặt phòng đã thực hiện.</p>
+      </header>
 
-    <div v-if="showCancelPopup" class="modal fade show d-block animate__animated animate__fadeIn" tabindex="-1" role="dialog" aria-labelledby="cancelModalLabel" aria-hidden="true">
-      <div class="modal-dialog modal-dialog-centered" role="document">
-        <div class="modal-content animate__animated animate__zoomIn">
-          <div class="modal-header bg-danger text-white">
-            <h5 class="modal-title" id="cancelModalLabel"><i class="bi bi-exclamation-triangle-fill me-2"></i> Xác nhận hủy đặt phòng</h5>
-            <button type="button" class="btn-close btn-close-white" @click="showCancelPopup = false" aria-label="Close"></button>
+      <!-- MODAL HỦY PHÒNG -->
+      <div v-if="showCancelPopup" class="modal-backdrop animate__animated animate__fadeIn">
+        <div class="modal-content animate__animated animate__zoomIn" style="animation-duration: 0.4s;">
+          <div class="modal-header">
+            <h3><i class="bi bi-shield-fill-exclamation"></i> Xác Nhận Hủy</h3>
+            <button @click="showCancelPopup = false" class="close-button" aria-label="Đóng">&times;</button>
           </div>
           <div class="modal-body">
-            <p class="text-muted mb-3">Vui lòng chọn lý do hủy đặt phòng của bạn:</p>
-            <div class="mb-3">
-              <label for="reason" class="form-label fw-bold">Lý do hủy:</label>
-              <select v-model="selectedReason" class="form-select form-select-lg" id="reason">
-                <option value="">-- Chọn lý do --</option>
+            <p>Bạn có chắc chắn muốn gửi yêu cầu hủy cho đơn đặt phòng này không?</p>
+            <div class="form-group">
+              <label for="reason">Lý do hủy (bắt buộc):</label>
+              <select v-model="selectedReason" id="reason" class="form-control">
+                <option value="" disabled>-- Vui lòng chọn lý do --</option>
                 <option value="Không còn nhu cầu">Không còn nhu cầu</option>
                 <option value="Lịch trình thay đổi">Lịch trình thay đổi</option>
                 <option value="Giá không hợp lý">Giá không hợp lý</option>
                 <option value="Khác">Khác</option>
               </select>
             </div>
-
-            <div v-if="selectedReason === 'Khác'" class="mb-3">
-              <label for="customReason" class="form-label fw-bold">Lý do khác:</label>
-              <textarea v-model="customReason" class="form-control" rows="3" placeholder="Nhập lý do hủy chi tiết..." id="customReason"></textarea>
+            <div v-if="selectedReason === 'Khác'" class="form-group animate__animated animate__fadeIn">
+              <label for="customReason">Vui lòng mô tả chi tiết:</label>
+              <textarea v-model="customReason" id="customReason" class="form-control" rows="3" placeholder="..."></textarea>
             </div>
           </div>
           <div class="modal-footer">
-            <button type="button" class="btn btn-secondary" @click="showCancelPopup = false">Đóng</button>
-            <button type="button" class="btn btn-danger" @click="confirmCancellation">Xác nhận hủy</button>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <Loading v-if="isLoading" />
-
-    <div v-else-if="error" class="alert alert-danger text-center shadow-sm py-4 animate__animated animate__fadeIn" role="alert">
-      <i class="bi bi-exclamation-octagon-fill me-2"></i> {{ error }}
-    </div>
-
-    <div v-else-if="bookings.length === 0" class="alert alert-info text-center shadow-sm py-4 animate__animated animate__fadeIn" role="alert">
-      <p class="lead mb-3"><i class="bi bi-info-circle-fill me-2"></i> Bạn chưa có lịch sử đặt phòng nào.</p>
-      <p class="mb-0">Hãy khám phá các phòng của chúng tôi để bắt đầu đặt phòng ngay!</p>
-      <router-link to="/booking_hotel" class="btn btn-primary mt-3 animate__animated animate__pulse animate__infinite">
-        <i class="bi bi-house-door-fill me-2"></i> Xem phòng ngay
-      </router-link>
-    </div>
-
-    <div v-else class="row g-4 justify-content-center">
-      <div v-for="booking in bookings" :key="booking.booking_id" class="col-12 col-md-10 col-lg-8 animate__animated animate__fadeInUp">
-        
-        <div v-if="booking.status === 'pending_cancel'" class="card shadow-lg border-warning border-4 rounded-4 p-4 position-relative overflow-hidden">
-          <div class="ribbon-warning"><span>Đang chờ hủy</span></div>
-          
-          <div class="d-flex justify-content-between align-items-center mb-4 pb-3 border-bottom border-warning-subtle">
-            <h4 class="mb-0 text-warning fw-bold">
-              <i class="bi bi-hourglass-split me-2"></i> Đơn hủy: #{{ booking.booking_id }}
-            </h4>
-          </div>
-
-          <div v-if="cancelDetails[booking.booking_id]">
-            <div class="row g-2 mb-3">
-              <div class="col-12">
-                <p class="mb-1 text-muted"><strong><i class="bi bi-chat-left-text-fill me-2"></i>Lý do hủy:</strong> <span class="fw-semibold text-dark">{{ cancelDetails[booking.booking_id].reason }}</span></p>
-              </div>
-              <div class="col-12">
-                <p class="mb-1 text-muted"><strong><i class="bi bi-currency-dollar me-2"></i>Hoàn lại cho khách:</strong> <span class="text-success fw-bold fs-5">{{ formatPrice(cancelDetails[booking.booking_id].refund_amount) }}</span></p>
-              </div>
-              <div class="col-12">
-                <p class="mb-0 text-muted"><strong><i class="bi bi-calendar-event me-2"></i>Thời gian yêu cầu:</strong> <span class="fw-semibold text-dark">{{ formatDate(cancelDetails[booking.booking_id].created_at) }}</span></p>
-              </div>
-            </div>
-          </div>
-          <div v-else class="text-muted fst-italic py-3 text-center">
-            <div class="spinner-border text-warning spinner-border-sm me-2" role="status">
-              <span class="visually-hidden">Loading...</span>
-            </div>
-            Đang tải thông tin hủy...
-          </div>
-
-          <div class="mt-4 pt-3 border-top border-warning-subtle" v-if="cancelDetails[booking.booking_id]?.refund_amount > 0">
-            <h5 class="fw-bold text-primary mb-3"><i class="bi bi-bank me-2"></i> Thông tin hoàn tiền:</h5>
-            <p class="text-muted small mb-3">Vui lòng nhập chính xác thông tin ngân hàng để quá trình hoàn tiền được thuận lợi.</p>
-
-            <template v-if="cancelDetails[booking.booking_id]?.refund_bank">
-              <div class="card bg-light p-3 mb-3">
-                <div class="row mb-2">
-                  <div class="col-md-4 text-muted">Ngân hàng:</div>
-                  <div class="col-md-8 fw-semibold">{{ cancelDetails[booking.booking_id].refund_bank }}</div>
-                </div>
-                <div class="row mb-2">
-                  <div class="col-md-4 text-muted">Số tài khoản:</div>
-                  <div class="col-md-8 fw-semibold">{{ cancelDetails[booking.booking_id].refund_account_number }}</div>
-                </div>
-                <div class="row">
-                  <div class="col-md-4 text-muted">Tên tài khoản:</div>
-                  <div class="col-md-8 fw-semibold">{{ cancelDetails[booking.booking_id].refund_account_name }}</div>
-                </div>
-              </div>
-              <div class="alert alert-success mt-3 py-2 text-center animate__animated animate__fadeIn">
-                <i class="bi bi-check-circle-fill me-2"></i> Thông tin hoàn tiền đã được gửi thành công. Chúng tôi sẽ xử lý sớm nhất có thể.
-              </div>
-            </template>
-
-            <template v-else>
-              <div class="mb-3">
-                <label class="form-label fw-bold">Chọn ngân hàng:</label>
-                <select class="form-select form-select-lg" v-model="refundBank[booking.booking_id].bank">
-                  <option value="" disabled>-- Chọn ngân hàng --</option>
-                  <option v-for="bank in banks" :key="bank.code" :value="bank.name">
-                    {{ bank.short_name }} - {{ bank.name }}
-                  </option>
-                </select>
-              </div>
-              <div class="mb-3">
-                <label class="form-label fw-bold">Số tài khoản:</label>
-                <input type="text" class="form-control form-control-lg" v-model="refundBank[booking.booking_id].accountNumber" placeholder="Nhập số tài khoản">
-              </div>
-              <div class="mb-3">
-                <label class="form-label fw-bold">Tên tài khoản (Chủ tài khoản):</label>
-                <input type="text" class="form-control form-control-lg" v-model="refundBank[booking.booking_id].accountName" placeholder="Nhập tên chủ tài khoản">
-              </div>
-              <div class="d-grid">
-                <button class="btn btn-primary btn-lg mt-3" @click="submitRefundInfo(booking.booking_id)">
-                  <i class="bi bi-send-fill me-2"></i> Gửi thông tin hoàn tiền
-                </button>
-              </div>
-            </template>
-          </div>
-        </div>
-
-        <div v-else class="card shadow-lg border-0 rounded-4 p-4 position-relative overflow-hidden">
-          <div class="mb-4 pb-3 border-bottom">
-            <h4 class="mb-1">Mã đặt phòng: <strong class="text-primary">#{{ booking.booking_id }}</strong></h4>
-            <small class="text-muted">Mã đơn hàng: {{ booking.orderCode || 'Không có' }}</small>
-          </div>
-
-          <div class="row g-3 mb-4">
-            <div class="col-sm-6">
-              <p class="mb-0 text-muted"><i class="bi bi-calendar-check me-2"></i> <strong>Ngày nhận phòng:</strong></p>
-              <p class="mb-0 fs-5 text-primary fw-semibold">{{ formatDate(booking.check_in_date) }}</p>
-            </div>
-            <div class="col-sm-6">
-              <p class="mb-0 text-muted"><i class="bi bi-calendar-x me-2"></i> <strong>Ngày trả phòng:</strong></p>
-              <p class="mb-0 fs-5 text-primary fw-semibold">{{ formatDate(booking.check_out_date) }}</p>
-            </div>
-            <div class="col-sm-6" v-if="booking.room_type_info">
-              <p class="mb-0 text-muted"><i class="bi bi-door-open me-2"></i> <strong>Loại phòng:</strong></p>
-              <p class="mb-0 fw-semibold">{{ booking.room_type_info.type_name }}</p>
-            </div>
-            <div class="col-sm-6" v-if="booking.room_type_info">
-              <p class="mb-0 text-muted"><i class="bi bi-people me-2"></i> <strong>Sức chứa:</strong></p>
-              <p class="mb-0 fw-semibold">{{ booking.room_type_info.max_occupancy }} người</p>
-            </div>
-            <div class="col-sm-6">
-              <p class="mb-0 text-muted"><i class="bi bi-grid-fill me-2"></i> <strong>Số lượng phòng:</strong></p>
-              <p class="mb-0 fw-semibold">{{ booking.total_rooms }}</p>
-            </div>
-            <div class="col-sm-6">
-              <p class="mb-0 text-muted"><i class="bi bi-bookmark me-2"></i> <strong>Loại đặt:</strong></p>
-              <p class="mb-0 fw-semibold">{{ booking.booking_type === 'online' ? 'Đặt online' : booking.booking_type }}</p>
-            </div>
-          </div>
-
-          <hr class="my-4">
-
-          <div class="row g-3 mb-4">
-           
-            <div class="col-sm-6">
-              <p class="mb-0 text-muted"><i class="bi bi-cash-stack me-2"></i> <strong>Hình thức thanh toán:</strong></p>
-              <p class="mb-0 fw-bold">{{ formatPayment(booking.payment_method) }}</p>
-            </div>
-            <div class="col-sm-6">
-              <p class="mb-0 text-muted"><i class="bi bi-credit-card-fill me-2"></i> <strong>Trạng thái thanh toán:</strong></p>
-              <p :class="['mb-0 fw-bold', booking.payment_status === 'paid' ? 'text-success' : 'text-danger']">{{ formatPaymentStatus(booking.payment_status) }}</p>
-            </div>
-            <div class="col-12">
-               <span :class="['badge position-absolute top-0 end-0 mt-3 me-3 px-3 py-2 rounded-pill fw-bold', formatStatusClass(booking.status)]">
-            {{ formatStatus(booking.status) }}
-          </span>
-            </div>
-            <div class="col-12">
-              <p class="mb-0 text-muted"><i class="bi bi-wallet-fill me-2"></i> <strong>Tổng tiền:</strong></p>
-              <p class="mb-0 fs-4 text-success fw-bold">{{ formatCurrency(booking.total_price) }}</p>
-            </div>
-          </div>
-
-          <div v-if="booking.note" class="mb-4 p-3 bg-light rounded-3 border border-light-subtle">
-            <p class="mb-0 text-muted"><i class="bi bi-pencil-square me-2"></i> <strong>Ghi chú:</strong></p>
-            <p class="mb-0 fst-italic text-dark">{{ booking.note }}</p>
-          </div>
-
-          <div class="d-flex justify-content-between align-items-center mt-4 pt-3 border-top">
-            <button v-if="canCancelBooking(booking)" class="btn btn-outline-danger btn-lg-sm py-2 px-3 animate__animated animate__pulse animate__infinite" @click="showCancelPopup = true; currentBookingId = booking.booking_id">
-              <i class="bi bi-x-circle-fill me-2"></i> Hủy đặt phòng
+            <button class="btn btn-secondary" @click="showCancelPopup = false">Quay lại</button>
+            <button class="btn btn-danger" @click="confirmCancellation" :disabled="!selectedReason || (selectedReason === 'Khác' && !customReason)">
+              <i class="bi bi-trash3-fill me-2"></i> Gửi Yêu Cầu Hủy
             </button>
-            <small class="text-muted fst-italic ms-auto"><i class="bi bi-arrow-clockwise me-2"></i>Cập nhật cuối: {{ formatDate(booking.updated_at) }}</small>
           </div>
         </div>
       </div>
+
+      <!-- CÁC TRẠNG THÁI KHÁC -->
+      <main>
+        <Loading v-if="isLoading" />
+
+        <div v-else-if="error" class="info-state animate__animated animate__fadeIn">
+          <div class="icon-wrapper error"><i class="bi bi-cloud-slash-fill"></i></div>
+          <h2>Không thể tải dữ liệu</h2>
+          <p>{{ error }}</p>
+          <button class="btn btn-primary" @click="getHistoryBooking">Thử Lại</button>
+        </div>
+
+        <div v-else-if="bookings.length === 0" class="info-state animate__animated animate__fadeIn">
+          <div class="icon-wrapper empty"><i class="bi bi-briefcase-fill"></i></div>
+          <h2>Hành trình trống</h2>
+          <p>Bạn chưa có chuyến đi nào. Hãy bắt đầu khám phá và đặt phòng ngay hôm nay!</p>
+          <router-link to="/booking_hotel" class="btn btn-primary btn-lg">
+            <i class="bi bi-search me-2"></i> Khám Phá Phòng
+          </router-link>
+        </div>
+
+        <!-- DANH SÁCH ĐẶT PHÒNG -->
+        <div v-else class="booking-list">
+          <div v-for="booking in bookings" :key="booking.booking_id" 
+               class="booking-card animate__animated animate__fadeInUp" 
+               :class="'status-border-' + booking.status">
+            
+            <!-- CARD ĐANG CHỜ HỦY -->
+            <template v-if="booking.status === 'pending_cancel'">
+               <div class="card-header">
+                  <h4 class="pending-cancel-title"><i class="bi bi-arrow-clockwise"></i> Yêu Cầu Hủy #{{ booking.booking_id }}</h4>
+                  <span class="status-badge" :class="'status-' + booking.status">{{ formatStatus(booking.status) }}</span>
+               </div>
+               <div class="card-body">
+                  <div v-if="cancelDetails[booking.booking_id]" class="cancellation-details">
+                     <div><i class="bi bi-card-text"></i><strong>Lý do:</strong><span>{{ cancelDetails[booking.booking_id].reason }}</span></div>
+                     <div><i class="bi bi-calendar-week"></i><strong>Ngày yêu cầu:</strong><span>{{ formatDate(cancelDetails[booking.booking_id].created_at) }}</span></div>
+                     <div class="refund-info"><i class="bi bi-box-arrow-in-left"></i><strong>Tiền hoàn dự kiến:</strong><span class="price">{{ formatPrice(cancelDetails[booking.booking_id].refund_amount) }}</span></div>
+                  </div>
+                   <div v-else class="text-center py-4">
+                      <div class="spinner-border text-secondary spinner-border-sm" role="status"></div>
+                      <p class="mt-2 text-muted small">Đang tải chi tiết...</p>
+                   </div>
+                  <div class="refund-form-container" v-if="cancelDetails[booking.booking_id]?.refund_amount > 0">
+                     <h5 class="refund-form-title"><i class="bi bi-bank"></i> Thông Tin Nhận Tiền</h5>
+                     <template v-if="cancelDetails[booking.booking_id]?.refund_bank">
+                        <div class="refund-display">
+                           <p><strong>Ngân hàng:</strong> {{ cancelDetails[booking.booking_id].refund_bank }}</p>
+                           <p><strong>Số tài khoản:</strong> {{ cancelDetails[booking.booking_id].refund_account_number }}</p>
+                           <p><strong>Chủ tài khoản:</strong> {{ cancelDetails[booking.booking_id].refund_account_name }}</p>
+                           <div class="alert-success"><i class="bi bi-check-circle-fill me-2"></i>Đã nhận thông tin. Chúng tôi sẽ xử lý sớm.</div>
+                        </div>
+                     </template>
+                     <template v-else>
+                        <div class="form-group">
+                           <label>Ngân hàng</label>
+                           <select class="form-control" v-model="refundBank[booking.booking_id].bank">
+                              <option value="" disabled>-- Chọn ngân hàng --</option>
+                              <option v-for="bank in banks" :key="bank.code" :value="bank.name">{{ bank.short_name }} - {{ bank.name }}</option>
+                           </select>
+                        </div>
+                        <div class="form-group">
+                           <label>Số tài khoản</label>
+                           <input type="text" class="form-control" v-model="refundBank[booking.booking_id].accountNumber" placeholder="Nhập số tài khoản">
+                        </div>
+                        <div class="form-group">
+                           <label>Tên chủ tài khoản (Viết hoa không dấu)</label>
+                           <input type="text" class="form-control" v-model="refundBank[booking.booking_id].accountName" placeholder="NGUYEN VAN A">
+                        </div>
+                        <button class="btn btn-primary w-100 mt-2" @click="submitRefundInfo(booking.booking_id)">
+                           <i class="bi bi-send-fill me-2"></i> Gửi
+                        </button>
+                     </template>
+                  </div>
+               </div>
+            </template>
+            
+            <!-- CARD THÔNG THƯỜNG -->
+            <template v-else>
+              <div class="card-main-content">
+                <div class="card-header">
+                  <h3>{{ booking.room_type_info ? booking.room_type_info.type_name : 'Thông tin phòng' }}</h3>
+                  <span class="status-badge" :class="'status-' + booking.status">{{ formatStatus(booking.status) }}</span>
+                </div>
+                <div class="card-body">
+                  <div class="info-grid">
+                    <div class="info-item">
+                      <label>Mã Đặt Phòng</label>
+                      <span>#{{ booking.booking_id }}</span>
+                    </div>
+                    <div class="info-item">
+                      <label>Số Lượng</label>
+                      <span>{{ booking.total_rooms }} phòng</span>
+                    </div>
+                    <div class="info-item">
+                      <label>Check-in</label>
+                      <span>{{ formatDate(booking.check_in_date) }}</span>
+                    </div>
+                    <div class="info-item">
+                      <label>Check-out</label>
+                      <span>{{ formatDate(booking.check_out_date) }}</span>
+                    </div>
+                  </div>
+                  <div v-if="booking.note" class="note">
+                    <strong>Ghi chú:</strong> {{ booking.note }}
+                  </div>
+                </div>
+              </div>
+              <div class="card-details-panel">
+                <div class="price-section">
+                  <label>Tổng chi phí</label>
+                  <span class="price">{{ formatCurrency(booking.total_price) }}</span>
+                </div>
+                <div class="payment-details">
+                  <div class="payment-item">
+                    <i class="bi bi-credit-card"></i>
+                    <span>{{ formatPayment(booking.payment_method) }}</span>
+                  </div>
+                  <div class="payment-item">
+                     <i :class="booking.payment_status === 'paid' ? 'bi-check-circle-fill text-success' : 'bi-hourglass-split text-warning'"></i>
+                     <span>{{ formatPaymentStatus(booking.payment_status) }}</span>
+                  </div>
+                </div>
+                <div class="card-actions">
+                  <button v-if="canCancelBooking(booking)" class="btn btn-light-danger" @click="showCancelPopup = true; currentBookingId = booking.booking_id">
+                    <i class="bi bi-x-lg"></i> Hủy
+                  </button>
+                  <span class="update-time">Lần cuối cập nhật: {{ formatDate(booking.updated_at) }}</span>
+                </div>
+              </div>
+            </template>
+          </div>
+        </div>
+      </main>
     </div>
   </div>
 </template>
@@ -412,246 +379,279 @@ onMounted(getHistoryBooking);
 </script>
 
 <style scoped>
-/* Base Styles */
-/* Status Colors */
-.bg-pending-confirmation {
-  background-color: #0cd4e6 !important; /* Warning yellow */
-  color: #343a40 !important; /* Dark text for contrast */
+@import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&display=swap');
+
+/* --- GENERAL & LAYOUT --- */
+.history-wrapper {
+  background-color: #f4f7f9;
+  font-family: 'Nunito', sans-serif;
+  min-height: 100vh;
+  padding: 2rem 1rem;
 }
-.bg-confirmed {
-  background-color: #28a745 !important; /* Success green */
-  color: #ffffff !important;
-}
-.bg-confirmed-not-assigned{
-  background-color: #3498db !important; /* Success green */
-  color: #ffffff !important;
-}
-.bg-cancelled {
-  background-color: #dc3545 !important; /* Danger red */
-  color: #ffffff !important;
-}
-.bg-completed {
-  background-color: #17a2b8 !important; /* Info blue */
-  color: #ffffff !important;
-}
-.bg-new, .bg-pending-payment {
-  background-color: #0d6efd !important; /* Primary blue for new/pending payment */
-  color: #ffffff !important;
-}
-.container {
-  max-width: 1200px;
+.history-container {
+  max-width: 950px;
   margin: 0 auto;
 }
-
-.border-bottom {
-  border-color: rgba(0, 0, 0, 0.1) !important;
+.page-header {
+  text-align: center;
+  margin-bottom: 3rem;
+}
+.page-header h1 {
+  font-size: 2.8rem;
+  font-weight: 800;
+  color: #2d3748;
+}
+.page-header p {
+  font-size: 1.1rem;
+  color: #718096;
+  margin-top: 0.5rem;
 }
 
-.text-uppercase {
-  letter-spacing: 1px;
+/* --- INFO STATE (EMPTY/ERROR) --- */
+.info-state {
+  text-align: center;
+  padding: 3rem 1rem;
 }
-
-/* Card Enhancements */
-.card {
-  border: none; /* Remove default card border */
-  border-radius: 1rem; /* More rounded corners */
-  overflow: hidden; /* Ensures ribbon stays within bounds */
-  transition: transform 0.3s ease, box-shadow 0.3s ease;
-  background-color: #ffffff; /* Ensure white background for cards */
-}
-
-.card:hover {
-  transform: translateY(-8px); /* Slightly more pronounced lift on hover */
-  box-shadow: 0 1rem 2rem rgba(0, 0, 0, 0.1); /* Stronger shadow on hover */
-}
-
-.card-header-custom {
-  background-color: #f8f9fa;
-  border-bottom: 1px solid #e9ecef;
-  padding-bottom: 1.25rem;
+.icon-wrapper {
+  width: 90px;
+  height: 90px;
+  border-radius: 50%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   margin-bottom: 1.5rem;
 }
+.icon-wrapper.empty { background-color: #e6fffa; color: #38b2ac; }
+.icon-wrapper.error { background-color: #fed7d7; color: #e53e3e; }
+.icon-wrapper i { font-size: 2.5rem; }
+.info-state h2 { font-size: 1.8rem; font-weight: 700; color: #2d3748; }
+.info-state p { color: #718096; max-width: 400px; margin: 0.5rem auto 1.5rem; }
 
-/* Badges - More distinct colors and styling */
-.badge {
+/* --- BOOKING LIST & CARD --- */
+.booking-list {
+  display: grid;
+  gap: 1.5rem;
+}
+.booking-card {
+  background-color: #fff;
+  border-radius: 12px;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  display: flex;
+  transition: all 0.3s ease-in-out;
+  border-left: 5px solid;
+}
+.booking-card:hover {
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+  transform: translateY(-4px);
+}
+.card-main-content { flex-grow: 1; }
+.card-header {
+  padding: 1rem 1.5rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 1px solid #edf2f7;
+}
+.card-header h3 { font-size: 1.25rem; font-weight: 800; color: #2d3748; margin: 0; }
+.card-body { padding: 1.5rem; }
+.info-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 1.5rem;
+}
+.info-item { display: flex; flex-direction: column; }
+.info-item label { font-size: 0.8rem; font-weight: 600; color: #a0aec0; text-transform: uppercase; }
+.info-item span { font-size: 1rem; font-weight: 700; color: #4a5568; }
+.note {
+  margin-top: 1.5rem;
+  padding: 1rem;
+  background-color: #f7fafc;
+  border-radius: 8px;
   font-size: 0.9rem;
-  padding: 0.5em 0.9em;
-  border-radius: 50rem; /* Pill shape */
-  min-width: 90px; /* Ensure consistent width for badges */
-  text-align: center;
+  color: #4a5568;
+  border-left: 3px solid #cbd5e0;
 }
+.note strong { color: #2d3748; }
 
-.badge.bg-pending_confirmation {
-  background-color: #ffc107 !important; /* Warning yellow */
-  color: #343a40 !important; /* Dark text for contrast */
-}
-.badge.bg-confirmed {
-  background-color: #28a745 !important; /* Success green */
-  color: #ffffff !important;
-}
-.badge.bg-confirmed-not-assigned {
-  background-color: #3498db !important; /* Success green */
-  color: #ffffff !important;
-}
-.badge.bg-cancelled {
-  background-color: #dc3545 !important; /* Danger red */
-  color: #ffffff !important;
-}
-.badge.bg-completed {
-  background-color: #17a2b8 !important; /* Info blue */
-  color: #ffffff !important;
-}
-.badge.bg-new, .badge.bg-pending_payment {
-  background-color: #0d6efd !important; /* Primary blue for new/pending payment */
-  color: #ffffff !important;
-}
+/* Status Borders */
+.status-border-pending_confirmation, .status-border-confirmed_not_assigned { border-color: #4299e1; }
+.status-border-confirmed, .status-border-completed { border-color: #48bb78; }
+.status-border-cancelled { border-color: #f56565; }
+.status-border-pending_cancel { border-color: #ed8936; }
 
-/* Ribbon for pending_cancel */
-.ribbon-warning {
-  position: absolute;
-  top: 0;
-  right: 0;
-  width: 150px;
-  height: 150px;
-  overflow: hidden;
-  z-index: 10;
-}
-
-.ribbon-warning::before,
-.ribbon-warning::after {
-  position: absolute;
-  content: '';
-  display: block;
-  border: 5px solid #f0ad4e;
-  border-top-color: transparent;
-  border-right-color: transparent;
-}
-
-.ribbon-warning::before {
-  top: 0;
-  left: 0;
-}
-
-.ribbon-warning::after {
-  bottom: 0;
-  right: 0;
-}
-
-.ribbon-warning span {
-  position: absolute;
-  display: block;
-  width: 225px;
-  padding: 8px 0;
-  background-color: #f0ad4e;
-  box-shadow: 0 5px 10px rgba(0,0,0,.1);
-  color: #343a40;
-  font-size: 0.9rem;
-  font-weight: bold;
-  text-align: center;
+/* Status Badges */
+.status-badge {
+  padding: 0.25rem 0.75rem;
+  border-radius: 99px;
+  font-size: 0.75rem;
+  font-weight: 700;
   text-transform: uppercase;
-  right: -45px;
-  top: 45px;
-  transform: rotate(45deg);
 }
+.status-pending_confirmation, .status-confirmed_not_assigned { background-color: #bee3f8; color: #2b6cb0; }
+.status-confirmed, .status-completed { background-color: #c6f6d5; color: #2f855a; }
+.status-cancelled { background-color: #fed7d7; color: #9b2c2c; }
+.status-pending_cancel { background-color: #feebc8; color: #9c4221; }
 
-
-/* Modal Overlays and Animations */
-.modal.show {
-  background-color: rgba(0, 0, 0, 0.6); /* Darker overlay */
-  animation: fadeIn 0.3s ease-out; /* Fade in animation for modal backdrop */
-}
-
-.modal-content {
-  border-radius: 0.75rem; /* Rounded corners for modal */
-  overflow: hidden; /* Ensures internal elements conform to border-radius */
-}
-
-.modal-header {
-  border-bottom: none; /* Clean header */
-  padding: 1.25rem 1.5rem;
-}
-
-.modal-title {
-  font-weight: bold;
-}
-
-.modal-body {
+/* --- CARD DETAILS PANEL (RIGHT) --- */
+.card-details-panel {
+  width: 280px;
+  flex-shrink: 0;
+  background-color: #f7fafc;
+  border-left: 1px solid #edf2f7;
   padding: 1.5rem;
+  display: flex;
+  flex-direction: column;
+}
+.price-section { text-align: center; }
+.price-section label { color: #718096; font-size: 0.9rem; }
+.price-section .price {
+  display: block;
+  font-size: 2rem;
+  font-weight: 800;
+  color: #2d3748;
+}
+.payment-details {
+  margin-top: 1.5rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid #e2e8f0;
+}
+.payment-item {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  color: #4a5568;
+  font-size: 0.9rem;
+}
+.payment-item:not(:last-child) { margin-bottom: 0.75rem; }
+.payment-item i { font-size: 1.2rem; color: #a0aec0; }
+.payment-item i.text-success { color: #48bb78; }
+.payment-item i.text-warning { color: #ed8936; }
+.card-actions {
+  margin-top: auto;
+  padding-top: 1rem;
+  text-align: center;
+}
+.update-time { display: block; font-size: 0.75rem; color: #a0aec0; margin-top: 0.5rem; }
+
+/* --- PENDING CANCEL CARD --- */
+.pending-cancel-title {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: #b7791f;
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+.cancellation-details {
+  display: grid;
+  gap: 0.75rem;
+  font-size: 0.95rem;
+  color: #4a5568;
+}
+.cancellation-details div {
+  display: flex; align-items: center; gap: 0.75rem;
+}
+.cancellation-details i { color: #a0aec0; }
+.cancellation-details .refund-info {
+  background-color: #f7fafc;
+  padding: 0.75rem;
+  border-radius: 8px;
+  margin-top: 0.5rem;
+}
+.cancellation-details .refund-info .price {
+  font-weight: 700;
+  color: #2f855a;
+}
+.refund-form-container {
+  margin-top: 1.5rem;
+  padding: 1.5rem;
+  border-radius: 8px;
+  background-color: #f7fafc;
+  border: 1px solid #e2e8f0;
+}
+.refund-form-title {
+  text-align: center;
+  font-weight: 700;
+  color: #2d3748;
+  margin-bottom: 1rem;
+}
+.refund-display { font-size: 0.9rem; }
+.refund-display p { margin-bottom: 0.5rem; }
+.alert-success {
+  margin-top: 1rem; padding: 0.75rem; background-color: #c6f6d5;
+  color: #2f855a; border-radius: 6px; text-align: center;
+  font-weight: 600; font-size: 0.9rem;
 }
 
+/* --- MODAL --- */
+.modal-backdrop {
+  position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+  background-color: rgba(45, 55, 72, 0.75);
+  backdrop-filter: blur(4px);
+  display: flex; align-items: center; justify-content: center; z-index: 1000;
+}
+.modal-content {
+  background-color: #fff; border-radius: 12px; width: 90%;
+  max-width: 500px; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+}
+.modal-header {
+  padding: 1rem 1.5rem; border-bottom: 1px solid #e2e8f0;
+  display: flex; justify-content: space-between; align-items: center;
+}
+.modal-header h3 { font-size: 1.2rem; color: #2d3748; margin: 0; }
+.modal-body { padding: 1.5rem; }
+.modal-body p { color: #718096; }
 .modal-footer {
-  border-top: none; /* Clean footer */
-  padding: 1.25rem 1.5rem;
+  padding: 1rem 1.5rem; background-color: #f7fafc;
+  display: flex; justify-content: flex-end; gap: 0.75rem;
+  border-top: 1px solid #e2e8f0;
+  border-radius: 0 0 12px 12px;
+}
+.close-button {
+  background: none; border: none; font-size: 1.8rem;
+  color: #a0aec0; cursor: pointer; transition: color 0.2s;
+}
+.close-button:hover { color: #2d3748; }
+
+/* --- FORMS & BUTTONS --- */
+.form-group { margin-bottom: 1rem; }
+.form-group label {
+  display: block; font-size: 0.875rem; font-weight: 600;
+  color: #4a5568; margin-bottom: 0.5rem;
+}
+.form-control {
+  width: 100%; padding: 0.75rem 1rem; border: 1px solid #cbd5e0;
+  border-radius: 8px; font-size: 1rem; font-family: 'Nunito', sans-serif;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+.form-control:focus {
+  outline: none; border-color: #4299e1;
+  box-shadow: 0 0 0 3px rgba(66, 153, 225, 0.5);
 }
 
-/* Form Control Focus */
-.form-control:focus, .form-select:focus {
-  border-color: #86b7fe;
-  box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25);
-}
-
-/* Button enhancements */
 .btn {
-  font-weight: 500;
-  border-radius: 0.5rem;
-  transition: all 0.2s ease-in-out;
+  padding: 0.6rem 1.2rem; border-radius: 8px; font-weight: 700;
+  border: none; cursor: pointer; transition: all 0.2s;
+  font-size: 0.9rem; display: inline-flex; align-items: center;
 }
+.btn-primary { background-color: #4299e1; color: #fff; }
+.btn-primary:hover { background-color: #2b6cb0; }
+.btn-secondary { background-color: #e2e8f0; color: #4a5568; }
+.btn-secondary:hover { background-color: #cbd5e0; }
+.btn-danger { background-color: #e53e3e; color: #fff; }
+.btn-danger:hover { background-color: #c53030; }
+.btn:disabled { background-color: #e2e8f0; color: #a0aec0; cursor: not-allowed; }
+.btn-light-danger {
+  background-color: #fed7d7; color: #c53030;
+  padding: 0.5rem 1rem; font-size: 0.8rem;
+}
+.btn-light-danger:hover { background-color: #feb2b2; }
+.w-100 { width: 100%; justify-content: center; }
 
-.btn-primary {
-  background-color: #0d6efd;
-  border-color: #0d6efd;
+/* --- RESPONSIVE --- */
+@media (max-width: 900px) {
+  .booking-card { flex-direction: column; }
+  .card-details-panel { width: 100%; border-left: none; border-top: 1px solid #edf2f7; }
 }
-.btn-primary:hover {
-  background-color: #0b5ed7;
-  border-color: #0a58ca;
-}
-
-.btn-outline-danger {
-  color: #dc3545;
-  border-color: #dc3545;
-}
-.btn-outline-danger:hover {
-  background-color: #dc3545;
-  color: #fff;
-}
-
-/* Utility Classes */
-.fw-bold { font-weight: 700 !important; }
-.fw-semibold { font-weight: 600 !important; }
-
-/* Icons */
-.bi {
-  vertical-align: -0.125em; /* Align icons better with text */
-}
-
-/* Animations */
-@keyframes fadeIn {
-  from { opacity: 0; }
-  to { opacity: 1; }
-}
-
-@keyframes zoomIn {
-  from { transform: scale(0.9); opacity: 0; }
-  to { transform: scale(1); opacity: 1; }
-}
-
-@keyframes pulse {
-  0% { transform: scale(1); }
-  50% { transform: scale(1.03); }
-  100% { transform: scale(1); }
-}
-
-.animate__animated.animate__fadeInDown {
-  animation-duration: 0.8s;
-}
-.animate__animated.animate__fadeIn, .animate__animated.animate__fadeInUp {
-  animation-duration: 0.6s;
-}
-.animate__animated.animate__zoomIn {
-  animation-duration: 0.4s;
-}
-.animate__animated.animate__pulse {
-  animation-duration: 1.5s;
-}
-
 </style>

@@ -217,26 +217,25 @@ onUnmounted(() => {
   font-weight: bold;
   border: 2px solid white;
 }
-/* *** SỬA LỖI QUAN TRỌNG NHẤT *** */
+
+/* === BẮT ĐẦU THAY ĐỔI TẠI ĐÂY === */
 .notification-dropdown {
-  width: 420px; /* Tăng chiều rộng để nội dung thoáng hơn */
-  max-width: 90vw; /* Giới hạn chiều rộng trên màn hình nhỏ */
+  width: 420px;
+  max-width: 90vw;
   padding: 0;
   border-radius: 0.75rem;
-  box-shadow: 0 8px 24px rgba(0,0,0,0.12); /* Bóng đổ đẹp hơn */
+  box-shadow: 0 8px 24px rgba(0,0,0,0.12);
   border: none;
-  margin-top: 15px !important; /* Tạo khoảng cách với icon chuông */
-  display: flex; /* Dùng flexbox để quản lý header, content, footer */
+  margin-top: 15px !important;
+  display: flex;
   flex-direction: column;
+
+  /* THAY ĐỔI CHÍNH: Ghi đè vị trí của dropdown-menu-end */
+  right: 15px !important; /* Dịch dropdown sang trái 15px so với vị trí mặc định */
+  left: auto !important;  /* Đảm bảo thuộc tính `left` không ảnh hưởng */
 }
-.dropdown-header {
-  padding: 0.75rem 1.25rem;
-}
-.dropdown-header .btn-link {
-  font-size: 0.8rem;
-  text-decoration: none;
-  font-weight: 500;
-}
+/* === KẾT THÚC THAY ĐỔI === */
+
 .notification-list-container {
   max-height: 450px;
   overflow-y: auto;
@@ -245,9 +244,18 @@ onUnmounted(() => {
 .notification-list-container::-webkit-scrollbar-track { background: transparent; }
 .notification-list-container::-webkit-scrollbar-thumb { background: #ccc; border-radius: 5px; }
 
+.dropdown-header {
+  padding: 0.75rem 1.25rem;
+}
+.dropdown-header .btn-link {
+  font-size: 0.8rem;
+  text-decoration: none;
+  font-weight: 500;
+}
+
 .dropdown-item {
   padding: 1rem 1.25rem;
-  gap: 1rem; /* Khoảng cách giữa icon và nội dung */
+  gap: 1rem;
   border-bottom: 1px solid #f0f0f0;
   white-space: normal;
   transition: background-color 0.2s ease;
@@ -268,17 +276,15 @@ onUnmounted(() => {
   align-items: center;
   justify-content: center;
 }
-/* *** SỬA LỖI QUAN TRỌNG SỐ 2 *** */
 .notification-content {
-  min-width: 0; /* Cho phép flex item co lại và text bên trong xuống dòng đúng cách */
+  min-width: 0;
 }
-
 .message-text {
   line-height: 1.4;
   margin: 0;
   color: #555;
   transition: color 0.2s;
-  word-wrap: break-word; /* Đảm bảo từ dài sẽ xuống dòng */
+  word-wrap: break-word;
 }
 .dropdown-item.unread .message-text {
   color: #212529;
@@ -289,7 +295,7 @@ onUnmounted(() => {
   height: 10px;
   background-color: var(--bs-primary);
   border-radius: 50%;
-  align-self: center; /* Căn chấm vào giữa theo chiều dọc */
+  align-self: center;
   flex-shrink: 0;
 }
 
@@ -306,7 +312,6 @@ onUnmounted(() => {
   color: #ced4da;
   margin-bottom: 1rem;
 }
-/* *** GIAO DIỆN MỚI: FOOTER *** */
 .dropdown-footer {
     padding: 0.75rem;
     background-color: #f8f9fa;
