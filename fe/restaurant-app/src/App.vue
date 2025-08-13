@@ -106,7 +106,12 @@
           <!-- Chat Admin -->
           <li v-if="hasPermission('manage_admin_chat')" class="nav-item"><router-link class="nav-link"
               to="/admin/ChatAdmin"><i class="bi bi-chat-dots"></i>Chat Admin</router-link></li>
-
+          <!-- Thông báo -->
+            <li class="nav-item">
+              <router-link class="nav-link" to="/admin/notifications">
+                <i class="bi bi-bell"></i> Tất cả thông báo
+              </router-link>
+            </li>
           <li class="nav-item"><router-link class="nav-link" to="/"><i class="bi bi-box-arrow-left"></i>Thoát Trang Quản Trị</router-link></li>
         </ul>
       </div>
