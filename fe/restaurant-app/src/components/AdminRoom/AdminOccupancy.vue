@@ -802,16 +802,17 @@ const submitEditForm = async () => {
     // const isValidTime = (val) => typeof val === 'string' && /^\d{2}:\d{2}$/.test(val);
     // const checkInTime = isValidTime(editFormData.value.check_in_time) ? editFormData.value.check_in_time : '14:00';
     // const checkOutTime = isValidTime(editFormData.value.check_out_time) ? editFormData.value.check_out_time : '12:00';
-    // console.log({
-    //   check_in_date: editFormData.value.check_in_date,
-    //   check_in_time: editFormData.value.check_in_time,
-    //   check_out_date: editFormData.value.check_out_date,
-    //   check_out_time: editFormData.value.check_out_time,
-    //   customer_name: editFormData.value.customer_name,
-    //   customer_phone: editFormData.value.customer_phone,
-    //   customer_email: editFormData.value.customer_email,
-    //   address: editFormData.value.address,
-    // });
+    console.log({
+      check_in_date: editFormData.value.check_in_date,
+      check_in_time: editFormData.value.check_in_time?.substring(0, 5),
+      check_out_date: editFormData.value.check_out_date,
+      check_out_time: editFormData.value.check_out_time?.substring(0, 5),
+      customer_name: editFormData.value.customer_name,
+      customer_phone: editFormData.value.customer_phone,
+      customer_email: editFormData.value.customer_email,
+      address: editFormData.value.address,
+    }); 
+    
     const res = await axios.post(`${apiUrl}/api/bookings/${guestInfo.value.booking.booking_id}/update-time`,{
       check_in_date: editFormData.value.check_in_date,
       check_in_time: editFormData.value.check_in_time?.substring(0, 5),
@@ -822,6 +823,7 @@ const submitEditForm = async () => {
       customer_email: editFormData.value.customer_email,
       address: editFormData.value.address,
     });
+    console.log("Cập nhật thành công:", res.data);
     
     
     alert('Cập nhật thành công!\n' + res.data.message);

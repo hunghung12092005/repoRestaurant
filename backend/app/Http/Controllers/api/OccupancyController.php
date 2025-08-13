@@ -512,6 +512,7 @@ class OccupancyController extends Controller
 
             // Cập nhật thông tin khách hàng
             if ($booking->customer_id) {
+            //return response()->json(['message' => $booking->customer_id]);
                 DB::table('customers')->where('customer_id', $booking->customer_id)->update([
                     'customer_name' => $request->customer_name,
                     'customer_phone' => $request->customer_phone,
@@ -540,16 +541,19 @@ class OccupancyController extends Controller
                     ]);
             } else {
                 // Nếu chưa có thì tạo mới
-                DB::table('booking_room_status')->insert([
-                    'booking_id' => $booking_id,
-                    'check_in' => $checkIn,
-                    'check_out' => $checkOut,
-                    //'status' => 'booked', // hoặc trạng thái mặc định của bạn
-                    'created_at' => now(),
-                    'updated_at' => now(),
-                ]);
-            }
+                         //   return response()->json(['message' => 'addajdjb']);
 
+                // DB::table('booking_room_status')->insert([
+                //     'booking_id' => $booking_id,
+                //     'check_in' => $checkIn,
+                //     'check_out' => $checkOut,
+                //     //'status' => 'booked', // hoặc trạng thái mặc định của bạn
+                //     'created_at' => now(),
+                //     'updated_at' => now(),
+                // ]);
+                            return response()->json(['message' => 'Cập nhật thời gian và thông tin khách hàng thành công.']);
+
+            }
             return response()->json(['message' => 'Cập nhật thời gian và thông tin khách hàng thành công.']);
         } catch (\Exception $e) {
             Log::error("Lỗi updateBookingTime booking_id={$booking_id}: " . $e->getMessage());
