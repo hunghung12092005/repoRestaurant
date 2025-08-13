@@ -23,7 +23,9 @@ use App\Http\Controllers\CouponsController;
 use App\Http\Controllers\FileController;
 use App\Http\Controllers\WebhookController;
 use App\Http\Controllers\api\NotificationController;
+use App\Http\Controllers\api\StaffController;
 use App\Models\BookingHistory;
+use App\Models\StaffProfile;
 use Illuminate\Support\Facades\Storage;
 
 Route::get('/seasonal-pricing/current/{typeId}', [RoomController::class, 'getCurrentPricing']);
@@ -67,6 +69,13 @@ Route::apiResource('users', UsersController::class);
 Route::get('/news/pinned', [NewsController::class, 'getPinned']);
 Route::apiResource('news', NewsController::class);
 Route::apiResource('news-categories', NewsCategoryController::class);
+
+// Staff schedules
+Route::get('/staffs', [StaffController::class, 'index']);
+Route::post('/staffs', [StaffController::class, 'store']);
+Route::put('/staffs/{id}', [StaffController::class, 'update']);
+Route::delete('/staffs/{id}', [StaffController::class, 'destroy']);
+
 // Comments
 Route::get('/news/{newsId}/comments', [NewsCommentController::class, 'commentsByNewsId']);
 Route::post('/news/{newsId}/comments', [NewsCommentController::class, 'store']);

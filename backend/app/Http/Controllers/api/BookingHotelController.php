@@ -349,8 +349,8 @@ class BookingHotelController extends Controller
                     'total_rooms' => $bookingDetails['total_rooms'],
                     'booking_type' => $bookingDetails['booking_type'],
                 ];
-                Mail::to($customer->customer_email)->queue(new BookingStatusUpdated($booking, 'pending_confirmation', $additionalInfo));
-                Log::info('Đã đẩy email thông báo tạo booking vào queue', [
+                Mail::to($customer->customer_email)->send(new BookingStatusUpdated($booking, 'pending_confirmation', $additionalInfo));
+                Log::info('Đã đẩy email thông báo tạo booking vào send', [
                     'booking_id' => $booking->booking_id,
                     'customer_email' => $customer->customer_email
                 ]);
@@ -475,8 +475,8 @@ class BookingHotelController extends Controller
                     'cancellation_reason' => $request->input('cancellation_reason', 'Không có lý do cụ thể'),
                     'refund_amount' => $refundAmount
                 ];
-                Mail::to($customer->customer_email)->queue(new BookingStatusUpdated($booking, 'pending_cancel', $additionalInfo));
-                Log::info('Đã đẩy email thông báo yêu cầu hủy vào queue', [
+                Mail::to($customer->customer_email)->send(new BookingStatusUpdated($booking, 'pending_cancel', $additionalInfo));
+                Log::info('Đã đẩy email thông báo yêu cầu hủy vào send', [
                     'booking_id' => $booking->booking_id,
                     'customer_email' => $customer->customer_email
                 ]);
@@ -572,8 +572,8 @@ class BookingHotelController extends Controller
                     'refund_account_number' => $cancel->refund_account_number,
                     'refund_account_name' => $cancel->refund_account_name,
                 ];
-                Mail::to($customer->customer_email)->queue(new BookingStatusUpdated($booking, 'cancelled', $additionalInfo));
-                Log::info('Đã đẩy email thông báo xác nhận hủy vào queue', [
+                Mail::to($customer->customer_email)->send(new BookingStatusUpdated($booking, 'cancelled', $additionalInfo));
+                Log::info('Đã đẩy email thông báo xác nhận hủy vào send', [
                     'booking_id' => $booking->booking_id,
                     'customer_email' => $customer->customer_email
                 ]);
@@ -1195,8 +1195,8 @@ class BookingHotelController extends Controller
                     'check_in_date' => Carbon::parse($booking->check_in_date)->format('d/m/Y'),
                     'check_out_date' => Carbon::parse($booking->check_out_date)->format('d/m/Y'),
                 ];
-                Mail::to($customer->customer_email)->queue(new BookingStatusUpdated($booking, 'confirmed_not_assigned', $additionalInfo));
-                Log::info('Đã đẩy email thông báo xác nhận vào queue', [
+                Mail::to($customer->customer_email)->send(new BookingStatusUpdated($booking, 'confirmed_not_assigned', $additionalInfo));
+                Log::info('Đã đẩy email thông báo xác nhận vào send', [
                     'booking_id' => $booking->booking_id,
                     'customer_email' => $customer->customer_email
                 ]);
@@ -1279,8 +1279,8 @@ class BookingHotelController extends Controller
                     'check_in_date' => Carbon::parse($booking->check_in_date)->format('d/m/Y'),
                     'check_out_date' => Carbon::parse($booking->check_out_date)->format('d/m/Y'),
                 ];
-                Mail::to($customer->customer_email)->queue(new BookingStatusUpdated($booking, 'confirmed', $additionalInfo));
-                Log::info('Đã đẩy email thông báo hoàn tất xác nhận vào queue', [
+                Mail::to($customer->customer_email)->send(new BookingStatusUpdated($booking, 'confirmed', $additionalInfo));
+                Log::info('Đã đẩy email thông báo hoàn tất xác nhận vào send', [
                     'booking_id' => $booking->booking_id,
                     'customer_email' => $customer->customer_email
                 ]);
@@ -1373,8 +1373,8 @@ class BookingHotelController extends Controller
                     'check_in_date' => $booking->check_in_date ? Carbon::parse($booking->check_in_date)->format('d/m/Y') : 'N/A',
                     'check_out_date' => $booking->check_out_date ? Carbon::parse($booking->check_out_date)->format('d/m/Y') : 'N/A',
                 ];
-                Mail::to($customer->customer_email)->queue(new BookingStatusUpdated($booking, 'cancelled', $additionalInfo));
-                Log::info('Đã đẩy email thông báo hủy bởi admin vào queue', [
+                Mail::to($customer->customer_email)->send(new BookingStatusUpdated($booking, 'cancelled', $additionalInfo));
+                Log::info('Đã đẩy email thông báo hủy bởi admin vào send', [
                     'booking_id' => $booking->booking_id,
                     'customer_email' => $customer->customer_email
                 ]);

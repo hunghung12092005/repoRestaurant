@@ -30,7 +30,7 @@
       <!-- ===== SIDEBAR ĐỘNG CHO ADMIN & STAFF ===== -->
       <div v-if="isAdmin || isStaff" class="sidebar">
         <div class="header text-center p-3 border-bottom">
-          <img src="https://i.postimg.cc/J0d3p6Ww/logo-HXH.png" alt="Luxuria Logo" class="logo" />
+          <img src="/logo/logo_HXH.png" alt="Luxuria Logo" class="logo" />
           <span class="fw-bold">Hồ Xuân Hương</span>
         </div>
         <div class="profile text-center p-3 border-bottom">
@@ -98,6 +98,8 @@
           </li>
           <!-- Quản lý Tài khoản -->
           <li v-if="hasPermission('manage_users')" class="nav-item"><router-link class="nav-link" to="/admin/users"><i class="bi bi-people"></i>Quản Lý Tài Khoản</router-link></li>
+          <!-- Quản lý Nhân viên -->
+          <li v-if="hasPermission('manage_staffs')" class="nav-item"><router-link class="nav-link" to="/admin/staffs"><i class="bi bi-person-workspace"></i>Quản Lý Nhân Viên</router-link></li>
           <!-- Training AI -->
           <li v-if="hasPermission('manage_ai_training')" class="nav-item"><router-link class="nav-link"
               to="/admin/traningAI"><i class="bi bi-robot"></i>Training AI</router-link></li>
@@ -178,7 +180,7 @@
               </ul>
             </div>
             <a class="navbar-brand mx-auto" href="/">
-              <img src="https://i.postimg.cc/J0d3p6Ww/logo-HXH.png" alt="Foodie Logo" class="logo-img" />
+              <img src="/logo/logo_HXH.png" alt="Foodie Logo" class="logo-img" />
               <span class="d-none d-lg-inline">Hồ Xuân Hương</span>
             </a>
           </div>

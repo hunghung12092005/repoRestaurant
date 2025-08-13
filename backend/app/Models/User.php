@@ -25,6 +25,7 @@ class User extends Authenticatable implements JWTSubject
         'permissions', // <-- THÊM DÒNG NÀY
         'qr_code',
         'turnstileResponse',
+        'status',
     ];
 
     /**
@@ -84,5 +85,15 @@ class User extends Authenticatable implements JWTSubject
     public function notifications()
     {
         return $this->morphMany(\App\Models\Notification::class, 'notifiable')->orderBy('created_at', 'desc');
+    }
+
+    public function staffProfile()
+    {
+        return $this->hasOne(StaffProfile::class, 'user_id', 'id');
+    }
+
+    public function staffSchedules()
+    {
+        return $this->hasMany(StaffSchedule::class, 'user_id', 'id');
     }
 }
