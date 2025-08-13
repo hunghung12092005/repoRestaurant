@@ -41,6 +41,7 @@ import traningAI from '../components/admin/AI/traningAI.vue';
 import AdminBookingHistory from '../components/AdminBooking/AdminBookingHistory.vue';
 import coupons from '../components/admin/coupons/coupons.vue'
 import StaffComponent from '../components/staff/StaffComponent.vue';
+import AdminNotifications from '../components/admin/AdminNotifications.vue';
 
 const routes = [
   // --- PUBLIC ROUTES ---
@@ -116,6 +117,12 @@ const routes = [
     name: 'AdminContacts',
     component: AdminContacts,
     meta: { requiresAuth: true, permission: 'manage_contacts' },
+  },
+   {
+    path: '/admin/notifications',
+    name: 'AdminNotifications',
+    component: AdminNotifications,
+    meta: { requiresAuth: true, roles: ['admin', 'staff'] },
   },
 
   // --- ADMIN-ONLY ROUTES ---

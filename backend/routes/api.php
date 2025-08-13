@@ -120,7 +120,11 @@ Route::middleware('auth:api')->group(function () {
     Route::get('/notifications', [NotificationController::class, 'index']);
     Route::post('/notifications/{id}/mark-as-read', [NotificationController::class, 'markAsRead']);
     Route::post('/notifications/mark-all-as-read', [NotificationController::class, 'markAllAsRead']);
+     Route::get('/notifications/unread-count', [NotificationController::class, 'unreadCount']);
     
+    // MỚI: Route cho trang "Tất cả thông báo"
+    Route::get('/notifications/all', [NotificationController::class, 'getAllNotifications']);
+    Route::post('/notifications/prune', [NotificationController::class, 'pruneOldNotifications']);
     
 });
 
