@@ -494,6 +494,9 @@ class OccupancyController extends Controller
         try {
             // Lấy thông tin booking
             $booking = DB::table('booking_hotel')->where('booking_id', $booking_id)->first();
+
+            //return response()->json(['booking' => '$booking']);
+
             if (!$booking) {
                 return response()->json(['message' => 'Không tìm thấy booking.'], 404);
             }
