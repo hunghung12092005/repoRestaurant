@@ -44,46 +44,61 @@ class NotificationController extends Controller
         return response()->json(['status' => true, 'data' => $notifications]);
     }
 
-    public function markAsRead($id)
+     /**
+     * Đánh dấu một thông báo là đã đọc.
+     */
+    public function markAsRead(Request $request, $id)
     {
-        /** @var \App\Models\User $user */
-        $user = Auth::guard('api')->user();
-
+        $user = $request->user();
         if (!$user) {
             return response()->json(['status' => false, 'message' => 'Unauthenticated.'], 401);
         }
-
-        $notification = $user->notifications()->find($id);
+        
+        $notification = $user->notifications()->where('id', $id)->first();
 
         if ($notification) {
             $notification->markAsRead();
             return response()->json(['status' => true, 'message' => 'Đã đánh dấu đã đọc.']);
         }
+
         return response()->json(['status' => false, 'message' => 'Không tìm thấy thông báo.'], 404);
     }
 
-    public function markAllAsRead()
+    /**
+     * Đánh dấu TẤT CẢ thông báo là đã đọc.
+     * === PHIÊN BẢN SỬA LỖI CUỐI CÙNG ===
+     */
+    public function markAllAsRead(Request $request)
     {
-        /** @var \App\Models\User $user */
-        $user = Auth::guard('api')->user();
-
+        $user = $request->user();
         if (!$user) {
             return response()->json(['status' => false, 'message' => 'Unauthenticated.'], 401);
         }
-
-        $user->unreadNotifications->markAsRead();
+        
+        // Cách tiếp cận an toàn và trực tiếp nhất:
+        // Lấy tất cả thông báo của user mà CÓ 'read_at' là NULL,
+        // sau đó cập nhật chúng.
+        $user->notifications()
+             ->whereNull('read_at')
+             ->update(['read_at' => now()]);
 
         return response()->json(['status' => true, 'message' => 'Đã đánh dấu tất cả là đã đọc.']);
     }
 
+
     public function unreadCount(Request $request)
     {
-        /** @var \App\Models\User $user */
         $user = $request->user();
+        if (!$user) {
+            return response()->json(['status' => false, 'message' => 'Unauthenticated.'], 401);
+        }
+        
         try {
-            $count = $user->unreadNotifications()->count();
+            // Cách an toàn nhất: query trực tiếp
+            $count = $user->notifications()->whereNull('read_at')->count();
             return response()->json(['status' => true, 'unread_count' => $count]);
         } catch (\Exception $e) {
+            Log::error('Lỗi khi đếm thông báo chưa đọc: ' . $e->getMessage());
             return response()->json(['status' => false, 'message' => 'Không thể lấy số lượng thông báo.'], 500);
         }
     }
