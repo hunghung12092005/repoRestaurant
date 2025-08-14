@@ -565,7 +565,7 @@
     </div>
   </div>
   <!-- Toast Container -->
-  <div class="position-fixed top-0 end-0 p-3" style="z-index: 1055; max-width: 320px;">
+  <div class="position-fixed top-0 end-0 p-3" style=" max-width: 320px;">
     <div id="myToast" class="toast align-items-center text-bg-primary border-0 shadow-lg rounded-3" role="alert"
       aria-live="assertive" aria-atomic="true">
       <div class="d-flex">
