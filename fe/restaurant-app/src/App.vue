@@ -183,17 +183,18 @@ const sidebarStructure = [
   { section: 'QUẢN LÝ DỊCH VỤ & TIỆN NGHI', title: 'Quản Lý Dịch Vụ', to: '/admin/services', icon: 'bi bi-box-seam', requiredPermission: 'manage_services' },
   { section: 'QUẢN LÝ DỊCH VỤ & TIỆN NGHI', title: 'Quản Lý Tiện Nghi', to: '/admin/amenities', icon: 'bi bi-gem', requiredPermission: 'manage_amenities' },
   { section: 'QUẢN LÝ DỊCH VỤ & TIỆN NGHI', title: 'Quản Lý Giảm Giá', to: '/admin/coupons', icon: 'bi bi-ticket-perforated', requiredPermission: 'manage_coupons' },
+  { section: 'QUẢN LÝ TÀI KHOẢN', title: 'Quản Lý Tài Khoản', to: '/admin/users', icon: 'bi bi-people', requiredPermission: 'manage_users' },
+  { section: 'QUẢN LÝ TÀI KHOẢN', title: 'Quản Lý Nhân Viên', to: '/admin/staffs', icon: 'bi bi-person-workspace', requiredPermission: 'manage_staff' },
+  { section: 'QUẢN LÝ TÀI KHOẢN', title: 'Quản Lý Khách hàng', to: '/admin/customers', icon: 'bi bi-person-lines-fill', requiredPermission: 'manage_customers' },
   {
     section: 'QUẢN LÝ HỆ THỐNG', title: 'Quản Lý Tin Tức', icon: 'bi bi-newspaper', requiredPermission: 'manage_news', key: 'news',
     children: [
-      { title: 'Tin Tức', to: '/admin/news', icon: 'bi bi-dot' },
-      { title: 'Danh Mục', to: '/admin/news-categories', icon: 'bi bi-dot' },
-      { title: 'Bình Luận', to: '/admin/news-comments', icon: 'bi bi-dot' },
+      { title: 'Tin Tức', to: '/admin/news', icon: 'bi bi-newspaper' },
+      { title: 'Danh Mục', to: '/admin/news-categories', icon: 'bi bi-tags' },
+      { title: 'Bình Luận', to: '/admin/news-comments', icon: 'bi bi-chat-dots' },
     ]
   },
   { section: 'QUẢN LÝ HỆ THỐNG', title: 'Quản Lý Liên Hệ', to: '/admin/contacts', icon: 'bi bi-envelope', requiredPermission: 'manage_contacts' },
-  { section: 'QUẢN LÝ HỆ THỐNG', title: 'Quản Lý Tài Khoản', to: '/admin/users', icon: 'bi bi-people', requiredPermission: 'manage_users' },
-  { section: 'QUẢN LÝ HỆ THỐNG', title: 'Quản Lý Nhân Viên', to: '/admin/staffs', icon: 'bi bi-person-workspace', requiredPermission: 'manage_staff' },
   { section: 'QUẢN LÝ HỆ THỐNG', title: 'Training AI', to: '/admin/traningAI', icon: 'bi bi-robot', requiredPermission: 'manage_ai_training' },
   { section: 'QUẢN LÝ HỆ THỐNG', title: 'Chat Admin', to: '/admin/ChatAdmin', icon: 'bi bi-chat-dots', requiredPermission: 'manage_admin_chat' },
   { section: 'QUẢN LÝ HỆ THỐNG', title: 'Tất cả thông báo', to: '/admin/notifications', icon: 'bi bi-bell', requiredPermission: null },
