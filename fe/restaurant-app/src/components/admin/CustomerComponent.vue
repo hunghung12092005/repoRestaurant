@@ -8,7 +8,7 @@
       <!-- Tiêu đề trang -->
       <div class="page-header mb-4">
         <h1 class="page-title"><i class="bi bi-people-fill me-3"></i>Quản Lý Khách Hàng</h1>
-        <p class="page-subtitle">Xem thông tin và lịch sử đặt phòng của khách hàng.</p>
+        <p class="page-subtitle">Xem thông tin, địa chỉ, CCCD và lịch sử đặt phòng của khách hàng.</p>
       </div>
 
       <!-- Bộ lọc và tìm kiếm -->
@@ -23,14 +23,14 @@
                   type="text"
                   class="form-control"
                   v-model="searchTerm"
-                  placeholder="Tìm theo tên, SĐT, email..."
+                  placeholder="Tìm theo tên, SĐT, email, địa chỉ, CCCD..."
                   @keyup.enter="handleSearch"
                 />
               </div>
             </div>
             <div class="col-lg-3 col-md-6">
               <button class="btn btn-primary w-100" @click="handleSearch">
-                Tìm Kiếm
+                <i class="bi bi-search me-2"></i>Tìm Kiếm
               </button>
             </div>
           </div>
@@ -49,7 +49,7 @@
             <tr>
               <th scope="col">Khách Hàng</th>
               <th scope="col">Email & SĐT</th>
-              <th scope="col">Ngày Tham Gia</th>
+              <th scope="col">Địa chỉ & CCCD</th>
               <th scope="col" class="text-center">Hành Động</th>
             </tr>
           </thead>
@@ -67,7 +67,10 @@
                 <div>{{ customer.customer_email || 'Chưa có' }}</div>
                 <div class="text-muted small">{{ customer.customer_phone }}</div>
               </td>
-              <td>{{ formatDate(customer.created_at) }}</td>
+              <td>
+                 <div>{{ customer.address || 'Chưa có địa chỉ' }}</div>
+                 <div class="text-muted small">CCCD: {{ customer.customer_id_number	|| 'N/A' }}</div>
+              </td>
               <td class="text-center action-buttons">
                 <button @click="viewDetails(customer)" class="btn btn-outline-primary btn-sm" title="Xem chi tiết và lịch sử đặt phòng">
                   <i class="bi bi-eye-fill"></i> Xem Lịch Sử
@@ -117,7 +120,7 @@
               <div v-else>
                 <!-- Thông tin cơ bản -->
                 <div class="info-block mb-4">
-                   <h6 class="info-title">Thông tin liên hệ</h6>
+                   <h6 class="info-title">Thông tin cá nhân & liên hệ</h6>
                    <div class="row">
                        <div class="col-md-6 info-item">
                            <i class="bi bi-person"></i>
@@ -141,10 +144,10 @@
                            </div>
                        </div>
                        <div class="col-md-6 info-item">
-                           <i class="bi bi-calendar-check"></i>
+                           <i class="bi bi-credit-card-2-front"></i>
                            <div>
-                               <label>Ngày tham gia</label>
-                               <strong>{{ formatDate(selectedCustomer.created_at) }}</strong>
+                               <label>CCCD/CMND</label>
+                               <strong>{{ selectedCustomer.customer_id_number || 'N/A' }}</strong>
                            </div>
                        </div>
                        <div class="col-md-12 info-item">
@@ -203,6 +206,7 @@
 </template>
 
 <script setup>
+// Script setup giữ nguyên, không cần thay đổi
 import { ref, onMounted, inject } from 'vue';
 import axiosConfig from '../../axiosConfig.js';
 import loading from '../../components/loading.vue';
@@ -281,9 +285,10 @@ const changePage = (page) => {
 // --- CÁC HÀM HELPER ---
 const getInitials = (name) => {
   if (!name) return 'KH';
-  const names = name.split(' ');
-  const initials = names.map(n => n[0]).join('');
-  return (initials.length > 2 ? initials[0] + initials[names.length - 1] : initials).toUpperCase();
+  const names = name.trim().split(' ');
+  if (names.length === 1) return names[0].charAt(0).toUpperCase();
+  const initials = names[0].charAt(0) + names[names.length - 1].charAt(0);
+  return initials.toUpperCase();
 };
 
 const formatDate = (dateString) => {
@@ -314,7 +319,7 @@ const formatBookingStatus = (status) => {
     cancelled: 'Đã hủy',
     completed: 'Hoàn thành',
   };
-  return statusMap[status] || status.replace('_', ' ').toUpperCase();
+  return statusMap[status] || status.replace(/_/g, ' ').toUpperCase();
 };
 
 const getBookingStatusClass = (status) => {
@@ -389,6 +394,7 @@ onMounted(() => {
   letter-spacing: 0.5px;
   color: #495057;
   border-bottom: 2px solid #dee2e6;
+  white-space: nowrap;
 }
 .customer-table tbody tr {
   transition: background-color 0.2s ease-in-out;
@@ -407,6 +413,7 @@ onMounted(() => {
   justify-content: center;
   font-weight: 600;
   font-size: 1rem;
+  flex-shrink: 0;
 }
 .customer-name {
   color: #2c3e50;
