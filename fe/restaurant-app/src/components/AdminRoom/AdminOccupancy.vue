@@ -739,7 +739,7 @@ const submitMultiBookings = async () => {
     };
 
     const res = await axios.post(`${apiUrl}/api/occupancy/add-multiple`, payload);
-    console.log('Đặt nhiều phòng thành công:', res.data);
+    //console.log('Đặt nhiều phòng thành công:', res.data);
     alert(res.data.message + '\nMã booking nhóm: ' + res.data.booking_id);
     showMultiBookingModal.value = false;
     multiBookings.value = [];
@@ -747,8 +747,8 @@ const submitMultiBookings = async () => {
     // window.location.reload();
 
   } catch (e) {
-    console.error('Lỗi đặt nhiều phòng:', e);
-    alert(e.response?.data?.message || 'Lỗi khi đặt nhiều phòng.');
+    console.error('Lỗi đặt nhiều phòng adnkn:', e);
+    alert(e.response?.data?.error || 'Không thể đặt nhiều phòng. Vui lòng thử lại sau.');
   }
 };
 
