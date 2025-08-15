@@ -40,22 +40,28 @@ class UsersController extends Controller
         $user = User::findOrFail($id);
 
         $validated = $request->validate([
-            'role' => 'required|in:admin,staff,client',
+            // SỬA ĐỔI: Cập nhật danh sách vai trò
+            'role' => [
+                'required',
+                'string',
+                Rule::in(['admin', 'client', 'manager', 'receptionist']),
+            ],
             'permissions' => 'nullable|array',
+            // SỬA ĐỔI: Cập nhật danh sách quyền hạn
             'permissions.*' => [
                 'string',
                 Rule::in([
-                    'manage_news', 
-                    'manage_contacts',
-                    'manage_users',
-                    'manage_ai_training',
-                    'manage_admin_chat',
-                    'manage_coupons'
+                    'manage_bookings', 'manage_reports', 'manage_rooms', 'manage_prices', 
+                    'manage_services', 'manage_amenities', 'manage_coupons', 'manage_news', 
+                    'manage_contacts', 'manage_users', 'manage_staff', 'manage_ai_training', 'manage_admin_chat'
                 ]),
             ],
         ]);
         
-        $permissionsToUpdate = $validated['permissions'] ?? [];
+        $permissionsToUpdate = [];
+        if ($validated['role'] !== 'admin' && $validated['role'] !== 'client') {
+            $permissionsToUpdate = $validated['permissions'] ?? [];
+        }
 
         $user->update([
             'role' => $validated['role'],
