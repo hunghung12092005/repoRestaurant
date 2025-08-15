@@ -360,7 +360,7 @@ class BookingHotelController extends Controller
                     'customer_id' => $customerId
                 ]);
             }
-            
+
             $adminsAndStaff = User::whereIn('role', ['admin', 'staff'])->get();
 
             foreach ($adminsAndStaff as $adminUser) {
@@ -420,6 +420,84 @@ class BookingHotelController extends Controller
             ], 500);
         }
     }
+    public function getBookingHistoryByPhone(Request $request)
+    {
+        try {
+            $phones = $request->input('phones', []); // mảng phone
+
+            if (empty($phones)) {
+                return response()->json([
+                    'status' => 'error',
+                    'message' => 'Vui lòng truyền số điện thoại',
+                ], 400);
+            }
+
+            // Lấy tất cả customer_id từ bảng customer có phone nằm trong mảng
+            $customerIds = Customer::whereIn('customer_phone', $phones)
+                ->pluck('customer_id');
+
+            if ($customerIds->isEmpty()) {
+                return response()->json([
+                    'status' => 'success',
+                    'data' => [],
+                    'message' => 'Không tìm thấy khách hàng với số điện thoại này',
+                ], 200);
+            }
+
+            $bookings = BookingHotel::whereIn('customer_id', $customerIds)
+                ->with('roomTypeInfo')
+                ->orderBy('booking_id', 'desc')
+                ->get();
+
+            return response()->json([
+                'status' => 'success',
+                'data' => $bookings,
+            ], 200);
+        } catch (\Exception $e) {
+            Log::error('Lỗi khi lấy lịch sử booking theo phone: ' . $e->getMessage(), [
+                'trace' => $e->getTraceAsString()
+            ]);
+
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Không thể lấy dữ liệu booking: ' . $e->getMessage(),
+            ], 500);
+        }
+    }
+    //lay chi tiet booking theo booking_id
+   public function getBookingDetail($bookingID)
+{
+    try {
+        // Lấy tất cả chi tiết phòng trong booking
+        $bookingDetails = BookingHotelDetail::where('booking_id', $bookingID)
+            ->get()
+            ->map(function ($detail) {
+                // Nếu gia_dich_vu > 0 thì lấy danh sách dịch vụ
+                if ($detail->gia_dich_vu > 0) {
+                    $detail->services = BookingHotelService::with('serviceInfo')
+                        ->where('booking_detail_id', $detail->booking_detail_id)
+                        ->get();
+                } else {
+                    $detail->services = collect(); // trả về Collection rỗng
+                }
+                return $detail;
+            });
+
+        return response()->json([
+            'status' => 'success',
+            'data' => $bookingDetails,
+        ], 200);
+
+    } catch (\Exception $e) {
+        return response()->json([
+            'status' => 'error',
+            'message' => 'Không thể lấy chi tiết booking: ' . $e->getMessage(),
+        ], 500);
+    }
+}
+
+
+
 
     /**
      * Xóa lịch sử booking
@@ -1143,11 +1221,11 @@ class BookingHotelController extends Controller
                                 });
                         });
                 })
-                ->where('room_type', $roomTypeId)
-                ->pluck('room_id')
-                ->filter()
-                ->unique()
-                ->count();
+                    ->where('room_type', $roomTypeId)
+                    ->pluck('room_id')
+                    ->filter()
+                    ->unique()
+                    ->count();
 
                 $confirmedBookings = BookingHotelDetail::whereHas('booking', function ($query) use ($checkInDate, $checkOutDate, $bookingId) {
                     $query->where('booking_id', '!=', $bookingId)
@@ -1161,9 +1239,9 @@ class BookingHotelController extends Controller
                                 });
                         });
                 })
-                ->where('room_type', $roomTypeId)
-                ->whereNull('room_id')
-                ->count();
+                    ->where('room_type', $roomTypeId)
+                    ->whereNull('room_id')
+                    ->count();
 
                 $totalUsedRooms = $bookedRoomIds + $confirmedBookings;
                 $availableRooms = $totalRooms - $totalUsedRooms;
@@ -1463,8 +1541,8 @@ class BookingHotelController extends Controller
                                 });
                         });
                 })
-                ->whereNotNull('room_id')
-                ->pluck('room_id');
+                    ->whereNotNull('room_id')
+                    ->pluck('room_id');
 
                 $availableRooms = Room::where('type_id', $bookingDetail->room_type)
                     ->whereNotIn('room_id', $occupiedRoomIds)

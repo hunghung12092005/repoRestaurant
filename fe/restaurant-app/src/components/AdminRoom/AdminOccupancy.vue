@@ -210,10 +210,11 @@
           <div class="modal-body p-4">
             <div class="row g-4">
               <div class="col-md-6">
-                <h6 class="info-title">Thông tin phòng</h6>
+                <h6 class="info-title">Thông tin phòng - ID Booking: {{ guestInfo.booking.booking_id
+                }}</h6>
                 <ul class="info-list">
                   <li><span>Phòng:</span><strong>{{ guestInfo.room.room_name }} (Tầng {{ guestInfo.room.floor_number
-                  }})</strong></li>
+                      }})</strong></li>
                   <li><span>Loại phòng:</span><strong>{{ guestInfo.room.type_name }}</strong></li>
                 </ul>
               </div>
@@ -464,7 +465,6 @@
   <!-- Modal Thanh Toán Nhóm -->
   <!-- Backdrop -->
   <div v-if="showPayGroupModal" class="modal-backdrop fade show"></div>
-
   <!-- Modal -->
   <div v-if="showPayGroupModal" class="modal fade show d-block" tabindex="-1">
     <div class="modal-dialog modal-xl modal-dialog-centered">
@@ -493,16 +493,20 @@
           <!-- Danh sách phòng -->
           <div v-if="bookingGroupRooms.length > 0">
             <div v-for="room in bookingGroupRooms" :key="room.booking_detail_id" class="card mb-3 shadow-sm"
-              :class="{ 'opacity-50': room.is_paid }">
+              :class="{ 'opacity-50': room.trang_thai === 'hoan_thanh' }">
               <div class="card-header d-flex justify-content-between align-items-center">
                 <span class="fw-bold">
                   <i class="bi bi-door-open me-1"></i>
                   {{ room.room_name }} ({{ room.type_name }})
                 </span>
-                <span v-if="room.is_paid" class="badge bg-success">Đã thanh toán</span>
+                <span class="fw-bold text-primary">Tiền Phòng: {{ formatPrice(room.total_price) }}</span>
               </div>
 
-              <div class="card-body bg-white">
+              <!-- Nếu đã thanh toán -->
+              <p v-if="room.trang_thai === 'hoan_thanh'" class="badge text-bg-success m-3">Đã thanh toán</p>
+
+              <!-- Nếu chưa thanh toán -->
+              <div v-else class="card-body bg-white">
                 <!-- Dịch vụ -->
                 <h6 class="fw-semibold mb-2">Dịch vụ:</h6>
                 <div v-for="(service, sIndex) in room.services" :key="sIndex"
@@ -510,11 +514,10 @@
                   <span>{{ service.service_name }} ({{ formatPrice(service.price) }})</span>
                   <div class="d-flex align-items-center">
                     <button class="btn btn-sm btn-outline-secondary"
-                      @click="service.quantity = Math.max(service.quantity - 1, 0)" :disabled="room.is_paid">-</button>
+                      @click="service.quantity = Math.max(service.quantity - 1, 0)">-</button>
                     <input type="number" v-model.number="service.quantity"
-                      class="form-control form-control-sm text-center mx-2" min="0" :disabled="room.is_paid" />
-                    <button class="btn btn-sm btn-outline-secondary" @click="service.quantity++"
-                      :disabled="room.is_paid">+</button>
+                      class="form-control form-control-sm text-center mx-2" min="0" />
+                    <button class="btn btn-sm btn-outline-secondary" @click="service.quantity++">+</button>
                   </div>
                 </div>
 
@@ -523,15 +526,26 @@
                   Tổng tiền dịch vụ: {{ formatPrice(calcServiceTotal(room.services)) }}
                 </div>
 
+                <!-- Tổng cộng phòng -->
+                <div class="mt-1 text-end fw-bold text-danger">
+                  Tổng cộng phòng: {{ formatPrice(calcRoomTotal(room)) }}
+                </div>
+
                 <!-- Phụ thu -->
                 <div class="mt-3">
                   <label class="form-label">Phụ thu:</label>
                   <input type="number" v-model.number="room.additional_fee" class="form-control form-control-sm"
-                    placeholder="0" :disabled="room.is_paid" />
+                    placeholder="0" />
                   <label class="form-label mt-2">Lý do phụ thu:</label>
-                  <input type="text" v-model="room.surcharge_reason" class="form-control form-control-sm"
-                    :disabled="room.is_paid" />
+                  <input type="text" v-model="room.surcharge_reason" class="form-control form-control-sm" />
                 </div>
+              </div>
+            </div>
+
+            <!-- Tổng tất cả phòng -->
+            <div class="card mt-3 border-primary">
+              <div class="card-body text-end fw-bold fs-5 text-primary">
+                Tổng tất cả phòng: {{ formatPrice(totalAllRooms) }}
               </div>
             </div>
           </div>
@@ -551,7 +565,7 @@
     </div>
   </div>
   <!-- Toast Container -->
-  <div class="position-fixed top-0 end-0 p-3" style="z-index: 1055; max-width: 320px;">
+  <div class="position-fixed top-0 end-0 p-3" style=" max-width: 320px;">
     <div id="myToast" class="toast align-items-center text-bg-primary border-0 shadow-lg rounded-3" role="alert"
       aria-live="assertive" aria-atomic="true">
       <div class="d-flex">
@@ -804,15 +818,16 @@ const submitEditForm = async () => {
     // const checkOutTime = isValidTime(editFormData.value.check_out_time) ? editFormData.value.check_out_time : '12:00';
     // console.log({
     //   check_in_date: editFormData.value.check_in_date,
-    //   check_in_time: editFormData.value.check_in_time,
+    //   check_in_time: editFormData.value.check_in_time?.substring(0, 5),
     //   check_out_date: editFormData.value.check_out_date,
-    //   check_out_time: editFormData.value.check_out_time,
+    //   check_out_time: editFormData.value.check_out_time?.substring(0, 5),
     //   customer_name: editFormData.value.customer_name,
     //   customer_phone: editFormData.value.customer_phone,
     //   customer_email: editFormData.value.customer_email,
     //   address: editFormData.value.address,
-    // });
-    const res = await axios.post(`${apiUrl}/api/bookings/${guestInfo.value.booking.booking_id}/update-time`,{
+    // }); 
+
+    const res = await axios.post(`${apiUrl}/api/bookings/${guestInfo.value.booking.booking_id}/update-time`, {
       check_in_date: editFormData.value.check_in_date,
       check_in_time: editFormData.value.check_in_time?.substring(0, 5),
       check_out_date: editFormData.value.check_out_date,
@@ -822,8 +837,9 @@ const submitEditForm = async () => {
       customer_email: editFormData.value.customer_email,
       address: editFormData.value.address,
     });
-    
-    
+    console.log("Cập nhật thành công:", res.data);
+
+
     alert('Cập nhật thành công!\n' + res.data.message);
     showEditForm.value = false;
     await fetchRooms();
@@ -953,7 +969,7 @@ const fetchRooms = async () => {
 
     if (timeValue) {
       let date = new Date(`1970-01-01T${timeValue}:00`);
-      date.setMinutes(date.getMinutes() + 4);
+      date.setMinutes(date.getMinutes() + 2);
 
       // format lại thành HH:mm
       let hours = String(date.getHours()).padStart(2, '0');
@@ -1081,6 +1097,8 @@ const showGuestDetails = async (room) => {
       },
     });
     guestInfo.value = res.data;
+    //console.log('Thông tin khách:', guestInfo.value);
+
     showGuestModal.value = true;
   } catch (e) {
     if (e.response?.status === 404) {
@@ -1150,6 +1168,7 @@ const openPayGroupModal = async () => {
   try {
     const res = await axios.get(`${apiUrl}/api/bookings/unpaid-list`);
     unpaidBookings.value = res.data;
+    console.log("Unpaid bookings:", unpaidBookings.value);
     selectedBookingId.value = '';
     bookingGroupRooms.value = [];
     showPayGroupModal.value = true;
@@ -1159,8 +1178,35 @@ const openPayGroupModal = async () => {
 };
 
 // Tính tổng tiền dịch vụ của 1 phòng
-const calcServiceTotal = (services) =>
-  services.reduce((sum, s) => sum + (s.price * (s.quantity || 0)), 0);
+
+// Tính tổng dịch vụ của 1 phòng
+// Tính tổng tiền dịch vụ
+const calcServiceTotal = (services) => {
+  return (services || []).reduce(
+    (sum, s) => sum + (Number(s.price) * Number(s.quantity || 0)),
+    0
+  );
+};
+
+// Tính tổng cộng của 1 phòng (bao gồm tiền phòng + dịch vụ + phụ thu)
+const calcRoomTotal = (room) => {
+  return (
+    Number(room.total_price || 0) +
+    calcServiceTotal(room.services || []) +
+    Number(room.additional_fee || 0)
+  );
+};
+
+// Tính tổng tất cả phòng (chỉ cộng phòng chưa thanh toán)
+const totalAllRooms = computed(() => {
+  return bookingGroupRooms.value.reduce((sum, room) => {
+    if (room.trang_thai !== "hoan_thanh") {
+      sum += calcRoomTotal(room);
+    }
+    return sum;
+  }, 0);
+});
+
 // Tải các phòng thuộc booking_id
 const loadBookingGroupRooms = async () => {
   try {
@@ -1168,7 +1214,7 @@ const loadBookingGroupRooms = async () => {
       axios.get(`${apiUrl}/api/bookings/${selectedBookingId.value}/details`),
       axios.get(`${apiUrl}/api/services/indexAllService`)
     ]);
-
+    console.log("Booking details loaded:", detailsRes.data);
     const services = servicesRes.data.map(s => ({
       ...s,
       price: Number(s.price) || 0,
@@ -1177,10 +1223,12 @@ const loadBookingGroupRooms = async () => {
 
     bookingGroupRooms.value = detailsRes.data.map(room => ({
       ...room,
-      services: JSON.parse(JSON.stringify(services)), // clone độc lập cho từng phòng
+      services: services.map(s => ({ ...s })), // clone từng object
       additional_fee: 0,
       surcharge_reason: ''
     }));
+    console.log("Booking group rooms loaded:", bookingGroupRooms.value);
+
   } catch (e) {
     console.error("Lỗi load booking group rooms:", e);
     alert("Không thể tải danh sách phòng hoặc dịch vụ.");
@@ -1210,8 +1258,6 @@ const submitPayGroup = async () => {
       }))
     };
     console.log("Submitting pay group with payload:", payload);
-
-
     const res = await axios.patch(`${apiUrl}/api/bookings/pay-by-booking`, payload);
 
     alert(res.data.message || "Thanh toán nhóm thành công!");

@@ -1,9 +1,98 @@
 <template>
+  <div v-if="showPopUpSMS" class="popup-overlay">
+    <div class="form-container">
+      <div class="logo-container">
+        Xác thực Số Điện Thoại
+        <button type="button" class="btn-close m-4" @click="closeModalOtp"></button>
+      </div>
+      <div class="form-group">
+        <label for="email">Nhập SĐT</label>
+        <input v-model="phoneNumber" type="number" placeholder="Nhập OTP" required="">
+      </div>
+
+      <button class="form-submit-btn" type="submit" @click="checkAndSendOtp">Xác Nhận</button>
+
+      <p v-if="message">
+      <div class="alert alert-warning alert-dismissible fade show" role="alert">
+        <!-- <strong>Thông báo!</strong> {{ message }} -->
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+      </div>
+      </p>
+    </div>
+  </div>
+  <div v-if="isOtp" class="popup-overlay">
+    <div class="form-container">
+      <div class="logo-container">
+        Xác thực SMS
+        <button type="button" class="btn-close m-4" @click="closeModalOtp"></button>
+      </div>
+      <div class="form-group">
+        <label for="email">Mã OTP</label>
+        <input v-model="otpInputs" type="text" placeholder="Nhập OTP" required="">
+      </div>
+
+      <button class="form-submit-btn" type="submit" @click="verifyCode">Xác Nhận</button>
+
+      <p v-if="message">
+      <div class="alert alert-warning alert-dismissible fade show" role="alert">
+        <!-- <strong>Thông báo!</strong> {{ message }} -->
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+      </div>
+      </p>
+    </div>
+  </div>
+  <div id="recaptcha-container"></div>
+  <!-- Modal Bootstrap -->
+  <div class="modal fade" :class="{ show: popupDetail }" style="display: block; margin: 0 auto" v-if="popupDetail" tabindex="-1">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title">Chi tiết đơn hàng</h5>
+          <button type="button" class="btn-close" @click="popupDetail = false"></button>
+        </div>
+        <div class="modal-body">
+          <div v-if="isLoading">Đang tải dữ liệu...</div>
+          <div v-else-if="error">{{ error }}</div>
+          <div v-else>
+            <div v-for="room in bookingDetails" :key="room.booking_detail_id" class="card mb-3 shadow-sm">
+              <div class="card-body">
+                <h6 class="card-title d-flex justify-content-between align-items-center">
+                  <span>Phòng: <strong>{{ room.room_id ?? 'Chưa có phòng' }}</strong></span>
+                  <span :class="{'badge bg-success': room.trang_thai === 'Hoàn thành', 'badge bg-warning text-dark': room.trang_thai !== 'Hoàn thành'}">
+                    {{ room.trang_thai ?? 'Chưa rõ' }}
+                  </span>
+                </h6>
+                <p class="card-subtitle mb-2 text-muted">
+                  Tổng tiền phòng: {{ formatCurrency(room.total_price) }}
+                </p>
+                <hr>
+                <div v-if="room.services && room.services.length">
+                  <p class="mb-2"><strong>Dịch vụ đi kèm:</strong></p>
+                  <ul class="list-group list-group-flush">
+                    <li v-for="service in room.services" :key="service.booking_service_id" class="list-group-item d-flex justify-content-between align-items-center">
+                      <span>{{ service.service_info.service_name }}</span>
+                      <span>x{{ service.quantity }} - {{ formatCurrency(service.total) }}</span>
+                    </li>
+                  </ul>
+                </div>
+                <div v-else class="text-muted fst-italic">Không có dịch vụ đi kèm.</div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" @click="popupDetail = false">Đóng</button>
+        </div>
+      </div>
+    </div>
+</div>
+  
   <div class="history-wrapper">
     <div class="history-container">
       <header class="page-header animate__animated animate__fadeInDown">
-        <h1>Chuyến Đi Của Bạn</h1>
+        <h1>Lịch sử đặt phòng</h1>
         <p>Xem lại và quản lý tất cả các đặt phòng đã thực hiện.</p>
+        <div class="btn btn-solid-custom" @click="showPopUpSMS = true">Nhập Số Điện Thoại</div>
       </header>
 
       <!-- MODAL HỦY PHÒNG -->
@@ -54,8 +143,9 @@
 
         <div v-else-if="bookings.length === 0" class="info-state animate__animated animate__fadeIn">
           <div class="icon-wrapper empty"><i class="bi bi-briefcase-fill"></i></div>
-          <h2>Hành trình trống</h2>
-          <p>Bạn chưa có chuyến đi nào. Hãy bắt đầu khám phá và đặt phòng ngay hôm nay!</p>
+          <h2>Trống ! </h2>
+          <p>Hãy bắt đầu khám phá và đặt phòng ngay hôm nay!</p>
+          <p>Hoặc tìm đơn phòng theo số điện thoại!</p>
           <router-link to="/booking_hotel" class="btn btn-primary btn-lg">
             <i class="bi bi-search me-2"></i> Khám Phá Phòng
           </router-link>
@@ -132,7 +222,7 @@
                 <div class="card-header">
                   <h3>{{ booking.room_type_info ? booking.room_type_info.type_name : 'Thông tin phòng' }}</h3>
                   <span class="status-badge" :class="'status-' + booking.status">{{ formatStatus(booking.status)
-                    }}</span>
+                  }}</span>
                 </div>
                 <div class="card-body">
                   <div class="info-grid">
@@ -152,6 +242,10 @@
                       <label>Check-out</label>
                       <span>{{ formatDate(booking.check_out_date) }}</span>
                     </div>
+                    <div class="info-item">
+                      <span><button class="btn btn-outline-dark" @click="viewDetailOrder(booking.booking_id)">Xem chi
+                          tiết</button></span>
+                    </div>
                   </div>
                   <div v-if="booking.note" class="note">
                     <strong>Ghi chú:</strong> {{ booking.note }}
@@ -168,11 +262,12 @@
                     <i class="bi bi-credit-card"></i>
                     <span>{{ formatPayment(booking.payment_method) }}</span>
                   </div>
-                  <div class="payment-item">
+                  <div class="payment-item" v-if="booking.payment_method === 'thanh_toan_qr'">
                     <i
                       :class="booking.payment_status === 'paid' ? 'bi-check-circle-fill text-success' : 'bi-hourglass-split text-warning'"></i>
                     <span>{{ formatPaymentStatus(booking.payment_status) }}</span>
                   </div>
+
                 </div>
                 <div class="card-actions">
                   <button v-if="canCancelBooking(booking)" class="btn btn-light-danger"
@@ -194,6 +289,8 @@
 import { inject, onMounted, ref, computed } from 'vue';
 import axios from 'axios';
 import Loading from '../loading.vue';
+import { auth, RecaptchaVerifier, PhoneAuthProvider } from '../ShopOnline/firebase';
+import { signInWithPhoneNumber, signInWithCredential } from 'firebase/auth';
 
 const apiUrl = inject('apiUrl');
 const isLoading = ref(false);
@@ -208,16 +305,53 @@ const formatPrice = (value) => {
     currency: 'VND',
   }).format(value);
 };
+const showPopUpSMS = ref(false); // Hiển thị popup yêu cầu đăng nhập
 const getHistoryBooking = async () => {
-  let token = localStorage.getItem('BookingAuth') || '';
+  console.log(authSms.value);
+  let token = localStorage.getItem('BookingAuth');
+  // if (token === null || token === '') {
+  //   showPopUpSMS.value = true;
+  // }
   const axiosInstance = axios.create({
     headers: { 'Authorization': `Bearer ${token}` }
   });
-
   try {
     isLoading.value = true;
+    if (authSms.value === true) {
+      try {
+        isLoading.value = true;
+        const rawPhone = localStorage.getItem('BookingAuthPhone');
+        const phoneWithZero = rawPhone.startsWith('0') ? rawPhone : '0' + rawPhone;
+
+        // console.log('Phones gửi lên:', [rawPhone, phoneWithZero]);
+
+        const res = await axios.post(`${apiUrl}/api/booking-historyPhone`, {
+          phones: [rawPhone, phoneWithZero] // gửi mảng phone
+        });
+
+        //console.log('Lịch sử đặt phòng phone:', res.data);
+        if (res.data?.status === 'success') {
+          bookings.value = res.data.data;
+          // Lấy chi tiết huỷ cho các đơn đang pending_cancel
+          for (const b of res.data.data) {
+            if (b.status === 'pending_cancel') {
+              await getCancelBookingDetail(b.booking_id);
+              refundBank.value[b.booking_id] = { bank: '', accountNumber: '' };
+            }
+          }
+          console.log('Lịch sử đặt phòng đã tải thành công addjab:', bookings.value);
+        } else {
+          error.value = res.data.message || 'Không thể tải dữ liệu.';
+        }
+        return;
+      } catch (err) {
+        console.error('Lỗi lấy lịch sử đặt phòng:', err);
+      } finally {
+        isLoading.value = false;
+      }
+    }
     const res = await axiosInstance.get(`${apiUrl}/api/booking-history`);
-    //console.log('Lịch sử đặt phòng:', res.data);
+    // console.log('Lịch sử đặt phòng:', res.data);
     if (res.data?.status === 'success') {
       bookings.value = res.data.data;
       // Lấy chi tiết huỷ cho các đơn đang pending_cancel
@@ -227,6 +361,8 @@ const getHistoryBooking = async () => {
           refundBank.value[b.booking_id] = { bank: '', accountNumber: '' };
         }
       }
+      console.log('Lịch sử đặt phòng đã tải thành công 123:', bookings.value);
+
     } else {
       error.value = res.data.message || 'Không thể tải dữ liệu.';
     }
@@ -236,7 +372,148 @@ const getHistoryBooking = async () => {
     isLoading.value = false;
   }
 };
+const popupDetail = ref(false);
+const bookingDetails = ref('');
+const viewDetailOrder = async (bookingID) => {
+  const bookingIDs = bookingID;
+  try {
+    isLoading.value = true;
+    const res = await axios.get(`${apiUrl}/api/booking-history/${bookingIDs}`);
+    bookingDetails.value = res.data.data;
+    console.log('Chi tiết đơn hàng:', bookingDetails.value);
+    popupDetail.value = true;
+  }
+  catch {
+    error.value = 'Không thể tải dữ liệu.';
+  }
+  finally {
+    isLoading.value = false;
+  }
+};
+const phoneNumber = ref('');
+const otpInputs = ref();
+const isOtp = ref(false); // Biến để kiểm soát hiển thị OTP
+const verificationId = ref(null);
+const message = ref(''); // Biến để hiển thị thông báo lỗi
+const checkAndSendOtp = async () => {
+  if (!phoneNumber.value) {
+    alert('Vui lòng nhập số điện thoại!');
+    // Tập trung vào input số điện thoại
+    document.getElementById('phone').focus(); // Đảm bảo ID đúng với input của bạn
+    resetRadio();
+    return; // Ngừng thực hiện hàm nếu không có số điện thoại
+  }
+  const phone = String(phoneNumber.value || '').trim();
+  const storageKey = 'sentOtpPhones';
+  if (!phone) return;
 
+  const sentPhones = JSON.parse(localStorage.getItem(storageKey)) || [];
+  const isDuplicate = sentPhones.includes(phone);
+
+  if (isDuplicate) {
+    console.log('Số điện thoại đã được xác thực trước đó, không cần gửi OTP nữa.');
+    authSms.value = true; // Đánh dấu đã xác thực
+    const currentPhone = localStorage.getItem('BookingAuthPhone');
+    if (!currentPhone || currentPhone !== phoneNumber.value) {
+      localStorage.setItem('BookingAuthPhone', phoneNumber.value);
+    }
+    getHistoryBooking();
+    showPopUpSMS.value = false; // Đóng popup nếu đã xác thực
+    // Nếu đã xác thực rồi thì thực hiện luôn        
+  } else {
+    console.log('Số điện thoại chưa được xác thực trước đó,  cần gửi OTP nữa.');
+    // Gửi OTP rồi đợi xác thực mới thực hiện
+    sendOtpSMS();
+  }
+};
+const authSms = ref(false);
+const sendOtpSMS = async () => {
+  isLoading.value = true; // Bắt đầu quá trình tải
+  try {
+    // Kiểm tra xem số điện thoại đã được nhập chưa
+    if (!phoneNumber.value) {
+      alert('Vui lòng nhập số điện thoại!');
+      // Tập trung vào input số điện thoại
+      document.getElementById('phone').focus(); // Đảm bảo ID đúng với input của bạn
+      return; // Ngừng thực hiện hàm nếu không có số điện thoại
+    }
+    // Kiểm tra xem auth có được khởi tạo đúng cách
+    if (!auth) {
+      throw new Error('auth chưa được khởi tạo. Kiểm tra cấu hình Firebase.');
+    }
+
+    // Khởi tạo RecaptchaVerifier
+    const appVerifier = new RecaptchaVerifier(auth, 'recaptcha-container', {
+      size: 'invisible',
+      callback: (response) => {
+        //console.log('ReCAPTCHA đã được xác minh:', response);
+      },
+      'expired-callback': () => {
+        //console.warn('ReCAPTCHA đã hết hạn.');
+      },
+    });
+    // Thêm +84 vào trước số điện thoại
+    const fullPhoneNumber = `+84${phoneNumber.value}`;
+    // console.log(fullPhoneNumber)
+    // return;
+    const confirmationResult = await signInWithPhoneNumber(auth, fullPhoneNumber, appVerifier);
+    verificationId.value = confirmationResult.verificationId;
+    //alert('Mã xác nhận đã được gửi thành công! Vui lòng kiểm tra tin nhắn.');
+    isOtp.value = true;
+    showPopUpSMS.value = false; // Đóng popup nếu đã xác thực
+
+  } catch (error) {
+    console.error('Lỗi gửi mã xác nhận:', error.message || error);
+    alert(`Lỗi gửi mã xác nhận: SDT không hợp lệ hoặc đã được đăng ký trước đó. Vui lòng thử lại.`);
+    //location.reload();
+  } finally {
+    isLoading.value = false; // Kết thúc quá trình tải
+  }
+}
+const verifyCode = async () => {
+  isLoading.value = true;
+  try {
+    const credential = PhoneAuthProvider.credential(verificationId.value, otpInputs.value);
+    const result = await signInWithCredential(auth, credential);
+
+    //  Xác thực OTP thành công
+    isOtp.value = false;
+    const phone = String(phoneNumber.value || '').trim();
+    const storageKey = 'sentOtpPhones';
+    const sentPhones = JSON.parse(localStorage.getItem(storageKey)) || [];
+
+    if (!sentPhones.includes(phone)) {
+      sentPhones.push(phone);
+      localStorage.setItem(storageKey, JSON.stringify(sentPhones));
+    }
+    authSms.value = true; // Đánh dấu đã xác thực
+    const currentPhone = localStorage.getItem('BookingAuthPhone');
+    if (!currentPhone || currentPhone !== phoneNumber.value) {
+      localStorage.setItem('BookingAuthPhone', phoneNumber.value);
+    }
+    await getHistoryBooking();
+    closeModalOtp();
+    //  Sau xác thực thì tiếp tục hành động: bạn chọn 1 trong 2 bên dưới
+    // if (paymentMethod.value === 'thanh_toan_sau') {
+    //     await confirmBooking();
+    //     if (returnout.value != true) {
+    //         router.push('/thanksBooking');
+    //     }
+    // } else if (paymentMethod.value === 'thanh_toan_qr') {
+    //     await payQr();
+    // }
+
+  } catch (error) {
+    console.error('Lỗi xác minh mã:', error.message || error);
+    alert(`OTP không hợp lệ. Vui lòng thử lại.`);
+  } finally {
+    isLoading.value = false;
+  }
+};
+const closeModalOtp = async () => {
+  showPopUpSMS.value = false;
+  isOtp.value = false;
+}
 const getCancelBookingDetail = async (bookingId) => {
   try {
     isLoading.value = true;
@@ -252,7 +529,7 @@ const getCancelBookingDetail = async (bookingId) => {
     }
   } catch (e) {
     console.error(`Không thể lấy thông tin hủy cho booking ${bookingId}`, e);
-  }finally {
+  } finally {
     isLoading.value = false;
   }
 };
@@ -269,7 +546,7 @@ const loadBankList = async () => {
     }
   } catch (error) {
     console.error('Lỗi tải danh sách ngân hàng:', error);
-  }finally {
+  } finally {
     isLoading.value = false;
   }
 };
@@ -303,7 +580,7 @@ const submitRefundInfo = async (bookingId) => {
   } catch (err) {
     console.error('Lỗi gửi thông tin hoàn tiền:', err);
     alert('Không thể gửi thông tin. Vui lòng thử lại.');
-  }finally  {
+  } finally {
     isLoading.value = false;
   }
 };
@@ -342,7 +619,7 @@ const confirmCancellation = async () => {
   } catch (error) {
     alert('Không thể hủy đơn. Vui lòng thử lại sau.');
     console.error('Error cancelling booking:', error);
-  }finally {
+  } finally {
     isLoading.value = false;
   }
 };
@@ -376,8 +653,8 @@ const formatStatusClass = (status) => `bg-${status.replace(/_/g, '-')}`;
 const formatPayment = (method) => {
   const map = {
     thanh_toan_qr: 'QR Code',
-    thanh_toan_tien_mat: 'Tiền mặt',
-    thanh_toan_the: 'Thẻ',
+    thanh_toan_ngay: 'Thanh toán trực tiếp tại khách sạn',
+    thanh_toan_sau: 'Thanh toán trực tiếp tại khách sạn',
   };
   return map[method] || 'Không rõ';
 };
@@ -745,79 +1022,300 @@ onMounted(getHistoryBooking);
 
 .alert-success {
   margin-top: 1rem;
-  padding: 0.75rem; background-color: #c6f6d5;
-  color: #2f855a; border-radius: 6px; text-align: center;
-  font-weight: 600; font-size: 0.9rem;
+  padding: 0.75rem;
+  background-color: #c6f6d5;
+  color: #2f855a;
+  border-radius: 6px;
+  text-align: center;
+  font-weight: 600;
+  font-size: 0.9rem;
 }
 
 /* --- MODAL --- */
 .modal-backdrop {
-  position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
   background-color: rgba(45, 55, 72, 0.75);
   backdrop-filter: blur(4px);
-  display: flex; align-items: center; justify-content: center; z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
 }
+
 .modal-content {
-  background-color: #fff; border-radius: 12px; width: 90%;
-  max-width: 500px; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+  background-color: #fff;
+  border-radius: 12px;
+  width: 90%;
+  max-width: 500px;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
 }
+
 .modal-header {
-  padding: 1rem 1.5rem; border-bottom: 1px solid #e2e8f0;
-  display: flex; justify-content: space-between; align-items: center;
+  padding: 1rem 1.5rem;
+  border-bottom: 1px solid #e2e8f0;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
 }
-.modal-header h3 { font-size: 1.2rem; color: #2d3748; margin: 0; }
-.modal-body { padding: 1.5rem; }
-.modal-body p { color: #718096; }
+
+.modal-header h3 {
+  font-size: 1.2rem;
+  color: #2d3748;
+  margin: 0;
+}
+
+.modal-body {
+  padding: 1.5rem;
+}
+
+.modal-body p {
+  color: #718096;
+}
+
 .modal-footer {
-  padding: 1rem 1.5rem; background-color: #f7fafc;
-  display: flex; justify-content: flex-end; gap: 0.75rem;
+  padding: 1rem 1.5rem;
+  background-color: #f7fafc;
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.75rem;
   border-top: 1px solid #e2e8f0;
   border-radius: 0 0 12px 12px;
 }
+
 .close-button {
-  background: none; border: none; font-size: 1.8rem;
-  color: #a0aec0; cursor: pointer; transition: color 0.2s;
+  background: none;
+  border: none;
+  font-size: 1.8rem;
+  color: #a0aec0;
+  cursor: pointer;
+  transition: color 0.2s;
 }
-.close-button:hover { color: #2d3748; }
+
+.close-button:hover {
+  color: #2d3748;
+}
 
 /* --- FORMS & BUTTONS --- */
-.form-group { margin-bottom: 1rem; }
-.form-group label {
-  display: block; font-size: 0.875rem; font-weight: 600;
-  color: #4a5568; margin-bottom: 0.5rem;
+.form-group {
+  margin-bottom: 1rem;
 }
+
+.form-group label {
+  display: block;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #4a5568;
+  margin-bottom: 0.5rem;
+}
+
 .form-control {
-  width: 100%; padding: 0.75rem 1rem; border: 1px solid #cbd5e0;
-  border-radius: 8px; font-size: 1rem; font-family: 'Nunito', sans-serif;
+  width: 100%;
+  padding: 0.75rem 1rem;
+  border: 1px solid #cbd5e0;
+  border-radius: 8px;
+  font-size: 1rem;
+  font-family: 'Nunito', sans-serif;
   transition: border-color 0.2s, box-shadow 0.2s;
 }
+
 .form-control:focus {
-  outline: none; border-color: #4299e1;
+  outline: none;
+  border-color: #4299e1;
   box-shadow: 0 0 0 3px rgba(66, 153, 225, 0.5);
 }
 
 .btn {
-  padding: 0.6rem 1.2rem; border-radius: 8px; font-weight: 700;
-  border: none; cursor: pointer; transition: all 0.2s;
-  font-size: 0.9rem; display: inline-flex; align-items: center;
+  padding: 0.6rem 1.2rem;
+  border-radius: 8px;
+  font-weight: 700;
+  border: none;
+  cursor: pointer;
+  transition: all 0.2s;
+  font-size: 0.9rem;
+  display: inline-flex;
+  align-items: center;
 }
-.btn-primary { background-color: #4299e1; color: #fff; }
-.btn-primary:hover { background-color: #2b6cb0; }
-.btn-secondary { background-color: #e2e8f0; color: #4a5568; }
-.btn-secondary:hover { background-color: #cbd5e0; }
-.btn-danger { background-color: #e53e3e; color: #fff; }
-.btn-danger:hover { background-color: #c53030; }
-.btn:disabled { background-color: #e2e8f0; color: #a0aec0; cursor: not-allowed; }
+
+.btn-primary {
+  background-color: #4299e1;
+  color: #fff;
+}
+
+.btn-primary:hover {
+  background-color: #2b6cb0;
+}
+
+.btn-secondary {
+  background-color: #e2e8f0;
+  color: #4a5568;
+}
+
+.btn-secondary:hover {
+  background-color: #cbd5e0;
+}
+
+.btn-danger {
+  background-color: #e53e3e;
+  color: #fff;
+}
+
+.btn-danger:hover {
+  background-color: #c53030;
+}
+
+.btn:disabled {
+  background-color: #e2e8f0;
+  color: #a0aec0;
+  cursor: not-allowed;
+}
+
 .btn-light-danger {
-  background-color: #fed7d7; color: #c53030;
-  padding: 0.5rem 1rem; font-size: 0.8rem;
+  background-color: #fed7d7;
+  color: #c53030;
+  padding: 0.5rem 1rem;
+  font-size: 0.8rem;
 }
-.btn-light-danger:hover { background-color: #feb2b2; }
-.w-100 { width: 100%; justify-content: center; }
+
+.btn-light-danger:hover {
+  background-color: #feb2b2;
+}
+
+.w-100 {
+  width: 100%;
+  justify-content: center;
+}
 
 /* --- RESPONSIVE --- */
 @media (max-width: 900px) {
-  .booking-card { flex-direction: column; }
-  .card-details-panel { width: 100%; border-left: none; border-top: 1px solid #edf2f7; }
+  .booking-card {
+    flex-direction: column;
+  }
+
+  .card-details-panel {
+    width: 100%;
+    border-left: none;
+    border-top: 1px solid #edf2f7;
+  }
+}
+
+/* form otp */
+.popup-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  /* Nền đen mờ */
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 2000;
+  /* Đảm bảo popup nằm trên các phần tử khác */
+}
+
+.form-container {
+  margin: 0;
+  /* Bỏ margin */
+  max-width: 400px;
+  background-color: #fff;
+  padding: 32px 24px;
+  font-size: 14px;
+  font-family: inherit;
+  color: #212121;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  box-sizing: border-box;
+  border-radius: 10px;
+  box-shadow: 0px 0px 3px rgba(0, 0, 0, 0.084), 0px 2px 3px rgba(0, 0, 0, 0.168);
+}
+
+.form-container button:active {
+  scale: 0.95;
+}
+
+
+.form-container .logo-container {
+  text-align: center;
+  font-weight: 600;
+  font-size: 18px;
+}
+
+.form-container .form {
+  display: flex;
+  flex-direction: column;
+}
+
+.form-container .form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.form-container .form-group label {
+  display: block;
+  margin-bottom: 5px;
+}
+
+.form-container .form-group input {
+  width: 100%;
+  padding: 12px 16px;
+  border-radius: 6px;
+  font-family: inherit;
+  border: 1px solid #ccc;
+}
+
+.form-container .form-group input::placeholder {
+  opacity: 0.5;
+}
+
+.form-container .form-group input:focus {
+  outline: none;
+  border-color: #1778f2;
+}
+
+.form-container .form-submit-btn {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-family: inherit;
+  color: #fff;
+  background-color: #212121;
+  border: none;
+  width: 100%;
+  padding: 12px 16px;
+  font-size: inherit;
+  gap: 8px;
+  margin: 12px 0;
+  cursor: pointer;
+  border-radius: 6px;
+  box-shadow: 0px 0px 3px rgba(0, 0, 0, 0.084), 0px 2px 3px rgba(0, 0, 0, 0.168);
+}
+
+.form-container .form-submit-btn:hover {
+  background-color: #313131;
+}
+
+.form-container .link {
+  color: #1778f2;
+  text-decoration: none;
+}
+
+.form-container .signup-link {
+  align-self: center;
+  font-weight: 500;
+}
+
+.form-container .signup-link .link {
+  font-weight: 400;
+}
+
+.form-container .link:hover {
+  text-decoration: underline;
 }
 </style>
