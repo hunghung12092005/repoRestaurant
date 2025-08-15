@@ -170,6 +170,8 @@ Route::post('/booking-client', [BookingHotelController::class, 'storeBooking']);
 Route::post('/generate-token', [BookingHotelController::class, 'generateToken']);
 //tra ve lich su cho khach hang
 Route::get('/booking-history', [BookingHotelController::class, 'getBookingHistory']);
+Route::post('/booking-historyPhone', [BookingHotelController::class, 'getBookingHistoryByPhone']);
+Route::get('/booking-history/{id}', [BookingHotelController::class, 'getBookingDetail']);
 Route::delete('/booking-history/{id}', [BookingHotelController::class, 'deleteBookingHistory']);
 Route::delete('/booking-history/{id}', [BookingHotelController::class, 'deleteBookingHistory']);
 Route::get('/cancel-booking/{booking}', [BookingHotelController::class, 'showBookingCancel']);
