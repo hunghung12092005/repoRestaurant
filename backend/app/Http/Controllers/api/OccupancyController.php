@@ -1194,38 +1194,40 @@ class OccupancyController extends Controller
         }
     }
     public function getBookingDetails($booking_id)
-    {
-        try {
-            // Lấy booking và kiểm tra trạng thái
-            $booking = DB::table('booking_hotel')->where('booking_id', $booking_id)->first();
+{
+    try {
+        // Lấy booking và kiểm tra trạng thái
+        $booking = DB::table('booking_hotel')->where('booking_id', $booking_id)->first();
 
-            if (!$booking) {
-                return response()->json(['message' => 'Không tìm thấy booking.'], 404);
-            }
-
-            if ($booking->status === 'completed') {
-                return response()->json(['message' => 'Booking đã thanh toán xong.'], 400);
-            }
-
-            // Lấy danh sách chi tiết phòng thuộc booking này
-            $details = DB::table('booking_hotel_detail as bkd')
-                ->join('rooms', 'rooms.room_id', '=', 'bkd.room_id')
-                ->join('room_types', 'room_types.type_id', '=', 'rooms.type_id')
-                ->where('bkd.booking_id', $booking_id)
-                ->select(
-                    'bkd.booking_detail_id',
-                    'rooms.room_name',
-                    'rooms.floor_number',
-                    'room_types.type_name'
-                )
-                ->get();
-
-            return response()->json($details);
-        } catch (\Exception $e) {
-            Log::error("Lỗi lấy chi tiết booking {$booking_id}: " . $e->getMessage());
-            return response()->json(['message' => 'Lỗi khi lấy chi tiết booking.', 'error' => $e->getMessage()], 500);
+        if (!$booking) {
+            return response()->json(['message' => 'Không tìm thấy booking.'], 404);
         }
+
+        if ($booking->status === 'completed') {
+            return response()->json(['message' => 'Booking đã thanh toán xong.'], 400);
+        }
+
+        // Lấy danh sách chi tiết phòng thuộc booking này
+        $details = DB::table('booking_hotel_detail as bkd')
+            ->join('rooms', 'rooms.room_id', '=', 'bkd.room_id')
+            ->join('room_types', 'room_types.type_id', '=', 'rooms.type_id')
+            ->where('bkd.booking_id', $booking_id)
+            ->select(
+                'bkd.booking_detail_id',
+                 'bkd.total_price',
+                'rooms.room_name',
+                'rooms.floor_number',
+                DB::raw('CASE WHEN bkd.trang_thai IS NULL THEN "no" ELSE bkd.trang_thai END as trang_thai'), // Gán 'chua_done' nếu là null
+                'room_types.type_name'
+            )
+            ->get();
+
+        return response()->json($details);
+    } catch (\Exception $e) {
+        Log::error("Lỗi lấy chi tiết booking {$booking_id}: " . $e->getMessage());
+        return response()->json(['message' => 'Lỗi khi lấy chi tiết booking.', 'error' => $e->getMessage()], 500);
     }
+}
     public function getUnpaidBookings()
     {
         try {
