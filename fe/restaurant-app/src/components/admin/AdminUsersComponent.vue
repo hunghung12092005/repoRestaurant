@@ -45,7 +45,7 @@
               <p class="description-text mb-0 mt-1 fst-italic">Ngày tạo: {{ formatDate(user.created_at) }}</p>
             </td>
             <td>
-              <span class="badge" :class="getRoleBadgeClass(user.role)">{{ user.role }}</span>
+              <span class="badge" :class="getRoleBadgeClass(user.role)">{{ formatRole(user.role) }}</span>
             </td>
             <td>
                <div class="tags-container">
@@ -78,109 +78,66 @@
     <!-- Phân trang -->
      <nav v-if="totalPages > 1" aria-label="Page navigation" class="mt-4">
       <ul class="pagination justify-content-center">
-        <li class="page-item" :class="{ disabled: currentPage === 1 }">
-          <a class="page-link" href="#" @click.prevent="currentPage = 1">««</a>
-        </li>
-        <li class="page-item" :class="{ disabled: currentPage === 1 }">
-          <a class="page-link" href="#" @click.prevent="currentPage--">«</a>
-        </li>
-        <li v-for="page in pageRange" :key="page" class="page-item" :class="{ active: page === currentPage }">
-          <a class="page-link" href="#" @click.prevent="currentPage = page">{{ page }}</a>
-        </li>
-        <li class="page-item" :class="{ disabled: currentPage === totalPages || !totalPages }">
-          <a class="page-link" href="#" @click.prevent="currentPage++">»</a>
-        </li>
-        <li class="page-item" :class="{ disabled: currentPage === totalPages || !totalPages }">
-          <a class="page-link" href="#" @click.prevent="currentPage = totalPages">»»</a>
-        </li>
+        <li class="page-item" :class="{ disabled: currentPage === 1 }"><a class="page-link" href="#" @click.prevent="currentPage = 1">««</a></li>
+        <li class="page-item" :class="{ disabled: currentPage === 1 }"><a class="page-link" href="#" @click.prevent="currentPage--">«</a></li>
+        <li v-for="page in pageRange" :key="page" class="page-item" :class="{ active: page === currentPage }"><a class="page-link" href="#" @click.prevent="currentPage = page">{{ page }}</a></li>
+        <li class="page-item" :class="{ disabled: currentPage === totalPages || !totalPages }"><a class="page-link" href="#" @click.prevent="currentPage++">»</a></li>
+        <li class="page-item" :class="{ disabled: currentPage === totalPages || !totalPages }"><a class="page-link" href="#" @click.prevent="currentPage = totalPages">»»</a></li>
       </ul>
     </nav>
-
 
     <!-- Modal Chi Tiết -->
     <div class="modal fade" id="detailModal" tabindex="-1" aria-labelledby="detailModalLabel" aria-hidden="true">
       <div class="modal-dialog modal-lg modal-dialog-centered">
         <div class="modal-content modal-custom">
-          <div class="modal-header modal-header-custom">
-            <h5 class="modal-title" id="detailModalLabel">Chi tiết Tài Khoản</h5>
-            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Đóng"></button>
-          </div>
+          <div class="modal-header modal-header-custom"><h5 class="modal-title" id="detailModalLabel">Chi tiết Tài Khoản</h5><button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Đóng"></button></div>
           <div class="modal-body p-4">
             <div class="row g-3" v-if="selectedUser">
-                <div class="col-12">
-                    <p class="mb-1 text-muted">Họ và Tên</p>
-                    <h6 class="fw-bold">{{ selectedUser.name || 'N/A' }}</h6>
-                </div>
-                <div class="col-12">
-                    <p class="mb-1 text-muted">Email</p>
-                    <h6 class="fw-bold">{{ selectedUser.email || 'N/A' }}</h6>
-                </div>
-                 <div class="col-md-6">
-                    <p class="mb-1 text-muted">Vai trò</p>
-                    <h6><span class="badge fs-6" :class="getRoleBadgeClass(selectedUser.role)">{{ selectedUser.role || 'N/A' }}</span></h6>
-                </div>
-                 <div class="col-md-6">
-                    <p class="mb-1 text-muted">Ngày tham gia</p>
-                    <h6 class="fw-bold">{{ formatDate(selectedUser.created_at) }}</h6>
-                </div>
-                 <div class="col-12">
-                    <p class="mb-1 text-muted">Quyền cụ thể</p>
+                <div class="col-12"><p class="mb-1 text-muted">Họ và Tên</p><h6 class="fw-bold">{{ selectedUser.name || 'N/A' }}</h6></div>
+                <div class="col-12"><p class="mb-1 text-muted">Email</p><h6 class="fw-bold">{{ selectedUser.email || 'N/A' }}</h6></div>
+                <div class="col-md-6"><p class="mb-1 text-muted">Vai trò</p><h6><span class="badge fs-6" :class="getRoleBadgeClass(selectedUser.role)">{{ formatRole(selectedUser.role) || 'N/A' }}</span></h6></div>
+                <div class="col-md-6"><p class="mb-1 text-muted">Ngày tham gia</p><h6 class="fw-bold">{{ formatDate(selectedUser.created_at) }}</h6></div>
+                <div class="col-12"><p class="mb-1 text-muted">Quyền cụ thể</p>
                     <p v-if="selectedUser.role === 'admin'" class="fst-italic text-success">Admin có tất cả các quyền.</p>
                     <ul class="list-group list-group-flush" v-else-if="selectedUser.permissions && selectedUser.permissions.length > 0">
-                         <li class="list-group-item px-0" v-for="permission in selectedUser.permissions" :key="permission">
-                            <i class="bi bi-check-circle-fill text-success me-2"></i>{{ getPermissionLabel(permission) }}
-                        </li>
+                         <li class="list-group-item px-0" v-for="permission in selectedUser.permissions" :key="permission"><i class="bi bi-check-circle-fill text-success me-2"></i>{{ getPermissionLabel(permission) }}</li>
                     </ul>
                     <p v-else class="fst-italic text-muted">Không có quyền cụ thể nào được gán.</p>
                  </div>
             </div>
           </div>
-          <div class="modal-footer modal-footer-custom">
-            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Đóng</button>
-          </div>
+          <div class="modal-footer modal-footer-custom"><button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Đóng</button></div>
         </div>
       </div>
     </div>
-
 
     <!-- Modal Sửa Vai Trò -->
     <div class="modal fade" id="editRoleModal" tabindex="-1" aria-labelledby="editRoleModalLabel" aria-hidden="true">
       <div class="modal-dialog modal-lg modal-dialog-centered">
         <div class="modal-content modal-custom">
-          <div class="modal-header modal-header-custom">
-            <h5 class="modal-title" id="editRoleModalLabel">Chỉnh sửa Vai trò & Quyền</h5>
-            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Đóng"></button>
-          </div>
+          <div class="modal-header modal-header-custom"><h5 class="modal-title" id="editRoleModalLabel">Chỉnh sửa Vai trò & Quyền</h5><button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Đóng"></button></div>
           <div class="modal-body p-4">
             <form @submit.prevent="saveRole">
               <div class="row g-3">
                 <div class="col-12 mb-2">
                   <label for="role" class="form-label">Vai trò</label>
                   <select class="form-select" v-model="form.role" required>
-                    <option value="admin">Admin</option>
-                    <option value="staff">Staff</option>
-                    <option value="client">Client</option>
+                    <option value="admin">Admin (Toàn quyền)</option>
+                    <option value="client">Client (Khách hàng)</option>
+                    <option value="manager">Manager (Quản lý)</option>
+                    <option value="receptionist">Receptionist (Lễ tân)</option>
                   </select>
                 </div>
-
                 <div class="col-12">
                   <label class="form-label">Quyền cụ thể</label>
-                  <div class="checkbox-list" :class="{ 'disabled-list': form.role !== 'staff' }">
+                  <div class="checkbox-list" :class="{ 'disabled-list': form.role === 'admin' || form.role === 'client' }">
                     <div class="form-check form-switch" v-for="permission in availablePermissions" :key="permission.value">
-                       <input
-                        class="form-check-input"
-                        type="checkbox"
-                        role="switch"
-                        :value="permission.value"
-                        v-model="form.permissions"
-                        :disabled="form.role !== 'staff'"
-                        :id="'perm-' + permission.value"
-                      >
+                       <input class="form-check-input" type="checkbox" role="switch" :value="permission.value" v-model="form.permissions" :disabled="form.role === 'admin' || form.role === 'client'" :id="'perm-' + permission.value">
                       <label class="form-check-label" :for="'perm-' + permission.value">{{ permission.label }}</label>
                     </div>
                   </div>
-                   <small v-if="form.role === 'admin'" class="form-text text-info mt-2 d-block">Admin luôn có tất cả các quyền. Không thể thay đổi.</small>
-                   <small v-if="form.role === 'client'" class="form-text text-muted mt-2 d-block">Client không có quyền hạn.</small>
+                   <small v-if="form.role === 'admin'" class="form-text text-info mt-2 d-block">Admin luôn có tất cả các quyền.</small>
+                   <small v-if="form.role === 'client'" class="form-text text-muted mt-2 d-block">Client không có quyền hạn cụ thể.</small>
                 </div>
               </div>
             </form>
@@ -215,13 +172,21 @@ const selectedUser = ref(null);
 let detailModal = null;
 let editRoleModal = null;
 
+// SỬA ĐỔI: Cập nhật danh sách quyền hạn
 const availablePermissions = ref([
+    { value: 'manage_bookings', label: 'Quản lý Đặt phòng & Sơ đồ phòng' },
+    { value: 'manage_reports', label: 'Xem Lịch sử & Báo cáo' },
+    { value: 'manage_rooms', label: 'Quản lý Phòng & Loại phòng'},
+    { value: 'manage_prices', label: 'Quản lý Giá'},
+    { value: 'manage_services', label: 'Quản lý Dịch vụ' },
+    { value: 'manage_amenities', label: 'Quản lý Tiện nghi' },
+    { value: 'manage_coupons', label: 'Quản lý Giảm giá' },
     { value: 'manage_news', label: 'Quản lý Tin tức' },
     { value: 'manage_contacts', label: 'Quản lý Liên hệ' },
     { value: 'manage_users', label: 'Quản lý Tài khoản' },
+    { value: 'manage_staff', label: 'Quản lý Nhân viên' },
     { value: 'manage_ai_training', label: 'Training AI' },
     { value: 'manage_admin_chat', label: 'Chat Admin' },
-    { value: 'manage_coupons', label: 'Quản lý Discount' }
 ]);
 
 const axiosConfig = axios.create({
@@ -232,6 +197,45 @@ const axiosConfig = axios.create({
     'Accept': 'application/json',
   },
 });
+
+// SỬA ĐỔI: Cập nhật logic watch cho các vai trò mới
+watch(() => form.value.role, (newRole) => {
+  if (newRole === 'admin') {
+    form.value.permissions = availablePermissions.value.map(p => p.value);
+  } else if (newRole === 'client') {
+    form.value.permissions = [];
+  } else {
+    // Quyền mặc định khi chọn vai trò nhân viên
+    const defaultPermissions = {
+        manager: [
+            'manage_bookings', 'manage_reports', 'manage_staff', 'manage_rooms', 
+            'manage_prices', 'manage_services', 'manage_amenities', 'manage_coupons', 'manage_contacts'
+        ],
+        receptionist: ['manage_bookings', 'manage_contacts'],
+    };
+    form.value.permissions = defaultPermissions[newRole] || [];
+  }
+});
+
+const formatRole = (role) => {
+    const roleNames = {
+        admin: 'Admin',
+        client: 'Khách hàng',
+        manager: 'Quản lý',
+        receptionist: 'Lễ tân',
+    };
+    return roleNames[role] || role;
+};
+
+const getRoleBadgeClass = (role) => {
+  switch (role) {
+    case 'admin': return 'badge-danger';
+    case 'manager': return 'badge-warning';
+    case 'receptionist': return 'badge-primary';
+    case 'client': return 'badge-success';
+    default: return 'badge-secondary';
+  }
+};
 
 const showNotification = (message, type = 'success') => {
   alertType.value = type === 'success' ? 'alert-success' : 'alert-danger';
@@ -245,7 +249,7 @@ const fetchUsers = async () => {
     const response = await axiosConfig.get('/api/users', { params: { q: searchQuery.value } });
     users.value = (response.data.data || response.data).map(user => ({
         ...user,
-        permissions: user.permissions || []
+        permissions: Array.isArray(user.permissions) ? user.permissions : []
     }));
   } catch (error) {
     showNotification('Không thể tải danh sách người dùng.', 'error');
@@ -256,11 +260,8 @@ const openEditRoleModal = (user) => {
   form.value = {
       id: user.id,
       role: user.role,
-      permissions: user.role === 'admin' 
-          ? availablePermissions.value.map(p => p.value) 
-          : (user.permissions ? [...user.permissions] : [])
+      permissions: user.permissions ? [...user.permissions] : []
   };
-
   if (!editRoleModal) {
       editRoleModal = new Modal(document.getElementById('editRoleModal'));
   }
@@ -268,21 +269,13 @@ const openEditRoleModal = (user) => {
 };
 
 const saveRole = async () => {
-  let permissionsToSend = [];
-  if (form.value.role === 'staff') {
-      permissionsToSend = form.value.permissions;
-  } else if (form.value.role === 'admin') {
-      permissionsToSend = availablePermissions.value.map(p => p.value);
+  let permissionsToSend = form.value.permissions;
+  if (form.value.role === 'admin' || form.value.role === 'client') {
+      permissionsToSend = [];
   }
-
-  const payload = {
-      role: form.value.role,
-      permissions: permissionsToSend
-  };
-
+  const payload = { role: form.value.role, permissions: permissionsToSend };
   try {
     const response = await axiosConfig.put(`/api/users/${form.value.id}`, payload);
-    
     const updatedUser = response.data.data;
     const loggedInUser = JSON.parse(localStorage.getItem('userInfo') || '{}');
     if (loggedInUser && loggedInUser.id === updatedUser.id) {
@@ -290,42 +283,21 @@ const saveRole = async () => {
         updateAndRefreshUserInfo(updatedUser);
       }
     }
-
     showNotification(response.data.message || 'Cập nhật thành công!');
     await fetchUsers();
     closeModal('edit');
-    
   } catch (error) {
     const errorMessage = error.response?.data?.message || 'Cập nhật thất bại.';
     showNotification(errorMessage, 'error');
   }
 };
 
-// === MODIFIED: Watcher đã được cập nhật ===
-watch(() => form.value.role, (newRole, oldRole) => {
-  // Chỉ thực hiện khi vai trò thực sự thay đổi trong form
-  if (newRole !== oldRole) {
-    if (newRole === 'admin') {
-      // Khi chuyển vai trò thành admin, tự động chọn tất cả quyền
-      form.value.permissions = availablePermissions.value.map(p => p.value);
-    } else if (newRole === 'staff') {
-      // Khi chuyển thành staff, xóa hết quyền để người dùng chọn lại từ đầu
-      form.value.permissions = [];
-    } else if (newRole === 'client') {
-      // Khi chuyển thành client, xóa hết quyền
-      form.value.permissions = [];
-    }
-  }
-});
-
 const closeModal = (modalType) => {
     if (modalType === 'edit' && editRoleModal) {
-        const modalInstance = Modal.getInstance(document.getElementById('editRoleModal'));
-        if (modalInstance) modalInstance.hide();
+        Modal.getInstance(document.getElementById('editRoleModal'))?.hide();
     }
     if (modalType === 'detail' && detailModal) {
-        const modalInstance = Modal.getInstance(document.getElementById('detailModal'));
-        if (modalInstance) modalInstance.hide();
+        Modal.getInstance(document.getElementById('detailModal'))?.hide();
     }
 };
 
@@ -347,14 +319,7 @@ const openDetailModal = (user) => {
   if (!detailModal) detailModal = new Modal(document.getElementById('detailModal'));
   detailModal.show();
 };
-const getRoleBadgeClass = (role) => {
-  switch (role) {
-    case 'admin': return 'badge-danger';
-    case 'staff': return 'badge-warning';
-    case 'client': return 'badge-success';
-    default: return 'badge-secondary';
-  }
-};
+
 const getPermissionLabel = (permissionValue) => {
     const permission = availablePermissions.value.find(p => p.value === permissionValue);
     return permission ? permission.label : permissionValue;
@@ -362,6 +327,7 @@ const getPermissionLabel = (permissionValue) => {
 const formatDate = (dateString) => {
   return dateString ? new Date(dateString).toLocaleDateString('vi-VN') : 'N/A';
 };
+
 onMounted(() => {
   fetchUsers();
 });
@@ -372,6 +338,7 @@ watch(searchQuery, () => {
 </script>
 
 <style scoped>
+/* Giữ nguyên CSS của bạn */
 @import url('https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@300;400;500;600;700&display=swap');
 @import url('https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css');
 .page-container { font-family: 'Be Vietnam Pro', sans-serif; background-color: #f4f7f9; padding: 2rem; color: #34495e; }
@@ -396,6 +363,7 @@ watch(searchQuery, () => {
 .badge-success { background-color: #e6f9f0; color: #2ecc71; }
 .badge-danger { background-color: #fce8e6; color: #e74c3c; }
 .badge-warning { background-color: #fef5e7; color: #f39c12; }
+.badge-primary { background-color: #e7e9fd; color: #4f46e5; }
 .action-buttons { white-space: nowrap; }
 .action-buttons .btn { margin: 0 2px; }
 .pagination .page-link { border: none; border-radius: 8px; margin: 0 4px; color: #7f8c8d; font-weight: 600; }

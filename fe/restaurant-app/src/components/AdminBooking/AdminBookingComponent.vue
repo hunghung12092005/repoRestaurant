@@ -256,15 +256,6 @@
                 {{ dangXuLyXacNhan ? 'Đang xử lý...' : 'Xác Nhận Đặt Phòng' }}
               </button>
               <button
-                v-if="datPhongDuocChon.status === 'confirmed_not_assigned'"
-                @click="xepPhongNgauNhien"
-                class="btn btn-info"
-                :disabled="dangXuLyXepPhong"
-              >
-                <span v-if="dangXuLyXepPhong" class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
-                {{ dangXuLyXepPhong ? 'Đang xếp phòng...' : 'Xếp Phòng Ngẫu Nhiên' }}
-              </button>
-              <button
                 v-if="datPhongDuocChon.status === 'confirmed_not_assigned' && !coPhongChuaXep"
                 @click="hoanTatXacNhan"
                 class="btn btn-success"
@@ -346,6 +337,7 @@ import { Toast } from 'bootstrap';
 import loading from '../loading.vue';
 import { debounce } from 'lodash';
 
+
 const getFormattedCurrentDateTime = () => {
   const now = new Date();
   const timezoneOffset = now.getTimezoneOffset();
@@ -366,7 +358,6 @@ const thongBaoToast = ref('');
 const thongTinHuy = ref(null);
 const dangXepPhong = ref({});
 const dangXuLyXacNhan = ref(false);
-const dangXuLyXepPhong = ref(false);
 const dangXuLyHoanTat = ref(false);
 const dangXuLyHuy = ref(false);
 const lichSuDatPhong = ref([]);
@@ -713,7 +704,6 @@ const xepPhong = async (chiTiet) => {
 };
 
 const xepPhongNgauNhien = async () => {
-  dangXuLyXepPhong.value = true;
   try {
     const payload = {
       check_in_date: datPhongDuocChon.value.check_in_date,
@@ -742,9 +732,7 @@ const xepPhongNgauNhien = async () => {
     console.error('Lỗi khi xếp phòng ngẫu nhiên:', err);
     thongBaoLoi.value = `Lỗi khi xếp phòng ngẫu nhiên: ${err.response?.data?.error || err.message}`;
     showToast('errorToast');
-  } finally {
-    dangXuLyXepPhong.value = false;
-  }
+  } 
 };
 
 const xacNhanDatPhong = async () => {
@@ -763,6 +751,7 @@ const xacNhanDatPhong = async () => {
     thongBaoToast.value = response.data.message || 'Xác nhận đặt phòng thành công!';
     showToast('successToast');
     await taiPhongTrong(datPhongDuocChon.value);
+    await xepPhongNgauNhien(); // Tự động xếp phòng ngẫu nhiên ngay sau khi xác nhận
   } catch (err) {
     console.error('Lỗi khi xác nhận đặt phòng:', {
       message: err.message,
@@ -927,6 +916,7 @@ const layLopTrangThaiThanhToan = (trangThai) => {
 
 onMounted(() => { layDanhSachDatPhong(); });
 </script>
+
 <style scoped>
 @import url('https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@300;400;500;600;700&display=swap');
 @import url('https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css');

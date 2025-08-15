@@ -42,6 +42,7 @@ import AdminBookingHistory from '../components/AdminBooking/AdminBookingHistory.
 import coupons from '../components/admin/coupons/coupons.vue'
 import StaffComponent from '../components/staff/StaffComponent.vue';
 import AdminNotifications from '../components/admin/AdminNotifications.vue';
+import CustomerComponent from '../components/admin/CustomerComponent.vue';
 
 const routes = [
   // --- PUBLIC ROUTES ---
@@ -66,31 +67,37 @@ const routes = [
     path: '/admin/dashboard',
     name: 'AdminDashboard',
     component: AdminDashboardComponent,
-    meta: { requiresAuth: true, roles: ['admin', 'staff'] },
+    meta: { requiresAuth: true }, // Mọi staff/admin đều có thể xem
   },
   {
     path: '/admin/occupancy',
     name: 'AdminOccupancy',
     component: AdminOccupancyComponent,
-    meta: { requiresAuth: true, roles: ['admin', 'staff'] },
+    meta: { requiresAuth: true, permission: 'manage_bookings' },
   },
   {
     path: '/admin/bookings',
     name: 'AdminBookingComponent',
     component: AdminBookingComponent,
-    meta: { requiresAuth: true, roles: ['admin', 'staff'] },
+    meta: { requiresAuth: true, permission: 'manage_bookings' },
   },
   {
     path: '/admin/services',
     name: 'AdminServices',
     component: AdminServicesComponent,
-    meta: { requiresAuth: true, roles: ['admin', 'staff'] },
+    meta: { requiresAuth: true }, // Tạm cho admin/staff
   },
   {
     path: '/admin/amenities',
     name: 'AdminAmenities',
     component: AdminAmenitiesComponent,
-    meta: { requiresAuth: true, roles: ['admin', 'staff'] },
+    meta: { requiresAuth: true }, // Tạm cho admin/staff
+  },
+  {
+    path: '/admin/notifications',
+    name: 'AdminNotifications',
+    component: AdminNotifications,
+    meta: { requiresAuth: true },
   },
 
   // --- PERMISSION-BASED ROUTES ---
@@ -118,61 +125,59 @@ const routes = [
     component: AdminContacts,
     meta: { requiresAuth: true, permission: 'manage_contacts' },
   },
-   {
-    path: '/admin/notifications',
-    name: 'AdminNotifications',
-    component: AdminNotifications,
-    meta: { requiresAuth: true, roles: ['admin', 'staff'] },
-  },
-
-  // --- ADMIN-ONLY ROUTES ---
   {
     path: '/admin/room-types',
     name: 'AdminRoomType',
     component: AdminRoomTypeComponent,
-    meta: { requiresAdmin: true },
+    meta: { requiresAuth: true, permission: 'manage_rooms' }, // Sử dụng permission
   },
   {
     path: '/admin/prices',
     name: 'AdminPrice',
     component: AdminPriceComponent,
-    meta: { requiresAdmin: true },
+    meta: { requiresAuth: true, permission: 'manage_prices' }, // Sử dụng permission
   },
   {
     path: '/admin/rooms',
     name: 'AdminRoom',
     component: AdminRoomComponent,
-    meta: { requiresAdmin: true },
+    meta: { requiresAuth: true, permission: 'manage_rooms' }, // Sử dụng permission
   },
   {
     path: '/admin/users',
     name: 'AdminUsers',
     component: AdminUsersComponent,
-    meta: { requiresAdmin: true },
+    meta: { requiresAuth: true, permission: 'manage_users' },
+  },
+   {
+    path: '/admin/staffs',
+    name: 'StaffComponent',
+    component: StaffComponent,
+    meta: { requiresAuth: true, permission: 'manage_staff' },
   },
   {
     path: '/admin/booking-histories',
     name: 'AdminBookingHistory',
     component: AdminBookingHistory,
-    meta: { requiresAdmin: true },
+    meta: { requiresAuth: true, permission: 'manage_reports' },
   },
   {
     path: '/admin/traningAI',
     name: 'traningAI',
     component: traningAI,
-    meta: { requiresAdmin: true },
+    meta: { requiresAuth: true, permission: 'manage_ai_training' },
   },
   {
     path: '/admin/ChatAdmin',
     name: 'ChatAdmin',
     component: ChatAdmin,
-    meta: { requiresAdmin: true },
+    meta: { requiresAuth: true, permission: 'manage_admin_chat' },
   },
   {
     path: '/admin/coupons',
     name: 'coupons',
     component: coupons,
-    meta: { requiresAdmin: true },
+    meta: { requiresAuth: true, permission: 'manage_coupons' },
   },
   {
     path: '/admin/staffs',
@@ -180,7 +185,14 @@ const routes = [
     component: StaffComponent,
     meta: { requiresAdmin: true },
   },
+  {
+    path: '/admin/customers',
+    name: 'CustomerComponent',
+    component: CustomerComponent,
+    meta: { requiresAdmin: true },
+  },
 
+ 
   // --- MISC & 404 ---
   { path: '/test', name: 'test', component: test },
   { path: '/:catchAll(.*)', name: 'NotFound', component: page404 },
@@ -191,7 +203,6 @@ const router = createRouter({
   routes,
 });
 
-// Cuộn lên đầu trang khi chuyển trang
 router.afterEach(() => {
   window.scrollTo(0, 0);
 });
@@ -199,61 +210,45 @@ router.afterEach(() => {
 // Route Guard để kiểm tra quyền truy cập
 router.beforeEach((to, from, next) => {
   const isAuthenticated = !!localStorage.getItem('tokenJwt');
+  const requiresAuth = to.matched.some(record => record.meta.requiresAuth);
 
-  // Kiểm tra xem route có yêu cầu bất kỳ loại xác thực nào không
-  const requiresAuth = to.matched.some(record => record.meta.requiresAuth || record.meta.requiresAdmin || record.meta.permission || record.meta.roles);
-
-  // 1. Nếu route yêu cầu xác thực nhưng người dùng chưa đăng nhập
+  // 1. Nếu route yêu cầu đăng nhập mà chưa đăng nhập -> về trang login
   if (requiresAuth && !isAuthenticated) {
     return next({ name: 'LoginComponent', query: { redirect: to.fullPath } });
   }
 
-  // 2. Nếu người dùng đã đăng nhập, tiến hành kiểm tra quyền
-  // 2. Nếu người dùng đã đăng nhập, tiến hành kiểm tra quyền
-  if (isAuthenticated) {
-    // ✅ Fix lỗi JSON.parse khi giá trị là "undefined"
+  // 2. Nếu đã đăng nhập và route yêu cầu quyền
+  if (isAuthenticated && requiresAuth) {
     let userInfo = {};
     try {
       const raw = localStorage.getItem('userInfo');
       userInfo = raw && raw !== 'undefined' ? JSON.parse(raw) : {};
     } catch (e) {
       console.error('Lỗi khi parse userInfo:', e);
-      userInfo = {};
+      // Nếu lỗi, đăng xuất để đảm bảo an toàn
+      localStorage.removeItem('tokenJwt');
+      localStorage.removeItem('userInfo');
+      return next({ name: 'LoginComponent' });
     }
 
-    const isAdmin = userInfo.role === 'admin';
-    const isStaff = userInfo.role === 'staff';
+    const userRole = userInfo.role || 'client';
     const userPermissions = userInfo.permissions || [];
 
-    // 2.1. Kiểm tra vai trò (dành cho các route meta.roles)
-    if (to.meta.roles && !to.meta.roles.includes(userInfo.role)) {
-      // Nếu vai trò không được phép, về dashboard
-      return next('/admin/dashboard');
+    // Người dùng là 'admin' có toàn quyền truy cập
+    if (userRole === 'admin') {
+      return next();
     }
-
-    // 2.2. Kiểm tra quyền Admin
-    if (to.meta.requiresAdmin && !isAdmin) {
-      // Nếu yêu cầu admin mà không phải admin -> về dashboard
-      return next('/admin/dashboard');
-    }
-
-    // 2.3. Kiểm tra quyền cụ thể (permission)
-    if (to.meta.permission) {
-      // Admin luôn có quyền, cho qua
-      if (isAdmin) {
-        return next();
-      }
-
-      // Nếu không phải admin, kiểm tra trong mảng permissions
-      if (!userPermissions.includes(to.meta.permission)) {
-        // Không có quyền -> về dashboard
-        return next('/admin/dashboard');
-      }
+    
+    // Kiểm tra quyền hạn yêu cầu (permission)
+    const requiredPermission = to.meta.permission;
+    if (requiredPermission && !userPermissions.includes(requiredPermission)) {
+        // Có thể hiển thị thông báo "Không có quyền truy cập"
+        // alert('Bạn không có quyền truy cập chức năng này.');
+        return next('/admin/dashboard'); // Chuyển hướng về trang an toàn
     }
   }
 
-
-  // 3. Nếu tất cả các kiểm tra đều qua, cho phép truy cập
+  // 3. Mọi trường hợp khác, cho phép truy cập
   next();
 });
 

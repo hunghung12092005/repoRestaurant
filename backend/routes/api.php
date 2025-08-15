@@ -18,6 +18,7 @@ use App\Http\Controllers\api\BookingHotelController;
 use App\Http\Controllers\api\AdminDashboardController;
 use App\Http\Controllers\api\ContactController;
 use App\Http\Controllers\api\BookingHistoryController;
+use App\Http\Controllers\Api\CustomerController;
 use App\Http\Controllers\ChatAIController;
 use App\Http\Controllers\CouponsController;
 use App\Http\Controllers\FileController;
@@ -70,11 +71,15 @@ Route::get('/news/pinned', [NewsController::class, 'getPinned']);
 Route::apiResource('news', NewsController::class);
 Route::apiResource('news-categories', NewsCategoryController::class);
 
-// Staff schedules
+// Staff
 Route::get('/staffs', [StaffController::class, 'index']);
 Route::post('/staffs', [StaffController::class, 'store']);
 Route::put('/staffs/{id}', [StaffController::class, 'update']);
 Route::delete('/staffs/{id}', [StaffController::class, 'destroy']);
+
+// Customer
+Route::get('/customers', [CustomerController::class, 'index']);
+Route::get('/customers/{customerId}/bookings', [CustomerController::class, 'getBookings']);
 
 // Comments
 Route::get('/news/{newsId}/comments', [NewsCommentController::class, 'commentsByNewsId']);
