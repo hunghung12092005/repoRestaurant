@@ -42,6 +42,7 @@ import AdminBookingHistory from '../components/AdminBooking/AdminBookingHistory.
 import coupons from '../components/admin/coupons/coupons.vue'
 import StaffComponent from '../components/staff/StaffComponent.vue';
 import AdminNotifications from '../components/admin/AdminNotifications.vue';
+import CustomerComponent from '../components/admin/CustomerComponent.vue';
 
 const routes = [
   // --- PUBLIC ROUTES ---
@@ -178,6 +179,12 @@ const routes = [
     path: '/admin/staffs',
     name: 'StaffComponent',
     component: StaffComponent,
+    meta: { requiresAdmin: true },
+  },
+  {
+    path: '/admin/customers',
+    name: 'CustomerComponent',
+    component: CustomerComponent,
     meta: { requiresAdmin: true },
   },
 

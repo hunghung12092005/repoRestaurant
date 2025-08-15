@@ -915,7 +915,7 @@ const formatPermissions = (permissions) => {
 .btn-icon {
   width: 38px;
   height: 38px;
-  border-radius: 50%;
+  /* border-radius: 50%; */
   display: inline-flex;
   align-items: center;
   justify-content: center;

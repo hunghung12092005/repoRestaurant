@@ -70,6 +70,28 @@
             </li> -->
           </template>
 
+          <li class="nav-section-title">QUẢN LÝ TÀI KHOẢN</li>
+          <!-- Quản lý Tài khoản -->
+          <li v-if="hasPermission('manage_users')" class="nav-item">
+            <router-link class="nav-link" to="/admin/users">
+              <i class="bi bi-people"></i>Quản Lý Tài Khoản
+            </router-link>
+          </li>
+
+          <!-- Quản lý Nhân viên -->
+          <li v-if="hasPermission('manage_staffs')" class="nav-item">
+            <router-link class="nav-link" to="/admin/staffs">
+              <i class="bi bi-person-workspace"></i>Quản Lý Nhân Viên
+            </router-link>
+          </li>
+
+          <!-- Quản lý Khách hàng -->
+          <li v-if="hasPermission('manage_customers')" class="nav-item">
+              <router-link class="nav-link" to="/admin/customers">
+                  <i class="bi bi-person-lines-fill"></i>Quản Lý Khách Hàng
+              </router-link>
+          </li>
+
           <!-- Tiêu đề phân vùng: QUYỀN THEO PHÂN QUYỀN -->
           <li class="nav-section-title">QUYỀN THEO PHÂN QUYỀN</li>
           <!-- Quản lý Tin tức -->
@@ -96,10 +118,6 @@
           <li v-if="hasPermission('manage_reviews')" class="nav-item">
             <router-link class="nav-link" to="/admin/reviews"><i class="bi bi-star"></i>Quản Lý Đánh Giá</router-link>
           </li>
-          <!-- Quản lý Tài khoản -->
-          <li v-if="hasPermission('manage_users')" class="nav-item"><router-link class="nav-link" to="/admin/users"><i class="bi bi-people"></i>Quản Lý Tài Khoản</router-link></li>
-          <!-- Quản lý Nhân viên -->
-          <li v-if="hasPermission('manage_staffs')" class="nav-item"><router-link class="nav-link" to="/admin/staffs"><i class="bi bi-person-workspace"></i>Quản Lý Nhân Viên</router-link></li>
           <!-- Training AI -->
           <li v-if="hasPermission('manage_ai_training')" class="nav-item"><router-link class="nav-link"
               to="/admin/traningAI"><i class="bi bi-robot"></i>Training AI</router-link></li>
