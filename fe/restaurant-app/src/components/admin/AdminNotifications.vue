@@ -75,8 +75,8 @@
 import { ref, onMounted, computed } from 'vue';
 import { useRouter } from 'vue-router';
 import axiosConfig from '../../axiosConfig.js';
-// import { format, formatDistanceToNow, isToday, isYesterday } from 'date-fns';
-// import { vi } from 'date-fns/locale';
+import { format, isToday, isYesterday } from 'date-fns';
+import { vi } from 'date-fns/locale';
 
 const router = useRouter();
 const allNotifications = ref([]);
@@ -84,7 +84,7 @@ const pagination = ref({});
 const isLoading = ref(true);
 const filter = ref('all'); // 'all' or 'unread'
 
-// Tính toán danh sách thông báo đã nhóm
+// Tính toán danh sách thông báo đã được lọc và nhóm theo ngày
 const groupedNotifications = computed(() => {
   const filtered = allNotifications.value.filter(n => {
     if (filter.value === 'unread') return !n.read_at;
@@ -117,36 +117,102 @@ const groupedNotifications = computed(() => {
   }));
 });
 
+// Kiểm tra xem có thông báo nào chưa đọc không để bật/tắt nút "Đánh dấu đã đọc"
 const hasUnreadNotifications = computed(() => {
   return allNotifications.value.some(n => !n.read_at);
 });
 
-// Các hàm tiện ích
-const getNotificationDetails = (type) => { /* ... giữ nguyên như cũ ... */ };
-const formatTime = (dateString) => format(new Date(dateString), 'HH:mm');
-
-// Lấy dữ liệu từ API
-const fetchNotifications = async (page = 1) => { /* ... giữ nguyên như cũ ... */ };
-const getPageNumberFromUrl = (url) => { /* ... giữ nguyên như cũ ... */ };
-const handleNotificationClick = async (notification) => { /* ... giữ nguyên như cũ ... */ };
-
-const setFilter = (newFilter) => {
-  filter.value = newFilter;
-  // Không cần fetch lại vì đã có tất cả dữ liệu, chỉ lọc trên frontend
+// Hàm lấy icon và màu sắc dựa trên loại thông báo
+const getNotificationDetails = (type) => {
+  switch (type) {
+    case 'NEW_CONTACT':
+      return { icon: 'bi bi-person-plus-fill', color: 'var(--bs-primary)' };
+    case 'NEW_COMMENT':
+      return { icon: 'bi bi-chat-left-text-fill', color: 'var(--bs-success)' };
+    case 'NEW_BOOKING':
+      return { icon: 'bi bi-calendar-check-fill', color: 'var(--bs-warning)' };
+    default:
+      return { icon: 'bi bi-bell-fill', color: 'var(--bs-secondary)' };
+  }
 };
 
+// Hàm định dạng giờ:phút từ chuỗi ngày
+const formatTime = (dateString) => {
+  if (!dateString) return '';
+  return format(new Date(dateString), 'HH:mm');
+};
+
+// Hàm lấy danh sách thông báo từ API, có hỗ trợ phân trang
+const fetchNotifications = async (page = 1) => {
+  if (!page) return; // Không làm gì nếu link phân trang bị vô hiệu hóa
+  try {
+    isLoading.value = true;
+    const response = await axiosConfig.get(`/api/notifications/all?page=${page}`);
+    if (response.data.status) {
+      allNotifications.value = response.data.data.data;
+      pagination.value = response.data.data; // Lưu trữ toàn bộ thông tin phân trang
+    }
+  } catch (error) {
+    console.error('Lỗi khi lấy danh sách thông báo:', error);
+    allNotifications.value = [];
+  } finally {
+    isLoading.value = false;
+  }
+};
+
+// Hàm lấy số trang từ URL mà Laravel Pagination trả về
+const getPageNumberFromUrl = (url) => {
+  if (!url) return null;
+  try {
+    const urlObject = new URL(url);
+    return urlObject.searchParams.get('page');
+  } catch (e) {
+    return null;
+  }
+};
+
+// Hàm xử lý khi người dùng click vào một thông báo
+const handleNotificationClick = async (notification) => {
+  const wasUnread = !notification.read_at;
+  // Cập nhật giao diện ngay lập tức
+  if (wasUnread) {
+    notification.read_at = new Date().toISOString();
+  }
+  // Chuyển hướng nếu có link
+  if (notification.data.link) {
+    router.push(notification.data.link);
+  }
+  // Gửi yêu cầu đánh dấu đã đọc lên server trong nền
+  if (wasUnread) {
+    try {
+      await axiosConfig.post(`/api/notifications/${notification.id}/mark-as-read`);
+    } catch (error) {
+      console.error('Lỗi khi đánh dấu đã đọc trên server:', error);
+    }
+  }
+};
+
+// Hàm thay đổi bộ lọc (Tất cả / Chưa đọc)
+const setFilter = (newFilter) => {
+  filter.value = newFilter;
+};
+
+// Hàm đánh dấu tất cả thông báo là đã đọc
 const markAllAsRead = async () => {
   try {
     await axiosConfig.post('/api/notifications/mark-all-as-read');
-    // Cập nhật UI
+    // Cập nhật giao diện cho tất cả thông báo
     allNotifications.value.forEach(n => {
-      if (!n.read_at) n.read_at = new Date().toISOString();
+      if (!n.read_at) {
+        n.read_at = new Date().toISOString();
+      }
     });
   } catch (error) {
     console.error('Lỗi khi đánh dấu tất cả đã đọc:', error);
   }
 };
 
+// Hook được gọi khi component được tải
 onMounted(() => {
   fetchNotifications();
 });
@@ -191,6 +257,7 @@ onMounted(() => {
 .icon-wrapper {
   width: 40px; height: 40px; color: white;
   border-radius: 50%; display: flex; align-items: center; justify-content: center;
+  font-size: 1.1rem;
 }
 .message-text {
   color: #212529;
@@ -202,12 +269,10 @@ onMounted(() => {
 .notification-meta {
   min-width: 60px;
   position: relative;
+  text-align: right;
 }
 .unread-dot-indicator {
-  position: absolute;
-  top: 50%;
-  right: 0;
-  transform: translateY(-50%);
+  display: inline-block;
   width: 10px; height: 10px;
   background-color: var(--bs-primary);
   border-radius: 50%;

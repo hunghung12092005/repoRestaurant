@@ -2,10 +2,6 @@
   <div class="notification-bell-wrapper dropdown">
     <!-- Icon chuông và badge số thông báo chưa đọc -->
     <i class="bi bi-bell-fill mx-3" @click="toggleDropdown" data-bs-toggle="dropdown" aria-expanded="false" title="Thông báo">
-      <!-- 
-        VÙNG NÀY SẼ TỰ ĐỘNG CẬP NHẬT
-        khi `unreadCount.value` thay đổi nhờ vào sức mạnh của Vue.
-      -->
       <span v-if="unreadCount > 0" class="badge rounded-pill bg-danger notification-badge">{{ unreadCount > 9 ? '9+' : unreadCount }}</span>
     </i>
 
@@ -14,8 +10,8 @@
       <ul v-if="isOpen" class="dropdown-menu dropdown-menu-end notification-dropdown show">
         <!-- Header -->
         <li class="dropdown-header d-flex justify-content-between align-items-center">
-          <span class="fw-bold">Thông báo hôm nay</span>
-          <button v-if="unreadCount > 0" @click.prevent="markAllAsRead" class="btn btn-link btn-sm p-0">
+          <span class="fw-bold">Thông báo gần đây</span>
+          <button v-if="hasUnreadInDropdown" @click.prevent="markAllAsRead" class="btn btn-link btn-sm p-0">
              Đánh dấu đã đọc
           </button>
         </li>
@@ -63,28 +59,28 @@
 </template>
 
 <script setup>
-import { ref, onMounted, onUnmounted } from 'vue';
+import { ref, onMounted, onUnmounted, computed } from 'vue';
 import { useRouter } from 'vue-router';
 import axiosConfig from '../axiosConfig.js';
-import echo from '../echo.js';
+// Không cần import echo.js nữa
 
+// --- STATE MANAGEMENT ---
 const router = useRouter();
 const notifications = ref([]);
 const unreadCount = ref(0);
 const isOpen = ref(false);
 const isLoading = ref(true);
-const userInfo = ref(JSON.parse(localStorage.getItem('userInfo') || '{}'));
+let pollingInterval = null; // Biến để lưu trữ tiến trình lặp lại
 
+const hasUnreadInDropdown = computed(() => notifications.value.some(n => !n.read_at));
+
+// --- HELPER FUNCTIONS ---
 const getNotificationDetails = (type) => {
   switch (type) {
-    case 'NEW_CONTACT':
-      return { icon: 'bi bi-person-plus-fill', color: 'var(--bs-primary)' };
-    case 'NEW_COMMENT':
-      return { icon: 'bi bi-chat-left-text-fill', color: 'var(--bs-success)' };
-    case 'NEW_BOOKING':
-      return { icon: 'bi bi-calendar-check-fill', color: 'var(--bs-warning)' }; 
-    default:
-      return { icon: 'bi bi-bell-fill', color: 'var(--bs-secondary)' };
+    case 'NEW_CONTACT': return { icon: 'bi bi-person-plus-fill', color: 'var(--bs-primary)' };
+    case 'NEW_COMMENT': return { icon: 'bi bi-chat-left-text-fill', color: 'var(--bs-success)' };
+    case 'NEW_BOOKING': return { icon: 'bi bi-calendar-check-fill', color: 'var(--bs-warning)' }; 
+    default: return { icon: 'bi bi-bell-fill', color: 'var(--bs-secondary)' };
   }
 };
 
@@ -101,31 +97,49 @@ const timeAgo = (dateString) => {
   return "Vừa xong";
 };
 
-const fetchNotifications = async () => {
+// --- DATA HANDLING (POLLING) ---
+
+/**
+ * Hàm này sẽ được gọi định kỳ để "hỏi" server số lượng thông báo chưa đọc.
+ * Đây là trái tim của việc cập nhật tự động.
+ */
+const updateUnreadCount = async () => {
   try {
-    isLoading.value = true;
-    const response = await axiosConfig.get('/api/notifications');
+    const response = await axiosConfig.get('/api/notifications/unread-count');
     if (response.data.status) {
-      notifications.value = response.data.data;
-      unreadCount.value = notifications.value.filter(n => !n.read_at).length;
+      unreadCount.value = response.data.unread_count;
     }
   } catch (error) {
-    console.error('Lỗi khi lấy thông báo:', error);
+    // Không log lỗi ra console để tránh làm phiền, vì nó sẽ chạy liên tục.
+    // Nếu có lỗi, số thông báo sẽ không được cập nhật cho đến lần hỏi thành công tiếp theo.
+  }
+};
+
+/**
+ * Hàm này chỉ được gọi KHI MỞ dropdown để lấy danh sách chi tiết.
+ */
+const fetchNotificationsList = async () => {
+  try {
+    isLoading.value = true;
+    const response = await axiosConfig.get('/api/notifications'); 
+    if (response.data.status) {
+      notifications.value = response.data.data;
+    }
+  } catch (error) {
+    console.error('Lỗi khi lấy danh sách thông báo:', error);
     notifications.value = [];
   } finally {
     isLoading.value = false;
   }
 };
 
-const markAllAsRead = async () => {
-  try {
-    await axiosConfig.post('/api/notifications/mark-all-as-read');
-    notifications.value.forEach(n => {
-      if (!n.read_at) n.read_at = new Date().toISOString();
-    });
-    unreadCount.value = 0;
-  } catch (error) {
-    console.error('Lỗi khi đánh dấu tất cả đã đọc:', error);
+// --- USER INTERACTION HANDLERS ---
+const toggleDropdown = () => {
+  isOpen.value = !isOpen.value;
+  if (isOpen.value) {
+    fetchNotificationsList();
+    // Khi mở dropdown, cập nhật lại số lượng ngay lập tức để đồng bộ
+    updateUnreadCount();
   }
 };
 
@@ -148,29 +162,16 @@ const handleNotificationClick = async (notification) => {
   }
 };
 
-const toggleDropdown = () => {
-  isOpen.value = !isOpen.value;
-  if (isOpen.value) {
-    fetchNotifications();
-  }
-};
-
-const listenForNotifications = () => {
-  if (userInfo.value && userInfo.value.id) {
-    // Lắng nghe sự kiện trên kênh riêng của user
-    echo.private(`App.Models.User.${userInfo.value.id}`)
-      .listen('.new-notification', (data) => {
-        // Cập nhật danh sách nếu dropdown đang mở
-        if (isOpen.value) {
-           notifications.value.unshift(data);
-        }
-        
-        // === LOGIC CẬP NHẬT REAL-TIME ĐÂY RỒI! ===
-        // Tăng số đếm thông báo chưa đọc lên 1.
-        // Vì unreadCount là một ref(), Vue sẽ tự động cập nhật lại giao diện.
-        // Logic này chạy ngay cả khi dropdown đang đóng.
-        unreadCount.value++; 
-      });
+const markAllAsRead = async () => {
+  try {
+    await axiosConfig.post('/api/notifications/mark-all-as-read');
+    notifications.value.forEach(n => {
+      if (!n.read_at) n.read_at = new Date().toISOString();
+    });
+    // Sau khi đánh dấu tất cả, cập nhật lại số đếm ngay lập tức
+    updateUnreadCount();
+  } catch (error) {
+    console.error('Lỗi khi đánh dấu tất cả đã đọc:', error);
   }
 };
 
@@ -179,20 +180,25 @@ const viewAllNotifications = () => {
     router.push('/admin/notifications'); 
 };
 
+// --- LIFECYCLE HOOKS ---
 onMounted(() => {
-  fetchNotifications();
-  listenForNotifications(); // Bắt đầu lắng nghe khi component được tạo
+  // 1. Cập nhật số lượng ngay lập tức khi tải trang
+  updateUnreadCount(); 
+
+  // 2. Bắt đầu "hỏi vòng" server mỗi 5 giây (bạn có thể thay đổi thời gian này)
+  pollingInterval = setInterval(updateUnreadCount, 5000); // 5000ms = 5 giây
 });
 
 onUnmounted(() => {
-  if (userInfo.value && userInfo.value.id) {
-    echo.leave(`App.Models.User.${userInfo.value.id}`); // Ngừng lắng nghe để tránh memory leak
+  // 3. Dọn dẹp: Dừng việc "hỏi vòng" khi người dùng rời khỏi component
+  if (pollingInterval) {
+    clearInterval(pollingInterval);
   }
 });
 </script>
 
 <style scoped>
-/* Toàn bộ CSS của bạn giữ nguyên */
+/* Toàn bộ CSS của bạn giữ nguyên, không cần thay đổi */
 .fade-enter-active, .fade-leave-active { transition: opacity 0.2s ease, transform 0.2s ease; }
 .fade-enter-from, .fade-leave-to { opacity: 0; transform: translateY(-10px); }
 .notification-bell-wrapper { position: relative; }
