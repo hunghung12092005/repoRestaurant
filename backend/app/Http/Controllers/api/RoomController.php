@@ -49,7 +49,6 @@ class RoomController extends Controller
             'room_name' => 'required|string|max:255|unique:rooms,room_name',
             'type_id' => 'required|exists:room_types,type_id',
             'floor_number' => 'required|integer|min:1',
-            'status' => 'required|in:available,occupied,pending_cancel',
             'description' => 'string',
         ]);
 
@@ -59,7 +58,7 @@ class RoomController extends Controller
         }
 
         try {
-            $data = $request->only(['room_name', 'type_id', 'floor_number', 'status', 'description']);
+            $data = $request->only(['room_name', 'type_id', 'floor_number', 'description']);
             $data['description'] = $data['description'] ?: null;
 
             $room = Room::create($data);
@@ -91,7 +90,6 @@ class RoomController extends Controller
             'room_name' => 'required|string|max:255|unique:rooms,room_name,' . $room_id . ',room_id',
             'type_id' => 'required|exists:room_types,type_id',
             'floor_number' => 'required|integer|min:1',
-            'status' => 'required|in:available,occupied,pending_cancel',
             'description' => 'string',
         ]);
 
@@ -102,7 +100,7 @@ class RoomController extends Controller
 
         try {
             $room = Room::findOrFail($room_id);
-            $data = $request->only(['room_name', 'type_id', 'floor_number', 'status', 'description']);
+            $data = $request->only(['room_name', 'type_id', 'floor_number', 'description']);
             $data['description'] = $data['description'] ?: null;
 
             $room->update($data);
