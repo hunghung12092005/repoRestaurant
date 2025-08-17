@@ -10,6 +10,7 @@ use Illuminate\Support\Facades\Mail;
 use App\Mail\ContactReplyMail;
 use Illuminate\Support\Facades\Log;
 use App\Models\User;
+use App\Models\Role;
 use App\Models\Notification;
 use App\Events\NewNotification;
 use Illuminate\Support\Str;
@@ -55,7 +56,10 @@ class ContactController extends Controller
 
         // ===== BẮT ĐẦU PHẦN THÊM MỚI =====
         // Gửi thông báo real-time tới admin/staff
-        $adminsAndStaff = User::whereIn('role', ['admin', 'staff'])->get();
+        $adminAndStaffRoleIds = Role::whereIn('name', ['admin', 'manager', 'receptionist'])->pluck('id');
+
+            // Tìm tất cả người dùng thuộc các vai trò đó
+        $adminsAndStaff = User::whereIn('role_id', $adminAndStaffRoleIds)->get();
 
         foreach ($adminsAndStaff as $user) {
             // 1. Tạo bản ghi Notification trong database
