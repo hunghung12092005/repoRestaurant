@@ -106,14 +106,14 @@ class LoginController extends Controller
     $user = Socialite::driver('google')->user();
 
     $authUser = User::where('email', $user->email)->first();
-    $role = 'client';
+    $role = '2';
 
     if (!$authUser) {
         // Nếu chưa có người dùng, tạo mới
         $authUser = User::create([
             'name' => $user->name,
             'email' => $user->email,
-            'role' => $role,
+            'role_id' => $role,
             'google_id' => $user->id,
             'password' => bcrypt(rand(16, 20)), // Tạo mật khẩu ngẫu nhiên
         ]);

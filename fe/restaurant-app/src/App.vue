@@ -161,14 +161,18 @@ const staffRoles = ['manager', 'receptionist'];
 const setUserRoles = (user) => {
   userInfo.value = user || {};
   isLogin.value = !!user;
-  isAdmin.value = user?.role === 'admin';
-  isStaff.value = staffRoles.includes(user?.role);
+  // Kiểm tra 'name' bên trong object 'role'
+  isAdmin.value = user?.role?.name === 'admin'; 
+  isStaff.value = ['manager', 'receptionist'].includes(user?.role?.name);
 };
 
 const can = (permission) => {
   if (isAdmin.value) return true;
-  if (!userInfo.value || !Array.isArray(userInfo.value.permissions)) return false;
-  return userInfo.value.permissions.includes(permission);
+  // Kiểm tra 'permissions' bên trong object 'role'
+  if (!userInfo.value?.role?.permissions) return false;
+  
+  // 'permissions' bây giờ là một mảng các object, cần kiểm tra 'name' của từng object
+  return userInfo.value.role.permissions.some(p => p.name === permission);
 };
 
 // CẤU TRÚC SIDEBAR: Master list của tất cả các mục có thể có
@@ -183,9 +187,13 @@ const sidebarStructure = [
   { section: 'QUẢN LÝ DỊCH VỤ & TIỆN NGHI', title: 'Quản Lý Dịch Vụ', to: '/admin/services', icon: 'bi bi-box-seam', requiredPermission: 'manage_services' },
   { section: 'QUẢN LÝ DỊCH VỤ & TIỆN NGHI', title: 'Quản Lý Tiện Nghi', to: '/admin/amenities', icon: 'bi bi-gem', requiredPermission: 'manage_amenities' },
   { section: 'QUẢN LÝ DỊCH VỤ & TIỆN NGHI', title: 'Quản Lý Giảm Giá', to: '/admin/coupons', icon: 'bi bi-ticket-perforated', requiredPermission: 'manage_coupons' },
+  {
+    section: 'QUẢN LÝ TÀI KHOẢN', title: 'Quản lý Vai trò', to: '/admin/roles', icon: 'bi bi-person-check',
+  },
   { section: 'QUẢN LÝ TÀI KHOẢN', title: 'Quản Lý Tài Khoản', to: '/admin/users', icon: 'bi bi-people', requiredPermission: 'manage_users' },
   { section: 'QUẢN LÝ TÀI KHOẢN', title: 'Quản Lý Nhân Viên', to: '/admin/staffs', icon: 'bi bi-person-workspace', requiredPermission: 'manage_staff' },
   { section: 'QUẢN LÝ TÀI KHOẢN', title: 'Quản Lý Khách hàng', to: '/admin/customers', icon: 'bi bi-person-lines-fill', requiredPermission: 'manage_customers' },
+
   {
     section: 'QUẢN LÝ HỆ THỐNG', title: 'Quản Lý Tin Tức', icon: 'bi bi-newspaper', requiredPermission: 'manage_news', key: 'news',
     children: [

@@ -25,6 +25,8 @@ use App\Http\Controllers\FileController;
 use App\Http\Controllers\WebhookController;
 use App\Http\Controllers\api\NotificationController;
 use App\Http\Controllers\api\StaffController;
+use App\Http\Controllers\api\RoleController;
+use App\Http\Controllers\api\PermissionController;
 use App\Models\BookingHistory;
 use App\Models\StaffProfile;
 use Illuminate\Support\Facades\Storage;
@@ -64,7 +66,8 @@ Route::get('/admin/contacts', [ContactController::class, 'index']);
 Route::delete('/admin/contacts/{contact}', [ContactController::class, 'destroy']);
 Route::post('/admin/contacts/{contact}/reply', [ContactController::class, 'reply']);
 Route::get('/admin/contacts/new', [ContactController::class, 'fetchNew']);
-
+Route::apiResource('permissions', PermissionController::class);
+Route::apiResource('roles', RoleController::class);
 Route::apiResource('users', UsersController::class);
 //news
 Route::get('/news/pinned', [NewsController::class, 'getPinned']);

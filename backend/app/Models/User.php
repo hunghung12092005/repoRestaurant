@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Tymon\JWTAuth\Contracts\JWTSubject;
+use App\Models\Role;
 
 class User extends Authenticatable implements JWTSubject
 {
@@ -14,15 +15,14 @@ class User extends Authenticatable implements JWTSubject
 
     /**
      * Các thuộc tính có thể gán hàng loạt.
-     *
-     * @var array<int, string>
+     * ĐÃ SỬA LẠI CHO ĐÚNG VỚI DATABASE
      */
     protected $fillable = [
         'name',
         'email',
         'password',
-        'role',
-        'permissions', // <-- THÊM DÒNG NÀY
+        'role_id', // <-- Sửa từ 'role'
+        // Đã xóa 'permissions'
         'qr_code',
         'turnstileResponse',
         'status',
@@ -30,8 +30,6 @@ class User extends Authenticatable implements JWTSubject
 
     /**
      * Các thuộc tính nên được ẩn khi serialize.
-     *
-     * @var array<int, string>
      */
     protected $hidden = [
         'password',
@@ -40,47 +38,51 @@ class User extends Authenticatable implements JWTSubject
 
     /**
      * Các thuộc tính nên được cast.
-     *
-     * @var array<string, string>
      */
     protected $casts = [
         'email_verified_at' => 'datetime',
         'password' => 'hashed',
-        'permissions' => 'array', // <-- THÊM DÒNG NÀY
+        // Đã xóa 'permissions' => 'array'
     ];
 
-    // Implement methods from JWTSubject
+    /**
+     * Định nghĩa mối quan hệ: Một User thuộc về một Role.
+     */
+    public function role()
+    {
+        return $this->belongsTo(Role::class);
+    }
+
     public function getJWTIdentifier()
     {
         return $this->getKey();
     }
 
+    /**
+     * Đính kèm thông tin role vào JWT Token.
+     */
     public function getJWTCustomClaims()
     {
-        // Trả về cả role và permissions trong token
+        $this->load('role');
+
         return [
             'role' => $this->role,
-            'permissions' => $this->permissions ?? [],
         ];
     }
 
     /**
-     * Kiểm tra xem người dùng có quyền cụ thể không.
-     * Admin luôn có tất cả các quyền.
-     *
-     * @param string $permission
-     * @return bool
+     * Kiểm tra quyền của người dùng.
      */
-    public function hasPermissionTo(string $permission): bool
+    public function hasPermissionTo(string $permissionName): bool
     {
-        if ($this->role === 'admin') {
-            return true;
-        }
+        $this->loadMissing('role.permissions');
 
-        // Kiểm tra trong mảng permissions
-        // Sử dụng ?? [] để tránh lỗi nếu permissions là null
-        return in_array($permission, $this->permissions ?? []);
+        if (!$this->role) return false;
+        if ($this->role->name === 'admin') return true;
+
+        return $this->role->permissions->contains('name', $permissionName);
     }
+
 
     public function notifications()
     {

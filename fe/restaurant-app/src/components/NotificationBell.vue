@@ -1,5 +1,6 @@
 <template>
-  <div class="notification-bell-wrapper dropdown">
+  <!-- MỚI: Thêm ref="notificationWrapper" vào phần tử gốc -->
+  <div class="notification-bell-wrapper dropdown" ref="notificationWrapper">
     <!-- Icon chuông và badge số thông báo chưa đọc -->
     <i class="bi bi-bell-fill mx-3" @click="toggleDropdown" data-bs-toggle="dropdown" aria-expanded="false" title="Thông báo">
       <span v-if="unreadCount > 0" class="badge rounded-pill bg-danger notification-badge">{{ unreadCount > 9 ? '9+' : unreadCount }}</span>
@@ -62,7 +63,6 @@
 import { ref, onMounted, onUnmounted, computed } from 'vue';
 import { useRouter } from 'vue-router';
 import axiosConfig from '../axiosConfig.js';
-// Không cần import echo.js nữa
 
 // --- STATE MANAGEMENT ---
 const router = useRouter();
@@ -70,7 +70,10 @@ const notifications = ref([]);
 const unreadCount = ref(0);
 const isOpen = ref(false);
 const isLoading = ref(true);
-let pollingInterval = null; // Biến để lưu trữ tiến trình lặp lại
+let pollingInterval = null;
+
+// MỚI: Tạo một ref để tham chiếu đến phần tử gốc của component
+const notificationWrapper = ref(null);
 
 const hasUnreadInDropdown = computed(() => notifications.value.some(n => !n.read_at));
 
@@ -79,7 +82,7 @@ const getNotificationDetails = (type) => {
   switch (type) {
     case 'NEW_CONTACT': return { icon: 'bi bi-person-plus-fill', color: 'var(--bs-primary)' };
     case 'NEW_COMMENT': return { icon: 'bi bi-chat-left-text-fill', color: 'var(--bs-success)' };
-    case 'NEW_BOOKING': return { icon: 'bi bi-calendar-check-fill', color: 'var(--bs-warning)' }; 
+    case 'NEW_BOOKING': return { icon: 'bi bi-calendar-check-fill', color: 'var(--bs-warning)' };
     default: return { icon: 'bi bi-bell-fill', color: 'var(--bs-secondary)' };
   }
 };
@@ -98,11 +101,6 @@ const timeAgo = (dateString) => {
 };
 
 // --- DATA HANDLING (POLLING) ---
-
-/**
- * Hàm này sẽ được gọi định kỳ để "hỏi" server số lượng thông báo chưa đọc.
- * Đây là trái tim của việc cập nhật tự động.
- */
 const updateUnreadCount = async () => {
   try {
     const response = await axiosConfig.get('/api/notifications/unread-count');
@@ -110,18 +108,14 @@ const updateUnreadCount = async () => {
       unreadCount.value = response.data.unread_count;
     }
   } catch (error) {
-    // Không log lỗi ra console để tránh làm phiền, vì nó sẽ chạy liên tục.
-    // Nếu có lỗi, số thông báo sẽ không được cập nhật cho đến lần hỏi thành công tiếp theo.
+    // Không log lỗi
   }
 };
 
-/**
- * Hàm này chỉ được gọi KHI MỞ dropdown để lấy danh sách chi tiết.
- */
 const fetchNotificationsList = async () => {
   try {
     isLoading.value = true;
-    const response = await axiosConfig.get('/api/notifications'); 
+    const response = await axiosConfig.get('/api/notifications');
     if (response.data.status) {
       notifications.value = response.data.data;
     }
@@ -138,7 +132,6 @@ const toggleDropdown = () => {
   isOpen.value = !isOpen.value;
   if (isOpen.value) {
     fetchNotificationsList();
-    // Khi mở dropdown, cập nhật lại số lượng ngay lập tức để đồng bộ
     updateUnreadCount();
   }
 };
@@ -168,7 +161,6 @@ const markAllAsRead = async () => {
     notifications.value.forEach(n => {
       if (!n.read_at) n.read_at = new Date().toISOString();
     });
-    // Sau khi đánh dấu tất cả, cập nhật lại số đếm ngay lập tức
     updateUnreadCount();
   } catch (error) {
     console.error('Lỗi khi đánh dấu tất cả đã đọc:', error);
@@ -177,23 +169,39 @@ const markAllAsRead = async () => {
 
 const viewAllNotifications = () => {
     isOpen.value = false;
-    router.push('/admin/notifications'); 
+    router.push('/admin/notifications');
 };
+
+
+// MỚI: Hàm xử lý việc nhấp chuột bên ngoài component
+const handleClickOutside = (event) => {
+  // Nếu dropdown đang không mở, không cần làm gì cả
+  if (!isOpen.value) return;
+
+  // Kiểm tra xem ref đã được gán và phần tử được nhấp có nằm ngoài component không
+  if (notificationWrapper.value && !notificationWrapper.value.contains(event.target)) {
+    isOpen.value = false;
+  }
+};
+
 
 // --- LIFECYCLE HOOKS ---
 onMounted(() => {
-  // 1. Cập nhật số lượng ngay lập tức khi tải trang
-  updateUnreadCount(); 
+  updateUnreadCount();
+  pollingInterval = setInterval(updateUnreadCount, 5000);
 
-  // 2. Bắt đầu "hỏi vòng" server mỗi 5 giây (bạn có thể thay đổi thời gian này)
-  pollingInterval = setInterval(updateUnreadCount, 5000); // 5000ms = 5 giây
+  // MỚI: Thêm trình lắng nghe sự kiện khi component được mount
+  // Sử dụng 'mousedown' để bắt sự kiện trước khi các sự kiện click khác có thể kích hoạt
+  document.addEventListener('mousedown', handleClickOutside);
 });
 
 onUnmounted(() => {
-  // 3. Dọn dẹp: Dừng việc "hỏi vòng" khi người dùng rời khỏi component
   if (pollingInterval) {
     clearInterval(pollingInterval);
   }
+
+  // MỚI: Gỡ bỏ trình lắng nghe sự kiện để tránh rò rỉ bộ nhớ
+  document.removeEventListener('mousedown', handleClickOutside);
 });
 </script>
 

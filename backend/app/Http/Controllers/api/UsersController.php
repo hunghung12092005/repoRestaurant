@@ -11,9 +11,10 @@ use Illuminate\Validation\Rule;
 
 class UsersController extends Controller
 {
-    public function index(Request $request)
+      public function index(Request $request)
     {
-        $query = User::query();
+        // SỬA ĐỔI: Tải kèm cả role và permissions của role đó
+        $query = User::with('role.permissions');
 
         $search = $request->input('q');
 
@@ -21,7 +22,9 @@ class UsersController extends Controller
             $query->where(function ($q) use ($search) {
                 $q->where('name', 'like', "%{$search}%")
                   ->orWhere('email', 'like', "%{$search}%")
-                  ->orWhere('role', 'like', "%{$search}%");
+                  ->orWhereHas('role', function ($roleQuery) use ($search) {
+                      $roleQuery->where('display_name', 'like', "%{$search}%");
+                  });
             });
         }
         $users = $query->get();
@@ -30,44 +33,24 @@ class UsersController extends Controller
 
     public function show($id)
     {
-        $user = User::findOrFail($id);
+        // SỬA ĐỔI: Tải kèm cả role và permissions của role đó
+        $user = User::with('role.permissions')->findOrFail($id);
         return response()->json(['data' => $user], 200);
     }
 
-    // --- MODIFIED ---
-     public function update(Request $request, $id)
+    public function update(Request $request, $id)
     {
         $user = User::findOrFail($id);
 
         $validated = $request->validate([
-            // SỬA ĐỔI: Cập nhật danh sách vai trò
-            'role' => [
-                'required',
-                'string',
-                Rule::in(['admin', 'client', 'manager', 'receptionist']),
-            ],
-            'permissions' => 'nullable|array',
-            // SỬA ĐỔI: Cập nhật danh sách quyền hạn
-            'permissions.*' => [
-                'string',
-                Rule::in([
-                    'manage_bookings', 'manage_reports', 'manage_rooms', 'manage_prices', 
-                    'manage_services', 'manage_amenities', 'manage_coupons', 'manage_news', 
-                    'manage_contacts', 'manage_users', 'manage_staff', 'manage_ai_training', 'manage_admin_chat'
-                ]),
-            ],
+            'role_id' => 'required|exists:roles,id',
         ]);
         
-        $permissionsToUpdate = [];
-        if ($validated['role'] !== 'admin' && $validated['role'] !== 'client') {
-            $permissionsToUpdate = $validated['permissions'] ?? [];
-        }
+        $user->update($validated);
 
-        $user->update([
-            'role' => $validated['role'],
-            'permissions' => $permissionsToUpdate,
-        ]);
+        // SỬA ĐỔI: Tải lại user với thông tin role và permissions mới nhất
+        $user->load('role.permissions');
 
-        return response()->json(['message' => 'Vai trò và quyền đã được cập nhật', 'data' => $user], 200);
-    }
+        return response()->json(['message' => 'Vai trò đã được cập nhật', 'data' => $user], 200);
+    }   
 }
