@@ -1081,9 +1081,9 @@ const calculateTotalPricePreview = async () => {
   } catch (e) {
     totalPricePreview.value = null;
     pricePreviewError.value = e.response?.data?.message || 'Lỗi tính giá phòng. Vui lòng kiểm tra thời gian đặt phòng.';
-    console.error('Lỗi tính giá:', e.response?.data?.message || e.message);
+    console.error('Lỗi tính giá:', e);
     if (e.response?.status === 422) {
-      alert('Thời gian đặt phòng không hợp lệ: ' + (e.response.data.message || 'Vui lòng kiểm tra lại.'));
+      alert('Thời gian đặt phòng không hợp lệ: ' + (e.response.data || 'Vui lòng kiểm tra lại.'));
     }
   }
 };
