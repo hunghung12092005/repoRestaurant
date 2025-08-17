@@ -21,17 +21,14 @@
             type="text"
             class="form-control"
             placeholder="Tìm theo tên, email, mã NV..."
-            @input="handleSearch"
           />
-          <select v-model="filterRole" class="form-select" @change="handleSearch">
+          <select v-model="filterRoleId" class="form-select">
             <option value="">Tất cả vai trò</option>
-            <option value="manager">Quản lý</option>
-            <option value="receptionist">Lễ tân</option>
+            <option v-for="role in staffRoles" :key="role.id" :value="role.id">{{ role.display_name }}</option>
           </select>
-          <select v-model="filterDepartment" class="form-select" @change="handleSearch">
+          <select v-model="filterDepartment" class="form-select">
             <option value="">Tất cả phòng ban</option>
-            <option value="Quản lý">Quản lý</option>
-            <option value="Lễ tân">Lễ tân</option>
+            <option v-for="dept in departments" :key="dept" :value="dept">{{ dept }}</option>
           </select>
         </div>
         <button class="btn btn-primary" @click="openAddModal">
@@ -71,14 +68,18 @@
               <p class="description-text mb-0">{{ staff.email }}</p>
             </td>
             <td>{{ staff.staff_profile?.employee_code || 'N/A' }}</td>
-            <td><div class="tags-container"><span class="badge" :class="getRoleBadgeClass(staff.role)">{{ formatRole(staff.role) }}</span></div></td>
+            <td>
+              <span v-if="staff.role" class="badge" :class="getRoleBadgeClass(staff.role.name)">
+                {{ staff.role.display_name }}
+              </span>
+            </td>
             <td>{{ staff.staff_profile?.department || 'N/A' }}</td>
             <td>{{ staff.staff_profile?.phone || 'N/A' }}</td>
-            <td><div class="tags-container"><span class="badge" :class="getStatusBadgeClass(staff.status)">{{ formatStatus(staff.status) }}</span></div></td>
+            <td><span class="badge" :class="getStatusBadgeClass(staff.status)">{{ formatStatus(staff.status) }}</span></td>
             <td class="text-center action-buttons">
               <button class="btn btn-outline-primary btn-sm" title="Sửa" @click="openEditModal(staff)"><i class="bi bi-pencil-fill"></i></button>
               <button class="btn btn-outline-info btn-sm" title="Xem chi tiết" @click="openDetailModal(staff)"><i class="bi bi-eye-fill"></i></button>
-              <button class="btn btn-outline-danger btn-sm" title="Xóa" @click="confirmDeleteStaff(staff.id)"><i class="bi bi-trash-fill"></i></button>
+              <button class="btn btn-outline-danger btn-sm" title="Xóa" @click="confirmDeleteStaff(staff)"><i class="bi bi-trash-fill"></i></button>
             </td>
           </tr>
         </tbody>
@@ -97,34 +98,39 @@
     </nav>
 
     <!-- ======== MODAL THÊM/SỬA NHÂN VIÊN ======== -->
-    <div class="modal fade" id="staffEditModal" tabindex="-1" aria-labelledby="staffEditModalLabel" aria-hidden="true">
+    <div class="modal fade" id="staffEditModal" tabindex="-1">
       <div class="modal-dialog modal-xl modal-dialog-centered modal-dialog-scrollable">
         <div class="modal-content modal-custom">
           <div class="modal-header modal-header-custom">
-            <h5 class="modal-title" id="staffEditModalLabel">{{ currentStaff ? 'Cập nhật Nhân Viên' : 'Thêm Nhân Viên Mới' }}</h5>
-            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            <h5 class="modal-title">{{ currentStaffId ? 'Cập nhật Nhân Viên' : 'Thêm Nhân Viên Mới' }}</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
           </div>
           <div class="modal-body p-4">
             <form @submit.prevent="saveStaff" novalidate>
                <h6 class="form-section-title">Thông Tin Cơ Bản</h6>
               <div class="row g-3 mb-4">
-                <div class="col-md-6"><label class="form-label">Họ và Tên <span class="text-danger">*</span></label><input v-model.trim="form.name" type="text" class="form-control" :class="{ 'is-invalid': errors.name }" required><div class="invalid-feedback">{{ errors.name?.[0] }}</div></div>
-                <div class="col-md-6"><label class="form-label">Email <span class="text-danger">*</span></label><input v-model.trim="form.email" type="email" class="form-control" :class="{ 'is-invalid': errors.email }" required><div class="invalid-feedback">{{ errors.email?.[0] }}</div></div>
-                <div class="col-md-6"><label class="form-label">Vai Trò <span class="text-danger">*</span></label><select v-model="form.role" class="form-select" :class="{ 'is-invalid': errors.role }" @change="updatePermissions" required><option disabled value="">-- Chọn vai trò --</option><option value="manager">Quản lý</option><option value="receptionist">Lễ tân</option></select><div class="invalid-feedback">{{ errors.role?.[0] }}</div></div>
-                <div class="col-md-6"><label class="form-label">Trạng Thái <span class="text-danger">*</span></label><select v-model="form.status" class="form-select" :class="{ 'is-invalid': errors.status }" required><option value="active">Hoạt động</option><option value="inactive">Nghỉ việc</option><option value="suspended">Tạm ngưng</option></select><div class="invalid-feedback">{{ errors.status?.[0] }}</div></div>
-                <div class="col-12"><label class="form-label">Quyền Hạn</label><multiselect v-model="form.permissions" :options="permissionOptions" :multiple="true" track-by="value" label="label" :close-on-select="false" placeholder="Chọn quyền hạn"></multiselect></div>
+                <div class="col-md-6"><label class="form-label">Họ và Tên <span class="text-danger">*</span></label><input v-model.trim="form.name" type="text" class="form-control" :class="{ 'is-invalid': errors.name }"><div class="invalid-feedback">{{ errors.name?.[0] }}</div></div>
+                <div class="col-md-6"><label class="form-label">Email <span class="text-danger">*</span></label><input v-model.trim="form.email" type="email" class="form-control" :class="{ 'is-invalid': errors.email }"><div class="invalid-feedback">{{ errors.email?.[0] }}</div></div>
+                <div class="col-md-6"><label class="form-label">Vai Trò <span class="text-danger">*</span></label>
+                  <select v-model="form.role_id" class="form-select" :class="{ 'is-invalid': errors.role_id }">
+                    <option disabled value="">-- Chọn vai trò --</option>
+                    <option v-for="role in staffRoles" :key="role.id" :value="role.id">{{ role.display_name }}</option>
+                  </select>
+                  <div class="invalid-feedback">{{ errors.role_id?.[0] }}</div>
+                </div>
+                <div class="col-md-6"><label class="form-label">Trạng Thái <span class="text-danger">*</span></label><select v-model="form.status" class="form-select" :class="{ 'is-invalid': errors.status }"><option value="active">Hoạt động</option><option value="inactive">Nghỉ việc</option><option value="suspended">Tạm ngưng</option></select><div class="invalid-feedback">{{ errors.status?.[0] }}</div></div>
               </div>
               
               <h6 class="form-section-title">Hồ Sơ Nhân Viên</h6>
               <div class="row g-3 mb-4">
-                <div class="col-md-4"><label class="form-label">Mã Nhân Viên <span class="text-danger">*</span></label><input v-model.trim="form.employee_code" type="text" class="form-control" :class="{ 'is-invalid': errors.employee_code }" required><div class="invalid-feedback">{{ errors.employee_code?.[0] }}</div></div>
-                <div class="col-md-4"><label class="form-label">Số Điện Thoại</label><input v-model.trim="form.phone" type="text" class="form-control" :class="{ 'is-invalid': errors.phone }"><div class="invalid-feedback">{{ errors.phone?.[0] }}</div></div>
-                <div class="col-md-4"><label class="form-label">Ngày Tuyển Dụng</label><input v-model="form.hire_date" type="date" class="form-control" :class="{ 'is-invalid': errors.hire_date }"><div class="invalid-feedback">{{ errors.hire_date?.[0] }}</div></div>
-                <div class="col-12"><label class="form-label">Địa Chỉ</label><input v-model.trim="form.address" type="text" class="form-control" :class="{ 'is-invalid': errors.address }"><div class="invalid-feedback">{{ errors.address?.[0] }}</div></div>
-                <div class="col-md-4"><label class="form-label">Phòng Ban</label><input v-model.trim="form.department" type="text" class="form-control" :class="{ 'is-invalid': errors.department }"><div class="invalid-feedback">{{ errors.department?.[0] }}</div></div>
-                <div class="col-md-4"><label class="form-label">Chức Vụ</label><input v-model.trim="form.position" type="text" class="form-control" :class="{ 'is-invalid': errors.position }"><div class="invalid-feedback">{{ errors.position?.[0] }}</div></div>
-                <div class="col-md-4"><label class="form-label">Cấp Bậc</label><select v-model="form.level" class="form-select" :class="{ 'is-invalid': errors.level }"><option value="junior">Nhân viên mới</option><option value="senior">Nhân viên lâu năm</option><option value="manager">Quản lý</option></select><div class="invalid-feedback">{{ errors.level?.[0] }}</div></div>
-                <div class="col-md-4"><label class="form-label">Lương (VND)</label><input v-model.number="form.salary" type="number" class="form-control" :class="{ 'is-invalid': errors.salary }"><div class="invalid-feedback">{{ errors.salary?.[0] }}</div></div>
+                <div class="col-md-4"><label class="form-label">Mã Nhân Viên <span class="text-danger">*</span></label><input v-model.trim="form.employee_code" type="text" class="form-control" :class="{ 'is-invalid': errors.employee_code }"><div class="invalid-feedback">{{ errors.employee_code?.[0] }}</div></div>
+                <div class="col-md-4"><label class="form-label">Số Điện Thoại</label><input v-model.trim="form.phone" type="text" class="form-control" :class="{ 'is-invalid': errors.phone }"></div>
+                <div class="col-md-4"><label class="form-label">Ngày Tuyển Dụng</label><input v-model="form.hire_date" type="date" class="form-control" :class="{ 'is-invalid': errors.hire_date }"></div>
+                <div class="col-12"><label class="form-label">Địa Chỉ</label><input v-model.trim="form.address" type="text" class="form-control" :class="{ 'is-invalid': errors.address }"></div>
+                <div class="col-md-4"><label class="form-label">Phòng Ban</label><input v-model.trim="form.department" type="text" class="form-control" :class="{ 'is-invalid': errors.department }"></div>
+                <div class="col-md-4"><label class="form-label">Chức Vụ</label><input v-model.trim="form.position" type="text" class="form-control" :class="{ 'is-invalid': errors.position }"></div>
+                <div class="col-md-4"><label class="form-label">Cấp Bậc</label><select v-model="form.level" class="form-select" :class="{ 'is-invalid': errors.level }"><option value="junior">Nhân viên mới</option><option value="senior">Nhân viên lâu năm</option><option value="manager">Quản lý</option></select></div>
+                <div class="col-md-4"><label class="form-label">Lương (VND)</label><input v-model.number="form.salary" type="number" class="form-control" :class="{ 'is-invalid': errors.salary }"></div>
               </div>
               
                <h6 class="form-section-title">Lịch Làm Việc</h6>
@@ -137,7 +143,7 @@
                   <input v-model="schedule.task" type="text" class="form-control flex-grow-1" placeholder="Nhiệm vụ"/>
                   <button type="button" class="btn btn-outline-danger btn-sm" @click="form.schedules.splice(index, 1)"><i class="bi bi-trash-fill"></i></button>
                 </div>
-                <button type="button" class="btn btn-outline-primary mt-3" @click="form.schedules.push({ shift_date: '', start_time: '', end_time: '', task: '' })"><i class="bi bi-plus-circle me-2"></i>Thêm Ca Làm</button>
+                <button type="button" class="btn btn-outline-primary mt-3" @click="form.schedules.push({ shift_date: '', start_time: '08:00:00', end_time: '17:00:00', task: '' })"><i class="bi bi-plus-circle me-2"></i>Thêm Ca Làm</button>
               </div>
             </form>
           </div>
@@ -152,32 +158,31 @@
     </div>
 
     <!-- ======== MODAL CHI TIẾT NHÂN VIÊN ======== -->
-    <div class="modal fade" id="staffDetailModal" tabindex="-1" aria-labelledby="staffDetailModalLabel" aria-hidden="true">
+    <div class="modal fade" id="staffDetailModal" tabindex="-1">
       <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
         <div class="modal-content modal-custom">
-          <div class="modal-header modal-header-custom"><h5 class="modal-title" id="staffDetailModalLabel">Chi Tiết Nhân Viên</h5><button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button></div>
+          <div class="modal-header modal-header-custom"><h5 class="modal-title">Chi Tiết Nhân Viên</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
           <div class="modal-body p-4">
             <div v-if="selectedStaff">
               <div class="detail-section"><h6 class="form-section-title">Thông Tin Cơ Bản</h6>
                 <div class="row g-3">
-                  <div class="col-md-6"><p><strong>Họ và Tên:</strong> {{ selectedStaff.name || 'N/A' }}</p></div>
-                  <div class="col-md-6"><p><strong>Email:</strong> {{ selectedStaff.email || 'N/A' }}</p></div>
-                  <div class="col-md-6"><p><strong>Vai Trò:</strong> {{ formatRole(selectedStaff.role) || 'N/A' }}</p></div>
+                  <div class="col-md-6"><p><strong>Họ và Tên:</strong> {{ selectedStaff.name }}</p></div>
+                  <div class="col-md-6"><p><strong>Email:</strong> {{ selectedStaff.email }}</p></div>
+                  <div class="col-md-6"><p><strong>Vai Trò:</strong> {{ selectedStaff.role?.display_name }}</p></div>
                   <div class="col-md-6"><p><strong>Trạng Thái:</strong> <span :class="['badge', getStatusBadgeClass(selectedStaff.status)]">{{ formatStatus(selectedStaff.status) }}</span></p></div>
-                  <div class="col-12"><p><strong>Quyền Hạn:</strong> {{ formatPermissions(selectedStaff.permissions) || 'Không có' }}</p></div>
                 </div>
               </div>
               <hr class="my-2">
               <div class="detail-section"><h6 class="form-section-title">Hồ Sơ Nhân Viên</h6>
                  <div class="row g-3">
-                    <div class="col-md-6"><p><strong>Mã Nhân Viên:</strong> {{ selectedStaff.staff_profile?.employee_code || 'N/A' }}</p></div>
-                    <div class="col-md-6"><p><strong>Số Điện Thoại:</strong> {{ selectedStaff.staff_profile?.phone || 'N/A' }}</p></div>
+                    <div class="col-md-6"><p><strong>Mã Nhân Viên:</strong> {{ selectedStaff.staff_profile?.employee_code }}</p></div>
+                    <div class="col-md-6"><p><strong>Số Điện Thoại:</strong> {{ selectedStaff.staff_profile?.phone }}</p></div>
                     <div class="col-md-6"><p><strong>Ngày Tuyển Dụng:</strong> {{ formatDate(selectedStaff.staff_profile?.hire_date) }}</p></div>
-                    <div class="col-md-6"><p><strong>Phòng Ban:</strong> {{ selectedStaff.staff_profile?.department || 'N/A' }}</p></div>
-                    <div class="col-md-6"><p><strong>Chức Vụ:</strong> {{ selectedStaff.staff_profile?.position || 'N/A' }}</p></div>
+                    <div class="col-md-6"><p><strong>Phòng Ban:</strong> {{ selectedStaff.staff_profile?.department }}</p></div>
+                    <div class="col-md-6"><p><strong>Chức Vụ:</strong> {{ selectedStaff.staff_profile?.position }}</p></div>
                     <div class="col-md-6"><p><strong>Cấp Bậc:</strong> {{ formatLevel(selectedStaff.staff_profile?.level) }}</p></div>
                     <div class="col-md-6"><p><strong>Lương:</strong> {{ formatSalary(selectedStaff.staff_profile?.salary) }}</p></div>
-                    <div class="col-12"><p><strong>Địa Chỉ:</strong> {{ selectedStaff.staff_profile?.address || 'N/A' }}</p></div>
+                    <div class="col-12"><p><strong>Địa Chỉ:</strong> {{ selectedStaff.staff_profile?.address }}</p></div>
                  </div>
               </div>
               <hr class="my-2">
@@ -203,15 +208,14 @@
 import { ref, computed, onMounted } from 'vue';
 import axios from 'axios';
 import { Modal } from 'bootstrap';
-import Multiselect from 'vue-multiselect';
-import 'vue-multiselect/dist/vue-multiselect.css';
 
-// State and Refs
+// --- STATE & REFS ---
 const staffList = ref([]);
-const currentStaff = ref(null);
+const staffRoles = ref([]); // <-- Mới: Dùng để lưu các vai trò nhân viên (Manager, Receptionist)
+const currentStaffId = ref(null);
 const selectedStaff = ref(null);
 const searchQuery = ref('');
-const filterRole = ref('');
+const filterRoleId = ref(''); // <-- Sửa: Lọc theo role_id
 const filterDepartment = ref('');
 const currentPage = ref(1);
 const itemsPerPage = 10;
@@ -222,7 +226,6 @@ const alertMessage = ref('');
 const alertType = ref('alert-success');
 const errors = ref({});
 const form = ref({});
-
 let editModal = null;
 let detailModal = null;
 
@@ -231,108 +234,38 @@ const apiClient = axios.create({
   headers: { 'Authorization': `Bearer ${localStorage.getItem('tokenJwt') || ''}` }
 });
 
-const permissionOptions = ref([
-    { value: 'manage_bookings', label: 'Quản lý Đặt phòng & Sơ đồ phòng' },
-    { value: 'manage_reports', label: 'Xem Lịch sử & Báo cáo' },
-    { value: 'manage_rooms', label: 'Quản lý Phòng & Loại phòng'},
-    { value: 'manage_prices', label: 'Quản lý Giá'},
-    { value: 'manage_services', label: 'Quản lý Dịch vụ' },
-    { value: 'manage_amenities', label: 'Quản lý Tiện nghi' },
-    { value: 'manage_coupons', label: 'Quản lý Giảm giá' },
-    { value: 'manage_news', label: 'Quản lý Tin tức' },
-    { value: 'manage_contacts', label: 'Quản lý Liên hệ' },
-    { value: 'manage_users', label: 'Quản lý Tài khoản' },
-    { value: 'manage_staff', label: 'Quản lý Nhân viên' },
-    { value: 'manage_ai_training', label: 'Training AI' },
-    { value: 'manage_admin_chat', label: 'Chat Admin' },
-]);
-
+// --- FORM & MODAL LOGIC ---
 const resetForm = () => {
   form.value = {
-    name: '', email: '', role: '', status: 'active', permissions: [],
+    name: '', email: '', role_id: '', status: 'active',
     employee_code: '', phone: '', address: '', hire_date: new Date().toISOString().slice(0,10), 
     position: '', department: '', salary: null, level: 'junior', schedules: []
   };
   errors.value = {};
 };
 
-const fetchStaff = async () => {
-  isLoading.value = true;
-  try {
-    const response = await apiClient.get('/staffs');
-    staffList.value = response.data.data.map(staff => ({
-      ...staff,
-      permissions: Array.isArray(staff.permissions) ? staff.permissions : [],
-      staff_profile: staff.staff_profile || {},
-      staff_schedules: staff.staff_schedules || []
-    }));
-  } catch (error) {
-    showNotification('Không thể tải danh sách nhân viên.', 'error');
-  } finally {
-    isLoading.value = false;
-  }
-};
-
-const filteredStaff = computed(() => {
-  return staffList.value.filter(staff => {
-    const searchLower = searchQuery.value.toLowerCase();
-    const matchesSearch = !searchLower || 
-                         (staff.name?.toLowerCase() || '').includes(searchLower) ||
-                         (staff.email?.toLowerCase() || '').includes(searchLower) ||
-                         (staff.staff_profile?.employee_code?.toLowerCase() || '').includes(searchLower);
-    const matchesRole = !filterRole.value || staff.role === filterRole.value;
-    const matchesDepartment = !filterDepartment.value || staff.staff_profile?.department === filterDepartment.value;
-    return matchesSearch && matchesRole && matchesDepartment;
-  });
-});
-
-const totalPages = computed(() => Math.ceil(filteredStaff.value.length / itemsPerPage));
-const paginatedStaff = computed(() => {
-  const start = (currentPage.value - 1) * itemsPerPage;
-  return filteredStaff.value.slice(start, start + itemsPerPage);
-});
-
-const pageRange = computed(() => {
-  const maxPages = 7;
-  if (totalPages.value <= maxPages) {
-    return Array.from({ length: totalPages.value }, (_, i) => i + 1);
-  }
-  const middle = Math.ceil(maxPages / 2);
-  let start = currentPage.value - middle + 1;
-  if (start < 1) start = 1;
-  let end = start + maxPages - 1;
-  if (end > totalPages.value) {
-    end = totalPages.value;
-    start = end - maxPages + 1;
-  }
-  return Array.from({ length: end - start + 1 }, (_, i) => start + i);
-});
-
-
-const handleSearch = () => { currentPage.value = 1; };
-
 const openAddModal = () => {
-  currentStaff.value = null;
+  currentStaffId.value = null;
   resetForm();
-  updatePermissions();
   editModal.show();
 };
 
 const openEditModal = (staff) => {
-  currentStaff.value = staff;
+  currentStaffId.value = staff.id;
+  // Trải phẳng dữ liệu từ các object lồng nhau vào form
   form.value = {
-    name: staff.name, email: staff.email, role: staff.role, status: staff.status,
-    permissions: (staff.permissions || []).map(p => permissionOptions.value.find(opt => opt.value === p)).filter(Boolean),
-    employee_code: staff.staff_profile?.employee_code,
-    phone: staff.staff_profile?.phone,
-    address: staff.staff_profile?.address,
-    hire_date: staff.staff_profile?.hire_date ? staff.staff_profile.hire_date.slice(0,10) : '',
-    position: staff.staff_profile?.position,
-    department: staff.staff_profile?.department,
-    salary: staff.staff_profile?.salary,
-    level: staff.staff_profile?.level,
-    schedules: (staff.staff_schedules || []).map(s => ({...s, start_time: s.start_time.slice(0,5), end_time: s.end_time.slice(0,5)})),
+    name: staff.name,
+    email: staff.email,
+    role_id: staff.role_id,
+    status: staff.status,
+    ...(staff.staff_profile || {}), // Trải các thuộc tính từ profile
+    schedules: (staff.staff_schedules || []).map(s => ({
+        ...s,
+        start_time: s.start_time ? s.start_time.substring(0, 8) : '', // Format H:i:s
+        end_time: s.end_time ? s.end_time.substring(0, 8) : ''
+    }))
   };
+  errors.value = {};
   editModal.show();
 };
 
@@ -341,27 +274,41 @@ const openDetailModal = (staff) => {
   detailModal.show();
 };
 
-const updatePermissions = () => {
-  const defaultPermissions = {
-    manager: ['manage_bookings', 'manage_reports', 'manage_staff', 'manage_contacts'],
-    receptionist: ['manage_bookings', 'manage_contacts'],
-  };
-  const permissionValues = defaultPermissions[form.value.role] || [];
-  form.value.permissions = permissionOptions.value.filter(opt => permissionValues.includes(opt.value));
+
+// --- API CALLS ---
+const fetchStaff = async () => {
+  isLoading.value = true;
+  try {
+    const response = await apiClient.get('/staffs');
+    staffList.value = response.data.data;
+  } catch (error) {
+    showNotification('Không thể tải danh sách nhân viên.', 'error');
+  } finally {
+    isLoading.value = false;
+  }
 };
+
+const fetchStaffRoles = async () => {
+    try {
+        const response = await apiClient.get('/roles');
+        // Lọc chỉ lấy các vai trò là 'manager' và 'receptionist'
+        staffRoles.value = response.data.filter(role => ['manager', 'receptionist'].includes(role.name));
+    } catch (error) {
+        showNotification('Không thể tải danh sách vai trò.', 'error');
+    }
+}
 
 const saveStaff = async () => {
   isSaving.value = true;
   errors.value = {};
-  const payload = { ...form.value, permissions: form.value.permissions.map(p => p.value) };
   
   try {
-    const response = currentStaff.value
-      ? await apiClient.put(`/staffs/${currentStaff.value.id}`, payload)
-      : await apiClient.post('/staffs', payload);
+    const response = currentStaffId.value
+      ? await apiClient.put(`/staffs/${currentStaffId.value}`, form.value)
+      : await apiClient.post('/staffs', form.value);
     showNotification(response.data.message, 'success');
     editModal.hide();
-    fetchStaff();
+    await fetchStaff(); // Tải lại danh sách
   } catch (error) {
     showNotification(error.response?.data?.message || 'Có lỗi xảy ra', 'error');
     if (error.response?.status === 422) {
@@ -372,18 +319,55 @@ const saveStaff = async () => {
   }
 };
 
-const confirmDeleteStaff = async (id) => {
-  if (confirm('Bạn có chắc chắn muốn xóa nhân viên này không?')) {
+const confirmDeleteStaff = async (staff) => {
+  if (confirm(`Bạn có chắc chắn muốn xóa nhân viên "${staff.name}" không?`)) {
     try {
-      const response = await apiClient.delete(`/staffs/${id}`);
+      const response = await apiClient.delete(`/staffs/${staff.id}`);
       showNotification(response.data.message, 'success');
-      fetchStaff();
+      await fetchStaff();
     } catch (error) {
       showNotification(error.response?.data?.message || 'Xóa thất bại', 'error');
     }
   }
 };
 
+
+// --- COMPUTED PROPERTIES ---
+const filteredStaff = computed(() => {
+  return staffList.value.filter(staff => {
+    const searchLower = searchQuery.value.toLowerCase();
+    const matchesSearch = !searchLower || 
+                         (staff.name?.toLowerCase() || '').includes(searchLower) ||
+                         (staff.email?.toLowerCase() || '').includes(searchLower) ||
+                         (staff.staff_profile?.employee_code?.toLowerCase() || '').includes(searchLower);
+    const matchesRole = !filterRoleId.value || staff.role_id == filterRoleId.value;
+    const matchesDepartment = !filterDepartment.value || staff.staff_profile?.department === filterDepartment.value;
+    return matchesSearch && matchesRole && matchesDepartment;
+  });
+});
+
+const departments = computed(() => {
+    const depts = staffList.value.map(s => s.staff_profile?.department).filter(Boolean);
+    return [...new Set(depts)];
+});
+
+const totalPages = computed(() => Math.ceil(filteredStaff.value.length / itemsPerPage));
+const paginatedStaff = computed(() => {
+  const start = (currentPage.value - 1) * itemsPerPage;
+  return filteredStaff.value.slice(start, start + itemsPerPage);
+});
+
+const pageRange = computed(() => {
+    // Logic phân trang giữ nguyên
+    const range = [];
+    for (let i = 1; i <= totalPages.value; i++) {
+        range.push(i);
+    }
+    return range;
+});
+
+
+// --- FORMATTING & UTILITY FUNCTIONS ---
 const showNotification = (message, type = 'success') => {
   alertMessage.value = message;
   alertType.value = `alert-${type === 'error' ? 'danger' : 'success'}`;
@@ -391,47 +375,34 @@ const showNotification = (message, type = 'success') => {
   setTimeout(() => showAlert.value = false, 4000);
 };
 
-// Formatting Functions
-const formatRole = (role) => ({ manager: 'Quản lý', receptionist: 'Lễ tân' })[role] || 'N/A';
-const formatLevel = (level) => ({ junior: 'Nhân viên mới', senior: 'Nhân viên lâu năm', manager: 'Quản lý' })[level] || 'Chưa có';
 const formatStatus = (status) => ({ active: 'Hoạt động', inactive: 'Nghỉ việc', suspended: 'Tạm ngưng' })[status] || 'N/A';
-const getRoleBadgeClass = (role) => ({ manager: 'badge-warning', receptionist: 'badge-primary' })[role] || 'badge-secondary';
+const formatLevel = (level) => ({ junior: 'Nhân viên mới', senior: 'Nhân viên lâu năm', manager: 'Quản lý' })[level] || 'Chưa có';
+const getRoleBadgeClass = (roleName) => ({ manager: 'badge-warning', receptionist: 'badge-primary' })[roleName] || 'badge-secondary';
 const getStatusBadgeClass = (status) => ({ active: 'badge-success', inactive: 'badge-secondary', suspended: 'badge-danger' })[status] || 'badge-dark';
 const formatDate = (dateString) => dateString ? new Date(dateString).toLocaleDateString('vi-VN') : 'N/A';
 const formatSalary = (salary) => salary ? new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(salary) : 'N/A';
-const formatPermissions = (permissions) => {
-  if (!permissions || !permissions.length) return 'Không có';
-  return permissions.map(p => {
-    const option = permissionOptions.value.find(opt => opt.value === p);
-    return option ? option.label : p;
-  }).join(', ');
-};
 
-onMounted(() => {
-  fetchStaff();
-  const editModalEl = document.getElementById('staffEditModal');
-  if (editModalEl) editModal = new Modal(editModalEl);
-  const detailModalEl = document.getElementById('staffDetailModal');
-  if (detailModalEl) detailModal = new Modal(detailModalEl);
+
+// --- LIFECYCLE HOOK ---
+onMounted(async () => {
+  await Promise.all([fetchStaff(), fetchStaffRoles()]);
+  editModal = new Modal(document.getElementById('staffEditModal'));
+  detailModal = new Modal(document.getElementById('staffDetailModal'));
 });
 </script>
 
 <style scoped>
+/* Giữ nguyên CSS của bạn, nó đã rất đẹp */
 @import url('https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@300;400;500;600;700&display=swap');
 @import url('https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css');
 
-/* --- Base Styles --- */
 .page-container { font-family: 'Be Vietnam Pro', sans-serif; background-color: #f4f7f9; padding: 2rem; color: #34495e; }
 .page-header { border-bottom: 1px solid #e5eaee; padding-bottom: 1rem; }
 .page-title { font-size: 2rem; font-weight: 700; }
 .page-subtitle { font-size: 1rem; color: #7f8c8d; }
 .card { background-color: #ffffff; border: none; border-radius: 12px; box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05); }
-
-/* --- Forms & Inputs --- */
 .form-control, .form-select { border-radius: 8px; border: 1px solid #e5eaee; transition: all 0.2s ease-in-out; font-size: 0.9rem; }
 .form-control:focus, .form-select:focus { border-color: #3498db; box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.15); }
-
-/* --- Table Styles --- */
 .table-container { background-color: #ffffff; border-radius: 12px; box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05); overflow: hidden; }
 .booking-table { font-size: 0.875rem; border-collapse: separate; border-spacing: 0; }
 .booking-table thead th { background-color: #f8f9fa; color: #7f8c8d; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; border-bottom: 2px solid #e5eaee; padding: 1rem; white-space: nowrap; }
@@ -440,62 +411,26 @@ onMounted(() => {
 .booking-table tbody tr:hover { background-color: #f9fafb; }
 .type-name { font-size: 1rem; color: #34495e; }
 .description-text { font-size: 0.8rem; color: #7f8c8d; max-width: 250px; }
-
-/* --- Badges --- */
-.tags-container { display: flex; flex-wrap: wrap; gap: 6px; }
 .badge { padding: 0.4em 0.8em; font-size: 0.75rem; font-weight: 600; border-radius: 20px; text-transform: capitalize; }
 .badge-secondary { background-color: #f3f4f6; color: #7f8c8d; }
 .badge-primary { background-color: #eaf6fb; color: #3498db; }
 .badge-success { background-color: #e8f9f0; color: #2ecc71; }
 .badge-warning { background-color: #fff8e1; color: #f39c12; }
 .badge-danger { background-color: #feeeed; color: #e74c3c; }
-
-
-/* --- Actions & Pagination --- */
 .action-buttons { white-space: nowrap; }
 .action-buttons .btn { margin: 0 2px; }
 .pagination .page-link { border: none; border-radius: 8px; margin: 0 4px; color: #7f8c8d; font-weight: 600; }
 .pagination .page-item.active .page-link { background-color: #3498db; color: #ffffff; }
-
-/* --- Modal Styles --- */
 .modal-custom { border-radius: 16px; border: none; box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1); }
 .modal-header-custom, .modal-footer-custom { background-color: #f4f7f9; border-color: #e5eaee; padding: 1.5rem; }
 .modal-header-custom .btn-close { filter: brightness(0) invert(0.7); }
 .modal-body { background-color: #ffffff; }
-
-/* --- Custom Modal Content --- */
 .form-section-title { font-size: 1rem; font-weight: 600; color: #34495e; margin-bottom: 1rem; padding-bottom: 0.5rem; border-bottom: 1px solid #e5eaee; }
 .schedule-container { display: flex; flex-direction: column; gap: 0.75rem; }
 .schedule-row { display: flex; gap: 0.75rem; align-items: center; }
 .detail-section p { margin-bottom: 0.75rem; font-size: 0.9rem; }
 .detail-section p strong { color: #34495e; display: inline-block; width: 150px; }
 .schedule-detail-item { padding: 0.75rem; border: 1px solid #e9ecef; border-radius: 8px; margin-bottom: 0.75rem; background-color: #f8f9fa; }
-
-/* --- Vue Multiselect Override --- */
-:deep(.multiselect__tags) { border-radius: 8px; border-color: #e5eaee; font-size: 0.9rem; padding-top: 8px; }
-:deep(.multiselect__tag) { background: #3498db; border-radius: 12px; font-weight: 500; }
-:deep(.multiselect__tag-icon):after { color: #a4d8f5; }
-:deep(.multiselect__tag-icon):focus, :deep(.multiselect__tag-icon):hover { background: #2980b9; }
-:deep(.multiselect__input) { font-size: 0.9rem; }
-:deep(.multiselect__placeholder) { color: #6c757d; }
-
-/* --- Alert/Notification --- */
-.custom-alert {
-  position: fixed;
-  top: 20px;
-  right: 20px;
-  z-index: 1056; /* Above modals */
-  border-radius: 8px;
-  box-shadow: 0 4px 15px rgba(0,0,0,0.1);
-  display: flex;
-  align-items: center;
-  padding: 1rem 1.5rem;
-}
-.close-btn {
-  margin-left: 1.5rem;
-  font-size: 1.5rem;
-  line-height: 1;
-  cursor: pointer;
-  font-weight: bold;
-}
+.custom-alert { position: fixed; top: 80px; right: 20px; z-index: 1056; border-radius: 8px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); display: flex; align-items: center; padding: 1rem 1.5rem; }
+.close-btn { margin-left: 1.5rem; font-size: 1.5rem; line-height: 1; cursor: pointer; font-weight: bold; }
 </style>

@@ -10,7 +10,7 @@
           <span class="avatar-badge" v-if="userInfo.isPro"><i class="fas fa-check-circle"></i></span>
         </div>
         <h1 class="user-name-enhanced">{{ userInfo.name }}</h1>
-        <p class="user-role-enhanced">{{ userInfo.role }}</p>
+        <p class="user-role-enhanced">{{ userInfo.role?.display_name }}</p>
       </div>
 
       <div class="profile-details-enhanced">
