@@ -42,64 +42,66 @@
     </div>
   </div>
   <div id="recaptcha-container"></div>
-  <!-- Modal Bootstrap -->
   <!-- Bắt đầu của component -->
- <!-- Bắt đầu của component -->
-<div class="modal fade" :class="{ show: popupDetail }" style="display: block; background-color: rgba(0,0,0,0.5);" v-if="popupDetail" tabindex="-1" role="dialog" aria-labelledby="orderDetailModalLabel" aria-hidden="true">
-  <div class="modal-dialog modal-lg modal-dialog-centered">
-    <div class="modal-content rounded-4 shadow">
-      <div class="modal-header border-bottom-0">
-        <h5 class="modal-title fw-bold" id="orderDetailModalLabel">Chi tiết đơn hàng</h5>
-        <button type="button" class="btn-close" aria-label="Close" @click="popupDetail = false"></button>
-      </div>
-      <div class="modal-body py-0">
-        <!-- Trạng thái tải dữ liệu -->
-        <div v-if="isLoading" class="d-flex flex-column align-items-center justify-content-center py-5">
-          <div class="spinner-border text-primary" role="status">
-            <span class="visually-hidden">Đang tải dữ liệu...</span>
+  <div class="modal fade" :class="{ show: popupDetail }" style="display: block; background-color: rgba(0,0,0,0.5);"
+    v-if="popupDetail" tabindex="-1" role="dialog" aria-labelledby="orderDetailModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+      <div class="modal-content rounded-4 shadow">
+        <div class="modal-header border-bottom-0">
+          <h5 class="modal-title fw-bold" id="orderDetailModalLabel">Chi tiết đơn hàng</h5>
+          <button type="button" class="btn-close" aria-label="Close" @click="popupDetail = false"></button>
+        </div>
+        <div class="modal-body py-0">
+          <!-- Trạng thái tải dữ liệu -->
+          <div v-if="isLoading" class="d-flex flex-column align-items-center justify-content-center">
+            <div class="spinner-border text-primary" role="status">
+              <span class="visually-hidden">Đang tải dữ liệu...</span>
+            </div>
+            <p class="mt-3 text-muted">Đang tải dữ liệu...</p>
           </div>
-          <p class="mt-3 text-muted">Đang tải dữ liệu...</p>
-        </div>
-        <!-- Trạng thái lỗi -->
-        <div v-else-if="error" class="alert alert-danger text-center rounded-3 my-4" role="alert">
-          {{ error }}
-        </div>
-        <!-- Nội dung chi tiết đơn hàng -->
-        <div v-else>
-          <div v-for="room in bookingDetails" :key="room.booking_detail_id" class="card mb-4 rounded-3 shadow-sm border-0">
-            <div class="card-body">
-              <div class="d-flex justify-content-between align-items-center mb-2">
-                <h6 class="card-title mb-0 fs-5">
-                  Phòng: <strong class="text-primary">{{ room.room_id ?? 'Chưa có phòng' }}</strong>
-                </h6>
-                <span class="badge" :class="{'bg-success': room.trang_thai === 'Hoàn thành', 'bg-warning text-dark': room.trang_thai !== 'Hoàn thành'}">
+          <!-- Trạng thái lỗi -->
+          <div v-else-if="error" class="alert alert-danger text-center rounded-3 my-4" role="alert">
+            {{ error }}
+          </div>
+          <!-- Nội dung chi tiết đơn hàng -->
+          <div v-else>
+            <div v-for="room in bookingDetails" :key="room.booking_detail_id"
+              class="card mb-4 rounded-3 shadow-sm border-0">
+              <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                  <h6 class="card-title mb-0 fs-5">
+                    Phòng: <strong class="text-primary">{{ room.room_id ?? 'Chưa có phòng' }}</strong>
+                  </h6>
+                  <!-- <span class="badge" :class="{'bg-success': room.trang_thai === 'Hoàn thành', 'bg-warning text-dark': room.trang_thai !== 'Hoàn thành'}">
                   {{ room.trang_thai ?? 'Chưa rõ' }}
-                </span>
+                </span> -->
+                </div>
+                <p class="card-subtitle text-muted mb-3">
+                  Tổng tiền phòng: <span class="fw-bold text-success">{{ formatCurrency(room.total_price) }}</span>
+                </p>
+                <hr class="my-3">
+                <div v-if="room.services && room.services.length">
+                  <p class="mb-2 fw-bold text-dark">Dịch vụ đi kèm:</p>
+                  <ul class="list-group list-group-flush border-top border-bottom">
+                    <li v-for="service in room.services" :key="service.booking_service_id"
+                      class="list-group-item d-flex justify-content-between align-items-center px-0">
+                      <span>{{ service.service_info.service_name }}</span>
+                      <span class="text-dark">x{{ service.quantity }} - <span class="fw-bold">{{
+                        formatCurrency(service.total) }}</span></span>
+                    </li>
+                  </ul>
+                </div>
+                <div v-else class="text-muted fst-italic text-center py-2">Không có dịch vụ đi kèm.</div>
               </div>
-              <p class="card-subtitle text-muted mb-3">
-                Tổng tiền phòng: <span class="fw-bold text-success">{{ formatCurrency(room.total_price) }}</span>
-              </p>
-              <hr class="my-3">
-              <div v-if="room.services && room.services.length">
-                <p class="mb-2 fw-bold text-dark">Dịch vụ đi kèm:</p>
-                <ul class="list-group list-group-flush border-top border-bottom">
-                  <li v-for="service in room.services" :key="service.booking_service_id" class="list-group-item d-flex justify-content-between align-items-center px-0">
-                    <span>{{ service.service_info.service_name }}</span>
-                    <span class="text-dark">x{{ service.quantity }} - <span class="fw-bold">{{ formatCurrency(service.total) }}</span></span>
-                  </li>
-                </ul>
-              </div>
-              <div v-else class="text-muted fst-italic text-center py-2">Không có dịch vụ đi kèm.</div>
             </div>
           </div>
         </div>
-      </div>
-      <div class="modal-footer border-top-0">
-        <button type="button" class="btn btn-secondary rounded-pill px-4" @click="popupDetail = false">Đóng</button>
+        <div class="modal-footer border-top-0">
+          <button type="button" class="btn btn-secondary rounded-pill px-4" @click="popupDetail = false">Đóng</button>
+        </div>
       </div>
     </div>
   </div>
-</div>
 
 
   <div class="history-wrapper">
@@ -281,7 +283,11 @@
                     <i
                       :class="booking.payment_status === 'paid' ? 'bi-check-circle-fill text-success' : 'bi-hourglass-split text-warning'"></i>
                     <span>{{ formatPaymentStatus(booking.payment_status) }}</span>
+                    <div class="payment-item" v-if="booking.payment_status != 'completed'">
+                      <button @click="gotoLinkPayos(booking.orderCode)" class="btn">Tiếp tục thanh toán </button>
+                    </div>
                   </div>
+
 
                 </div>
                 <div class="card-actions">
@@ -405,6 +411,34 @@ const viewDetailOrder = async (bookingID) => {
     isLoading.value = false;
   }
 };
+const gotoLinkPayos = async (orderCode) => {
+  try {
+    console.log('Đang lấy thông tin thanh toán cho orderCode:', orderCode);
+    const axiosInstancePayos = axios.create({
+      baseURL: 'https://api-merchant.payos.vn/v2',
+      headers: {
+        'x-client-id': '078daf0e-baed-45f9-b2f9-20b79c89668e', // thay bằng giá trị thật
+        'x-api-key': '8841f63c-c976-4b89-bf56-b769b035292b'
+      }
+    });
+    // Gọi API PayOS
+    const res = await axiosInstancePayos.get(`https://api-merchant.payos.vn/v2/payment-requests/${orderCode}`);
+
+    if (res.data && res.data.code === '00') {
+      const id = res.data.data.id; // lấy data.id
+      const payLink = `https://pay.payos.vn/web/${id}/`; // tạo link thanh toán
+      console.log('Link thanh toán PayOS:', payLink);
+
+      // Chuyển hướng trình duyệt
+      window.location.href = payLink;
+    } else {
+      console.error('Lỗi lấy dữ liệu từ PayOS:', res.data);
+    }
+
+  } catch (error) {
+    console.error('Lỗi khi gọi API PayOS:', error);
+  }
+}
 const phoneNumber = ref('');
 const otpInputs = ref();
 const isOtp = ref(false); // Biến để kiểm soát hiển thị OTP
