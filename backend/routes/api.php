@@ -18,7 +18,7 @@ use App\Http\Controllers\api\BookingHotelController;
 use App\Http\Controllers\api\AdminDashboardController;
 use App\Http\Controllers\api\ContactController;
 use App\Http\Controllers\api\BookingHistoryController;
-use App\Http\Controllers\Api\CustomerController;
+use App\Http\Controllers\api\CustomerController;
 use App\Http\Controllers\ChatAIController;
 use App\Http\Controllers\CouponsController;
 use App\Http\Controllers\FileController;
@@ -171,7 +171,7 @@ Route::post('/update-password', [ApiLoginController::class, 'updateProfile']);
 Route::post('/booking-client', [BookingHotelController::class, 'storeBooking']);
 //tao token jwt cho khách hàng
 Route::post('/generate-token', [BookingHotelController::class, 'generateToken']);
-//tra ve lich su cho khach hang
+//tra ve lich su cho khach hàng
 Route::get('/booking-history', [BookingHotelController::class, 'getBookingHistory']);
 Route::post('/booking-historyPhone', [BookingHotelController::class, 'getBookingHistoryByPhone']);
 Route::get('/booking-history/{id}', [BookingHotelController::class, 'getBookingDetail']);

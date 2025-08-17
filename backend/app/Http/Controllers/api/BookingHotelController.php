@@ -50,7 +50,7 @@ class BookingHotelController extends Controller
                 $rooms = Room::where('type_id', $roomType->type_id)->get();
 
                 $bookedRoomIds = BookingHotelDetail::whereHas('booking', function ($query) use ($checkInDate, $checkOutDate) {
-                    $query->whereIn('status', ['pending_confirmation', 'confirmed_not_assigned', 'confirmed'])
+                    $query->whereIn('status', ['pending_confirmation', 'confirmed_not_assigned', 'confirmed',''])
                         ->where(function ($q) use ($checkInDate, $checkOutDate) {
                             $q->whereBetween('check_in_date', [$checkInDate, $checkOutDate])
                                 ->orWhereBetween('check_out_date', [$checkInDate, $checkOutDate])

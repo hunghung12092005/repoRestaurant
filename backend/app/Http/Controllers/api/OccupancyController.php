@@ -7,6 +7,7 @@ use App\Models\BookingHistory;
 use App\Models\BookingHotel;
 use App\Models\BookingHotelDetail;
 use App\Models\CancelBooking;
+use App\Models\Customer;
 use App\Models\Price;
 use App\Models\Room;
 use Illuminate\Http\Request;
@@ -275,16 +276,30 @@ class OccupancyController extends Controller
             }
 
             // Thêm khách
-            $customerId = DB::table('customers')->insertGetId([
-                'customer_name'      => $validated['customer_name'],
-                'customer_phone'     => $validated['customer_phone'],
-                'customer_email'     => $validated['customer_email'],
-                'address'            => $validated['address'] ?? null,
-                'room_id'            => $room_id,
-                'created_at'         => now(),
-                'updated_at'         => now(),
-                'customer_id_number' => $validated['customer_id_number'],
-            ]);
+            // $customerId = DB::table('customers')->insertGetId([
+            //     'customer_name'      => $validated['customer_name'],
+            //     'customer_phone'     => $validated['customer_phone'],
+            //     'customer_email'     => $validated['customer_email'],
+            //     'address'            => $validated['address'] ?? null,
+            //     'room_id'            => $room_id,
+            //     'created_at'         => now(),
+            //     'updated_at'         => now(),
+            //     'customer_id_number' => $validated['customer_id_number'],
+            // ]);
+
+            // Sử dụng updateOrCreate để tránh trùng lặp khách hàng
+            $customer = Customer::updateOrCreate(
+                ['customer_phone' => $validated['customer_phone']],
+                [
+                    'customer_name'      => $validated['customer_name'],
+                    'customer_email'     => $validated['customer_email'],
+                    'address'            => $validated['address'] ?? null,
+                    'room_id'            => $room_id,
+                    'customer_id_number' => $validated['customer_id_number'],
+                ]
+            );
+
+            $customerId = $customer->customer_id;
 
             // Thêm booking
             $bookingId = DB::table('booking_hotel')->insertGetId([
@@ -512,7 +527,7 @@ class OccupancyController extends Controller
 
             // Cập nhật thông tin khách hàng
             if ($booking->customer_id) {
-            //return response()->json(['message' => $booking->customer_id]);
+                //return response()->json(['message' => $booking->customer_id]);
                 DB::table('customers')->where('customer_id', $booking->customer_id)->update([
                     'customer_name' => $request->customer_name,
                     'customer_phone' => $request->customer_phone,
@@ -541,7 +556,7 @@ class OccupancyController extends Controller
                     ]);
             } else {
                 // Nếu chưa có thì tạo mới
-                         //   return response()->json(['message' => 'addajdjb']);
+                //   return response()->json(['message' => 'addajdjb']);
 
                 // DB::table('booking_room_status')->insert([
                 //     'booking_id' => $booking_id,
@@ -551,8 +566,7 @@ class OccupancyController extends Controller
                 //     'created_at' => now(),
                 //     'updated_at' => now(),
                 // ]);
-                            return response()->json(['message' => 'Cập nhật thời gian và thông tin khách hàng thành công.']);
-
+                return response()->json(['message' => 'Cập nhật thời gian và thông tin khách hàng thành công.']);
             }
             return response()->json(['message' => 'Cập nhật thời gian và thông tin khách hàng thành công.']);
         } catch (\Exception $e) {
@@ -666,10 +680,10 @@ class OccupancyController extends Controller
                         $room->status = 'available';
                         $room->booking_detail_id = null;
                         $room->booking_id = null;
-                    }elseif ($bookingInfo->booking_detail_id === null) {
+                    } elseif ($bookingInfo->booking_detail_id === null) {
                         $room->status = 'available';
-                    }else{
-                         $room->status = 'occupied';
+                    } else {
+                        $room->status = 'occupied';
                     }
                 } else {
                     $room->status = 'available'; // Nếu không có booking thì phòng có thể được đặt
@@ -1052,15 +1066,27 @@ class OccupancyController extends Controller
             $checkOut = Carbon::parse($first['check_out_date'] . ' ' . ($first['check_out_time'] ?? '12:00'));
 
             // Tạo khách hàng
-            $customerId = DB::table('customers')->insertGetId([
-                'customer_name' => $first['customer_name'],
-                'customer_phone' => $first['customer_phone'],
-                'customer_email' => $first['customer_email'],
-                'customer_id_number' => $first['customer_id_number'],
-                'room_id' => $first['room_id'],
-                'created_at' => now(),
-                'updated_at' => now(),
-            ]);
+            // $customerId = DB::table('customers')->insertGetId([
+            //     'customer_name' => $first['customer_name'],
+            //     'customer_phone' => $first['customer_phone'],
+            //     'customer_email' => $first['customer_email'],
+            //     'customer_id_number' => $first['customer_id_number'],
+            //     'room_id' => $first['room_id'],
+            //     'created_at' => now(),
+            //     'updated_at' => now(),
+            // ]);
+            $customer = Customer::updateOrCreate(
+                ['customer_phone' => $first['customer_phone']], // điều kiện tìm
+                [
+                    'customer_name'      => $first['customer_name'],
+                    'customer_email'     => $first['customer_email'],
+                    'customer_id_number' => $first['customer_id_number'],
+                    'room_id'            => $first['room_id'],
+                ]
+            );
+
+            $customerId = $customer->customer_id;
+
 
             // Tạo booking chung
             $bookingId = DB::table('booking_hotel')->insertGetId([
@@ -1194,40 +1220,40 @@ class OccupancyController extends Controller
         }
     }
     public function getBookingDetails($booking_id)
-{
-    try {
-        // Lấy booking và kiểm tra trạng thái
-        $booking = DB::table('booking_hotel')->where('booking_id', $booking_id)->first();
+    {
+        try {
+            // Lấy booking và kiểm tra trạng thái
+            $booking = DB::table('booking_hotel')->where('booking_id', $booking_id)->first();
 
-        if (!$booking) {
-            return response()->json(['message' => 'Không tìm thấy booking.'], 404);
+            if (!$booking) {
+                return response()->json(['message' => 'Không tìm thấy booking.'], 404);
+            }
+
+            if ($booking->status === 'completed') {
+                return response()->json(['message' => 'Booking đã thanh toán xong.'], 400);
+            }
+
+            // Lấy danh sách chi tiết phòng thuộc booking này
+            $details = DB::table('booking_hotel_detail as bkd')
+                ->join('rooms', 'rooms.room_id', '=', 'bkd.room_id')
+                ->join('room_types', 'room_types.type_id', '=', 'rooms.type_id')
+                ->where('bkd.booking_id', $booking_id)
+                ->select(
+                    'bkd.booking_detail_id',
+                    'bkd.total_price',
+                    'rooms.room_name',
+                    'rooms.floor_number',
+                    DB::raw('CASE WHEN bkd.trang_thai IS NULL THEN "no" ELSE bkd.trang_thai END as trang_thai'), // Gán 'chua_done' nếu là null
+                    'room_types.type_name'
+                )
+                ->get();
+
+            return response()->json($details);
+        } catch (\Exception $e) {
+            Log::error("Lỗi lấy chi tiết booking {$booking_id}: " . $e->getMessage());
+            return response()->json(['message' => 'Lỗi khi lấy chi tiết booking.', 'error' => $e->getMessage()], 500);
         }
-
-        if ($booking->status === 'completed') {
-            return response()->json(['message' => 'Booking đã thanh toán xong.'], 400);
-        }
-
-        // Lấy danh sách chi tiết phòng thuộc booking này
-        $details = DB::table('booking_hotel_detail as bkd')
-            ->join('rooms', 'rooms.room_id', '=', 'bkd.room_id')
-            ->join('room_types', 'room_types.type_id', '=', 'rooms.type_id')
-            ->where('bkd.booking_id', $booking_id)
-            ->select(
-                'bkd.booking_detail_id',
-                 'bkd.total_price',
-                'rooms.room_name',
-                'rooms.floor_number',
-                DB::raw('CASE WHEN bkd.trang_thai IS NULL THEN "no" ELSE bkd.trang_thai END as trang_thai'), // Gán 'chua_done' nếu là null
-                'room_types.type_name'
-            )
-            ->get();
-
-        return response()->json($details);
-    } catch (\Exception $e) {
-        Log::error("Lỗi lấy chi tiết booking {$booking_id}: " . $e->getMessage());
-        return response()->json(['message' => 'Lỗi khi lấy chi tiết booking.', 'error' => $e->getMessage()], 500);
     }
-}
     public function getUnpaidBookings()
     {
         try {

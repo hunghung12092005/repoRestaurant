@@ -631,7 +631,7 @@ const showExtendModal = ref(false);
 const extendForm = ref({ booking_detail_id: null, check_out_date: '' });
 const additionalFee = ref(0);
 const surchargeReason = ref('');
-const apiKey = 'XXjjI5g9j7gk4NcZE9Dh9PPLCrvrR6zJ';
+const apiKey = 'UIOieiMUjnqR7UCrJrtF30wQaw8Jc4ys';
 const imageFile = ref(null);
 
 const serviceTotal = computed(() => allServices.value.reduce((sum, s) => sum + s.price * s.quantity, 0));
@@ -739,7 +739,7 @@ const submitMultiBookings = async () => {
     };
 
     const res = await axios.post(`${apiUrl}/api/occupancy/add-multiple`, payload);
-    console.log('Đặt nhiều phòng thành công:', res.data);
+    //console.log('Đặt nhiều phòng thành công:', res.data);
     alert(res.data.message + '\nMã booking nhóm: ' + res.data.booking_id);
     showMultiBookingModal.value = false;
     multiBookings.value = [];
@@ -747,8 +747,8 @@ const submitMultiBookings = async () => {
     // window.location.reload();
 
   } catch (e) {
-    console.error('Lỗi đặt nhiều phòng:', e);
-    alert(e.response?.data?.message || 'Lỗi khi đặt nhiều phòng.');
+    console.error('Lỗi đặt nhiều phòng adnkn:', e);
+    alert(e.response?.data?.error || 'Không thể đặt nhiều phòng. Vui lòng thử lại sau.');
   }
 };
 
@@ -1081,9 +1081,9 @@ const calculateTotalPricePreview = async () => {
   } catch (e) {
     totalPricePreview.value = null;
     pricePreviewError.value = e.response?.data?.message || 'Lỗi tính giá phòng. Vui lòng kiểm tra thời gian đặt phòng.';
-    console.error('Lỗi tính giá:', e.response?.data?.message || e.message);
+    console.error('Lỗi tính giá:', e);
     if (e.response?.status === 422) {
-      alert('Thời gian đặt phòng không hợp lệ: ' + (e.response.data.message || 'Vui lòng kiểm tra lại.'));
+      alert('Thời gian đặt phòng không hợp lệ: ' + (e.response.data || 'Vui lòng kiểm tra lại.'));
     }
   }
 };

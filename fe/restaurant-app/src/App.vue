@@ -52,7 +52,7 @@
                 <ul class="nav-submenu" :class="{ 'open': openSubmenus[item.key] }">
                   <li v-for="child in item.children" :key="child.to">
                     <router-link class="nav-link" :to="child.to"><i :class="child.icon"></i>{{ child.title
-                      }}</router-link>
+                    }}</router-link>
                   </li>
                 </ul>
               </template>
@@ -178,7 +178,7 @@ const can = (permission) => {
 // CẤU TRÚC SIDEBAR: Master list của tất cả các mục có thể có
 const sidebarStructure = [
   { section: 'TRANG QUẢN TRỊ', title: 'Trang Thống Kê', to: '/admin/dashboard', icon: 'bi bi-grid-1x2', requiredPermission: null },
-  { section: 'TRANG QUẢN TRỊ', title: 'Sơ Đồ Phòng', to: '/admin/occupancy', icon: 'bi bi-map', requiredPermission: 'manage_bookings' },
+  { section: 'TRANG QUẢN TRỊ', title: 'Tình Trạng Phòng', to: '/admin/occupancy', icon: 'bi bi-map', requiredPermission: 'manage_bookings' },
   { section: 'TRANG QUẢN TRỊ', title: 'Quản Lý Đặt Phòng', to: '/admin/bookings', icon: 'bi bi-journal-check', requiredPermission: 'manage_bookings' },
   { section: 'TRANG QUẢN TRỊ', title: 'Lịch Sử Đặt Phòng', to: '/admin/booking-histories', icon: 'bi bi-clock-history', requiredPermission: 'manage_reports' },
   { section: 'QUẢN LÝ PHÒNG', title: 'Danh Mục Phòng', to: '/admin/room-types', icon: 'bi bi-tags', requiredPermission: 'manage_rooms' },
