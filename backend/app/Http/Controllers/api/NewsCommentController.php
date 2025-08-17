@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\NewsComment;
 use App\Models\News;
 use App\Models\User;
+use App\Models\Role;
 use App\Models\Notification;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
@@ -68,7 +69,10 @@ class NewsCommentController extends Controller
         $news = News::find($newsId);
         $author = $news->user;
 
-        $adminsAndStaff = User::whereIn('role', ['admin', 'staff'])->get();
+         $adminAndStaffRoleIds = Role::whereIn('name', ['admin', 'manager', 'receptionist'])->pluck('id');
+
+            // Tìm tất cả người dùng thuộc các vai trò đó
+        $adminsAndStaff = User::whereIn('role_id', $adminAndStaffRoleIds)->get();
         foreach ($adminsAndStaff as $user) {
             // Tạo bản ghi Notification trong database
             $notification = new Notification();
