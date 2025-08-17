@@ -156,23 +156,32 @@ const isLogin = ref(false);
 const isAdmin = ref(false);
 const isStaff = ref(false);
 
-const staffRoles = ['manager', 'receptionist'];
+// const staffRoles = ['manager', 'receptionist'];
 
 const setUserRoles = (user) => {
   userInfo.value = user || {};
   isLogin.value = !!user;
-  // Kiểm tra 'name' bên trong object 'role'
-  isAdmin.value = user?.role?.name === 'admin'; 
-  isStaff.value = ['manager', 'receptionist'].includes(user?.role?.name);
+  
+  const roleName = user?.role?.name;
+
+  // 1. Xác định Admin: Chỉ có vai trò 'admin' mới là Admin.
+  isAdmin.value = (roleName === 'admin');
+
+  // 2. Xác định Nhân viên (Staff): Bất kỳ ai CÓ VAI TRÒ và KHÔNG PHẢI là 'client'.
+  // Định nghĩa này bao gồm cả 'admin', 'manager', 'receptionist', và bất kỳ vai trò mới nào bạn tạo ra.
+  // Đây là những người có quyền truy cập vào trang quản trị.
+  isStaff.value = (roleName && roleName !== 'client');
 };
 
 const can = (permission) => {
+  // 1. Admin luôn có mọi quyền
   if (isAdmin.value) return true;
-  // Kiểm tra 'permissions' bên trong object 'role'
-  if (!userInfo.value?.role?.permissions) return false;
-  
-  // 'permissions' bây giờ là một mảng các object, cần kiểm tra 'name' của từng object
-  return userInfo.value.role.permissions.some(p => p.name === permission);
+
+  // 2. Lấy danh sách quyền từ userInfo một cách an toàn
+  const userPermissions = userInfo.value?.role?.permissions || [];
+
+  // 3. Kiểm tra xem trong mảng permissions có object nào có 'name' trùng với quyền yêu cầu không
+  return userPermissions.some(p => p.name === permission);
 };
 
 // CẤU TRÚC SIDEBAR: Master list của tất cả các mục có thể có
@@ -188,7 +197,7 @@ const sidebarStructure = [
   { section: 'QUẢN LÝ DỊCH VỤ & TIỆN NGHI', title: 'Quản Lý Tiện Nghi', to: '/admin/amenities', icon: 'bi bi-gem', requiredPermission: 'manage_amenities' },
   { section: 'QUẢN LÝ DỊCH VỤ & TIỆN NGHI', title: 'Quản Lý Giảm Giá', to: '/admin/coupons', icon: 'bi bi-ticket-perforated', requiredPermission: 'manage_coupons' },
   {
-    section: 'QUẢN LÝ TÀI KHOẢN', title: 'Quản lý Vai trò', to: '/admin/roles', icon: 'bi bi-person-check',
+    section: 'QUẢN LÝ TÀI KHOẢN', title: 'Quản lý Vai trò', to: '/admin/roles', icon: 'bi bi-person-check', requiredPermission: 'manage_users'
   },
   { section: 'QUẢN LÝ TÀI KHOẢN', title: 'Quản Lý Tài Khoản', to: '/admin/users', icon: 'bi bi-people', requiredPermission: 'manage_users' },
   { section: 'QUẢN LÝ TÀI KHOẢN', title: 'Quản Lý Nhân Viên', to: '/admin/staffs', icon: 'bi bi-person-workspace', requiredPermission: 'manage_staff' },
