@@ -1289,12 +1289,12 @@ const confirmBooking = async () => {
     // });
     const dataUser = {
         name: fullName.value,
-        phone: phoneNumber.value,
+         phone: "0" + phoneNumber.value,
         email: email.value,
         address: '', // Có thể thêm địa chỉ nếu cần
     };
     try {
-        //console.log('Đang xác thực người dùng...', dataUser);
+        console.log('Đang xác thực người dùng...', dataUser);
         const authResponse = await axios.post(`${apiUrl}/api/generate-token`, dataUser);
         token = authResponse.data.token;
         localStorage.setItem('BookingAuth', token);

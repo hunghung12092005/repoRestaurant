@@ -50,7 +50,7 @@ class BookingHotelController extends Controller
                 $rooms = Room::where('type_id', $roomType->type_id)->get();
 
                 $bookedRoomIds = BookingHotelDetail::whereHas('booking', function ($query) use ($checkInDate, $checkOutDate) {
-                    $query->whereIn('status', ['pending_confirmation', 'confirmed_not_assigned', 'confirmed',''])
+                    $query->whereIn('status', ['pending_confirmation', 'confirmed_not_assigned', 'confirmed', ''])
                         ->where(function ($q) use ($checkInDate, $checkOutDate) {
                             $q->whereBetween('check_in_date', [$checkInDate, $checkOutDate])
                                 ->orWhereBetween('check_out_date', [$checkInDate, $checkOutDate])
@@ -246,13 +246,14 @@ class BookingHotelController extends Controller
                 'email' => 'required',
             ]);
 
-            $customer = Customer::firstOrCreate(['customer_phone' => $request->phone], [
-                'customer_name' => $request->name,
-                'customer_phone' => $request->phone,
-                'customer_email' => $request->email,
-                'address' => $request->address ?? 'Unknown',
-            ]);
-
+            $customer = Customer::updateOrCreate(
+                ['customer_phone' => $request->phone], // điều kiện tìm
+                [
+                    'customer_name'  => $request->name,
+                    'customer_email' => $request->email,
+                    'address'        => $request->address ?? 'Unknown',
+                ]
+            );
             $token = JWTAuth::fromUser($customer);
             return response()->json(['token' => $token]);
         } catch (JWTException $e) {
@@ -465,36 +466,35 @@ class BookingHotelController extends Controller
         }
     }
     //lay chi tiet booking theo booking_id
-   public function getBookingDetail($bookingID)
-{
-    try {
-        // Lấy tất cả chi tiết phòng trong booking
-        $bookingDetails = BookingHotelDetail::where('booking_id', $bookingID)
-            ->get()
-            ->map(function ($detail) {
-                // Nếu gia_dich_vu > 0 thì lấy danh sách dịch vụ
-                if ($detail->gia_dich_vu > 0) {
-                    $detail->services = BookingHotelService::with('serviceInfo')
-                        ->where('booking_detail_id', $detail->booking_detail_id)
-                        ->get();
-                } else {
-                    $detail->services = collect(); // trả về Collection rỗng
-                }
-                return $detail;
-            });
+    public function getBookingDetail($bookingID)
+    {
+        try {
+            // Lấy tất cả chi tiết phòng trong booking
+            $bookingDetails = BookingHotelDetail::where('booking_id', $bookingID)
+                ->get()
+                ->map(function ($detail) {
+                    // Nếu gia_dich_vu > 0 thì lấy danh sách dịch vụ
+                    if ($detail->gia_dich_vu > 0) {
+                        $detail->services = BookingHotelService::with('serviceInfo')
+                            ->where('booking_detail_id', $detail->booking_detail_id)
+                            ->get();
+                    } else {
+                        $detail->services = collect(); // trả về Collection rỗng
+                    }
+                    return $detail;
+                });
 
-        return response()->json([
-            'status' => 'success',
-            'data' => $bookingDetails,
-        ], 200);
-
-    } catch (\Exception $e) {
-        return response()->json([
-            'status' => 'error',
-            'message' => 'Không thể lấy chi tiết booking: ' . $e->getMessage(),
-        ], 500);
+            return response()->json([
+                'status' => 'success',
+                'data' => $bookingDetails,
+            ], 200);
+        } catch (\Exception $e) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Không thể lấy chi tiết booking: ' . $e->getMessage(),
+            ], 500);
+        }
     }
-}
 
 
 
