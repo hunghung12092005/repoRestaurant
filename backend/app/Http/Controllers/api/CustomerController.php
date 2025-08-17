@@ -21,7 +21,9 @@ class CustomerController extends Controller
             $query->where(function ($q) use ($searchTerm) {
                 $q->where('customer_name', 'like', "%{$searchTerm}%")
                   ->orWhere('customer_phone', 'like', "%{$searchTerm}%")
-                  ->orWhere('customer_email', 'like', "%{$searchTerm}%");
+                  ->orWhere('customer_email', 'like', "%{$searchTerm}%")
+                  ->orWhere('address', 'like', "%{$searchTerm}%")
+                  ->orWhere('customer_id_number', 'like', "%{$searchTerm}%");
             });
         }
 

@@ -27,11 +27,6 @@
               {{ type.type_name }}
             </option>
           </select>
-          <select v-model="filterStatus" class="form-select" @change="currentPage = 1">
-            <option value="">Tất cả trạng thái</option>
-            <option value="Trống">Trống</option>
-            <option value="Đã đặt">Đã đặt</option>
-          </select>
         </div>
         <button class="btn btn-primary ms-auto" @click="openAddModal">
           <i class="bi bi-plus-circle me-2"></i>Thêm Phòng
@@ -47,7 +42,6 @@
             <th style="width: 20%">Phòng & Tầng</th>
             <th style="width: 25%">Loại Phòng</th>
             <th style="width: 25%">Sức Chứa</th>
-            <th class="text-center" style="width: 15%">Trạng Thái</th>
             <th class="text-center" style="width: 15%">Hành Động</th>
           </tr>
         </thead>
@@ -74,11 +68,6 @@
                 </span>
               </div>
               <span v-else class="badge badge-secondary">Không có thông tin</span>
-            </td>
-            <td class="text-center">
-              <span class="badge" :class="getStatusBadge(room.status)">
-                {{ formatStatus(room.status) }}
-              </span>
             </td>
             <td class="text-center action-buttons">
               <button class="btn btn-outline-primary btn-sm" title="Sửa" @click="openEditModal(room)">
@@ -158,15 +147,6 @@
                   </select>
                    <div v-if="errors.type_id" class="invalid-feedback">{{ errors.type_id }}</div>
                 </div>
-                <div class="col-md-6">
-                  <label class="form-label">Trạng Thái</label>
-                  <select v-model="form.status" class="form-select" required :class="{ 'is-invalid': errors.status }">
-                    <option value="">-- Chọn trạng thái --</option>
-                    <option value="Trống">Trống</option>
-                    <option value="Đã đặt">Đã đặt</option>
-                  </select>
-                   <div v-if="errors.status" class="invalid-feedback">{{ errors.status }}</div>
-                </div>
                 <div class="col-12">
                   <label class="form-label">Mô Tả</label>
                   <textarea v-model="form.description" @input="onInputDescription" class="form-control" rows="3" placeholder="Nhập mô tả phòng"></textarea>
@@ -217,14 +197,12 @@ const form = ref({
   room_name: '',
   type_id: '',
   floor_number: 1,
-  status: 'Trống',
   description: ''
 });
 const errors = ref({
   room_name: '',
   type_id: '',
   floor_number: '',
-  status: ''
 });
 
 // Fetch data
@@ -249,7 +227,6 @@ const fetchRooms = async (page = 1) => {
     console.error('Fetch rooms error:', {
       message: error.message,
       response: error.response?.data,
-      status: error.response?.status
     });
     errorMessage.value = error.response?.data?.message || 'Không thể tải danh sách phòng.';
     rooms.value = [];
@@ -303,12 +280,6 @@ const filteredRooms = computed(() => {
                          typeName.includes(searchQuery.value.toLowerCase()) ||
                          floorNumber.includes(searchQuery.value.toLowerCase());
     const matchesRoomType = !filterRoomType.value || room.type_id == parseInt(filterRoomType.value);
-    const statusMapping = {
-      'available': 'Trống',
-      'occupied': 'Đã đặt',
-      'pending_cancel': 'Đang chờ hủy'
-    };
-    const displayStatus = statusMapping[room.status] || room.status;
     const matchesStatus = !filterStatus.value || displayStatus === filterStatus.value;
     return matchesSearch && matchesRoomType && matchesStatus;
   });
@@ -339,7 +310,6 @@ const openAddModal = () => {
     room_name: '',
     type_id: '',
     floor_number: 1,
-    status: 'Trống',
     description: ''
   };
   errors.value = {};
@@ -356,16 +326,10 @@ const openEditModal = (room) => {
     console.error('Invalid room data:', room);
     return;
   }
-  const statusMapping = {
-    'available': 'Trống',
-    'occupied': 'Đã đặt',
-    'pending_cancel': 'Đang chờ hủy'
-  };
   form.value = {
     room_name: String(room.room_name || ''),
     type_id: String(room.type_id || ''),
     floor_number: Number(room.floor_number) || 1,
-    status: statusMapping[room.status] || 'Trống',
     description: String(room.description || '')
   };
   currentRoom.value = { ...room };
@@ -385,7 +349,6 @@ const closeModal = () => {
     room_name: '',
     type_id: '',
     floor_number: 1,
-    status: 'Trống',
     description: ''
   };
   console.log('Closed modal, form reset:', { ...form.value });
@@ -428,11 +391,6 @@ const validateForm = () => {
     errors.value.floor_number = 'Tầng phải lớn hơn 0';
     isValid = false;
   }
-  if (!['Trống', 'Đã đặt'].includes(form.value.status)) {
-    errors.value.status = 'Vui lòng chọn trạng thái hợp lệ';
-    isValid = false;
-  }
-
   console.log('Validation result:', { isValid, form: { ...form.value }, errors: errors.value });
   return isValid;
 };
@@ -447,16 +405,11 @@ const saveRoom = async () => {
 
   isLoading.value = true;
   modalErrorMessage.value = '';
-  const statusMapping = {
-    'Trống': 'available',
-    'Đã đặt': 'occupied',
-    'Đang chờ hủy': 'pending_cancel'
-  };
+
   const payload = {
     room_name: form.value.room_name.trim(),
     type_id: form.value.type_id,
     floor_number: form.value.floor_number,
-    status: statusMapping[form.value.status] || 'available',
     description: form.value.description.trim() || null
   };
   console.log('Sending POST/PUT data:', payload);
@@ -518,21 +471,6 @@ const deleteRoom = async (room_id) => {
   } finally {
     isLoading.value = false;
   }
-};
-
-// --- *** THÊM CÁC HÀM TIỆN ÍCH MÀ TEMPLATE MỚI CẦN *** ---
-const formatStatus = (status) => {
-  const map = { available: 'Trống', occupied: 'Đã đặt', maintenance: 'Bảo trì' };
-  return map[status] || status;
-};
-
-const getStatusBadge = (status) => {
-  const map = {
-    available: 'badge-success',
-    occupied: 'badge-danger',
-    maintenance: 'badge-warning',
-  };
-  return map[status] || 'badge-secondary';
 };
 </script>
 
@@ -638,11 +576,6 @@ const getStatusBadge = (status) => {
   border-radius: 20px;
   letter-spacing: 0.5px;
 }
-.badge-secondary { background-color: #f3f4f6; color: #7f8c8d; }
-.badge-success { background-color: #e6f9f0; color: #2ecc71; }
-.badge-danger { background-color: #fce8e6; color: #e74c3c; }
-.badge-warning { background-color: #fef5e7; color: #f39c12; }
-
 
 .action-buttons {
   white-space: nowrap;
