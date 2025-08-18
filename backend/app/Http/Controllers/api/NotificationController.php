@@ -5,122 +5,84 @@ namespace App\Http\Controllers\api;
 use App\Models\Notification;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
 use Carbon\Carbon;
-use Illuminate\Support\Facades\Log;
 
 class NotificationController extends Controller
 {
-    public function index()
+    /**
+     * Lấy thông báo cho chuông (dropdown).
+     * LOGIC MỚI HOÀN CHỈNH:
+     * 1. Lấy TẤT CẢ thông báo CHƯA ĐỌC (không giới hạn, bất kể ngày nào).
+     * 2. Lấy TẤT CẢ thông báo của HÔM NAY (cả đọc và chưa đọc).
+     * -> Gộp lại và loại bỏ trùng lặp.
+     */
+    public function index(Request $request)
     {
-        // Middleware 'auth:api' đã kiểm tra rồi, nhưng chúng ta vẫn có thể check lại
-        // Hoặc đơn giản là lấy user luôn.
         /** @var \App\Models\User $user */
-        $user = Auth::guard('api')->user();
+        $user = $request->user();
 
-        if (!$user) {
-            // Dòng này gần như không bao giờ xảy ra nếu middleware đã chạy đúng
-            return response()->json(['status' => false, 'message' => 'Unauthenticated.'], 401);
-        }
+        // 1. Lấy tất cả thông báo chưa đọc
+        $unreadNotifications = $user->notifications()->whereNull('read_at')->get();
+        
+        // 2. Lấy tất cả thông báo của hôm nay
+        $todayNotifications = $user->notifications()->whereDate('created_at', Carbon::today())->get();
+        
+        // 3. Gộp 2 danh sách lại và loại bỏ các bản ghi trùng lặp (dựa trên 'id')
+        $notifications = $unreadNotifications->merge($todayNotifications)->unique('id');
+        
+        // 4. Sắp xếp lại danh sách cuối cùng theo thời gian mới nhất
+        $sortedNotifications = $notifications->sortByDesc('created_at');
 
-         $notifications = $user->notifications()
-                              ->whereDate('created_at', Carbon::today()) // <-- BƯỚC 2: Thêm điều kiện lọc theo ngày hiện tại
-                              ->limit(15) // Vẫn giữ giới hạn để tránh quá tải
-                              ->get();
-        return response()->json(['status' => true, 'data' => $notifications]);
+        return response()->json(['status' => true, 'data' => $sortedNotifications->values()->all()]);
     }
-
+    
+    /**
+     * Lấy tất cả thông báo cho trang "Tất cả thông báo".
+     */
     public function getAllNotifications(Request $request)
     {
         /** @var \App\Models\User $user */
         $user = $request->user();
-        if (!$user) {
-            return response()->json(['status' => false, 'message' => 'Unauthenticated.'], 401);
-        }
-        
-        // Lấy tất cả thông báo, sắp xếp mới nhất lên đầu, và phân trang (20 mục/trang)
-        $notifications = $user->notifications()->latest()->paginate(20);
+        $query = $user->notifications()->latest();
 
+        if ($request->has('date') && $request->date) {
+            try {
+                $query->whereDate('created_at', Carbon::parse($request->date)->toDateString());
+            } catch (\Exception $e) {}
+        }
+
+        $notifications = $query->paginate(20);
         return response()->json(['status' => true, 'data' => $notifications]);
     }
 
-     /**
+    /**
      * Đánh dấu một thông báo là đã đọc.
      */
     public function markAsRead(Request $request, $id)
     {
-        $user = $request->user();
-        if (!$user) {
-            return response()->json(['status' => false, 'message' => 'Unauthenticated.'], 401);
-        }
-        
-        $notification = $user->notifications()->where('id', $id)->first();
-
+        $notification = $request->user()->notifications()->where('id', $id)->first();
         if ($notification) {
             $notification->markAsRead();
             return response()->json(['status' => true, 'message' => 'Đã đánh dấu đã đọc.']);
         }
-
         return response()->json(['status' => false, 'message' => 'Không tìm thấy thông báo.'], 404);
     }
 
     /**
      * Đánh dấu TẤT CẢ thông báo là đã đọc.
-     * === PHIÊN BẢN SỬA LỖI CUỐI CÙNG ===
      */
     public function markAllAsRead(Request $request)
     {
-        $user = $request->user();
-        if (!$user) {
-            return response()->json(['status' => false, 'message' => 'Unauthenticated.'], 401);
-        }
-        
-        // Cách tiếp cận an toàn và trực tiếp nhất:
-        // Lấy tất cả thông báo của user mà CÓ 'read_at' là NULL,
-        // sau đó cập nhật chúng.
-        $user->notifications()
-             ->whereNull('read_at')
-             ->update(['read_at' => now()]);
-
+        $request->user()->notifications()->whereNull('read_at')->update(['read_at' => now()]);
         return response()->json(['status' => true, 'message' => 'Đã đánh dấu tất cả là đã đọc.']);
     }
 
-
+    /**
+     * Đếm số thông báo chưa đọc.
+     */
     public function unreadCount(Request $request)
     {
-        $user = $request->user();
-        if (!$user) {
-            return response()->json(['status' => false, 'message' => 'Unauthenticated.'], 401);
-        }
-        
-        try {
-            // Cách an toàn nhất: query trực tiếp
-            $count = $user->notifications()->whereNull('read_at')->count();
-            return response()->json(['status' => true, 'unread_count' => $count]);
-        } catch (\Exception $e) {
-            Log::error('Lỗi khi đếm thông báo chưa đọc: ' . $e->getMessage());
-            return response()->json(['status' => false, 'message' => 'Không thể lấy số lượng thông báo.'], 500);
-        }
-    }
-
-     public function pruneOldNotifications()
-    {
-        try {
-            // Ngày giới hạn (7 ngày trước)
-            $cutoffDate = Carbon::now()->subWeek();
-
-            // Xóa các thông báo đã đọc và cũ hơn ngày giới hạn
-            Notification::whereNotNull('read_at')
-                        ->where('created_at', '<', $cutoffDate)
-                        ->delete();
-            
-            // Trả về thành công nhưng không cần dữ liệu gì đặc biệt
-            return response()->json(['status' => true, 'message' => 'Pruning process triggered.']);
-
-        } catch (\Exception $e) {
-            // Ghi lại lỗi nếu có, nhưng không làm crash ứng dụng
-            Log::error('Lỗi khi dọn dẹp thông báo: ' . $e->getMessage());
-            return response()->json(['status' => false, 'message' => 'Error during pruning.'], 500);
-        }
+        $count = $request->user()->notifications()->whereNull('read_at')->count();
+        return response()->json(['status' => true, 'unread_count' => $count]);
     }
 }

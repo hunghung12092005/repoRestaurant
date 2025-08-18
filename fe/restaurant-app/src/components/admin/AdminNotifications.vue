@@ -2,13 +2,16 @@
   <div class="notifications-page">
     <div class="page-header d-flex justify-content-between align-items-center mb-4">
       <h2 class="mb-0">Tất cả thông báo</h2>
-      <div class="d-flex align-items-center">
-        <!-- Bộ lọc -->
-        <div class="btn-group me-2" role="group">
+      <div class="d-flex align-items-center gap-2">
+        <!-- Bộ lọc ngày -->
+        <input type="date" class="form-control" v-model="filterDate" @change="fetchNotifications(1)" style="width: auto;">
+
+        <!-- Bộ lọc Tất cả / Chưa đọc -->
+        <div class="btn-group" role="group">
           <button type="button" class="btn btn-outline-secondary" :class="{ 'active': filter === 'all' }" @click="setFilter('all')">Tất cả</button>
           <button type="button" class="btn btn-outline-secondary" :class="{ 'active': filter === 'unread' }" @click="setFilter('unread')">Chưa đọc</button>
         </div>
-        <!-- Hành động -->
+        <!-- Nút Đánh dấu tất cả đã đọc -->
         <button class="btn btn-primary" @click="markAllAsRead" :disabled="!hasUnreadNotifications">
           <i class="bi bi-check2-all me-1"></i> Đánh dấu tất cả đã đọc
         </button>
@@ -21,7 +24,7 @@
     </div>
 
     <!-- Trạng thái Rỗng -->
-    <div v-else-if="!groupedNotifications.length" class="empty-state text-center p-5 bg-light rounded">
+    <div v-else-if="groupedNotifications.length === 0" class="empty-state text-center p-5 bg-light rounded">
       <i class="bi bi-check2-circle display-4 text-success"></i>
       <h4 class="mt-3 fw-normal">Tuyệt vời!</h4>
       <p class="text-muted">Không có thông báo nào phù hợp với bộ lọc của bạn.</p>
@@ -75,150 +78,111 @@
 import { ref, onMounted, computed } from 'vue';
 import { useRouter } from 'vue-router';
 import axiosConfig from '../../axiosConfig.js';
-import { format, isToday, isYesterday } from 'date-fns';
+import { format, isToday, isYesterday, parseISO } from 'date-fns';
 import { vi } from 'date-fns/locale';
 
 const router = useRouter();
 const allNotifications = ref([]);
 const pagination = ref({});
 const isLoading = ref(true);
-const filter = ref('all'); // 'all' or 'unread'
+const filter = ref('all');
+const filterDate = ref('');
 
-// Tính toán danh sách thông báo đã được lọc và nhóm theo ngày
-const groupedNotifications = computed(() => {
-  const filtered = allNotifications.value.filter(n => {
+const filteredNotifications = computed(() => {
+  return allNotifications.value.filter(n => {
     if (filter.value === 'unread') return !n.read_at;
     return true;
   });
+});
 
-  if (!filtered.length) return [];
-
-  const groups = filtered.reduce((acc, notification) => {
-    const date = new Date(notification.created_at);
-    let groupKey;
-    if (isToday(date)) {
-      groupKey = 'Hôm nay';
-    } else if (isYesterday(date)) {
-      groupKey = 'Hôm qua';
-    } else {
-      groupKey = format(date, 'EEEE, dd/MM/yyyy', { locale: vi });
-    }
-    
-    if (!acc[groupKey]) {
-      acc[groupKey] = [];
-    }
+const groupedNotifications = computed(() => {
+  if (filteredNotifications.value.length === 0) return [];
+  const groups = filteredNotifications.value.reduce((acc, notification) => {
+    const date = parseISO(notification.created_at);
+    const groupKey = isToday(date) ? 'Hôm nay' : isYesterday(date) ? 'Hôm qua' : format(date, 'EEEE, dd/MM/yyyy', { locale: vi });
+    if (!acc[groupKey]) acc[groupKey] = [];
     acc[groupKey].push(notification);
     return acc;
   }, {});
-
-  return Object.keys(groups).map(date => ({
-    date,
-    notifications: groups[date]
-  }));
+  return Object.keys(groups).map(date => ({ date, notifications: groups[date] }));
 });
 
-// Kiểm tra xem có thông báo nào chưa đọc không để bật/tắt nút "Đánh dấu đã đọc"
-const hasUnreadNotifications = computed(() => {
-  return allNotifications.value.some(n => !n.read_at);
-});
+const hasUnreadNotifications = computed(() => allNotifications.value.some(n => !n.read_at));
 
-// Hàm lấy icon và màu sắc dựa trên loại thông báo
-const getNotificationDetails = (type) => {
-  switch (type) {
-    case 'NEW_CONTACT':
-      return { icon: 'bi bi-person-plus-fill', color: 'var(--bs-primary)' };
-    case 'NEW_COMMENT':
-      return { icon: 'bi bi-chat-left-text-fill', color: 'var(--bs-success)' };
-    case 'NEW_BOOKING':
-      return { icon: 'bi bi-calendar-check-fill', color: 'var(--bs-warning)' };
-    default:
-      return { icon: 'bi bi-bell-fill', color: 'var(--bs-secondary)' };
-  }
-};
-
-// Hàm định dạng giờ:phút từ chuỗi ngày
-const formatTime = (dateString) => {
-  if (!dateString) return '';
-  return format(new Date(dateString), 'HH:mm');
-};
-
-// Hàm lấy danh sách thông báo từ API, có hỗ trợ phân trang
 const fetchNotifications = async (page = 1) => {
-  if (!page) return; // Không làm gì nếu link phân trang bị vô hiệu hóa
+  if (!page) return;
   try {
     isLoading.value = true;
-    const response = await axiosConfig.get(`/api/notifications/all?page=${page}`);
+    const params = { page };
+    if (filterDate.value) params.date = filterDate.value;
+    const response = await axiosConfig.get('/api/notifications/all', { params });
     if (response.data.status) {
       allNotifications.value = response.data.data.data;
-      pagination.value = response.data.data; // Lưu trữ toàn bộ thông tin phân trang
+      pagination.value = response.data.data;
     }
   } catch (error) {
     console.error('Lỗi khi lấy danh sách thông báo:', error);
-    allNotifications.value = [];
   } finally {
     isLoading.value = false;
   }
 };
 
-// Hàm lấy số trang từ URL mà Laravel Pagination trả về
-const getPageNumberFromUrl = (url) => {
-  if (!url) return null;
-  try {
-    const urlObject = new URL(url);
-    return urlObject.searchParams.get('page');
-  } catch (e) {
-    return null;
-  }
-};
-
-// Hàm xử lý khi người dùng click vào một thông báo
-const handleNotificationClick = async (notification) => {
-  const wasUnread = !notification.read_at;
-  // Cập nhật giao diện ngay lập tức
-  if (wasUnread) {
-    notification.read_at = new Date().toISOString();
-  }
-  // Chuyển hướng nếu có link
-  if (notification.data.link) {
-    router.push(notification.data.link);
-  }
-  // Gửi yêu cầu đánh dấu đã đọc lên server trong nền
-  if (wasUnread) {
-    try {
-      await axiosConfig.post(`/api/notifications/${notification.id}/mark-as-read`);
-    } catch (error) {
-      console.error('Lỗi khi đánh dấu đã đọc trên server:', error);
-    }
-  }
-};
-
-// Hàm thay đổi bộ lọc (Tất cả / Chưa đọc)
-const setFilter = (newFilter) => {
-  filter.value = newFilter;
-};
-
-// Hàm đánh dấu tất cả thông báo là đã đọc
 const markAllAsRead = async () => {
   try {
     await axiosConfig.post('/api/notifications/mark-all-as-read');
-    // Cập nhật giao diện cho tất cả thông báo
     allNotifications.value.forEach(n => {
-      if (!n.read_at) {
-        n.read_at = new Date().toISOString();
-      }
+      if (!n.read_at) n.read_at = new Date().toISOString();
     });
   } catch (error) {
     console.error('Lỗi khi đánh dấu tất cả đã đọc:', error);
   }
 };
 
-// Hook được gọi khi component được tải
+const handleNotificationClick = async (notification) => {
+  const wasUnread = !notification.read_at;
+  if (notification.data.link) {
+    router.push(notification.data.link);
+  }
+  if (wasUnread) {
+    try {
+      await axiosConfig.post(`/api/notifications/${notification.id}/mark-as-read`);
+      notification.read_at = new Date().toISOString();
+    } catch (error) {
+      console.error('Lỗi khi đánh dấu đã đọc trên server:', error);
+    }
+  }
+};
+
+const setFilter = (newFilter) => {
+  filter.value = newFilter;
+};
+
+const getPageNumberFromUrl = (url) => {
+  if (!url) return null;
+  try {
+    return new URL(url).searchParams.get('page');
+  } catch (e) { return null; }
+};
+
+const getNotificationDetails = (type) => {
+  const details = {
+    'NEW_CONTACT': { icon: 'bi bi-person-plus-fill', color: 'var(--bs-primary)' },
+    'NEW_COMMENT': { icon: 'bi bi-chat-left-text-fill', color: 'var(--bs-success)' },
+    'NEW_BOOKING': { icon: 'bi bi-calendar-check-fill', color: 'var(--bs-warning)' },
+  };
+  return details[type] || { icon: 'bi bi-bell-fill', color: 'var(--bs-secondary)' };
+};
+
+const formatTime = (dateString) => dateString ? format(parseISO(dateString), 'HH:mm') : '';
+
 onMounted(() => {
   fetchNotifications();
 });
 </script>
 
 <style scoped>
+@import url('https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css');
+
 .notifications-page {
   background-color: #f8f9fa;
   min-height: 100%;

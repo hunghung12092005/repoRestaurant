@@ -17,13 +17,12 @@ class StaffController extends Controller
 {
     public function index(Request $request)
     {
-        // Lấy ID của các vai trò nhân viên
-        $staffRoleIds = Role::whereIn('name', ['manager', 'receptionist'])->pluck('id');
+          $staffRoleIds = Role::whereNotIn('name', ['admin', 'client'])->pluck('id');
 
         // Luôn tải kèm các quan hệ cần thiết
-        $staff = User::with(['staffProfile', 'staffSchedules', 'role'])
-            ->whereIn('role_id', $staffRoleIds) // <-- SỬA ĐỔI: Lọc theo role_id
-            ->get(); // Không cần phân trang ở backend nữa, Vue sẽ xử lý
+        $staff = User::with(['staffProfile', 'staffSchedules', 'role.permissions'])
+            ->whereIn('role_id', $staffRoleIds) // Lọc theo danh sách ID nhân viên
+            ->get();
 
         return response()->json(['data' => $staff], 200);
     }
