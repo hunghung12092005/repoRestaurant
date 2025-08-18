@@ -261,11 +261,9 @@ const fetchStaff = async () => {
 const fetchStaffRoles = async () => {
     try {
         const response = await apiClient.get('/roles');
-        // Lọc chỉ lấy các vai trò là 'manager' và 'receptionist'
-        staffRoles.value = response.data.filter(role => ['manager', 'receptionist'].includes(role.name));
-    } catch (error) {
-        showNotification('Không thể tải danh sách vai trò.', 'error');
-    }
+        // Lọc bỏ vai trò 'admin' và 'client' khỏi danh sách chọn
+        staffRoles.value = response.data.filter(role => !['admin', 'client'].includes(role.name));
+    } catch (error) { showNotification('Không thể tải danh sách vai trò.', 'error'); }
 }
 
 const saveStaff = async () => {

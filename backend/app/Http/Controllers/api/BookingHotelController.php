@@ -362,10 +362,10 @@ class BookingHotelController extends Controller
                 ]);
             }
 
-             $adminAndStaffRoleIds = Role::whereIn('name', ['admin', 'manager', 'receptionist'])->pluck('id');
+             $staffRoleIds = Role::where('name', '!=', 'client')->pluck('id');
 
-            // Tìm tất cả người dùng thuộc các vai trò đó
-            $adminsAndStaff = User::whereIn('role_id', $adminAndStaffRoleIds)->get();
+            // 2. Tìm tất cả người dùng thuộc các vai trò đó
+            $adminsAndStaff = User::whereIn('role_id', $staffRoleIds)->get();
 
             foreach ($adminsAndStaff as $adminUser) {
                 $notification = new Notification();

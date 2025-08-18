@@ -16,9 +16,11 @@ class StaffController extends Controller
 {
     public function index(Request $request)
     {
-        $staffRoleIds = Role::whereIn('name', ['manager', 'receptionist'])->pluck('id');
-        $staff = User::with(['staffProfile', 'role'])
-            ->whereIn('role_id', $staffRoleIds)
+          $staffRoleIds = Role::whereNotIn('name', ['admin', 'client'])->pluck('id');
+
+        // Luôn tải kèm các quan hệ cần thiết
+        $staff = User::with(['staffProfile', 'role.permissions'])
+            ->whereIn('role_id', $staffRoleIds) // Lọc theo danh sách ID nhân viên
             ->get();
 
         return response()->json(['data' => $staff], 200);

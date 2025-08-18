@@ -18,7 +18,7 @@ use Illuminate\Support\Facades\Mail;
 
 class LoginController extends Controller
 {
-    public function login(Request $request)
+        public function login(Request $request)
     {
         $request->validate([
             'email' => 'required|email',
@@ -32,26 +32,27 @@ class LoginController extends Controller
             'response' => $request->turnstileResponse,
         ]);
 
-        $result = json_decode($response->body());
-
-        if (!$result->success) {
+        if (!$response->json('success')) {
             return response()->json(['error' => 'Turnstile verification failed.'], 400);
         }
 
         $credentials = $request->only('email', 'password');
 
-        if (!$token = JWTAuth::attempt($credentials)) {
+        if (!$token = auth('api')->attempt($credentials)) {
             return response()->json(['message' => 'Sai tai khoan hoac mat khau'], 401);
         }
 
-        $user = Auth::user();
+        // CÁCH VIẾT LẠI AN TOÀN HƠN
         /** @var \App\Models\User $user */
-        $user->load('role'); // <-- SỬA ĐỔI: Tải quan hệ 'role' vào object user
+        $user = auth('api')->user(); // Lấy user đã được xác thực
+        
+        // Tải các quan hệ cần thiết vào user object hiện tại
+        $user->load('role.permissions');
 
         return response()->json([
             'message' => 'Login successful',
             'token' => $token,
-            'user' => $user // <-- SỬA ĐỔI: Trả về toàn bộ object user đã có 'role'
+            'user' => $user
         ]);
     }
 
@@ -79,8 +80,7 @@ class LoginController extends Controller
 
         $token = JWTAuth::fromUser($user);
         
-        /** @var \App\Models\User $user */
-        $user->load('role');
+        $user->load('role.permissions');
 
         return response()->json([
             'message' => 'Đăng ký thành công',
@@ -93,7 +93,7 @@ class LoginController extends Controller
     {
         try {
             $user = JWTAuth::parseToken()->authenticate();
-            $user->load('role'); // <-- SỬA ĐỔI: Luôn tải kèm 'role'
+            $user->load('role.permissions');
             return response()->json(['user' => $user]);
         } catch (\Exception $e) {
             return response()->json(['error' => 'Unauthorized'], 401);
@@ -109,7 +109,7 @@ class LoginController extends Controller
         try {
             $user = JWTAuth::setToken($token)->authenticate();
             if ($user) {
-                $user->load('role'); // <-- SỬA ĐỔI: Tải quan hệ 'role'
+                $user->load('role.permissions');
                 $jwtToken = JWTAuth::fromUser($user);
                 return response()->json([
                     'success' => true,

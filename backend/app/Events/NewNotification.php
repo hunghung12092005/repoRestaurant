@@ -62,15 +62,17 @@ class NewNotification implements ShouldBroadcast
      *
      * @return array<string, mixed>
      */
-    public function broadcastWith(): array
+        public function broadcastWith(): array
     {
         // Gửi đi dữ liệu mà component Vue có thể hiểu được
         return [
-            'id' => $this->notification->id,
-            'type' => $this->notification->type,
-            'data' => $this->notification->data,
-            'read_at' => null,
-            'created_at' => $this->notification->created_at->toDateTimeString(),
+            'notification' => [ // Gói toàn bộ vào một object 'notification'
+                'id' => $this->notification->id,
+                'type' => $this->notification->type,
+                'data' => $this->notification->data,
+                'read_at' => null, // Thông báo mới luôn chưa đọc
+                'created_at' => $this->notification->created_at->toIso8601String(), // Dùng ISO string cho nhất quán
+            ]
         ];
     }
 }

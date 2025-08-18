@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use App\Models\User; // Đảm bảo import model User
+use App\Models\Role; // Import model Role
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Str;
@@ -103,21 +104,24 @@ class LoginController extends Controller
 
     public function handleGoogleCallback()
 {
-    $user = Socialite::driver('google')->user();
+    $googleUser = Socialite::driver('google')->user();
 
-    $authUser = User::where('email', $user->email)->first();
-    $role = '2';
+     $clientRole = Role::where('name', 'client')->firstOrFail();
 
-    if (!$authUser) {
-        // Nếu chưa có người dùng, tạo mới
-        $authUser = User::create([
-            'name' => $user->name,
-            'email' => $user->email,
-            'role_id' => $role,
-            'google_id' => $user->id,
-            'password' => bcrypt(rand(16, 20)), // Tạo mật khẩu ngẫu nhiên
-        ]);
-    }
+            // Tìm hoặc tạo mới user, và đảm bảo gán role_id
+            $authUser = User::updateOrCreate(
+                ['email' => $googleUser->getEmail()],
+                [
+                    'name' => $googleUser->getName(),
+                    'google_id' => $googleUser->getId(),
+                    'password' => Hash::make(Str::random(24)),
+                    'role_id' => $clientRole->id,
+                    'email_verified_at' => now(),
+                ]
+            );
+
+            // SỬA ĐỔI QUAN TRỌNG: Tải kèm role.permissions
+            $authUser->load('role.permissions');
 
     // Đăng nhập người dùng
     Auth::login($authUser, true);
