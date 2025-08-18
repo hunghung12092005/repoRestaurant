@@ -282,18 +282,15 @@ onMounted(() => {
 @import url('https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@300;400;500;600;700&display=swap');
 @import url('https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css');
 
-/* --- Base Styles --- */
 .page-container { font-family: 'Be Vietnam Pro', sans-serif; background-color: #f4f7f9; padding: 2rem; color: #34495e; }
 .page-header { border-bottom: 1px solid #e5eaee; padding-bottom: 1rem; }
 .page-title { font-size: 2rem; font-weight: 700; }
 .page-subtitle { font-size: 1rem; color: #7f8c8d; }
 .card { background-color: #ffffff; border: none; border-radius: 12px; box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05); }
 
-/* --- Forms & Inputs --- */
 .form-control, .form-select { border-radius: 8px; border: 1px solid #e5eaee; transition: all 0.2s ease-in-out; font-size: 0.9rem; }
 .form-control:focus, .form-select:focus { border-color: #3498db; box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.15); }
 
-/* --- Table Styles --- */
 .table-container { background-color: #ffffff; border-radius: 12px; box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05); overflow: hidden; }
 .booking-table { font-size: 0.875rem; border-collapse: separate; border-spacing: 0; }
 .booking-table thead th { background-color: #f8f9fa; color: #7f8c8d; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; border-bottom: 2px solid #e5eaee; padding: 1rem; white-space: nowrap; }
@@ -303,8 +300,7 @@ onMounted(() => {
 .type-name { font-size: 1rem; color: #34495e; }
 .description-text { font-size: 0.8rem; color: #7f8c8d; }
 
-/* --- Badges --- */
-.tags-container { display: flex; flex-wrap: wrap; gap: 6px; }
+.tags-container { flex-wrap: wrap; gap: 6px; }
 .badge { padding: 0.4em 0.8em; font-size: 0.75rem; font-weight: 600; border-radius: 20px; text-transform: capitalize; }
 .badge-secondary { background-color: #f3f4f6; color: #7f8c8d; }
 .badge-primary { background-color: #eaf6fb; color: #3498db; }
@@ -313,14 +309,11 @@ onMounted(() => {
 .badge-danger { background-color: #feeeed; color: #e74c3c; }
 .badge-info { background-color: #e8f8f5; color: #1abc9c; }
 
-
-/* --- Actions & Pagination --- */
 .action-buttons { white-space: nowrap; }
 .action-buttons .btn { margin: 0 2px; }
 .pagination .page-link { border: none; border-radius: 8px; margin: 0 4px; color: #7f8c8d; font-weight: 600; }
 .pagination .page-item.active .page-link { background-color: #3498db; color: #ffffff; }
 
-/* --- Modal Styles --- */
 .modal-custom { border-radius: 16px; border: none; box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1); }
 .modal-header-custom, .modal-footer-custom { background-color: #f4f7f9; border-color: #e5eaee; padding: 1.5rem; }
 .modal-header-custom .btn-close { filter: brightness(0) invert(0.7); }
@@ -328,7 +321,6 @@ onMounted(() => {
 .modal-body p { margin-bottom: 0.75rem; }
 .modal-body p strong { color: #34495e; display: inline-block; min-width: 100px; }
 
-/* --- Custom Modal Content --- */
 .form-section-title { font-size: 1rem; font-weight: 600; color: #34495e; margin-bottom: 1rem; padding-bottom: 0.5rem; border-bottom: 1px solid #e5eaee; }
 .history-table { font-size: 0.9rem; }
 .history-table td, .history-table th { padding: 0.75rem; }
