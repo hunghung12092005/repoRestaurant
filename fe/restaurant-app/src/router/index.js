@@ -41,7 +41,7 @@ import AdminNotifications from '../components/admin/AdminNotifications.vue';
 // <-- THÊM MỚI: Import các component quản lý quyền
 import AdminRolesComponent from '../components/admin/AdminRolesComponent.vue';
 // import AdminPermissionsComponent from '../components/admin/AdminPermissionsComponent.vue';
-
+import AdminEvaluate from '../components/admin/AdminEvaluate.vue';
 
 const routes = [
   // --- PUBLIC ROUTES ---
@@ -85,6 +85,7 @@ const routes = [
   // <-- THÊM MỚI: Routes cho quản lý tài khoản và phân quyền
   { path: '/admin/users', name: 'AdminUsers', component: AdminUsersComponent, meta: { requiresAuth: true, permission: 'manage_users' } },
   { path: '/admin/roles', name: 'AdminRoles', component: AdminRolesComponent, meta: { requiresAuth: true, permission: 'manage_users' } },
+  { path: '/admin/evaluate', name: 'AdminEvaluate', component: AdminEvaluate, meta: { requiresAuth: true, permission: 'manage_evaluate' } },
   // { path: '/admin/permissions', name: 'AdminPermissions', component: AdminPermissionsComponent, meta: { requiresAuth: true, permission: 'manage_users' } },
  
   // --- MISC & 404 ---

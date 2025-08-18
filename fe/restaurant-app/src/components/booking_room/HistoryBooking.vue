@@ -42,10 +42,86 @@
     </div>
   </div>
   <div id="recaptcha-container"></div>
-  <!-- Bắt đầu của component -->
+  <!-- popup Evaluate -->
+  <div v-if="popupEvaluate" class="modal fade show d-block" tabindex="-1" role="dialog"
+    style="z-index: 9999; background: rgba(0,0,0,0.5);">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content border-0 rounded-3 shadow-lg">
+        <!-- Modal Header -->
+        <div class="modal-header bg-primary text-white border-0 rounded-top-3">
+          <h5 class="modal-title fw-bold">Đánh giá trải nghiệm của bạn tại HXH</h5>
+          <button type="button" class="btn-close btn-close-white" @click="popupEvaluate = false"></button>
+        </div>
+
+        <!-- Modal Body - Nội dung chính của form -->
+        <div class="modal-body p-4 p-sm-5">
+          <!-- Đánh giá Dịch vụ khách sạn -->
+          <div class="mb-4">
+            <label for="hotel-service-range" class="form-label fw-bold text-dark">Dịch vụ khách sạn</label>
+            <input type="range" min="1" max="10" v-model="form.hotel_service" id="hotel-service-range"
+              class="form-range custom-range">
+            <div class="d-flex justify-content-between text-muted">
+              <span>Rất tệ</span>
+              <span><strong>{{ form.hotel_service }}/10</strong></span>
+              <span>Rất tốt</span>
+            </div>
+          </div>
+
+          <!-- Đánh giá Nhân viên -->
+          <div class="mb-4">
+            <label for="staff-range" class="form-label fw-bold text-dark">Nhân viên</label>
+            <input type="range" min="1" max="10" v-model="form.staff" id="staff-range" class="form-range custom-range">
+            <div class="d-flex justify-content-between text-muted">
+              <span>Rất tệ</span>
+              <span><strong>{{ form.staff }}/10</strong></span>
+              <span>Rất tốt</span>
+            </div>
+          </div>
+
+          <!-- Đánh giá Phòng -->
+          <div class="mb-4">
+            <label for="room-range" class="form-label fw-bold text-dark">Phòng</label>
+            <input type="range" min="1" max="10" v-model="form.room" id="room-range" class="form-range custom-range">
+            <div class="d-flex justify-content-between text-muted">
+              <span>Rất tệ</span>
+              <span><strong>{{ form.room }}/10</strong></span>
+              <span>Rất tốt</span>
+            </div>
+          </div>
+
+          <!-- Đánh giá sao tổng thể -->
+          <div class="mb-4 text-center">
+            <label class="form-label fw-bold text-dark">Đánh giá tổng thể</label>
+            <div class="rating-stars" @mouseleave="hover = 0">
+              <!-- Vòng lặp để tạo 5 nút sao -->
+              <button v-for="n in 5" :key="n" type="button" class="star-btn" @mouseover="hover = n"
+                @click="form.stars = n">
+                <span :class="(hover || form.stars) >= n ? 'star filled' : 'star'">★</span>
+              </button>
+            </div>
+            <small v-if="form.stars" class="text-muted mt-2 d-block">Bạn chọn {{ form.stars }} sao</small>
+          </div>
+
+          <!-- Nhận xét -->
+          <div class="mb-4">
+            <label for="comment-textarea" class="form-label fw-bold text-dark">Nhận xét</label>
+            <textarea v-model.trim="form.comment" id="comment-textarea" rows="3" class="form-control"
+              placeholder="Chia sẻ trải nghiệm của bạn..."></textarea>
+          </div>
+        </div>
+
+        <!-- Modal Footer -->
+        <div class="modal-footer border-0 p-4">
+          <button class="btn btn-outline-secondary" @click="popupEvaluate = false">Đóng</button>
+          <button class="btn btn-solid-custom" @click="sendEvaluate()">Gửi đánh giá</button>
+        </div>
+      </div>
+    </div>
+  </div>
+  <!-- Bắt đầu của component chi tiết-->
   <div class="modal fade" :class="{ show: popupDetail }" style="display: block; background-color: rgba(0,0,0,0.5);"
     v-if="popupDetail" tabindex="-1" role="dialog" aria-labelledby="orderDetailModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-lg modal-dialog-centered">
+    <div class="modal-dialog modal-dialog-centered">
       <div class="modal-content rounded-4 shadow">
         <div class="modal-header border-bottom-0">
           <h5 class="modal-title fw-bold" id="orderDetailModalLabel">Chi tiết đơn hàng</h5>
@@ -99,15 +175,15 @@
         <div class="modal-footer border-top-0">
           <button type="button" class="btn btn-secondary rounded-pill px-4" @click="popupDetail = false">Đóng</button>
         </div>
+
       </div>
     </div>
   </div>
 
-
   <div class="history-wrapper">
     <div class="history-container">
       <header class="page-header animate__animated animate__fadeInDown">
-        <h1>Lịch sử đặt phòng</h1>
+        <h1>LỊCH SỬ ĐẶT PHÒNG</h1>
         <p>Xem lại và quản lý tất cả các đặt phòng đã thực hiện.</p>
         <div class="btn btn-solid-custom" @click="showPopUpSMS = true">Nhập Số Điện Thoại</div>
       </header>
@@ -239,7 +315,7 @@
                 <div class="card-header">
                   <h3>{{ booking.room_type_info ? booking.room_type_info.type_name : 'Thông tin phòng' }}</h3>
                   <span class="status-badge" :class="'status-' + booking.status">{{ formatStatus(booking.status)
-                    }}</span>
+                  }}</span>
                 </div>
                 <div class="card-body">
                   <div class="info-grid">
@@ -262,6 +338,13 @@
                     <div class="info-item">
                       <span><button class="btn btn-outline-dark" @click="viewDetailOrder(booking.booking_id)">Xem chi
                           tiết</button></span>
+                    </div>
+                    <!-- <div class="info-item">
+                      <span><button class="btn btn-outline-dark" @click="popUpEvaluate(booking.booking_id)">Đánh giá
+                        </button></span>
+                    </div> -->
+                    <div class="info-item" v-if="booking.status === 'completed'">
+                      <span><button class="btn btn-outline-dark" @click="popUpEvaluate(booking.booking_id)">Đánh giá </button></span>
                     </div>
                   </div>
                   <div v-if="booking.note" class="note">
@@ -417,7 +500,7 @@ const gotoLinkPayos = async (orderCode) => {
     const axiosInstancePayos = axios.create({
       baseURL: 'https://api-merchant.payos.vn/v2',
       headers: {
-        'x-client-id': '078daf0e-baed-45f9-b2f9-20b79c89668e', // thay bằng giá trị thật
+        'x-client-id': '078daf0e-baed-45f9-b2f9-20b79c89668e',
         'x-api-key': '8841f63c-c976-4b89-bf56-b769b035292b'
       }
     });
@@ -439,6 +522,66 @@ const gotoLinkPayos = async (orderCode) => {
     console.error('Lỗi khi gọi API PayOS:', error);
   }
 }
+const popupEvaluate = ref(false);
+const hover = ref(0)
+
+const form = ref({
+  booking_id: null,
+  customerPhone: null,
+  hotel_service: 5,
+  staff: 5,
+  room: 5,
+  stars: 0,
+  comment: ''
+})
+const idBooking = ref(null)
+
+const popUpEvaluate = async (bookingId) => {
+  popupDetail.value = false
+  idBooking.value = bookingId   // gán giá trị cho ref
+  popupEvaluate.value = true
+}
+
+const sendEvaluate = async () => {
+  if (form.value.stars === 0) {
+    alert('Vui lòng chọn đánh giá sao trước khi gửi!');
+  }
+  try {
+    isLoading.value = true;
+    const customerPhone = "0" + localStorage.getItem('BookingAuthPhone')
+    console.log('Đang gửi đánh giá cho booking', idBooking.value)
+    console.log('Số điện thoại khách:', customerPhone)
+    const data = {
+      booking_id: idBooking.value,
+      customerPhone: customerPhone,
+      hotel_service: form.value.hotel_service,
+      staff: form.value.staff,
+      room: form.value.room,
+      stars: form.value.stars,
+      comment: form.value.comment
+    }
+    console.log('Dữ liệu đánh giá:', data);
+    const res = await axios.post(`${apiUrl}/api/customer-reviews`, data);
+    console.log('Đánh giá thành công:', res.data);
+    alert('Cảm ơn bạn đã đánh giá! Chúng tôi sẽ cải thiện dịch vụ tốt hơn.');
+    form.value = {
+      booking_id: null,
+      customerPhone: null,
+      hotel_service: 5,
+      staff: 5,
+      room: 5,
+      stars: 0,
+      comment: ''
+    }; 
+    popupEvaluate.value = false; // Đóng popup sau khi gửi đánh giá}
+  } catch (error) {
+    console.error('Lỗi gửi đánh giá:', error);
+    alert('Đã có lỗi xảy ra khi gửi đánh giá. Vui lòng thử lại sau.');
+  } finally {
+    isLoading.value = false;
+  }
+}
+
 const phoneNumber = ref('');
 const otpInputs = ref();
 const isOtp = ref(false); // Biến để kiểm soát hiển thị OTP
@@ -731,6 +874,29 @@ onMounted(getHistoryBooking);
 
 <style scoped>
 @import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&display=swap');
+
+/* Custom styles cho hệ thống sao */
+.star-btn {
+  background: transparent;
+  border: 0;
+  padding: 0;
+  cursor: pointer;
+}
+
+.star {
+  font-size: 2.5rem;
+  color: #ced4da;
+  transition: color 0.2s;
+}
+
+.star.filled {
+  color: #ffc107;
+}
+
+/* Ẩn hiện modal theo Bootstrap */
+.modal.show {
+  display: block;
+}
 
 /* --- GENERAL & LAYOUT --- */
 .history-wrapper {

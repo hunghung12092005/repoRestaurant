@@ -141,7 +141,7 @@ onMounted(async () => {
 //   selectedMessages.value = response.data;
 // };
 const getUserMessages = (userId) => {
-  console.log('Fetching messages for user:', userId);
+  //console.log('Fetching messages for user:', userId);
   selectedUserId.value = userId;
 
   // Gửi yêu cầu lấy tin nhắn qua socket
@@ -150,7 +150,7 @@ const getUserMessages = (userId) => {
 
 // Lắng nghe phản hồi từ server
 socket.on('messages', (messages) => {
-  console.log('Tin nhắn nhận được:', messages);
+  //console.log('Tin nhắn nhận được:', messages);
   selectedMessages.value = messages;
 });
 

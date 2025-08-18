@@ -81,7 +81,7 @@
 
     <!-- ========== PHẦN GIAO DIỆN CÔNG KHAI (KHÁCH HÀNG) ========== -->
     <div v-else>
-      <chatbot></chatbot>
+      <!-- <chatbot></chatbot> -->
       <header ref="headerRef">
         <nav class="navbar navbar-expand-lg navbar-light fixed-top" :class="{ 'scrolled': navbarSticky }">
           <div class="container-fluid">
@@ -203,6 +203,7 @@ const sidebarStructure = [
     ]
   },
   { section: 'QUẢN LÝ HỆ THỐNG', title: 'Quản Lý Liên Hệ', to: '/admin/contacts', icon: 'bi bi-envelope', requiredPermission: 'manage_contacts' },
+  { section: 'QUẢN LÝ HỆ THỐNG', title: 'Quản Lý Đánh Giá', to: '/admin/evaluate', icon: 'bi bi-envelope', requiredPermission: 'manage_evaluate' },
   { section: 'QUẢN LÝ HỆ THỐNG', title: 'Training AI', to: '/admin/traningAI', icon: 'bi bi-robot', requiredPermission: 'manage_ai_training' },
   { section: 'QUẢN LÝ HỆ THỐNG', title: 'Chat Admin', to: '/admin/ChatAdmin', icon: 'bi bi-chat-dots', requiredPermission: 'manage_admin_chat' },
   { section: 'QUẢN LÝ HỆ THỐNG', title: 'Tất cả thông báo', to: '/admin/notifications', icon: 'bi bi-bell', requiredPermission: null },

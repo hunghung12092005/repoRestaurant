@@ -841,6 +841,7 @@ if (userInfoRaw) {
     try {
         const userInfo = JSON.parse(userInfoRaw);
         fullName.value = userInfo.name || '';
+        email.value = userInfo.email || '';
     } catch (e) {
         console.error('Lỗi parse userInfo:', e);
     }
@@ -976,11 +977,14 @@ const checkCapacity = () => {
         isAddbooking.value = true;
     }
 };
+const isPopupSuccess = ref(true);
 const addBooking = (hotel) => {
+    console.log(isPopupSuccess.value);
     const maxRooms = hotel.available_rooms || 0;
     const currentRooms = selectedRooms.value.length;
 
     if (currentRooms >= maxRooms) {
+        isPopupSuccess.value = false;
         alert(`Bạn chỉ có thể chọn tối đa ${maxRooms} phòng.`);
         selectedRooms.value = [];
         return;
@@ -1005,9 +1009,16 @@ const addBooking = (hotel) => {
 
     checkCapacity(); //  Gọi hàm kiểm tra sức chứa
 
-    const toastEl = document.getElementById('roomToast');
-    if (toastEl) {
-        new bootstrap.Toast(toastEl, { delay: 1000 }).show();
+    if (isPopupSuccess.value === true) {
+        const toastEl = document.getElementById('roomToast');
+        if (toastEl) {
+            new bootstrap.Toast(toastEl, { delay: 1000 }).show();
+        }
+    } else {
+        const toastEl = document.getElementById('roomToast');
+        if (toastEl) {
+            new bootstrap.Toast(toastEl).hide(); // ẩn toast
+        }
     }
 
     // console.log("Thêm phòng:", selectedRooms.value);
@@ -1124,6 +1135,8 @@ const getRoomTypes = async () => {
                 }
             })
         ]);
+        console.log("Đã lấy dữ liệu loại phòng và tình trạng phòng trống thành công" , availabilityRes.data);
+        
         const roomTypes = roomTypeRes.data.data;
         const availabilityData = availabilityRes.data;
 
@@ -1289,7 +1302,7 @@ const confirmBooking = async () => {
     // });
     const dataUser = {
         name: fullName.value,
-         phone: "0" + phoneNumber.value,
+        phone: "0" + phoneNumber.value,
         email: email.value,
         address: '', // Có thể thêm địa chỉ nếu cần
     };
