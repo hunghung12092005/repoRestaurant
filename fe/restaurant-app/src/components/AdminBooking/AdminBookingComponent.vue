@@ -901,6 +901,7 @@ const dinhDangTrangThaiHuy = (trangThai) => ({
 const dinhDangHinhThucThanhToan = (hinhThuc) => ({
   thanh_toan_sau: 'Thanh toán sau',
   thanh_toan_ngay: 'Thanh toán ngay',
+  thanh_toan_qr: 'Thanh toán qua QR',
 }[hinhThuc] || hinhThuc || 'Không xác định');
 
 const layLopTrangThai = (trangThai) => {
