@@ -27,6 +27,8 @@ use App\Http\Controllers\api\NotificationController;
 use App\Http\Controllers\api\StaffController;
 use App\Http\Controllers\api\RoleController;
 use App\Http\Controllers\api\PermissionController;
+use App\Http\Controllers\api\AuditLogController;
+
 use App\Models\BookingHistory;
 use App\Models\StaffProfile;
 use Illuminate\Support\Facades\Storage;
@@ -123,6 +125,8 @@ Route::prefix('prices')->group(function () {
     Route::put('/{id}', [PriceController::class, 'update']);
     Route::delete('/{id}', [PriceController::class, 'destroy']);
 });
+
+Route::get('/audit-logs', [AuditLogController::class, 'index']);
 
 Route::middleware('auth:api')->group(function () {
     Route::get('/notifications', [NotificationController::class, 'index']);

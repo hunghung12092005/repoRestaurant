@@ -37,6 +37,7 @@ import AdminContacts from '../components/admin/AdminContacts.vue';
 import traningAI from '../components/admin/AI/traningAI.vue';
 import ChatAdmin from '../components/ChatAdmin.vue';
 import AdminNotifications from '../components/admin/AdminNotifications.vue';
+import AdminAuditLogComponent from '../components/admin/AdminAuditLog.vue';
 
 // <-- THÊM MỚI: Import các component quản lý quyền
 import AdminRolesComponent from '../components/admin/AdminRolesComponent.vue';
@@ -81,7 +82,8 @@ const routes = [
   { path: '/admin/traningAI', name: 'traningAI', component: traningAI, meta: { requiresAuth: true, permission: 'manage_ai_training' } },
   { path: '/admin/ChatAdmin', name: 'ChatAdmin', component: ChatAdmin, meta: { requiresAuth: true, permission: 'manage_admin_chat' } },
   { path: '/admin/notifications', name: 'AdminNotifications', component: AdminNotifications, meta: { requiresAuth: true } },
-  
+  { path: '/admin/audit-log', name: 'AdminAuditLog', component: AdminAuditLogComponent, meta: { requiresAuth: true, permission: 'manage_reports' } },
+
   // <-- THÊM MỚI: Routes cho quản lý tài khoản và phân quyền
   { path: '/admin/users', name: 'AdminUsers', component: AdminUsersComponent, meta: { requiresAuth: true, permission: 'manage_users' } },
   { path: '/admin/roles', name: 'AdminRoles', component: AdminRolesComponent, meta: { requiresAuth: true, permission: 'manage_users' } },

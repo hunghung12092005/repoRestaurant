@@ -215,6 +215,7 @@ const sidebarStructure = [
   { section: 'QUẢN LÝ HỆ THỐNG', title: 'Training AI', to: '/admin/traningAI', icon: 'bi bi-robot', requiredPermission: 'manage_ai_training' },
   { section: 'QUẢN LÝ HỆ THỐNG', title: 'Chat Admin', to: '/admin/ChatAdmin', icon: 'bi bi-chat-dots', requiredPermission: 'manage_admin_chat' },
   { section: 'QUẢN LÝ HỆ THỐNG', title: 'Tất cả thông báo', to: '/admin/notifications', icon: 'bi bi-bell', requiredPermission: null },
+  { section: 'QUẢN LÝ HỆ THỐNG', title: 'Nhật ký Hoạt động', to: '/admin/audit-log', icon: 'bi bi-clock-history', requiredPermission: 'manage_reports' },
   { section: 'QUẢN LÝ HỆ THỐNG', title: 'Thoát Trang Quản Trị', to: '/', icon: 'bi bi-box-arrow-left', requiredPermission: null },
 ];
 

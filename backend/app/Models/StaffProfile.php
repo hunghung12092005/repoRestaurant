@@ -3,9 +3,10 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
-
+use App\Traits\Auditable;
 class StaffProfile extends Model
 {
+    use Auditable;
     protected $table = 'staff_profiles';
     protected $primaryKey = 'id';
     protected $fillable = 

@@ -3,9 +3,11 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use App\Traits\Auditable;
 
 class BookingHotel extends Model
 {
+    use Auditable;
     protected $table = 'booking_hotel';
     protected $primaryKey = 'booking_id';
     protected $fillable = [

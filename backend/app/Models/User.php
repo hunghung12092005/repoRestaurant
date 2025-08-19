@@ -11,7 +11,7 @@ use App\Models\Role;
 
 class User extends Authenticatable implements JWTSubject
 {
-    use HasFactory, Notifiable;
+    use HasFactory, Notifiable ;
 
     /**
      * Các thuộc tính có thể gán hàng loạt.
