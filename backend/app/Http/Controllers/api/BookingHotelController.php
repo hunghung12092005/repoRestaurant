@@ -285,6 +285,7 @@ class BookingHotelController extends Controller
                 'adult' => 'required|integer',
                 'child' => 'required|integer',
                 'note' => 'nullable|string',
+                'idDiscount' => 'nullable|integer',
                 'orderCode' => 'nullable',
             ]);
 
@@ -324,6 +325,7 @@ class BookingHotelController extends Controller
                 'payment_status' => 'pending',
                 'status' => 'pending_confirmation',
                 'note' => $bookingDetails['note'],
+                'idDiscount' => $bookingDetails['idDiscount'],
             ]);
 
             foreach ($bookingDetails['roomDetails'] as $roomDetail) {

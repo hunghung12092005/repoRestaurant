@@ -87,6 +87,10 @@ class CouponsController extends Controller
         $discount->used_count += 1;
         $discount->save();
         // Bước 8: Nếu tất cả điều kiện đều đúng, trả về số tiền giảm giá
-        return response()->json(['discount_amount' => $discount->discount_amount]);
+        return response()->json([
+            'discount_amount' => $discount->discount_amount,
+            'discount_id' => $discount->id,
+            'message' => 'Áp dụng mã giảm giá thành công!'
+        ]);
     }
 }
