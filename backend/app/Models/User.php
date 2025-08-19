@@ -11,7 +11,7 @@ use App\Models\Role;
 
 class User extends Authenticatable implements JWTSubject
 {
-    use HasFactory, Notifiable;
+    use HasFactory, Notifiable ;
 
     /**
      * Các thuộc tính có thể gán hàng loạt.
@@ -94,8 +94,4 @@ class User extends Authenticatable implements JWTSubject
         return $this->hasOne(StaffProfile::class, 'user_id', 'id');
     }
 
-    public function staffSchedules()
-    {
-        return $this->hasMany(StaffSchedule::class, 'user_id', 'id');
-    }
 }

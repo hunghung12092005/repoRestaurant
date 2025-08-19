@@ -102,36 +102,53 @@ class LoginController extends Controller
         return Socialite::driver('google')->redirect();
     }
 
-    public function handleGoogleCallback()
-{
-    $googleUser = Socialite::driver('google')->user();
+        public function handleGoogleCallback()
+    {
+        try {
+            $googleUser = Socialite::driver('google')->user();
 
-     $clientRole = Role::where('name', 'client')->firstOrFail();
-
-            // Tìm hoặc tạo mới user, và đảm bảo gán role_id
-            $authUser = User::updateOrCreate(
-                ['email' => $googleUser->getEmail()],
-                [
-                    'name' => $googleUser->getName(),
-                    'google_id' => $googleUser->getId(),
-                    'password' => Hash::make(Str::random(24)),
-                    'role_id' => $clientRole->id,
-                    'email_verified_at' => now(),
-                ]
+            // SỬA ĐỔI: Sử dụng firstOrNew để không ghi đè dữ liệu ngay lập tức
+            $authUser = User::firstOrNew(
+                ['email' => $googleUser->getEmail()]
             );
 
-            // SỬA ĐỔI QUAN TRỌNG: Tải kèm role.permissions
+            // Kiểm tra xem đây có phải là người dùng mới không
+            if (!$authUser->exists) {
+                // Nếu là người dùng mới, điền các thông tin cần thiết
+                $clientRole = Role::where('name', 'client')->firstOrFail();
+                $authUser->name = $googleUser->getName();
+                $authUser->google_id = $googleUser->getId();
+                $authUser->password = Hash::make(Str::random(24));
+                $authUser->role_id = $clientRole->id; // Chỉ gán vai trò client cho người dùng MỚI
+                $authUser->email_verified_at = now();
+            } else {
+                // Nếu là người dùng cũ, chỉ cần cập nhật google_id nếu nó chưa có
+                if (!$authUser->google_id) {
+                    $authUser->google_id = $googleUser->getId();
+                }
+            }
+
+            // Lưu lại những thay đổi (nếu có)
+            $authUser->save();
+
+            // Tải lại thông tin user với vai trò và quyền hạn
             $authUser->load('role.permissions');
 
-    // Đăng nhập người dùng
-    Auth::login($authUser, true);
+            // Đăng nhập người dùng vào hệ thống
+            Auth::login($authUser, true);
 
-    // Tạo token JWT
-    $token = JWTAuth::fromUser($authUser);
+            // Tạo token JWT
+            $token = JWTAuth::fromUser($authUser);
 
-    // Chuyển hướng về trang chính, kèm theo token và user
-    return redirect('http://127.0.0.1:5173/?token=' . $token . '&user=' . urlencode(json_encode($authUser)));
-}
+            // Chuyển hướng về trang chính, kèm theo token và user
+            $frontendUrl = env('FRONTEND_URL', 'http://127.0.0.1:5173');
+            return redirect($frontendUrl . '/?token=' . $token . '&user=' . urlencode(json_encode($authUser)));
+
+        } catch (\Exception $e) {
+            // Xử lý lỗi, có thể chuyển hướng về trang login với thông báo lỗi
+            return redirect('/login')->with('error', 'Đăng nhập bằng Google thất bại. Vui lòng thử lại.');
+        }
+    }
 
     // public function handleFacebookCallback(Request $request)
     // {

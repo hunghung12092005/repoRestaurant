@@ -4,10 +4,11 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use App\Traits\Auditable;
 
 class News extends Model
 {
-    use HasFactory;
+    use HasFactory, Auditable;
 
     protected $table = 'news';
     public $timestamps = false; // Bảng này không có created_at, updated_at (chỉ có publish_date)
