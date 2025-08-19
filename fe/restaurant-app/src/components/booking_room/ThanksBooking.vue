@@ -7,7 +7,7 @@
 
     <header class="page-header">
       <h1 class="header-main-title">XÁC NHẬN ĐẶT PHÒNG</h1>
-      <h2 class="header-sub-title">THÀNH CÔNG</h2>
+      <!-- <h2 class="header-sub-title">THÀNH CÔNG</h2> -->
     </header>
 
     <section class="main-content-card">

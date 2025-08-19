@@ -18,6 +18,7 @@ class BookingHotelDetail extends Model
         'note',
         'status',
         'trang_thai',
+        'thanh_toan_truoc',
     ];
 
     public function roomType()

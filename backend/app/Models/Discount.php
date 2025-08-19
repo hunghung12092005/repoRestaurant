@@ -11,6 +11,7 @@ class Discount extends Model
 protected $fillable = [
         'code', 'description', 'discount_amount',
         'usage_limit', 'used_count', 'is_active',
+        'user_usage',
         'expires_at'
     ];
 

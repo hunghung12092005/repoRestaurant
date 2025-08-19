@@ -159,8 +159,10 @@
                       <h6 class="info-title">Thông tin khách hàng</h6>
                       <ul class="info-list">
                         <li><span>Họ tên:</span><strong>{{ datPhongDuocChon.customer?.customer_name || 'N/A' }}</strong></li>
+                        <li><span>CCCD:</span><strong>{{ datPhongDuocChon.customer?.customer_id_number || 'N/A' }}</strong></li>
                         <li><span>Điện thoại:</span><strong>{{ datPhongDuocChon.customer?.customer_phone || 'N/A' }}</strong></li>
                         <li><span>Email:</span><strong>{{ datPhongDuocChon.customer?.customer_email || 'N/A' }}</strong></li>
+                        <li><span>Địa chỉ:</span><strong>{{ datPhongDuocChon.customer?.address || 'N/A' }}</strong></li>
                       </ul>
                     </div>
                     <div class="col-lg-6">
@@ -169,6 +171,7 @@
                         <li><span>Nhận phòng:</span><strong>{{ dinhDangNgayGio(datPhongDuocChon.check_in_date, datPhongDuocChon.check_in_time) }}</strong></li>
                         <li><span>Trả phòng:</span><strong>{{ datPhongDuocChon.check_out_datetime || dinhDangNgayGio(datPhongDuocChon.check_out_date, datPhongDuocChon.check_out_time) }}</strong></li>
                         <li><span>Loại đặt:</span><strong>{{ dinhDangLoaiDatPhong(datPhongDuocChon.booking_type) }}</strong></li>
+                        <li><span>Hình thức thanh toán:</span><strong>{{ dinhDangHinhThucThanhToan(datPhongDuocChon.payment_method) }}</strong></li>
                         <li><span>Ghi chú:</span><strong>{{ datPhongDuocChon.note || 'Không có' }}</strong></li>
                       </ul>
                     </div>
@@ -881,17 +884,24 @@ const dinhDangTrangThai = (trangThai) => ({
   pending_cancel: 'Chờ xác nhận hủy',
   cancelled: 'Đã hủy'
 }[trangThai] || 'Không rõ');
+
 const dinhDangTrangThaiThanhToan = (trangThai) => ({
   pending: 'Chưa thanh toán',
   completed: 'Đã thanh toán',
   refunded: 'Đã hoàn tiền',
   error: 'Lỗi thanh toán'
 }[trangThai] || 'Không xác định');
+
 const dinhDangTrangThaiHuy = (trangThai) => ({
   requested: 'Yêu cầu hủy',
   processed: 'Đã hủy',
   failed: 'Hủy thất bại'
 }[trangThai] || 'Không rõ');
+
+const dinhDangHinhThucThanhToan = (hinhThuc) => ({
+  thanh_toan_sau: 'Thanh toán sau',
+  thanh_toan_ngay: 'Thanh toán ngay',
+}[hinhThuc] || hinhThuc || 'Không xác định');
 
 const layLopTrangThai = (trangThai) => {
   switch (trangThai) {

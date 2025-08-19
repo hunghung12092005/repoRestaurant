@@ -173,6 +173,8 @@
                   type="email" required class="form-control" /></div>
               <div class="col-12"><label class="form-label">Địa chỉ</label><input v-model="formData.address"
                   class="form-control" /></div>
+              <div class="col-12"><label class="form-label">Thanh toán trước</label><input v-model="formData.thanh_toan_truoc"
+                  class="form-control" /></div>
               <div class="col-md-6"><label class="form-label">Ngày nhận phòng</label><input type="date"
                   v-model="formData.check_in_date" required class="form-control" /></div>
               <div class="col-md-6"><label class="form-label">Giờ nhận phòng</label><input type="time"
@@ -211,10 +213,10 @@
             <div class="row g-4">
               <div class="col-md-6">
                 <h6 class="info-title">Thông tin phòng - ID Booking: {{ guestInfo.booking.booking_id
-                }}</h6>
+                  }}</h6>
                 <ul class="info-list">
                   <li><span>Phòng:</span><strong>{{ guestInfo.room.room_name }} (Tầng {{ guestInfo.room.floor_number
-                      }})</strong></li>
+                  }})</strong></li>
                   <li><span>Loại phòng:</span><strong>{{ guestInfo.room.type_name }}</strong></li>
                 </ul>
               </div>
@@ -926,17 +928,26 @@ const confirmPayment = async () => {
     //console.log("Thanh toán thành công:", data.room_id);
 
     const alertMessage = [
-      data.message,
-      `\n--------------------------------`,
+      `📢 ${data.message}`,
+      ``,
+      `━━━━━━━━━━━━━━━━━━━━━━`,
       `🛏️ Tiền phòng: ${Number(data.room_total || 0).toLocaleString('vi-VN')} VND`,
       `   ➡️ Cách tính: ${data.calculation_note || 'N/A'}`,
-      `🧾 Tiền dịch vụ: ${Number(data.service_total || 0).toLocaleString('vi-VN')} VND`,
-      `➕ Phí phụ thu: ${Number(data.additional_fee || 0).toLocaleString('vi-VN')} VND` + (data.surcharge_reason ? ` (Lý do: ${data.surcharge_reason})` : ''),
-      `--------------------------------`,
+      ``,
+      `🧾 Tiền dịch vụ : ${Number(data.service_total || 0).toLocaleString('vi-VN')} VND`,
+      `💰 Thanh toán trước: ${Number(data.thanh_toan_truoc || 0).toLocaleString('vi-VN')} VND`,
+      `➕ Phí phụ thu : ${Number(data.additional_fee || 0).toLocaleString('vi-VN')} VND`
+      + (data.surcharge_reason ? ` (📌 ${data.surcharge_reason})` : ''),
+      ``,
+      `━━━━━━━━━━━━━━━━━━━━━━`,
       `💳 TỔNG THANH TOÁN: ${Number(data.actual_total || 0).toLocaleString('vi-VN')} VND`,
-      data.booking_completed ? `📋 TỔNG TIỀN BOOKING: ${Number(data.booking_total || 0).toLocaleString('vi-VN')} VND` : '',
-      `\n📝 Ghi chú: ${data.note || 'Không có'}`
+      data.booking_completed
+        ? `📋 TỔNG TIỀN BOOKING: ${Number(data.booking_total || 0).toLocaleString('vi-VN')} VND`
+        : '',
+      ``,
+      `📝 Ghi chú: ${data.note || 'Không có'}`
     ].filter(line => line).join('\n');
+
 
     alert(alertMessage);
 
@@ -1030,6 +1041,7 @@ const showAddGuest = (room_id) => {
     check_in_time: checkInTime,
     check_out_date: checkOutDate,
     check_out_time: checkOutTime,
+    thanh_toan_truoc: 0,
     pricing_type: 'hourly'
   };
 
@@ -1041,6 +1053,12 @@ const showAddGuest = (room_id) => {
 const submitCustomerForm = async () => {
   if (!window.confirm("Xác nhận lưu khách hàng?")) return;
   try {
+    console.log({
+      ...formData.value,
+      check_in_time: formData.value.check_in_time || '14:00',
+      check_out_time: formData.value.check_out_time || '12:00'
+    });
+    
     const res = await axios.post(`${apiUrl}/api/rooms/${formData.value.room_id}/add-guest`, {
       ...formData.value,
       check_in_time: formData.value.check_in_time || '14:00',
