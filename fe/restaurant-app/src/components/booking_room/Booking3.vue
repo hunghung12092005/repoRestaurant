@@ -1148,11 +1148,19 @@ const calculateRoomTotal = (room) => {
     return roomPrice + serviceCost; // Tổng tiền cho phòng
 };
 // tinh tien dich vu all room
+// const totalCostForAllRooms = computed(() => {
+//     return selectedRooms.value.reduce((total, room) => {
+//         return total + surchargeSucChua.value + calculateRoomTotal(room) - disCount.value; // Cộng tổng tiền từng phòng
+//     }, 0);
+// });
 const totalCostForAllRooms = computed(() => {
-    return selectedRooms.value.reduce((total, room) => {
-        return total + surchargeSucChua.value + calculateRoomTotal(room) - disCount.value; // Cộng tổng tiền từng phòng
+    const totalRoomCost = selectedRooms.value.reduce((total, room) => {
+        return total + surchargeSucChua.value + calculateRoomTotal(room);
     }, 0);
+
+    return totalRoomCost - disCount.value;
 });
+
 //lấy loại phòng
 const getRoomTypes = async () => {
     isLoading.value = true;
@@ -1269,11 +1277,9 @@ const idDiscount = ref('');
 const showToast = (message, type = 'success') => {
     const toastEl = document.getElementById('discountToast');
     const toastMessage = document.getElementById('toastMessage');
-
     // reset class
     toastEl.className = `toast align-items-center border-0 toast-${type}`;
     toastMessage.innerText = message;
-
     const toast = new bootstrap.Toast(toastEl, { delay: 3000 });
     toast.show();
 };
@@ -1281,6 +1287,7 @@ const showToast = (message, type = 'success') => {
 const goDiscount = async () => {
     try {
         isLoading.value = true;
+        console.log(totalCostForAllRooms.value);
 
         const res = await axios.post(`${apiUrl}/api/discount`, {
             code: codeDiscount.value
@@ -1293,7 +1300,9 @@ const goDiscount = async () => {
         } else {
             showToast(`⚠️ ${res.data.message || 'Mã giảm giá không hợp lệ'}`, 'warning');
         }
-
+        console.log(disCount.value);
+        console.log(totalCostForAllRooms.value);
+        
         codeDiscount.value = '';
     } catch (error) {
         showToast(`❌ Lỗi: ${error.response?.data?.message || error.message}`, 'error');
@@ -1367,6 +1376,7 @@ const confirmBooking = async () => {
         payment_status: 'pending',
         status: 'pending_confirmation',
         idDiscount: idDiscount.value || '',
+        giam_gia_1_phong: disCount.value,
         note: orderNotes.value || 'Không có ghi chú',
     };
     //console.log("Booking Details:", JSON.stringify(bookingDetails, null, 2)); // Log booking details as JSON
