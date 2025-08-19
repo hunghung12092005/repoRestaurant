@@ -53,7 +53,7 @@ class PriceController extends Controller
             'description' => 'nullable|string',
             'price_per_night' => 'required|numeric|min:0',
             'hourly_price' => 'required|numeric|min:0',
-            'priority' => 'required|integer|min:0|max:10',
+            'priority' => 'required|in:0,1', // Chỉ 0 hoặc 1
             'is_active' => 'in:0,1' // Kiểm tra is_active là '0' hoặc '1'
         ]);
 
@@ -67,7 +67,7 @@ class PriceController extends Controller
             $data['description'] = $data['description'] ?: null;
             $data['is_active'] = $request->input('is_active', '1'); // Mặc định '1' nếu không gửi
 
-            // Kiểm tra xung đột ngày và ưu tiên
+            // Kiểm tra xung đột ngày và ưu tiên (giữ nguyên logic)
             $conflictingPrice = Price::where('type_id', $data['type_id'])
                 ->where(function ($query) use ($data) {
                     $query->where(function ($q) use ($data) {
@@ -81,8 +81,8 @@ class PriceController extends Controller
             if ($conflictingPrice && $conflictingPrice->priority >= $data['priority']) {
                 return response()->json([
                     'success' => false,
-                    'message' => 'Ngày đã có giá với mức ưu tiên cao hơn hoặc bằng. Vui lòng tăng mức ưu tiên.',
-                    'errors' => ['priority' => ['Mức ưu tiên phải cao hơn ' . $conflictingPrice->priority]]
+                    'message' => 'Ngày đã có giá với mức độ ưu tiên cao hơn hoặc bằng. Vui lòng chọn ưu tiên nếu cần.',
+                    'errors' => ['priority' => ['Mức độ ưu tiên phải cao hơn ' . $conflictingPrice->priority]]
                 ], 422);
             }
 
@@ -112,7 +112,7 @@ class PriceController extends Controller
                 'description' => 'nullable|string',
                 'price_per_night' => 'required|numeric|min:0',
                 'hourly_price' => 'required|numeric|min:0',
-                'priority' => 'required|integer|min:0|max:10',
+                'priority' => 'required|in:0,1', // Chỉ 0 hoặc 1
                 'is_active' => 'boolean',
             ]);
         }
@@ -133,7 +133,7 @@ class PriceController extends Controller
                 $data['description'] = $data['description'] ?: null;
                 $data['is_active'] = $request->input('is_active', $price->is_active ?? true);
 
-                // Kiểm tra xung đột ngày và ưu tiên
+                // Kiểm tra xung đột ngày và ưu tiên (giữ nguyên)
                 $conflictingPrice = Price::where('type_id', $data['type_id'])
                     ->where('price_id', '!=', $price_id)
                     ->where(function ($query) use ($data) {
@@ -148,8 +148,8 @@ class PriceController extends Controller
                 if ($conflictingPrice && $conflictingPrice->priority >= $data['priority']) {
                     return response()->json([
                         'success' => false,
-                        'message' => 'Ngày đã có giá với mức ưu tiên cao hơn hoặc bằng. Vui lòng tăng mức ưu tiên.',
-                        'errors' => ['priority' => ['Mức ưu tiên phải cao hơn ' . $conflictingPrice->priority]]
+                        'message' => 'Ngày đã có giá với mức độ ưu tiên cao hơn hoặc bằng. Vui lòng chọn ưu tiên nếu cần.',
+                        'errors' => ['priority' => ['Mức độ ưu tiên phải cao hơn ' . $conflictingPrice->priority]]
                     ], 422);
                 }
 
