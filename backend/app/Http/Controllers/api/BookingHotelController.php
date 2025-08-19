@@ -287,6 +287,7 @@ class BookingHotelController extends Controller
                 'note' => 'nullable|string',
                 'idDiscount' => 'nullable|integer',
                 'orderCode' => 'nullable',
+                'giam_gia_1_phong' => 'nullable',
             ]);
 
             $token = $request->header('Authorization');
@@ -328,23 +329,56 @@ class BookingHotelController extends Controller
                 'idDiscount' => $bookingDetails['idDiscount'],
             ]);
 
+            // foreach ($bookingDetails['roomDetails'] as $roomDetail) {
+            //     $bookingDetail = BookingHotelDetail::create([
+            //         'booking_id' => $booking->booking_id,
+            //         'room_type' => (int)$roomDetail['id'],
+            //         'gia_phong' => number_format($roomDetail['price'], 2, '.', ''),
+            //         'gia_dich_vu' => number_format($roomDetail['totalServiceCost'], 2, '.', ''),
+            //         'total_price' => number_format($roomDetail['totalServiceCost'] + $roomDetail['price'], 2, '.', ''),
+            //         'note' => $bookingDetails['note'],
+            //         'thanh_toan_truoc' => 0,
+            //     ]);
+
+            //     foreach ($roomDetail['serviceChoose'] as $serviceId) {
+            //         BookingHotelService::create([
+            //             'booking_detail_id' => $bookingDetail->id,
+            //             'service_id' => $serviceId,
+            //         ]);
+            //     }
+            // }
+            $index = 0;
+
             foreach ($bookingDetails['roomDetails'] as $roomDetail) {
+                // Giá gốc phòng
+                $giaPhong = $roomDetail['price'];
+
+                // Nếu là phòng đầu tiên và có giảm giá
+                if ($index === 0 && !empty($bookingDetails['giam_gia_1_phong'])) {
+                    $giaPhong = max(0, $giaPhong - $bookingDetails['giam_gia_1_phong']);
+                    // dùng max(0, ...) để tránh âm giá
+                }
+
                 $bookingDetail = BookingHotelDetail::create([
-                    'booking_id' => $booking->booking_id,
-                    'room_type' => (int)$roomDetail['id'],
-                    'gia_phong' => number_format($roomDetail['price'], 2, '.', ''),
-                    'gia_dich_vu' => number_format($roomDetail['totalServiceCost'], 2, '.', ''),
-                    'total_price' => number_format($roomDetail['totalServiceCost'] + $roomDetail['price'], 2, '.', ''),
-                    'note' => $bookingDetails['note'],
+                    'booking_id'       => $booking->booking_id,
+                    'room_type'        => (int)$roomDetail['id'],
+                    'gia_phong'        => number_format($giaPhong, 2, '.', ''),
+                    'gia_dich_vu'      => number_format($roomDetail['totalServiceCost'], 2, '.', ''),
+                    'total_price'      => number_format($roomDetail['totalServiceCost'] + $giaPhong, 2, '.', ''),
+                    'note'             => $bookingDetails['note'],
+                    'thanh_toan_truoc' => 0,
                 ]);
 
                 foreach ($roomDetail['serviceChoose'] as $serviceId) {
                     BookingHotelService::create([
                         'booking_detail_id' => $bookingDetail->id,
-                        'service_id' => $serviceId,
+                        'service_id'        => $serviceId,
                     ]);
                 }
+
+                $index++; // tăng chỉ số để các phòng sau không bị giảm nữa
             }
+
 
             // Gửi email thông báo tạo booking
             $customer = Customer::find($customerId);
@@ -365,7 +399,7 @@ class BookingHotelController extends Controller
                 ]);
             }
 
-             $staffRoleIds = Role::where('name', '!=', 'client')->pluck('id');
+            $staffRoleIds = Role::where('name', '!=', 'client')->pluck('id');
 
             // 2. Tìm tất cả người dùng thuộc các vai trò đó
             $adminsAndStaff = User::whereIn('role_id', $staffRoleIds)->get();
