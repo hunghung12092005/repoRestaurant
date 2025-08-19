@@ -13,7 +13,8 @@ class Customer extends Model implements JWTSubject
             'customer_phone',
             'customer_email',
             'address',
-            'customer_id_number	'
+            'customer_id_number',
+            'room_id'
         ];
         public function getJWTIdentifier()
         {

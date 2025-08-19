@@ -142,6 +142,7 @@ class OccupancyController extends Controller
             'customer_phone'     => 'required|digits_between:10,11',
             'customer_email'     => 'required|email|max:255',
             'address'            => 'nullable|string|max:255',
+            'thanh_toan_truoc'   => 'nullable',
             'check_in_date'      => 'required|date',
             'check_in_time'      => 'nullable|date_format:H:i',
             'check_out_date'     => 'required|date',
@@ -330,6 +331,7 @@ class OccupancyController extends Controller
                 'gia_dich_vu'   => 0,
                 'total_price'   => $total_price,
                 'note'          => $note,
+                'thanh_toan_truoc'     => $validated['thanh_toan_truoc'],
                 'created_at'    => now(),
                 'updated_at'    => now(),
             ]);
@@ -828,8 +830,15 @@ class OccupancyController extends Controller
             }
 
             // Tính tổng tiền phòng
-            $actualTotal = $recalculatedRoomPrice + $totalServiceFee + $additionalFee;
 
+
+            $thanh_toan_truoc = $bookingDetail->thanh_toan_truoc ?? 0;
+            $actualTotal = $recalculatedRoomPrice + $totalServiceFee + $additionalFee - $thanh_toan_truoc;
+            // return [
+            //     'thanh' => $bookingDetail,
+            //     'thanh_toan_truoc' => (int) $thanh_toan_truoc,
+            //     'actualTotal' => $actualTotal
+            // ];
             // Cập nhật booking_hotel_detail
             $bookingDetail->update([
                 'gia_phong' => $recalculatedRoomPrice,
@@ -892,6 +901,7 @@ class OccupancyController extends Controller
                 'service_total' => $totalServiceFee,
                 'additional_fee' => $additionalFee,
                 'surcharge_reason' => $surchargeReason,
+                'thanh_toan_truoc' => (int) $thanh_toan_truoc,
                 'actual_total' => $actualTotal,
                 'calculation_note' => $calculationNote,
                 'note' => $bookingDetail->note ?? 'Không có ghi chú.',

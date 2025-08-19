@@ -51,7 +51,7 @@ class BookingHotelController extends Controller
                 $rooms = Room::where('type_id', $roomType->type_id)->get();
 
                 $bookedRoomIds = BookingHotelDetail::whereHas('booking', function ($query) use ($checkInDate, $checkOutDate) {
-                    $query->whereIn('status', ['pending_confirmation', 'confirmed_not_assigned', 'confirmed',''])
+                    $query->whereIn('status', ['pending_confirmation', 'confirmed_not_assigned', 'confirmed', ''])
                         ->where(function ($q) use ($checkInDate, $checkOutDate) {
                             $q->whereBetween('check_in_date', [$checkInDate, $checkOutDate])
                                 ->orWhereBetween('check_out_date', [$checkInDate, $checkOutDate])
@@ -247,13 +247,14 @@ class BookingHotelController extends Controller
                 'email' => 'required',
             ]);
 
-            $customer = Customer::firstOrCreate(['customer_phone' => $request->phone], [
-                'customer_name' => $request->name,
-                'customer_phone' => $request->phone,
-                'customer_email' => $request->email,
-                'address' => $request->address ?? 'Unknown',
-            ]);
-
+            $customer = Customer::updateOrCreate(
+                ['customer_phone' => $request->phone], // điều kiện tìm
+                [
+                    'customer_name'  => $request->name,
+                    'customer_email' => $request->email,
+                    'address'        => $request->address ?? 'Unknown',
+                ]
+            );
             $token = JWTAuth::fromUser($customer);
             return response()->json(['token' => $token]);
         } catch (JWTException $e) {
@@ -284,7 +285,9 @@ class BookingHotelController extends Controller
                 'adult' => 'required|integer',
                 'child' => 'required|integer',
                 'note' => 'nullable|string',
+                'idDiscount' => 'nullable|integer',
                 'orderCode' => 'nullable',
+                'giam_gia_1_phong' => 'nullable',
             ]);
 
             $token = $request->header('Authorization');
@@ -323,25 +326,59 @@ class BookingHotelController extends Controller
                 'payment_status' => 'pending',
                 'status' => 'pending_confirmation',
                 'note' => $bookingDetails['note'],
+                'idDiscount' => $bookingDetails['idDiscount'],
             ]);
 
+            // foreach ($bookingDetails['roomDetails'] as $roomDetail) {
+            //     $bookingDetail = BookingHotelDetail::create([
+            //         'booking_id' => $booking->booking_id,
+            //         'room_type' => (int)$roomDetail['id'],
+            //         'gia_phong' => number_format($roomDetail['price'], 2, '.', ''),
+            //         'gia_dich_vu' => number_format($roomDetail['totalServiceCost'], 2, '.', ''),
+            //         'total_price' => number_format($roomDetail['totalServiceCost'] + $roomDetail['price'], 2, '.', ''),
+            //         'note' => $bookingDetails['note'],
+            //         'thanh_toan_truoc' => 0,
+            //     ]);
+
+            //     foreach ($roomDetail['serviceChoose'] as $serviceId) {
+            //         BookingHotelService::create([
+            //             'booking_detail_id' => $bookingDetail->id,
+            //             'service_id' => $serviceId,
+            //         ]);
+            //     }
+            // }
+            $index = 0;
+
             foreach ($bookingDetails['roomDetails'] as $roomDetail) {
+                // Giá gốc phòng
+                $giaPhong = $roomDetail['price'];
+
+                // Nếu là phòng đầu tiên và có giảm giá
+                if ($index === 0 && !empty($bookingDetails['giam_gia_1_phong'])) {
+                    $giaPhong = max(0, $giaPhong - $bookingDetails['giam_gia_1_phong']);
+                    // dùng max(0, ...) để tránh âm giá
+                }
+
                 $bookingDetail = BookingHotelDetail::create([
-                    'booking_id' => $booking->booking_id,
-                    'room_type' => (int)$roomDetail['id'],
-                    'gia_phong' => number_format($roomDetail['price'], 2, '.', ''),
-                    'gia_dich_vu' => number_format($roomDetail['totalServiceCost'], 2, '.', ''),
-                    'total_price' => number_format($roomDetail['totalServiceCost'] + $roomDetail['price'], 2, '.', ''),
-                    'note' => $bookingDetails['note'],
+                    'booking_id'       => $booking->booking_id,
+                    'room_type'        => (int)$roomDetail['id'],
+                    'gia_phong'        => number_format($giaPhong, 2, '.', ''),
+                    'gia_dich_vu'      => number_format($roomDetail['totalServiceCost'], 2, '.', ''),
+                    'total_price'      => number_format($roomDetail['totalServiceCost'] + $giaPhong, 2, '.', ''),
+                    'note'             => $bookingDetails['note'],
+                    'thanh_toan_truoc' => 0,
                 ]);
 
                 foreach ($roomDetail['serviceChoose'] as $serviceId) {
                     BookingHotelService::create([
                         'booking_detail_id' => $bookingDetail->id,
-                        'service_id' => $serviceId,
+                        'service_id'        => $serviceId,
                     ]);
                 }
+
+                $index++; // tăng chỉ số để các phòng sau không bị giảm nữa
             }
+
 
             // Gửi email thông báo tạo booking
             $customer = Customer::find($customerId);
@@ -362,7 +399,7 @@ class BookingHotelController extends Controller
                 ]);
             }
 
-             $staffRoleIds = Role::where('name', '!=', 'client')->pluck('id');
+            $staffRoleIds = Role::where('name', '!=', 'client')->pluck('id');
 
             // 2. Tìm tất cả người dùng thuộc các vai trò đó
             $adminsAndStaff = User::whereIn('role_id', $staffRoleIds)->get();
@@ -469,36 +506,35 @@ class BookingHotelController extends Controller
         }
     }
     //lay chi tiet booking theo booking_id
-   public function getBookingDetail($bookingID)
-{
-    try {
-        // Lấy tất cả chi tiết phòng trong booking
-        $bookingDetails = BookingHotelDetail::where('booking_id', $bookingID)
-            ->get()
-            ->map(function ($detail) {
-                // Nếu gia_dich_vu > 0 thì lấy danh sách dịch vụ
-                if ($detail->gia_dich_vu > 0) {
-                    $detail->services = BookingHotelService::with('serviceInfo')
-                        ->where('booking_detail_id', $detail->booking_detail_id)
-                        ->get();
-                } else {
-                    $detail->services = collect(); // trả về Collection rỗng
-                }
-                return $detail;
-            });
+    public function getBookingDetail($bookingID)
+    {
+        try {
+            // Lấy tất cả chi tiết phòng trong booking
+            $bookingDetails = BookingHotelDetail::where('booking_id', $bookingID)
+                ->get()
+                ->map(function ($detail) {
+                    // Nếu gia_dich_vu > 0 thì lấy danh sách dịch vụ
+                    if ($detail->gia_dich_vu > 0) {
+                        $detail->services = BookingHotelService::with('serviceInfo')
+                            ->where('booking_detail_id', $detail->booking_detail_id)
+                            ->get();
+                    } else {
+                        $detail->services = collect(); // trả về Collection rỗng
+                    }
+                    return $detail;
+                });
 
-        return response()->json([
-            'status' => 'success',
-            'data' => $bookingDetails,
-        ], 200);
-
-    } catch (\Exception $e) {
-        return response()->json([
-            'status' => 'error',
-            'message' => 'Không thể lấy chi tiết booking: ' . $e->getMessage(),
-        ], 500);
+            return response()->json([
+                'status' => 'success',
+                'data' => $bookingDetails,
+            ], 200);
+        } catch (\Exception $e) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Không thể lấy chi tiết booking: ' . $e->getMessage(),
+            ], 500);
+        }
     }
-}
 
 
 
@@ -1010,11 +1046,11 @@ class BookingHotelController extends Controller
                         ]);
                         $paymentStatusDisplay = 'Lỗi kiểm tra thanh toán';
                     }
-                } else if ($booking->payment_method !== 'thanh_toan_qr') {
+                } else {
                     $paymentStatusDisplay = $this->formatPaymentStatus($booking->payment_status);
                 }
                 $booking->payment_status_display = $paymentStatusDisplay;
-
+                $booking->payment_method_display = $this->formatPaymentMethod($booking->payment_method);
                 $booking->check_out_datetime = $booking->check_out_date && $booking->check_out_time
                     ? Carbon::createFromFormat('Y-m-d H:i:s', $booking->check_out_date . ' ' . $booking->check_out_time)->format('d/m/Y H:i')
                     : ($booking->check_out_date ? Carbon::parse($booking->check_out_date)->format('d/m/Y') : 'Chưa xác định');
@@ -1045,15 +1081,38 @@ class BookingHotelController extends Controller
      */
     private function formatPaymentStatus($status)
     {
+        // Chuẩn hóa status về uppercase
+        $upperStatus = strtoupper($status);
+
         $statusMap = [
             'PENDING' => 'Chờ thanh toán',
             'PAID' => 'Đã thanh toán',
             'CANCELLED' => 'Đã hủy',
             'REFUNDED' => 'Đã hoàn tiền',
+            'COMPLETED' => 'Đã hoàn tất',  // Thêm cho 'completed' từ DB
+            'ERROR' => 'Lỗi thanh toán',
             'UNKNOWN' => 'Chưa xác định',
-            'ERROR' => 'Lỗi kiểm tra thanh toán'
         ];
-        return $statusMap[$status] ?? 'Trạng thái không xác định';
+
+        return $statusMap[$upperStatus] ?? 'Trạng thái không xác định';
+    }
+
+    /**
+     * Định dạng phương thức thanh toán thành tiếng Việt
+     */
+    private function formatPaymentMethod($method)
+    {
+        $methodMap = [
+            'cash' => 'Tiền mặt',
+            'bank_transfer' => 'Chuyển khoản',
+            'credit_card' => 'Thẻ tín dụng',
+            'momo' => 'Ví Momo',
+            'at_hotel' => 'Tại khách sạn',
+            'thanh_toan_ngay' => 'Thanh toán ngay',
+            'thanh_toan_qr' => 'Thanh toán QR',
+        ];
+
+        return $methodMap[$method] ?? ucfirst($method); // Nếu không khớp, trả về method gốc với chữ cái đầu uppercase
     }
 
     /**

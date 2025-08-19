@@ -95,9 +95,9 @@
     <!-- 5. Banner tĩnh -->
     <section class="static-banner-section">
       <div class="banner-content text-center text-white">
-        <h2 class="display-4 fw-bold">Không Gian Đẳng Cấp</h2>
-        <p class="lead">Tận hưởng sự thư giãn và dịch vụ hoàn hảo tại khách sạn của chúng tôi.</p>
-        <router-link to="/booking_hotel" class="btn btn-cta mt-4">Đặt Phòng Ngay</router-link>
+        <h2 class="display-4 fw-bold">Xem Lịch Sử Tiện Lợi</h2>
+        <p class="lead">Cung cấp dịch vụ  lịch sử đặt phòng tại khách sạn của chúng tôi.</p>
+        <router-link to="/HistoryBooking" class="btn btn-cta mt-4">Xem lịch sử  Ngay</router-link>
       </div>
     </section>
 

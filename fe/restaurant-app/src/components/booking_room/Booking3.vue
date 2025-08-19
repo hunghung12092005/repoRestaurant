@@ -489,7 +489,20 @@
                 </div>
             </div>
         </div>
-        <!-- Booking Modal -->
+        <!-- Toast Container discount-->
+        <div class="toast-container position-fixed top-0 end-0 p-3" style="z-index: 9999">
+            <div id="discountToast" class="toast align-items-center border-0" role="alert" aria-live="assertive"
+                aria-atomic="true">
+                <div class="d-flex">
+                    <div class="toast-body" id="toastMessage">
+                        <!-- Nội dung sẽ được JS thêm vào -->
+                    </div>
+                    <button type="button" class="btn-close me-2 m-auto" data-bs-dismiss="toast"
+                        aria-label="Close"></button>
+                </div>
+            </div>
+        </div>
+                <!-- Booking Modal -->
         <div v-show="showModalBooking" class="modal-backdrop" @click="closeModal">
             <div class="modal-dialog modal-lg" @click.stop>
                 <div class="modal-content">
@@ -529,6 +542,7 @@
                                 </div>
                             </div>
                             <div class="col-md-5 payment-section">
+
                                 <div class="receipt">
                                     <p class="shop-name">Bill Market</p>
                                     <p class="info">
@@ -552,6 +566,22 @@
                                         <p>Phụ thụ sức chứa:</p>
                                         <p>{{ formatPrice(surchargeSucChua) }}</p>
                                     </div>
+                                    <div class="total">
+                                        <p>Giảm giá :</p>
+                                        <p>{{ formatPrice(disCount) }}</p>
+                                    </div>
+                                    <div class="discountForm">
+                                        <!-- <span class="DiscountHeading">MÃ GIẢM GIÁ</span>
+                                        <p class="DiscountSubheading">Điền mã giảm giá tại đây! không có , có thể bỏ
+                                            qua.</p> -->
+                                        <div class="inputContainer">
+                                            <input placeholder="Nhập mã giảm giá " type="email" name="email"
+                                                id="email-address" v-model="codeDiscount">
+                                            <button type="submit" class="btn btn-solid-custom"
+                                                @click="goDiscount">Gửi</button>
+                                        </div>
+                                        <!-- <button class="exitBtn">×</button> -->
+                                    </div>
                                     <!-- <div v-for="(room, index) in selectedRooms" :key="index">
                                         <div class="total">
                                             <p>Phòng {{ index + 1 }} :
@@ -563,13 +593,13 @@
                                         </div>
                                     </div> -->
                                     <div v-for="(room, index) in groupedRooms" :key="index"
-                                        class="d-flex align-items-center justify-content-between mb-3 p-3 bg-light-gold rounded-3 shadow-sm">
+                                        class="d-flex align-items-center justify-content-between mb-3 p-3 bg-light-gold rounded-3 shadow-sm m-4">
                                         <div>
                                             <h6 class="mb-1 text-charcoal fw-bold">
                                                 {{ room.name }} <span class="text-muted">(x{{ room.so_phong }})</span>
                                             </h6>
                                             <p class="mb-1 text-muted-dark small">{{ room.description.substring(0, 50)
-                                            }}...</p>
+                                                }}...</p>
                                             <p class="mb-0 text-gold fw-bold">
                                                 {{ formatPrice(room.price) }}
                                                 <span class="small text-charcoal-light">
@@ -583,16 +613,18 @@
                                             <i class="bi bi-x-lg"></i>
                                         </button> -->
                                     </div>
-                                    <!-- Displaying selected room details -->
-                                    <div class="container my-5 py-4">
+
+                                    <div class="container my-5 py-4 d-flex justify-content-center">
                                         <div
-                                            class="d-flex flex-column flex-md-row justify-content-between align-items-md-center mt-4 py-4 px-4 border border-dark rounded-3 shadow-lg">
-                                            <h6 class="mb-2 mb-md-0 fw-bold text-uppercase text-dark">Tổng Cộng Thanh
-                                                Toán </h6>
-                                            <p class="h4 ml-2 mb-0 fw-bolder text-dark"> <span>: {{
-                                                formatPrice(totalCostForAllRooms) }}</span></p>
+                                            class="d-flex flex-column justify-content-center align-items-center mt-4 py-4 px-4 border border-dark rounded-3 shadow-lg w-75 text-center">
+                                            <h6 class="mb-2 fw-bold text-uppercase text-dark">Tổng Cộng Thanh Toán</h6>
+                                            <p class="h4 mb-0 fw-bolder text-dark">
+                                                <span>{{ formatPrice(totalCostForAllRooms) }}</span>
+                                            </p>
                                         </div>
                                     </div>
+
+
 
                                     <div class="mb-1">
                                         <div class="radio-input">
@@ -841,6 +873,7 @@ if (userInfoRaw) {
     try {
         const userInfo = JSON.parse(userInfoRaw);
         fullName.value = userInfo.name || '';
+        email.value = userInfo.email || '';
     } catch (e) {
         console.error('Lỗi parse userInfo:', e);
     }
@@ -976,11 +1009,14 @@ const checkCapacity = () => {
         isAddbooking.value = true;
     }
 };
+const isPopupSuccess = ref(true);
 const addBooking = (hotel) => {
+    console.log(isPopupSuccess.value);
     const maxRooms = hotel.available_rooms || 0;
     const currentRooms = selectedRooms.value.length;
 
     if (currentRooms >= maxRooms) {
+        isPopupSuccess.value = false;
         alert(`Bạn chỉ có thể chọn tối đa ${maxRooms} phòng.`);
         selectedRooms.value = [];
         return;
@@ -1005,9 +1041,16 @@ const addBooking = (hotel) => {
 
     checkCapacity(); //  Gọi hàm kiểm tra sức chứa
 
-    const toastEl = document.getElementById('roomToast');
-    if (toastEl) {
-        new bootstrap.Toast(toastEl, { delay: 1000 }).show();
+    if (isPopupSuccess.value === true) {
+        const toastEl = document.getElementById('roomToast');
+        if (toastEl) {
+            new bootstrap.Toast(toastEl, { delay: 1000 }).show();
+        }
+    } else {
+        const toastEl = document.getElementById('roomToast');
+        if (toastEl) {
+            new bootstrap.Toast(toastEl).hide(); // ẩn toast
+        }
     }
 
     // console.log("Thêm phòng:", selectedRooms.value);
@@ -1105,11 +1148,19 @@ const calculateRoomTotal = (room) => {
     return roomPrice + serviceCost; // Tổng tiền cho phòng
 };
 // tinh tien dich vu all room
+// const totalCostForAllRooms = computed(() => {
+//     return selectedRooms.value.reduce((total, room) => {
+//         return total + surchargeSucChua.value + calculateRoomTotal(room) - disCount.value; // Cộng tổng tiền từng phòng
+//     }, 0);
+// });
 const totalCostForAllRooms = computed(() => {
-    return selectedRooms.value.reduce((total, room) => {
-        return total + surchargeSucChua.value + calculateRoomTotal(room); // Cộng tổng tiền từng phòng
+    const totalRoomCost = selectedRooms.value.reduce((total, room) => {
+        return total + surchargeSucChua.value + calculateRoomTotal(room);
     }, 0);
+
+    return totalRoomCost - disCount.value;
 });
+
 //lấy loại phòng
 const getRoomTypes = async () => {
     isLoading.value = true;
@@ -1124,6 +1175,8 @@ const getRoomTypes = async () => {
                 }
             })
         ]);
+        console.log("Đã lấy dữ liệu loại phòng và tình trạng phòng trống thành công", availabilityRes.data);
+
         const roomTypes = roomTypeRes.data.data;
         const availabilityData = availabilityRes.data;
 
@@ -1217,8 +1270,53 @@ const getRoomPrices = async () => {
         isLoading.value = false; // Kết thúc tải dữ liệu (spinner ẩn đi)
     }
 };
-//boooking
+//giam gia 
+const codeDiscount = ref('');
+const disCount = ref(0);
+const idDiscount = ref('');
+const showToast = (message, type = 'success') => {
+    const toastEl = document.getElementById('discountToast');
+    const toastMessage = document.getElementById('toastMessage');
+    // reset class
+    toastEl.className = `toast align-items-center border-0 toast-${type}`;
+    toastMessage.innerText = message;
+    const toast = new bootstrap.Toast(toastEl, { delay: 3000 });
+    toast.show();
+};
 
+const goDiscount = async () => {
+    try {
+        isLoading.value = true;
+        console.log(totalCostForAllRooms.value);
+
+        const res = await axios.post(`${apiUrl}/api/discount`, {
+            code: codeDiscount.value
+        });
+
+        if (res.data.message = 'Áp dụng mã giảm giá thành công!') {
+            disCount.value = res.data.discount_amount;
+            idDiscount.value = res.data.discount_id;
+            showToast(`✅ Giảm ${res.data.discount_amount} VND`, 'success');
+        } else {
+            showToast(`⚠️ ${res.data.message || 'Mã giảm giá không hợp lệ'}`, 'warning');
+        }
+        console.log(disCount.value);
+        console.log(totalCostForAllRooms.value);
+        
+        codeDiscount.value = '';
+    } catch (error) {
+        showToast(`❌ Lỗi: ${error.response?.data?.message || error.message}`, 'error');
+        console.error(error.response?.data || error.message);
+
+    } finally {
+        codeDiscount.value = '';
+
+        isLoading.value = false;
+    }
+};
+
+
+//boooking
 // Xử lý booking
 const returnout = ref(false);
 const confirmBooking = async () => {
@@ -1277,6 +1375,8 @@ const confirmBooking = async () => {
         pricing_type: 'nghitly',
         payment_status: 'pending',
         status: 'pending_confirmation',
+        idDiscount: idDiscount.value || '',
+        giam_gia_1_phong: disCount.value,
         note: orderNotes.value || 'Không có ghi chú',
     };
     //console.log("Booking Details:", JSON.stringify(bookingDetails, null, 2)); // Log booking details as JSON
@@ -1289,12 +1389,12 @@ const confirmBooking = async () => {
     // });
     const dataUser = {
         name: fullName.value,
-        phone: phoneNumber.value,
+        phone: "0" + phoneNumber.value,
         email: email.value,
         address: '', // Có thể thêm địa chỉ nếu cần
     };
     try {
-        //console.log('Đang xác thực người dùng...', dataUser);
+        console.log('Đang xác thực người dùng...', dataUser);
         const authResponse = await axios.post(`${apiUrl}/api/generate-token`, dataUser);
         token = authResponse.data.token;
         localStorage.setItem('BookingAuth', token);
@@ -1583,6 +1683,62 @@ body {
     margin: auto;
 }
 
+/* ma giam gia */
+/* From Uiverse.io by vinodjangid07 */
+.inputContainer {
+    width: 100%;
+    display: flex;
+    flex-direction: row;
+    gap: 10px;
+    /* nếu muốn sát nhau thì bỏ dòng này */
+    align-items: center;
+}
+
+#email-address {
+    flex: 0 0 80%;
+    /* chiếm 80% chiều rộng */
+    height: 40px;
+}
+
+.btn.btn-discount {
+    flex: 0 0 20%;
+    /* chiếm 20% chiều rộng */
+    height: 40px;
+    border: none;
+    background-color: rgb(15, 15, 15);
+    color: white;
+    font-weight: 600;
+    cursor: pointer;
+    border-radius: 4px;
+}
+
+.btn.btn-discount:hover {
+    background-color: rgb(36, 36, 36);
+}
+
+.toast {
+    border-radius: 12px !important;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    font-size: 14px;
+    font-weight: 500;
+}
+
+.toast-success {
+    background-color: #28a745 !important;
+    color: #fff;
+}
+
+.toast-error {
+    background-color: #dc3545 !important;
+    color: #fff;
+}
+
+.toast-warning {
+    background-color: #ffc107 !important;
+    color: #000;
+}
+
+/* end giam gia  */
 .left {
     flex: 0 0 35%;
     position: sticky;

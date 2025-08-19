@@ -28,7 +28,7 @@ use App\Http\Controllers\api\StaffController;
 use App\Http\Controllers\api\RoleController;
 use App\Http\Controllers\api\PermissionController;
 use App\Http\Controllers\api\AuditLogController;
-
+use App\Http\Controllers\CustomerReviewController;
 use App\Models\BookingHistory;
 use App\Models\StaffProfile;
 use Illuminate\Support\Facades\Storage;
@@ -211,3 +211,6 @@ Route::prefix('discount-codes')->controller(CouponsController::class)->group(fun
     Route::put('/{id}', 'update');
     Route::delete('/{id}', 'destroy');
 });
+//them đánh giá khách hàng
+Route::post('/customer-reviews', [CustomerReviewController::class, 'store']);// routes/api.php
+Route::get('/customer-reviewsget', [CustomerReviewController::class, 'index']);

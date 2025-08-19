@@ -28,6 +28,7 @@ class BookingHotel extends Model
         'additional_fee',
         'payment_status',
         'status',
+        'idDiscount',
         'note'
     ];
 

@@ -132,19 +132,6 @@
                 <div class="col-md-4"><label class="form-label">Cấp Bậc</label><select v-model="form.level" class="form-select" :class="{ 'is-invalid': errors.level }"><option value="junior">Nhân viên mới</option><option value="senior">Nhân viên lâu năm</option><option value="manager">Quản lý</option></select></div>
                 <div class="col-md-4"><label class="form-label">Lương (VND)</label><input v-model.number="form.salary" type="number" class="form-control" :class="{ 'is-invalid': errors.salary }"></div>
               </div>
-              
-               <h6 class="form-section-title">Lịch Làm Việc</h6>
-              <div class="schedule-container">
-                <div v-if="!form.schedules || !form.schedules.length" class="text-center p-3 bg-light rounded">Chưa có lịch làm việc. Nhấn "Thêm Ca Làm" để bắt đầu.</div>
-                <div v-for="(schedule, index) in form.schedules" :key="index" class="schedule-row">
-                  <input v-model="schedule.shift_date" type="date" class="form-control" :class="{ 'is-invalid': errors[`schedules.${index}.shift_date`] }"/>
-                  <input v-model="schedule.start_time" type="time" class="form-control" :class="{ 'is-invalid': errors[`schedules.${index}.start_time`] }"/>
-                  <input v-model="schedule.end_time" type="time" class="form-control" :class="{ 'is-invalid': errors[`schedules.${index}.end_time`] }"/>
-                  <input v-model="schedule.task" type="text" class="form-control flex-grow-1" placeholder="Nhiệm vụ"/>
-                  <button type="button" class="btn btn-outline-danger btn-sm" @click="form.schedules.splice(index, 1)"><i class="bi bi-trash-fill"></i></button>
-                </div>
-                <button type="button" class="btn btn-outline-primary mt-3" @click="form.schedules.push({ shift_date: '', start_time: '08:00:00', end_time: '17:00:00', task: '' })"><i class="bi bi-plus-circle me-2"></i>Thêm Ca Làm</button>
-              </div>
             </form>
           </div>
           <div class="modal-footer modal-footer-custom">
@@ -185,16 +172,6 @@
                     <div class="col-12"><p><strong>Địa Chỉ:</strong> {{ selectedStaff.staff_profile?.address }}</p></div>
                  </div>
               </div>
-              <hr class="my-2">
-              <div class="detail-section"><h6 class="form-section-title">Lịch Làm Việc</h6>
-                <div v-if="selectedStaff.staff_schedules && selectedStaff.staff_schedules.length > 0">
-                  <div class="schedule-detail-item" v-for="schedule in selectedStaff.staff_schedules" :key="schedule.id">
-                      <div><span class="fw-bold"><i class="bi bi-calendar-check me-2"></i>{{ formatDate(schedule.shift_date) }}</span><span class="text-muted mx-2">|</span><span><i class="bi bi-clock me-1"></i>{{ schedule.start_time.slice(0,5) }} - {{ schedule.end_time.slice(0,5) }}</span></div>
-                      <div class="text-muted ps-4 mt-1"><em>Nhiệm vụ: {{ schedule.task }}</em></div>
-                  </div>
-                </div>
-                <div v-else class="text-center p-3 bg-light rounded">Chưa có lịch làm việc.</div>
-              </div>
             </div>
           </div>
           <div class="modal-footer modal-footer-custom"><button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Đóng</button></div>
@@ -209,13 +186,12 @@ import { ref, computed, onMounted } from 'vue';
 import axios from 'axios';
 import { Modal } from 'bootstrap';
 
-// --- STATE & REFS ---
 const staffList = ref([]);
-const staffRoles = ref([]); // <-- Mới: Dùng để lưu các vai trò nhân viên (Manager, Receptionist)
+const staffRoles = ref([]); 
 const currentStaffId = ref(null);
 const selectedStaff = ref(null);
 const searchQuery = ref('');
-const filterRoleId = ref(''); // <-- Sửa: Lọc theo role_id
+const filterRoleId = ref(''); 
 const filterDepartment = ref('');
 const currentPage = ref(1);
 const itemsPerPage = 10;
@@ -239,7 +215,7 @@ const resetForm = () => {
   form.value = {
     name: '', email: '', role_id: '', status: 'active',
     employee_code: '', phone: '', address: '', hire_date: new Date().toISOString().slice(0,10), 
-    position: '', department: '', salary: null, level: 'junior', schedules: []
+    position: '', department: '', salary: null, level: 'junior'
   };
   errors.value = {};
 };
@@ -252,18 +228,12 @@ const openAddModal = () => {
 
 const openEditModal = (staff) => {
   currentStaffId.value = staff.id;
-  // Trải phẳng dữ liệu từ các object lồng nhau vào form
   form.value = {
     name: staff.name,
     email: staff.email,
     role_id: staff.role_id,
     status: staff.status,
-    ...(staff.staff_profile || {}), // Trải các thuộc tính từ profile
-    schedules: (staff.staff_schedules || []).map(s => ({
-        ...s,
-        start_time: s.start_time ? s.start_time.substring(0, 8) : '', // Format H:i:s
-        end_time: s.end_time ? s.end_time.substring(0, 8) : ''
-    }))
+    ...(staff.staff_profile || {}),
   };
   errors.value = {};
   editModal.show();

@@ -1,12 +1,10 @@
 <template>
   <div class="page-container">
-    <!-- Tiêu đề trang -->
     <div class="page-header mb-4">
       <h1 class="page-title">Quản Lý Giá Phòng</h1>
       <p class="page-subtitle">Tạo và quản lý các bảng giá theo mùa hoặc theo sự kiện.</p>
     </div>
 
-    <!-- Bộ lọc và tìm kiếm -->
     <div class="card filter-card mb-4">
       <div class="card-body d-flex justify-content-between align-items-center flex-wrap gap-3">
         <div class="col-md-5">
@@ -24,7 +22,6 @@
       </div>
     </div>
 
-    <!-- Bảng danh sách giá -->
     <div class="table-container">
       <table v-if="displayedPricings.length > 0" class="table booking-table align-middle">
         <thead>
@@ -67,7 +64,7 @@
               </div>
             </td>
             <td class="text-center">
-              <span class="badge badge-priority">{{ pricing.priority }}</span>
+              <span class="badge" :class="pricing.priority ? 'badge-success' : 'badge-secondary'">{{ pricing.priority ? 'Ưu Tiên' : 'Không' }}</span>
             </td>
             <td class="text-center">
               <span class="badge" :class="getStatusBadge(pricing.is_active)">
@@ -83,7 +80,6 @@
               >
                 <i :class="pricing.is_active ? 'bi bi-toggle-off' : 'bi bi-toggle-on'"></i>
               </button>
-              <!-- Bạn có thể thêm nút sửa/xóa ở đây nếu logic backend hỗ trợ -->
             </td>
           </tr>
         </tbody>
@@ -93,7 +89,6 @@
       </div>
     </div>
 
-    <!-- Phân trang -->
     <nav v-if="totalPages > 1" aria-label="Page navigation" class="d-flex justify-content-between align-items-center mt-4">
         <div class="text-muted">
             Hiển thị {{ displayedPricings.length }} trên tổng số {{ totalItems }} mục
@@ -117,7 +112,6 @@
         </ul>
     </nav>
 
-    <!-- Modal thêm/sửa -->
     <div v-if="isModalOpen" class="modal-backdrop fade show"></div>
     <div v-if="isModalOpen" class="modal fade show d-block" tabindex="-1">
       <div class="modal-dialog modal-lg modal-dialog-centered">
@@ -160,10 +154,11 @@
                     <input type="date" v-model="newPricing.end_date" class="form-control" :min="newPricing.start_date || today" required :class="{ 'is-invalid': errors.end_date }"/>
                     <div v-if="errors.end_date" class="invalid-feedback">{{ errors.end_date }}</div>
                 </div>
-                 <div class="col-md-6">
-                    <label class="form-label">Mức ưu tiên (0-10)</label>
-                    <input type="number" v-model.number="newPricing.priority" class="form-control" min="0" max="10" required :class="{ 'is-invalid': errors.priority }"/>
-                     <div v-if="errors.priority" class="invalid-feedback">{{ errors.priority }}</div>
+                <div class="col-12">
+                  <div class="form-check">
+                    <input type="checkbox" v-model="newPricing.is_priority" class="form-check-input" id="is_priority" />
+                    <label class="form-check-label" for="is_priority">Áp dụng ưu tiên</label>
+                  </div>
                 </div>
                  <div class="col-12">
                     <label class="form-label">Mô tả</label>
@@ -190,14 +185,12 @@
 import { ref, computed, watch, onMounted } from 'vue';
 import axios from 'axios';
 
-// Cấu hình API client
 const apiClient = axios.create({
   baseURL: 'http://127.0.0.1:8000/api',
   timeout: 60000,
   headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' }
 });
 
-// State
 const seasonalPricings = ref([]);
 const roomTypes = ref([]);
 const searchKeyword = ref('');
@@ -210,8 +203,8 @@ const newPricing = ref({
   description: '',
   price_per_night: 0,
   hourly_price: 0,
-  priority: 0,
-  is_active: true // Sử dụng boolean
+  is_priority: false, 
+  is_active: true
 });
 const errors = ref({
   start_date: '',
@@ -219,33 +212,27 @@ const errors = ref({
   description: '',
   type_id: '',
   price_per_night: '',
-  hourly_price: '',
-  priority: ''
+  hourly_price: ''
 });
 const modalErrorMessage = ref('');
 const currentPage = ref(1);
 const itemsPerPage = ref(10);
 const totalItems = ref(0);
 
-// Ngày hiện tại
 const today = computed(() => new Date().toISOString().split('T')[0]);
 
-// Format giá
 const formatPrice = (price) => {
   return price ? new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(price) : '0 ₫';
 };
 
-// Format ngày
 const formatDate = (date) => {
   return date ? new Date(date).toLocaleDateString('vi-VN') : 'N/A';
 };
 
-// Log từ khóa tìm kiếm
 const logSearchKeyword = () => {
   console.log('Từ khóa tìm kiếm:', searchKeyword.value);
 };
 
-// Lấy danh sách giá
 const fetchPricings = async (page = 1) => {
   isLoading.value = true;
   try {
@@ -259,7 +246,6 @@ const fetchPricings = async (page = 1) => {
     currentPage.value = response.data.current_page || 1;
   } catch (error) {
     console.error('Lỗi khi lấy danh sách giá:', error);
-    // Hiển thị lỗi ở một nơi khác, không dùng modalErrorMessage ở đây
     seasonalPricings.value = [];
     totalItems.value = 0;
   } finally {
@@ -267,7 +253,6 @@ const fetchPricings = async (page = 1) => {
   }
 };
 
-// Lấy danh sách loại phòng
 const fetchRoomTypes = async () => {
   try {
     const response = await apiClient.get('/room-types', { params: { per_page: 'all' } });
@@ -277,7 +262,6 @@ const fetchRoomTypes = async () => {
   }
 };
 
-// Khởi tạo dữ liệu
 onMounted(async () => {
   isLoading.value = true;
   try {
@@ -289,12 +273,10 @@ onMounted(async () => {
   }
 });
 
-// Theo dõi thay đổi trang
 watch(currentPage, (newPage) => {
   fetchPricings(newPage);
 });
 
-// Lọc giá
 const filteredPricings = computed(() => {
   if (!Array.isArray(seasonalPricings.value)) return [];
   if (!searchKeyword.value.trim()) return seasonalPricings.value;
@@ -304,13 +286,10 @@ const filteredPricings = computed(() => {
   });
 });
 
-// Danh sách giá hiển thị
-const displayedPricings = computed(() => filteredPricings.value);
 
-// Tính tổng số trang
+const displayedPricings = computed(() => filteredPricings.value);
 const totalPages = computed(() => Math.ceil(totalItems.value / itemsPerPage.value));
 
-// Tính phạm vi trang
 const pageRange = computed(() => {
   const maxPages = 5;
   let start = Math.max(1, currentPage.value - Math.floor(maxPages / 2));
@@ -321,7 +300,6 @@ const pageRange = computed(() => {
   return Array.from({ length: end - start + 1 }, (_, i) => start + i);
 });
 
-// Mở modal thêm
 const openAddModal = () => {
   newPricing.value = {
     type_id: '',
@@ -330,7 +308,7 @@ const openAddModal = () => {
     description: '',
     price_per_night: 0,
     hourly_price: 0,
-    priority: 0,
+    is_priority: false,
     is_active: true
   };
   errors.value = {};
@@ -338,14 +316,12 @@ const openAddModal = () => {
   modalErrorMessage.value = '';
 };
 
-// Đóng modal
 const closeModal = () => {
   isModalOpen.value = false;
   errors.value = {};
   modalErrorMessage.value = '';
 };
 
-// Kiểm tra form
 const validateForm = () => {
   errors.value = {};
   let isValid = true;
@@ -373,14 +349,9 @@ const validateForm = () => {
     errors.value.hourly_price = 'Giá giờ phải là số không âm';
     isValid = false;
   }
-  if (isNaN(newPricing.value.priority) || newPricing.value.priority < 0 || newPricing.value.priority > 10) {
-    errors.value.priority = 'Ưu tiên phải từ 0 đến 10';
-    isValid = false;
-  }
   return isValid;
 };
 
-// Lưu giá
 const savePricing = async () => {
   if (!validateForm()) {
     modalErrorMessage.value = 'Vui lòng kiểm tra thông tin nhập.';
@@ -389,7 +360,11 @@ const savePricing = async () => {
 
   isLoading.value = true;
   modalErrorMessage.value = '';
-  const payload = { ...newPricing.value };
+  const payload = { 
+    ...newPricing.value,
+    priority: newPricing.value.is_priority ? 1 : 0 
+  };
+  delete payload.is_priority; 
   try {
     await apiClient.post('/prices', payload);
     await fetchPricings(currentPage.value);
@@ -407,7 +382,6 @@ const savePricing = async () => {
   }
 };
 
-// Kích hoạt/Hủy kích hoạt giá
 const toggleActivation = async (pricing) => {
   if (!confirm(`Bạn có chắc chắn muốn ${pricing.is_active ? 'hủy kích hoạt' : 'kích hoạt'} giá phòng này?`)) return;
 
@@ -426,7 +400,6 @@ const toggleActivation = async (pricing) => {
   }
 };
 
-// *** HÀM TIỆN ÍCH CHO GIAO DIỆN MỚI ***
 const formatStatus = (isActive) => {
     return isActive ? 'Kích hoạt' : 'Hủy kích hoạt';
 }
@@ -437,7 +410,6 @@ const getStatusBadge = (isActive) => {
 </script>
 
 <style scoped>
-/* Copied styles from AdminRoomTypeComponent */
 @import url('https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@300;400;500;600;700&display=swap');
 @import url('https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css');
 
@@ -575,4 +547,12 @@ const getStatusBadge = (isActive) => {
   border-top: 1px solid #e5eaee;
   padding: 1rem 1.5rem;
 }
+.badge-success { 
+  background-color: #e6f9f0; 
+  color: #2ecc71; 
+} 
+.badge-secondary { 
+  background-color: #f3f4f6; 
+  color: #7f8c8d; 
+  }
 </style>
