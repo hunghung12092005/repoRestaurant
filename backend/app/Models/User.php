@@ -94,8 +94,4 @@ class User extends Authenticatable implements JWTSubject
         return $this->hasOne(StaffProfile::class, 'user_id', 'id');
     }
 
-    public function staffSchedules()
-    {
-        return $this->hasMany(StaffSchedule::class, 'user_id', 'id');
-    }
 }
