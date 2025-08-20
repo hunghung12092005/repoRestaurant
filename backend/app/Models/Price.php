@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class Price extends Model
 {
+    
     protected $primaryKey = 'price_id';
     protected $fillable = 
     [

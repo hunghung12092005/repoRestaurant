@@ -1046,11 +1046,11 @@ class BookingHotelController extends Controller
                         ]);
                         $paymentStatusDisplay = 'Lỗi kiểm tra thanh toán';
                     }
-                } else if ($booking->payment_method !== 'thanh_toan_qr') {
+                } else {
                     $paymentStatusDisplay = $this->formatPaymentStatus($booking->payment_status);
                 }
                 $booking->payment_status_display = $paymentStatusDisplay;
-
+                $booking->payment_method_display = $this->formatPaymentMethod($booking->payment_method);
                 $booking->check_out_datetime = $booking->check_out_date && $booking->check_out_time
                     ? Carbon::createFromFormat('Y-m-d H:i:s', $booking->check_out_date . ' ' . $booking->check_out_time)->format('d/m/Y H:i')
                     : ($booking->check_out_date ? Carbon::parse($booking->check_out_date)->format('d/m/Y') : 'Chưa xác định');
@@ -1081,15 +1081,38 @@ class BookingHotelController extends Controller
      */
     private function formatPaymentStatus($status)
     {
+        // Chuẩn hóa status về uppercase
+        $upperStatus = strtoupper($status);
+
         $statusMap = [
             'PENDING' => 'Chờ thanh toán',
             'PAID' => 'Đã thanh toán',
             'CANCELLED' => 'Đã hủy',
             'REFUNDED' => 'Đã hoàn tiền',
+            'COMPLETED' => 'Đã hoàn tất',  // Thêm cho 'completed' từ DB
+            'ERROR' => 'Lỗi thanh toán',
             'UNKNOWN' => 'Chưa xác định',
-            'ERROR' => 'Lỗi kiểm tra thanh toán'
         ];
-        return $statusMap[$status] ?? 'Trạng thái không xác định';
+
+        return $statusMap[$upperStatus] ?? 'Trạng thái không xác định';
+    }
+
+    /**
+     * Định dạng phương thức thanh toán thành tiếng Việt
+     */
+    private function formatPaymentMethod($method)
+    {
+        $methodMap = [
+            'cash' => 'Tiền mặt',
+            'bank_transfer' => 'Chuyển khoản',
+            'credit_card' => 'Thẻ tín dụng',
+            'momo' => 'Ví Momo',
+            'at_hotel' => 'Tại khách sạn',
+            'thanh_toan_ngay' => 'Thanh toán ngay',
+            'thanh_toan_qr' => 'Thanh toán QR',
+        ];
+
+        return $methodMap[$method] ?? ucfirst($method); // Nếu không khớp, trả về method gốc với chữ cái đầu uppercase
     }
 
     /**
