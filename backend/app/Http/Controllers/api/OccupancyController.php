@@ -79,6 +79,8 @@ class OccupancyController extends Controller
                 ->whereRaw('CONCAT(bk.check_in_date, " ", COALESCE(bk.check_in_time, "14:00")) <= ?', [$checkTime->toDateTimeString()])
                 ->whereRaw('CONCAT(bk.check_out_date, " ", COALESCE(bk.check_out_time, "12:00")) >= ?', [$checkTime->toDateTimeString()])
                 ->select(
+                    'bkd.booking_detail_id',
+                    'bkd.thanh_toan_truoc',
                     'bk.booking_id',
                     'bk.check_in_date',
                     'bk.check_in_time',
@@ -123,6 +125,8 @@ class OccupancyController extends Controller
                     'check_out_date' => $booking->check_out_date,
                     'check_out_time' => $booking->check_out_time,
                     'total_price' => $booking->total_price,
+                    'booking_detail_id' => $booking->booking_detail_id,
+                    'thanh_toan_truoc' => $booking->thanh_toan_truoc,
                     'note' => $booking->note,
                 ],
             ]);
@@ -834,6 +838,7 @@ class OccupancyController extends Controller
 
             $thanh_toan_truoc = $bookingDetail->thanh_toan_truoc ?? 0;
             $actualTotal = $recalculatedRoomPrice + $totalServiceFee + $additionalFee - $thanh_toan_truoc;
+            $tien_chinh = $recalculatedRoomPrice + $totalServiceFee + $additionalFee;
             // return [
             //     'thanh' => $bookingDetail,
             //     'thanh_toan_truoc' => (int) $thanh_toan_truoc,
@@ -920,7 +925,8 @@ class OccupancyController extends Controller
                 $booking->update([
                     'status' => 'completed',
                     'payment_status' => 'completed',
-                    'total_price' => $booking_total,
+                    'total_price' => $tien_chinh,
+                    // 'total_price' => $booking_total,
                     'check_out_time' => $actualCheckout,
                     'updated_at' => $now,
                 ]);

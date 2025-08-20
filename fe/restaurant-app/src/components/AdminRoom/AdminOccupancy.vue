@@ -206,14 +206,14 @@
       <div class="modal-dialog modal-lg modal-dialog-centered">
         <div class="modal-content modal-custom" v-if="guestInfo.room">
           <div class="modal-header modal-header-custom">
-            <h5 class="modal-title">Chi tiết phòng & khách</h5><button type="button" class="btn-close"
+            <h5 class="modal-title">Chi tiết phòng & khách </h5><button type="button" class="btn-close"
               @click="showGuestModal = false"></button>
           </div>
           <div class="modal-body p-4">
             <div class="row g-4">
               <div class="col-md-6">
-                <h6 class="info-title">Thông tin phòng - ID Booking: {{ guestInfo.booking.booking_id
-                  }}</h6>
+                <h6 class="info-title"> ID Booking: {{ guestInfo.booking.booking_id
+                  }} - ID Booking Detail {{ guestInfo.booking.booking_detail_id }}</h6>
                 <ul class="info-list">
                   <li><span>Phòng:</span><strong>{{ guestInfo.room.room_name }} (Tầng {{ guestInfo.room.floor_number
                   }})</strong></li>
@@ -237,6 +237,7 @@
                   <li><span>Trả phòng dự kiến:</span><strong>{{ formatDateTime(guestInfo.booking?.check_out_date,
                     guestInfo.booking?.check_out_time) || 'N/A' }}</strong></li>
                   <li><span>Trả phòng thực tế:</span><strong>{{ getActualCheckout(guestInfo.booking) }}</strong></li>
+                  <li><span>Thanh Toán Trước:</span><strong>{{ formatPrice(guestInfo.booking.thanh_toan_truoc) }}</strong></li>
                   <li><span>Tổng tiền:</span><strong class="text-success fs-6">{{ guestInfo.booking?.total_price ?
                     Number(guestInfo.booking.total_price).toLocaleString('vi-VN') + ' VND' : 'N/A' }}</strong></li>
                 </ul>
@@ -598,6 +599,12 @@ const selectedTime = ref(new Date().toLocaleTimeString('it-IT', { hour: '2-digit
 const showForm = ref(false);
 const totalPricePreview = ref(null);
 const pricePreviewError = ref('');
+// const formatPrice = (value) => {
+//     return new Intl.NumberFormat('vi-VN', {
+//         style: 'currency',
+//         currency: 'VND',
+//     }).format(value);
+// };
 const formData = ref({
   customer_name: 'name',
   customer_phone: '0325697601',
@@ -1115,7 +1122,7 @@ const showGuestDetails = async (room) => {
       },
     });
     guestInfo.value = res.data;
-    //console.log('Thông tin khách:', guestInfo.value);
+    console.log('Thông tin khách:', guestInfo.value);
 
     showGuestModal.value = true;
   } catch (e) {
