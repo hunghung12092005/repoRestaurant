@@ -535,9 +535,6 @@ class BookingHotelController extends Controller
         }
     }
 
-
-
-
     /**
      * Xóa lịch sử booking
      */
@@ -1747,6 +1744,7 @@ class BookingHotelController extends Controller
 
                 $booking->payment_status_display = $this->formatPaymentStatus($booking->payment_status);
                 $booking->status_display = [
+
                     'completed' => 'Hoàn thành',
                     'cancelled' => 'Đã hủy',
                 ][$booking->status] ?? $booking->status;

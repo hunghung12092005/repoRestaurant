@@ -325,7 +325,7 @@
                   <div class="info-grid">
                     <div class="info-item">
                       <label>Mã Đặt Phòng</label>
-                      <span>#{{ booking.booking_id }}</span>
+                      <span>HXH{{ booking.booking_id }}</span>
                     </div>
                     <div class="info-item">
                       <label>Số Lượng</label>
