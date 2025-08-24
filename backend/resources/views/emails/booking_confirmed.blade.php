@@ -1,38 +1,95 @@
 <!DOCTYPE html>
-<html>
+<html lang="vi">
 <head>
-    <title>Xác nhận đặt phòng Mã đơn: HXH{{ $booking->booking_id }}</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Merriweather:wght@400;700&family=Lato:wght@400;700&display=swap" rel="stylesheet">
+    <title>Xác nhận Đặt phòng</title>
     <style>
-        body { font-family: Arial, sans-serif; color: #333; margin: 0; padding: 20px; }
-        h1 { color: #2c3e50; text-align: center; }
-        p, ul { font-size: 16px; line-height: 1.6; }
-        ul { list-style-type: none; padding: 0; }
-        li { margin: 10px 0; }
-        .logo-container { text-align: center; margin-bottom: 20px; }
-        .logo { max-width: 150px; }
-        .footer { margin-top: 20px; text-align: center; color: #666; }
+        body {
+            font-family: 'Lato', Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f8f8f8;
+        }
+        h1, h2, h3 {
+            font-family: 'Merriweather', serif;
+        }
     </style>
 </head>
-<body>
-    <div class="logo-container">
-        <img src="https://i.postimg.cc/D0jQGLMp/logo-HXH.png" alt="HXH Luxury Hotel" class="logo">
-    </div>
-    <h1>Xác nhận đặt phòng Mã đơn: HXH{{ $booking->booking_id }}</h1>
-    <p>Kính gửi {{ $booking->customer->customer_name ?? 'Quý khách' }},</p>
-    <p>Đặt phòng của bạn đã được xác nhận thành công.</p>
-    <p>Chi tiết đặt phòng:</p>
-    <ul>
-        <li>Mã đặt phòng: {{ $booking->booking_id }}</li>
-        <li>Ngày nhận phòng: {{ $additionalInfo['check_in_date'] }}</li>
-        <li>Ngày trả phòng: {{ $additionalInfo['check_out_date'] }}</li>
-        <li>Số phòng: {{ $booking->total_rooms }}</li>
-        <li>Loại đơn đặt phòng: {{ $booking->booking_type === 'online' ? 'Trực tuyến' : ($booking->booking_type === 'offline' ? 'Tại quầy' : $booking->booking_type) }}</li>
-        <li>Tổng giá: {{ number_format($booking->total_price, 0, ',', '.') }} VND</li>
-    </ul>
-    <p>Chúng tôi sẽ sớm gán phòng cho bạn. Vui lòng theo dõi email để nhận thông tin cập nhật.</p>
-    <div class="footer">
-        <p>Cảm ơn bạn đã chọn HXH Luxury Hotel!</p>
-        <p>Trân trọng,<br>HXH Luxury Hotel</p>
-    </div>
+<body style="margin: 0; padding: 0; background-color: #f8f8f8; font-family: 'Lato', Arial, sans-serif;">
+    <table border="0" cellpadding="0" cellspacing="0" width="100%">
+        <tr>
+            <td style="padding: 20px 0;">
+                <table align="center" border="0" cellpadding="0" cellspacing="0" width="600" style="border-collapse: collapse; background-color: #ffffff; border-radius: 8px; overflow: hidden; border: 1px solid #e0e0e0;">
+                    <tr>
+                        <td align="center" style="background-color: #A98C58; padding: 30px 20px;">
+                            <h1 style="color: #ffffff; font-size: 28px; margin: 0; font-family: 'Merriweather', serif; font-weight: 700;">Hồ Xuân Hương Hotel</h1>
+                            <p style="color: #f6f4f4; font-size: 16px; margin: 5px 0 0; font-family: 'Lato', sans-serif;">Cảm ơn bạn đã đặt phòng!</p>
+                        </td>
+                    <tr>
+                        <td style="padding: 30px 40px; color: #333333;">
+                            <h2 style="font-size: 22px; color: #A98C58; margin-top: 0; font-family: 'Merriweather', serif;">Mã đơn: HXH{{ $booking->booking_id }}</h2>
+                            <p style="font-size: 16px; line-height: 1.6;">Kính gửi {{ $booking->customer->customer_name ?? 'Quý khách' }},</p>
+                            <p style="font-size: 16px; line-height: 1.6;">Chúng tôi vui mừng xác nhận đã nhận được yêu cầu đặt phòng của bạn. Hiện tại, chúng tôi đang xử lý và sẽ sớm sắp xếp phòng phù hợp nhất cho bạn.</p>
+                            <table border="0" cellpadding="0" cellspacing="0" width="100%" style="margin: 20px 0;">
+                                <tr>
+                                    <td style="background-color: #eaf2f8; border-left: 5px solid #3498db; padding: 20px;">
+                                        <p style="margin: 0; font-size: 16px; line-height: 1.6;">
+                                            Trạng thái: 
+                                            <strong style="color: #2c3e50; font-size: 18px;">Đã xác nhận, Chờ xếp phòng</strong>
+                                        </p>
+                                    </td>
+                                </tr>
+                            </table>
+
+                            <h3 style="color: #715e3b; border-bottom: 2px solid #eeeeee; padding-bottom: 10px; margin-top: 30px; font-family: 'Merriweather', serif;">Chi tiết đặt phòng của bạn</h3>
+                            <table border="0" cellpadding="0" cellspacing="0" width="100%" style="color: #333333; font-size: 16px;">
+                                <tr>
+                                    <td style="padding: 10px 0; font-weight: bold;">Mã đặt phòng:</td>
+                                    <td style="padding: 10px 0; text-align: right;">HXH{{ $booking->booking_id }}</td>
+                                </tr>
+                                <tr>
+                                    <td style="padding: 10px 0; border-top: 1px solid #eeeeee; font-weight: bold;">Ngày nhận phòng:</td>
+                                    <td style="padding: 10px 0; border-top: 1px solid #eeeeee; text-align: right;">{{ $additionalInfo['check_in_date'] }}</td>
+                                </tr>
+                                <tr>
+                                    <td style="padding: 10px 0; border-top: 1px solid #eeeeee; font-weight: bold;">Ngày trả phòng:</td>
+                                    <td style="padding: 10px 0; border-top: 1px solid #eeeeee; text-align: right;">{{ $additionalInfo['check_out_date'] }}</td>
+                                </tr>
+                                <tr>
+                                    <td style="padding: 10px 0; border-top: 1px solid #eeeeee; font-weight: bold;">Số phòng:</td>
+                                    <td style="padding: 10px 0; border-top: 1px solid #eeeeee; text-align: right;">{{ $booking->total_rooms }}</td>
+                                </tr>
+                                <tr>
+                                    <td style="padding: 10px 0; border-top: 1px solid #eeeeee; font-weight: bold;">Loại đặt phòng:</td>
+                                    <td style="padding: 10px 0; border-top: 1px solid #eeeeee; text-align: right;">{{ $booking->booking_type === 'online' ? 'Trực tuyến' : ($booking->booking_type === 'offline' ? 'Tại quầy' : $booking->booking_type) }}</td>
+                                </tr>
+                                <tr>
+                                    <td style="padding: 15px 0; border-top: 1px solid #eeeeee; font-weight: bold; font-size: 18px; color: #000">Tổng giá:</td>
+                                    <td style="padding: 15px 0; border-top: 1px solid #eeeeee; text-align: right; font-weight: bold; color: rgb(228, 28, 28); font-size: 18px;">{{ number_format($booking->total_price, 0, ',', '.') }} VND</td>
+                                </tr>
+                            </table>
+
+                            <p style="font-size: 16px; line-height: 1.6; margin-top: 30px;">
+                                <strong>Bước tiếp theo là gì?</strong><br>
+                                Bạn sẽ nhận được một email nữa từ chúng tôi ngay khi phòng của bạn được gán. Cảm ơn sự kiên nhẫn của bạn.
+                            </p>
+
+                            <p style="font-size: 16px; line-height: 1.6; margin-top: 20px;">Chúng tôi rất mong chờ được đón tiếp bạn tại Khách sạn Hồ Xuân Hương.</p>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td style="background-color: #f8f8f8; padding: 20px 40px; text-align: center;">
+                            <p style="margin: 0; color: #888888; font-size: 12px;">© 2025 Hồ Xuân Hương Hotel. All Rights Reserved.</p>
+                            <p style="margin: 5px 0 0; color: #888888; font-size: 12px;">Đây là email tự động, vui lòng không trả lời.</p>
+                        </td>
+                    </tr>
+                </table>
+            </td>
+        </tr>
+    </table>
 </body>
 </html>
