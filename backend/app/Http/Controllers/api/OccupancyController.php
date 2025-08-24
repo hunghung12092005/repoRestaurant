@@ -79,6 +79,9 @@ class OccupancyController extends Controller
                 ->whereRaw('CONCAT(bk.check_in_date, " ", COALESCE(bk.check_in_time, "14:00")) <= ?', [$checkTime->toDateTimeString()])
                 ->whereRaw('CONCAT(bk.check_out_date, " ", COALESCE(bk.check_out_time, "12:00")) >= ?', [$checkTime->toDateTimeString()])
                 ->select(
+                    'bkd.booking_detail_id',
+                    'bkd.thanh_toan_truoc',
+                    'bkd.gia_phong',
                     'bk.booking_id',
                     'bk.check_in_date',
                     'bk.check_in_time',
@@ -123,6 +126,9 @@ class OccupancyController extends Controller
                     'check_out_date' => $booking->check_out_date,
                     'check_out_time' => $booking->check_out_time,
                     'total_price' => $booking->total_price,
+                    'booking_detail_id' => $booking->booking_detail_id,
+                    'thanh_toan_truoc' => $booking->thanh_toan_truoc,
+                    'gia_phong' => $booking->gia_phong,
                     'note' => $booking->note,
                 ],
             ]);
@@ -287,7 +293,7 @@ class OccupancyController extends Controller
             //     'updated_at'         => now(),
             //     'customer_id_number' => $validated['customer_id_number'],
             // ]);
-
+            
             // Sử dụng updateOrCreate để tránh trùng lặp khách hàng
             $customer = Customer::updateOrCreate(
                 ['customer_phone' => $validated['customer_phone']],
@@ -755,6 +761,8 @@ class OccupancyController extends Controller
             // Lấy thời gian và tính toán giá phòng
             $checkIn = Carbon::parse($booking->check_in_date . ' ' . ($booking->check_in_time ?? '14:00'));
             $actualCheckout = now();
+            // $actualCheckout = now()->setTime(16, 0, 0);
+
             $totalHours = $checkIn->floatDiffInHours($actualCheckout);
 
             // Kiểm tra thời gian trả phòng hợp lệ
@@ -834,6 +842,7 @@ class OccupancyController extends Controller
 
             $thanh_toan_truoc = $bookingDetail->thanh_toan_truoc ?? 0;
             $actualTotal = $recalculatedRoomPrice + $totalServiceFee + $additionalFee - $thanh_toan_truoc;
+            $tien_chinh = $recalculatedRoomPrice + $totalServiceFee + $additionalFee;
             // return [
             //     'thanh' => $bookingDetail,
             //     'thanh_toan_truoc' => (int) $thanh_toan_truoc,
@@ -916,11 +925,13 @@ class OccupancyController extends Controller
                 $booking_total = DB::table('booking_room_status')
                     ->where('booking_id', $booking->booking_id)
                     ->sum('total_paid');
-
+                $tien = $booking_total + $thanh_toan_truoc;
                 $booking->update([
                     'status' => 'completed',
                     'payment_status' => 'completed',
-                    'total_price' => $booking_total,
+                    'total_price' => $tien,
+                    // 'total_price' => $tien_chinh,
+                    // 'total_price' => $booking_total,
                     'check_out_time' => $actualCheckout,
                     'updated_at' => $now,
                 ]);
