@@ -984,9 +984,17 @@ class BookingHotelController extends Controller
 
             if ($activeAt) {
                 try {
-                    $filterDateTime = Carbon::parse($activeAt)->format('Y-m-d H:i:s');
-                    $query->whereRaw("CONCAT(booking_hotel.check_in_date, ' ', booking_hotel.check_in_time) <= ?", [$filterDateTime]);
-                    $query->whereRaw("CONCAT(booking_hotel.check_out_date, ' ', booking_hotel.check_out_time) >= ?", [$filterDateTime]);
+                    $parsed = Carbon::parse($activeAt);
+                    if (strpos($activeAt, ':') !== false || strpos($activeAt, ' ') !== false) {
+                        $filterDateTime = $parsed->format('Y-m-d H:i:s');
+                        $query->whereRaw("CONCAT(booking_hotel.check_in_date, ' ', booking_hotel.check_in_time) <= ?", [$filterDateTime]);
+                        $query->whereRaw("CONCAT(booking_hotel.check_out_date, ' ', booking_hotel.check_out_time) >= ?", [$filterDateTime]);
+                    } else {
+                        $startOfDay = $parsed->startOfDay()->format('Y-m-d H:i:s');
+                        $endOfDay = $parsed->endOfDay()->format('Y-m-d H:i:s');
+                        $query->whereRaw("CONCAT(booking_hotel.check_in_date, ' ', booking_hotel.check_in_time) < ?", [$endOfDay]);
+                        $query->whereRaw("CONCAT(booking_hotel.check_out_date, ' ', booking_hotel.check_out_time) > ?", [$startOfDay]);
+                    }
                 } catch (\Exception $e) {
                     Log::warning('Invalid datetime format for active_at filter: ' . $activeAt);
                 }
@@ -1042,8 +1050,14 @@ class BookingHotelController extends Controller
                         ]);
                         $paymentStatusDisplay = 'Lỗi kiểm tra thanh toán';
                     }
-                } else if ($booking->payment_method !== 'thanh_toan_qr') {
-                    $paymentStatusDisplay = $this->formatPaymentStatus($booking->payment_status);
+                } else {
+                    $statusMapNonQR = [
+                        'pending' => 'Chờ thanh toán',
+                        'completed' => 'Đã thanh toán',
+                        'refunded' => 'Đã hoàn tiền',
+                        'error' => 'Lỗi thanh toán',
+                    ];
+                    $paymentStatusDisplay = $statusMapNonQR[$booking->payment_status] ?? 'Trạng thái không xác định';
                 }
                 $booking->payment_status_display = $paymentStatusDisplay;
 
