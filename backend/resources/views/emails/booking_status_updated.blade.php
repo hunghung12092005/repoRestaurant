@@ -17,7 +17,7 @@
     <div class="logo-container">
         <img src="https://i.postimg.cc/D0jQGLMp/logo-HXH.png" alt="HXH Luxury Hotel" class="logo">
     </div>
-    <h1>Cập nhật trạng thái đặt phòng Mã đơn: {{ $booking->booking_id }}</h1>
+    <h1>Cập nhật trạng thái đặt phòng Mã đơn: HXH{{ $booking->booking_id }}</h1>
     <p>Kính gửi {{ $booking->customer->customer_name ?? 'Quý khách' }},</p>
     <p>Đơn đặt phòng của bạn đang ở trạng thái: <strong>
         @switch($status)

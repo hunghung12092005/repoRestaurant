@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Yêu cầu hủy đặt phòng Mã đơn: {{ $booking->booking_id }}</title>
+    <title>Yêu cầu hủy đặt phòng Mã đơn: HXH{{ $booking->booking_id }}</title>
     <style>
         body { font-family: Arial, sans-serif; color: #333; margin: 0; padding: 20px; }
         h1 { color: #2c3e50; text-align: center; }
@@ -17,7 +17,7 @@
     <div class="logo-container">
         <img src="https://i.postimg.cc/D0jQGLMp/logo-HXH.png" alt="HXH Luxury Hotel" class="logo">
     </div>
-    <h1>Yêu cầu hủy đặt phòng Mã đơn: {{ $booking->booking_id }}</h1>
+    <h1>Yêu cầu hủy đặt phòng Mã đơn: HXH{{ $booking->booking_id }}</h1>
     <p>Kính gửi {{ $booking->customer->customer_name ?? 'Quý khách' }},</p>
     <p>Yêu cầu hủy đặt phòng của bạn đã được gửi và đang chờ xác nhận.</p>
     <p>Chi tiết đặt phòng:</p>

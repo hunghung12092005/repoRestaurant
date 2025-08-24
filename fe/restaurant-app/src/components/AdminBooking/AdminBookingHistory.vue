@@ -70,7 +70,7 @@
                 <span class="fw-bold fs-5 me-3">Phòng {{ booking.room_name }}</span>
                 <span class="badge" :class="statusClass(booking.status)">{{ booking.status_display }}</span>
               </div>
-              <span class="text-muted fw-semibold">Mã Booking: {{ booking.booking_id }}</span>
+              <span class="text-muted fw-semibold">Mã Booking: HXH{{ booking.booking_id }}</span>
             </div>
             <div class="card-body">
               <div class="row g-4">

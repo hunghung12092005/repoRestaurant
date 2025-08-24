@@ -19,9 +19,8 @@
             type="text"
             class="form-control"
             placeholder="Tìm số phòng, tầng, hoặc loại phòng..."
-            @input="currentPage = 1"
           />
-          <select v-model="filterRoomType" class="form-select" @change="currentPage = 1">
+          <select v-model="filterRoomType" class="form-select">
             <option value="">Tất cả loại phòng</option>
             <option v-for="type in roomTypes" :key="type.type_id" :value="type.type_id">
               {{ type.type_name }}
@@ -90,8 +89,8 @@
       </div>
     </div>
 
-    <!-- Phân trang -->
-    <nav v-if="totalPages > 1" aria-label="Page navigation" class="d-flex justify-content-between align-items-center mt-4">
+    <!-- Phân trang (HIỂN THỊ CÓ ĐIỀU KIỆN) -->
+    <nav v-if="isPaginated && totalPages > 1" aria-label="Page navigation" class="d-flex justify-content-between align-items-center mt-4">
       <div class="text-muted">
         Hiển thị {{ displayedRooms.length }} / {{ totalItems }} phòng
       </div>
@@ -113,10 +112,19 @@
         </li>
       </ul>
     </nav>
+    
+    <!-- Thông báo tổng kết quả khi tìm kiếm -->
+    <div v-else-if="!isPaginated && displayedRooms.length > 0" class="d-flex justify-content-start align-items-center mt-4">
+        <div class="text-muted">
+            Tìm thấy tổng cộng <strong>{{ totalItems }}</strong> phòng phù hợp.
+        </div>
+    </div>
+
 
     <!-- Modal thêm/sửa phòng -->
     <div v-if="isModalOpen" class="modal-backdrop fade show"></div>
     <div v-if="isModalOpen" class="modal fade show d-block" tabindex="-1">
+      <!-- ... Nội dung Modal giữ nguyên ... -->
       <div class="modal-dialog modal-lg modal-dialog-centered">
         <div class="modal-content modal-custom">
           <div class="modal-header modal-header-custom">
@@ -183,7 +191,6 @@ const rooms = ref([]);
 const roomTypes = ref([]);
 const searchQuery = ref('');
 const filterRoomType = ref('');
-const filterStatus = ref('');
 const isModalOpen = ref(false);
 const isLoading = ref(false);
 const currentRoom = ref(null);
@@ -193,6 +200,8 @@ const modalErrorMessage = ref('');
 const currentPage = ref(1);
 const itemsPerPage = ref(10);
 const totalItems = ref(0);
+const isPaginated = ref(true); // << [THÊM MỚI] Trạng thái để kiểm soát phân trang
+
 const form = ref({
   room_name: '',
   type_id: '',
@@ -206,23 +215,47 @@ const errors = ref({
 });
 
 // Fetch data
-const fetchRooms = async (page = 1) => {
+const fetchRooms = async () => {
   isLoading.value = true;
   errorMessage.value = '';
   try {
-    const response = await apiClient.get(`/rooms?page=${page}&per_page=${itemsPerPage.value}`);
-    console.log('Rooms API response:', JSON.stringify(response.data, null, 2));
+    const params = new URLSearchParams();
+    const isSearchingOrFiltering = searchQuery.value.trim() || filterRoomType.value;
+
+    // Chỉ thêm tham số phân trang nếu KHÔNG tìm kiếm/lọc
+    if (!isSearchingOrFiltering) {
+      params.append('page', currentPage.value);
+      params.append('per_page', itemsPerPage.value);
+    }
+    // Luôn thêm tham số tìm kiếm/lọc nếu có
+    if (searchQuery.value.trim()) {
+      params.append('search', searchQuery.value.trim());
+    }
+    if (filterRoomType.value) {
+      params.append('type_id', filterRoomType.value);
+    }
+
+    const response = await apiClient.get(`/rooms?${params.toString()}`);
+
+    // Xử lý dữ liệu trả về
     if (Array.isArray(response.data.data)) {
       rooms.value = response.data.data.map(room => ({
         ...room,
-        // *** GIỮ NGUYÊN LOGIC CŨ ***
-        roomType: room.room_type || { type_name: 'N/A' } 
+        roomType: room.room_type || { type_name: 'N/A' }
       }));
     } else {
       rooms.value = [];
     }
+
     totalItems.value = response.data.total || 0;
-    currentPage.value = response.data.current_page || 1;
+    // Cập nhật trạng thái phân trang từ cờ của API
+    isPaginated.value = response.data.is_paginated ?? false;
+
+    // Cập nhật trang hiện tại nếu dữ liệu có phân trang
+    if (isPaginated.value) {
+      currentPage.value = response.data.current_page || 1;
+    }
+
   } catch (error) {
     console.error('Fetch rooms error:', {
       message: error.message,
@@ -239,10 +272,9 @@ const fetchRooms = async (page = 1) => {
 const fetchRoomTypes = async () => {
   try {
     const response = await apiClient.get('/room-types');
-    console.log('RoomTypes API response:', JSON.stringify(response.data, null, 2));
     roomTypes.value = Array.isArray(response.data.data) ? response.data.data : [];
     if (roomTypes.value.length === 0) {
-      errorMessage.value = 'Không tìm thấy loại phòng nào. Vui lòng thêm loại phòng trước.';
+      console.warn('Không tìm thấy loại phòng nào. Vui lòng thêm loại phòng trước.');
     }
   } catch (error) {
     console.error('Fetch room types error:', error);
@@ -253,47 +285,31 @@ const fetchRoomTypes = async () => {
 
 // Initialize data
 onMounted(async () => {
-  isLoading.value = true;
-  try {
-    await Promise.all([fetchRooms(), fetchRoomTypes()]);
-  } catch (error) {
-    console.error('Error initializing data:', error);
-    errorMessage.value = 'Khởi tạo dữ liệu thất bại.';
-  } finally {
-    isLoading.value = false;
+  await Promise.all([fetchRooms(), fetchRoomTypes()]);
+});
+
+// Watchers
+watch(currentPage, (newPage, oldPage) => {
+  // Chỉ gọi API khi trang thay đổi VÀ đang ở chế độ phân trang
+  if (newPage !== oldPage && isPaginated.value) {
+    fetchRooms();
   }
 });
 
-// Watch for page changes
-watch(currentPage, (newPage) => {
-  fetchRooms(newPage);
+watch([searchQuery, filterRoomType], () => {
+  // Khi tìm kiếm/lọc, luôn đặt lại về trang 1 và gọi API
+  currentPage.value = 1;
+  fetchRooms();
 });
 
-// Filter rooms
-const filteredRooms = computed(() => {
-  if (!Array.isArray(rooms.value)) return [];
-  return rooms.value.filter(room => {
-    const roomName = room.room_name?.toLowerCase() || '';
-    const typeName = room.roomType?.type_name?.toLowerCase() || '';
-    const floorNumber = room.floor_number?.toString() || '';
-    const matchesSearch = roomName.includes(searchQuery.value.toLowerCase()) ||
-                         typeName.includes(searchQuery.value.toLowerCase()) ||
-                         floorNumber.includes(searchQuery.value.toLowerCase());
-    const matchesRoomType = !filterRoomType.value || room.type_id == parseInt(filterRoomType.value);
-    const matchesStatus = !filterStatus.value || displayStatus === filterStatus.value;
-    return matchesSearch && matchesRoomType && matchesStatus;
-  });
-});
 
 // Pagination
-const totalPages = computed(() => Math.ceil(totalItems.value / itemsPerPage.value));
-
-const displayedRooms = computed(() => {
-  // Logic lọc giờ đã được chuyển lên filteredRooms
-  return filteredRooms.value;
+const totalPages = computed(() => {
+    if (!isPaginated.value) return 1;
+    return Math.ceil(totalItems.value / itemsPerPage.value);
 });
+const displayedRooms = computed(() => rooms.value);
 
-// *** THAY ĐỔI: Sử dụng pageRange từ script cũ ***
 const pageRange = computed(() => {
   const maxPages = 5;
   let start = Math.max(1, currentPage.value - Math.floor(maxPages / 2));
@@ -306,26 +322,15 @@ const pageRange = computed(() => {
 
 // Modal actions
 const openAddModal = () => {
-  form.value = {
-    room_name: '',
-    type_id: '',
-    floor_number: 1,
-    description: ''
-  };
+  form.value = { room_name: '', type_id: '', floor_number: 1, description: '' };
   errors.value = {};
   currentRoom.value = null;
   isModalOpen.value = true;
   successMessage.value = '';
   modalErrorMessage.value = '';
-  console.log('Opened add modal, form reset:', { ...form.value });
 };
-
 const openEditModal = (room) => {
-  console.log('Opening edit modal for room:', JSON.stringify(room, null, 2));
-  if (!room || typeof room !== 'object') {
-    console.error('Invalid room data:', room);
-    return;
-  }
+  if (!room || typeof room !== 'object') return;
   form.value = {
     room_name: String(room.room_name || ''),
     type_id: String(room.type_id || ''),
@@ -337,49 +342,25 @@ const openEditModal = (room) => {
   errors.value = {};
   successMessage.value = '';
   modalErrorMessage.value = '';
-  console.log('Edit modal opened, form set:', { ...form.value });
 };
-
 const closeModal = () => {
   isModalOpen.value = false;
-  errors.value = {};
-  modalErrorMessage.value = '';
-  currentRoom.value = null;
-  form.value = {
-    room_name: '',
-    type_id: '',
-    floor_number: 1,
-    description: ''
-  };
-  console.log('Closed modal, form reset:', { ...form.value });
 };
 
 // Handle inputs
-const onInputRoomName = (event) => {
-  form.value.room_name = event.target.value;
-  errors.value.room_name = '';
-  modalErrorMessage.value = '';
-  console.log('Room name input:', form.value.room_name);
+const onInputRoomName = () => {
+  if(errors.value.room_name) errors.value.room_name = '';
 };
-
-const onInputFloorNumber = (event) => {
-  form.value.floor_number = Number(event.target.value) || 1;
-  errors.value.floor_number = '';
-  modalErrorMessage.value = '';
-  console.log('Floor number input:', form.value.floor_number);
+const onInputFloorNumber = () => {
+  if(errors.value.floor_number) errors.value.floor_number = '';
 };
-
-const onInputDescription = (event) => {
-  form.value.description = event.target.value;
-  console.log('Description input:', form.value.description);
-};
+const onInputDescription = () => {};
 
 // Form validation
 const validateForm = () => {
   errors.value = {};
   let isValid = true;
-
-  if (!form.value.room_name || form.value.room_name.trim().length === 0) {
+  if (!form.value.room_name.trim()) {
     errors.value.room_name = 'Vui lòng nhập số phòng';
     isValid = false;
   }
@@ -388,62 +369,41 @@ const validateForm = () => {
     isValid = false;
   }
   if (!form.value.floor_number || form.value.floor_number < 1) {
-    errors.value.floor_number = 'Tầng phải lớn hơn 0';
+    errors.value.floor_number = 'Tầng phải là một số nguyên lớn hơn 0';
     isValid = false;
   }
-  console.log('Validation result:', { isValid, form: { ...form.value }, errors: errors.value });
   return isValid;
 };
 
 // Save room
 const saveRoom = async () => {
-  console.log('Form data before validation:', { ...form.value });
   if (!validateForm()) {
-    modalErrorMessage.value = 'Vui lòng kiểm tra thông tin nhập.';
+    modalErrorMessage.value = 'Vui lòng kiểm tra lại các trường thông tin bắt buộc.';
     return;
   }
-
   isLoading.value = true;
   modalErrorMessage.value = '';
-
   const payload = {
     room_name: form.value.room_name.trim(),
     type_id: form.value.type_id,
     floor_number: form.value.floor_number,
     description: form.value.description.trim() || null
   };
-  console.log('Sending POST/PUT data:', payload);
   try {
-    let response;
     if (currentRoom.value) {
-      response = await apiClient.put(`/rooms/${currentRoom.value.room_id}`, payload);
-      console.log('PUT response:', JSON.stringify(response.data, null, 2));
-      const index = rooms.value.findIndex(r => r.room_id === currentRoom.value.room_id);
-      if (index !== -1) {
-        // *** GIỮ NGUYÊN LOGIC CŨ ***
-        rooms.value[index] = { ...response.data.data, roomType: response.data.data.room_type || { type_name: 'N/A' } }; 
-      }
+      await apiClient.put(`/rooms/${currentRoom.value.room_id}`, payload);
       successMessage.value = 'Cập nhật phòng thành công!';
     } else {
-      response = await apiClient.post('/rooms', payload);
-      console.log('POST response:', JSON.stringify(response.data, null, 2));
-      // *** GIỮ NGUYÊN LOGIC CŨ ***
-      rooms.value.push({ ...response.data.data, roomType: response.data.data.room_type || { type_name: 'N/A' } }); 
-      fetchRooms(currentPage.value);
+      await apiClient.post('/rooms', payload);
       successMessage.value = 'Thêm phòng thành công!';
     }
     closeModal();
+    await fetchRooms(); // Tải lại dữ liệu để cập nhật danh sách
   } catch (error) {
-    console.error('Save room error:', {
-      message: error.message,
-      response: error.response?.data,
-      status: error.response?.status
-    });
+    console.error('Save room error:', { message: error.message, response: error.response?.data });
     modalErrorMessage.value = error.response?.data?.message || 'Lưu phòng thất bại.';
     if (error.response?.status === 422) {
-      const backendErrors = error.response.data?.errors || {};
-      errors.value = { ...backendErrors };
-      modalErrorMessage.value += ': ' + Object.values(backendErrors).flat().join(', ');
+      errors.value = { ...errors.value, ...error.response.data?.errors };
     }
   } finally {
     isLoading.value = false;
@@ -452,20 +412,15 @@ const saveRoom = async () => {
 
 // Delete room
 const deleteRoom = async (room_id) => {
-  if (!confirm('Bạn có chắc chắn muốn xóa phòng này?')) return;
-
+  if (!confirm('Bạn có chắc chắn muốn xóa phòng này không?')) return;
   isLoading.value = true;
   errorMessage.value = '';
+  successMessage.value = '';
   try {
     await apiClient.delete(`/rooms/${room_id}`);
-    rooms.value = rooms.value.filter(r => r.room_id !== room_id);
-    if (displayedRooms.value.length === 0 && currentPage.value > 1) {
-      currentPage.value--;
-    }
     successMessage.value = 'Xóa phòng thành công!';
-    fetchRooms(currentPage.value);
-  } catch (error)
- {
+    await fetchRooms(); // Tải lại dữ liệu
+  } catch (error) {
     console.error('Delete room error:', error);
     errorMessage.value = error.response?.data?.message || 'Xóa phòng thất bại.';
   } finally {
@@ -474,9 +429,7 @@ const deleteRoom = async (room_id) => {
 };
 </script>
 
-
 <style scoped>
-/* Copied styles from AdminRoomTypeComponent */
 @import url('https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@300;400;500;600;700&display=swap');
 @import url('https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css');
 

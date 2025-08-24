@@ -122,7 +122,7 @@
                   <table class="table booking-table history-table">
                     <thead>
                       <tr>
-                        <th>Mã ĐP</th>
+                        <th>Mã Đặt Phòng</th>
                         <th>Ngày Nhận - Trả Phòng</th>
                         <th class="text-end">Tổng Tiền</th>
                         <th class="text-center">Trạng Thái</th>
@@ -130,7 +130,7 @@
                     </thead>
                     <tbody>
                       <tr v-for="booking in customerBookings" :key="booking.booking_id">
-                        <td>#{{ booking.booking_id }}</td>
+                        <td>HXH{{ booking.booking_id }}</td>
                         <td>
                           <div>Nhận: {{ formatDateTime(booking.check_in_date, booking.check_in_time) }}</div>
                           <div>Trả: {{ formatDateTime(booking.check_out_date, booking.check_out_time) }}</div>
