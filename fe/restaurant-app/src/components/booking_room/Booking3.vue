@@ -577,7 +577,7 @@
                                         <div class="inputContainer">
                                             <input placeholder="Nhập mã giảm giá " type="email" name="email"
                                                 id="email-address" v-model="codeDiscount">
-                                            <button type="submit" class="btn btn-solid-custom"
+                                            <button type="submit" class="btn btn-discount"
                                                 @click="goDiscount">Gửi</button>
                                         </div>
                                         <!-- <button class="exitBtn">×</button> -->

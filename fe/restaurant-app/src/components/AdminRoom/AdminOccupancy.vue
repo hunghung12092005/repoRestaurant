@@ -12,8 +12,10 @@
         <div class="row g-3 align-items-end">
           <div class="col-lg-2 col-md-6">
             <label for="filter-date" class="form-label">Xem theo ngày</label>
-            <input type="date" id="filter-date" class="form-control" v-model="selectedDate" @change="fetchRooms" />
+            <input type="date" id="filter-date" class="form-control" v-model="selectedDate" :min="today"
+              @change="fetchRooms" />
           </div>
+
           <div class="col-lg-2 col-md-6">
             <label for="filter-time" class="form-label">Thời gian</label>
             <input type="time" id="filter-time" class="form-control" v-model="selectedTime" @change="fetchRooms" />
@@ -173,14 +175,22 @@
                   type="email" required class="form-control" /></div>
               <div class="col-12"><label class="form-label">Địa chỉ</label><input v-model="formData.address"
                   class="form-control" /></div>
-              <div class="col-12"><label class="form-label">Thanh toán trước</label><input v-model="formData.thanh_toan_truoc"
-                  class="form-control" /></div>
-              <div class="col-md-6"><label class="form-label">Ngày nhận phòng</label><input type="date"
-                  v-model="formData.check_in_date" required class="form-control" /></div>
+              <div class="col-12"><label class="form-label">Thanh toán trước</label><input
+                  v-model="formData.thanh_toan_truoc" class="form-control" /></div>
+              <!-- <div class="col-md-6"><label class="form-label">Ngày nhận phòng</label><input type="date"
+                  v-model="formData.check_in_date" required class="form-control"  v-model="selectedDate" 
+    :min="today"/></div> -->
+              <div class="col-md-6">
+                <label class="form-label">Ngày nhận phòng</label>
+                <input type="date" v-model="formData.check_in_date" required class="form-control" :min="today"
+                  @change="selectedDate = formData.check_in_date" />
+              </div>
+
               <div class="col-md-6"><label class="form-label">Giờ nhận phòng</label><input type="time"
                   v-model="formData.check_in_time" class="form-control" placeholder="14:00" /></div>
               <div class="col-md-6"><label class="form-label">Ngày trả phòng</label><input type="date"
-                  v-model="formData.check_out_date" required class="form-control" /></div>
+                  v-model="formData.check_out_date" required class="form-control" :min="today"
+                  @change="selectedDate = formData.check_out_date"/></div>
               <div class="col-md-6"><label class="form-label">Giờ trả phòng</label><input type="time"
                   v-model="formData.check_out_time" class="form-control" placeholder="12:00" /></div>
               <div class="col-12 mt-3">
@@ -237,9 +247,14 @@
                   <li><span>Trả phòng dự kiến:</span><strong>{{ formatDateTime(guestInfo.booking?.check_out_date,
                     guestInfo.booking?.check_out_time) || 'N/A' }}</strong></li>
                   <li><span>Trả phòng thực tế:</span><strong>{{ getActualCheckout(guestInfo.booking) }}</strong></li>
-                  <li><span>Thanh Toán Trước:</span><strong>{{ formatPrice(guestInfo.booking.thanh_toan_truoc) }}</strong></li>
-                  <li><span>Tổng tiền:</span><strong class="text-success fs-6">{{ guestInfo.booking?.total_price ?
-                    Number(guestInfo.booking.total_price).toLocaleString('vi-VN') + ' VND' : 'N/A' }}</strong></li>
+                  <li><span>Thanh Toán Trước:</span><strong>{{ formatPrice(guestInfo.booking.thanh_toan_truoc)
+                  }}</strong></li>
+                  <li><span>Tiền phòng:</span><strong>{{ formatPrice(guestInfo.booking.gia_phong)
+                  }}</strong></li>
+                  <li><span>Tổng tiền đơn hàng :</span><strong class="text-success fs-6">{{
+                    formatPrice(guestInfo.booking?.total_price) }}
+
+                    </strong></li>
                 </ul>
               </div>
             </div>
@@ -606,7 +621,7 @@ const pricePreviewError = ref('');
 //     }).format(value);
 // };
 const formData = ref({
-  customer_name: 'name',
+  customer_name: 'HÙNG ĐỒNG MẠNH',
   customer_phone: '0325697601',
   customer_email: 'hxh@gmail.com',
   address: '123 sam son',
@@ -621,7 +636,7 @@ const formData = ref({
 const showEditForm = ref(false);
 const editFormData = ref({
   customer_id: null,
-  customer_name: 'name',
+  customer_name: 'HÙNG ĐỒNG MẠNH',
   customer_phone: '0325697601',
   customer_email: 'hxh@gmail.com',
   address: 'adda',
@@ -646,7 +661,10 @@ const imageFile = ref(null);
 const serviceTotal = computed(() => allServices.value.reduce((sum, s) => sum + s.price * s.quantity, 0));
 const increaseQty = (index) => { allServices.value[index].quantity++; };
 const decreaseQty = (index) => { if (allServices.value[index].quantity > 0) allServices.value[index].quantity--; };
-const formatPrice = (price) => price.toLocaleString('vi-VN') + ' VND';
+const formatPrice = (price) => {
+  const num = Number(price ?? 0);
+  return num.toLocaleString("vi-VN") + " VND";
+};
 
 const futureBookingModal = ref(false);
 const cancelNowModal = ref(false);
@@ -667,14 +685,14 @@ const openMultiBookingModal = () => {
   const checkInDate = now.toISOString().slice(0, 10); // yyyy-mm-dd
   const checkInTime = now.toTimeString().slice(0, 5); // hh:mm
 
-  const out = new Date(now.getTime() + 2 * 60 * 60 * 1000); // +2h
+  const out = new Date(now.getTime() + 6 * 60 * 60 * 1000); // +2h
   const checkOutDate = out.toISOString().slice(0, 10);
   const checkOutTime = out.toTimeString().slice(0, 5);
 
   showMultiBookingModal.value = true;
   multiBookings.value = [{
     room_id: null,
-    customer_name: 'name',
+    customer_name: 'HÙNG ĐỒNG MẠNH',
     customer_phone: '0325697601',
     customer_email: 'hxh@gmail.com',
     customer_id_number: '123456789122',
@@ -691,7 +709,7 @@ const addBooking = () => {
   const checkInDate = now.toISOString().slice(0, 10);
   const checkInTime = now.toTimeString().slice(0, 5); // giờ hiện tại
 
-  const out = new Date(now.getTime() + 2 * 60 * 60 * 1000); // +2 tiếng
+  const out = new Date(now.getTime() + 6 * 60 * 60 * 1000); // +2 tiếng
   const checkOutDate = out.toISOString().slice(0, 10);
   const checkOutTime = out.toTimeString().slice(0, 5);
 
@@ -729,7 +747,7 @@ const submitMultiBookings = async () => {
     const now = new Date();
     const defaultCheckInTime = now.toTimeString().slice(0, 5);
 
-    const out = new Date(now.getTime() + 2 * 60 * 60 * 1000);
+    const out = new Date(now.getTime() + 6 * 60 * 60 * 1000);
     const defaultCheckOutTime = out.toTimeString().slice(0, 5);
 
     const payload = {
@@ -980,6 +998,7 @@ const mapApiStatusToVietnamese = (s) => {
 
 const mapBedCountToString = (c) => c === 1 ? 'Giường đơn' : c === 2 ? 'Giường đôi' : `${c} giường`;
 
+const today = new Date().toISOString().split('T')[0] // yyyy-mm-dd
 const fetchRooms = async () => {
   isLoading.value = true;
   try {
@@ -1033,7 +1052,7 @@ const showAddGuest = (room_id) => {
   const checkInDate = now.toISOString().slice(0, 10);
   const checkInTime = now.toTimeString().slice(0, 5); // 'HH:mm'
 
-  const out = new Date(now.getTime() + 2 * 60 * 60 * 1000);
+  const out = new Date(now.getTime() + 6 * 60 * 60 * 1000);
   const checkOutTime = out.toTimeString().slice(0, 5);
   const checkOutDate = out.toISOString().slice(0, 10);
 
@@ -1065,7 +1084,7 @@ const submitCustomerForm = async () => {
       check_in_time: formData.value.check_in_time || '14:00',
       check_out_time: formData.value.check_out_time || '12:00'
     });
-    
+
     const res = await axios.post(`${apiUrl}/api/rooms/${formData.value.room_id}/add-guest`, {
       ...formData.value,
       check_in_time: formData.value.check_in_time || '14:00',

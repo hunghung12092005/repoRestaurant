@@ -189,7 +189,7 @@ const sidebarStructure = [
   { section: 'TRANG QUẢN TRỊ', title: 'Trang Thống Kê', to: '/admin/dashboard', icon: 'bi bi-grid-1x2', requiredPermission: null },
   { section: 'TRANG QUẢN TRỊ', title: 'Tình Trạng Phòng', to: '/admin/occupancy', icon: 'bi bi-map', requiredPermission: 'manage_bookings' },
   { section: 'TRANG QUẢN TRỊ', title: 'Quản Lý Đặt Phòng', to: '/admin/bookings', icon: 'bi bi-journal-check', requiredPermission: 'manage_bookings' },
-  { section: 'TRANG QUẢN TRỊ', title: 'Lịch Sử Đặt Phòng', to: '/admin/booking-histories', icon: 'bi bi-clock-history', requiredPermission: 'manage_reports' },
+  { section: 'TRANG QUẢN TRỊ', title: 'Lịch Sử  Sử Dụng Phòng', to: '/admin/booking-histories', icon: 'bi bi-clock-history', requiredPermission: 'manage_reports' },
   { section: 'QUẢN LÝ PHÒNG', title: 'Danh Mục Phòng', to: '/admin/room-types', icon: 'bi bi-tags', requiredPermission: 'manage_rooms' },
   { section: 'QUẢN LÝ PHÒNG', title: 'Quản Lý Giá Phòng', to: '/admin/prices', icon: 'bx bxs-dollar-circle', requiredPermission: 'manage_prices' },
   { section: 'QUẢN LÝ PHÒNG', title: 'Quản Lý Phòng', to: '/admin/rooms', icon: 'bx bx-bed', requiredPermission: 'manage_rooms' },

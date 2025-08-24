@@ -1,5 +1,6 @@
 <template>
-  <div v-if="showPopUpSMS" class="popup-overlay">
+
+  <!-- <div v-if="showPopUpSMS" class="popup-overlay">
     <div class="form-container">
       <div class="logo-container">
         Xác thực Số Điện Thoại
@@ -14,7 +15,6 @@
 
       <p v-if="message">
       <div class="alert alert-warning alert-dismissible fade show" role="alert">
-        <!-- <strong>Thông báo!</strong> {{ message }} -->
         <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
       </div>
       </p>
@@ -35,12 +35,11 @@
 
       <p v-if="message">
       <div class="alert alert-warning alert-dismissible fade show" role="alert">
-        <!-- <strong>Thông báo!</strong> {{ message }} -->
         <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
       </div>
       </p>
     </div>
-  </div>
+  </div> -->
   <div id="recaptcha-container"></div>
   <!-- popup Evaluate -->
   <div v-if="popupEvaluate" class="modal fade show d-block" tabindex="-1" role="dialog"
@@ -183,9 +182,14 @@
   <div class="history-wrapper">
     <div class="history-container">
       <header class="page-header animate__animated animate__fadeInDown">
-        <h1>LỊCH SỬ ĐẶT PHÒNG</h1>
-        <p>Xem lại và quản lý tất cả các đặt phòng đã thực hiện.</p>
-        <div class="btn btn-solid-custom" @click="showPopUpSMS = true">Nhập Số Điện Thoại</div>
+        <h2>LỊCH SỬ ĐẶT PHÒNG</h2>
+        <p>Tra cứu và quản lý tất cả các đặt phòng đã thực hiện.</p>
+        <!-- <div class="phone-form">
+          <input type="tel" placeholder="Nhập số điện thoại..." class="phone-input" v-model="phoneNumber">
+          <button @click="checkAndSendOtp" class="btn btn-solid-custom">Gửi</button>
+        </div> -->
+
+        <!-- <div class="btn btn-solid-custom" @click="showPopUpSMS = true">Nhập Số Điện Thoại</div> -->
       </header>
 
       <!-- MODAL HỦY PHÒNG -->
@@ -315,7 +319,7 @@
                 <div class="card-header">
                   <h3>{{ booking.room_type_info ? booking.room_type_info.type_name : 'Thông tin phòng' }}</h3>
                   <span class="status-badge" :class="'status-' + booking.status">{{ formatStatus(booking.status)
-                  }}</span>
+                    }}</span>
                 </div>
                 <div class="card-body">
                   <div class="info-grid">
@@ -344,7 +348,8 @@
                         </button></span>
                     </div> -->
                     <div class="info-item" v-if="booking.status === 'completed'">
-                      <span><button class="btn btn-outline-dark" @click="popUpEvaluate(booking.booking_id)">Đánh giá </button></span>
+                      <span><button class="btn btn-outline-dark" @click="popUpEvaluate(booking.booking_id)">Đánh giá
+                        </button></span>
                     </div>
                   </div>
                   <div v-if="booking.note" class="note">
@@ -409,6 +414,7 @@ const formatPrice = (value) => {
     currency: 'VND',
   }).format(value);
 };
+const curPhone = ref('');
 const showPopUpSMS = ref(false); // Hiển thị popup yêu cầu đăng nhập
 const getHistoryBooking = async () => {
   console.log(authSms.value);
@@ -421,39 +427,39 @@ const getHistoryBooking = async () => {
   });
   try {
     isLoading.value = true;
-    if (authSms.value === true) {
-      try {
-        isLoading.value = true;
-        const rawPhone = localStorage.getItem('BookingAuthPhone');
-        const phoneWithZero = rawPhone.startsWith('0') ? rawPhone : '0' + rawPhone;
+    // if (authSms.value === true) {
+    //   try {
+    //     isLoading.value = true;
+    //     const rawPhone = localStorage.getItem('BookingAuthPhone');
+    //     const phoneWithZero = rawPhone.startsWith('0') ? rawPhone : '0' + rawPhone;
+    //     curPhone.value = phoneWithZero;
+    //     // console.log('Phones gửi lên:', [rawPhone, phoneWithZero]);
 
-        // console.log('Phones gửi lên:', [rawPhone, phoneWithZero]);
+    //     const res = await axios.post(`${apiUrl}/api/booking-historyPhone`, {
+    //       phones: [rawPhone, phoneWithZero] // gửi mảng phone
+    //     });
 
-        const res = await axios.post(`${apiUrl}/api/booking-historyPhone`, {
-          phones: [rawPhone, phoneWithZero] // gửi mảng phone
-        });
-
-        //console.log('Lịch sử đặt phòng phone:', res.data);
-        if (res.data?.status === 'success') {
-          bookings.value = res.data.data;
-          // Lấy chi tiết huỷ cho các đơn đang pending_cancel
-          for (const b of res.data.data) {
-            if (b.status === 'pending_cancel') {
-              await getCancelBookingDetail(b.booking_id);
-              refundBank.value[b.booking_id] = { bank: '', accountNumber: '' };
-            }
-          }
-          console.log('Lịch sử đặt phòng đã tải thành công addjab:', bookings.value);
-        } else {
-          error.value = res.data.message || 'Không thể tải dữ liệu.';
-        }
-        return;
-      } catch (err) {
-        console.error('Lỗi lấy lịch sử đặt phòng:', err);
-      } finally {
-        isLoading.value = false;
-      }
-    }
+    //     //console.log('Lịch sử đặt phòng phone:', res.data);
+    //     if (res.data?.status === 'success') {
+    //       bookings.value = res.data.data;
+    //       // Lấy chi tiết huỷ cho các đơn đang pending_cancel
+    //       for (const b of res.data.data) {
+    //         if (b.status === 'pending_cancel') {
+    //           await getCancelBookingDetail(b.booking_id);
+    //           refundBank.value[b.booking_id] = { bank: '', accountNumber: '' };
+    //         }
+    //       }
+    //       console.log('Lịch sử đặt phòng đã tải thành công addjab:', bookings.value);
+    //     } else {
+    //       error.value = res.data.message || 'Không thể tải dữ liệu.';
+    //     }
+    //     return;
+    //   } catch (err) {
+    //     console.error('Lỗi lấy lịch sử đặt phòng:', err);
+    //   } finally {
+    //     isLoading.value = false;
+    //   }
+    // }
     const res = await axiosInstance.get(`${apiUrl}/api/booking-history`);
     // console.log('Lịch sử đặt phòng:', res.data);
     if (res.data?.status === 'success') {
@@ -572,7 +578,7 @@ const sendEvaluate = async () => {
       room: 5,
       stars: 0,
       comment: ''
-    }; 
+    };
     popupEvaluate.value = false; // Đóng popup sau khi gửi đánh giá}
   } catch (error) {
     console.error('Lỗi gửi đánh giá:', error);
@@ -874,6 +880,45 @@ onMounted(getHistoryBooking);
 
 <style scoped>
 @import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&display=swap');
+
+/* nút sđt */
+.phone-form {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  max-width: 400px;
+  margin: 20px auto;
+  background: #fff;
+  border: 1px solid #ddd;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
+}
+
+.phone-input {
+  flex: 1;
+  padding: 12px 15px;
+  border: none;
+  outline: none;
+  font-size: 16px;
+}
+
+.send-btn {
+  background-color: rgb(87, 196, 240);
+  /* background: linear-gradient(135deg, #66a2d6, #00fe37); */
+  color: white;
+  border: none;
+  padding: 12px 20px;
+  cursor: pointer;
+  font-size: 16px;
+  font-weight: 500;
+  transition: 0.3s;
+}
+
+.send-btn:hover {
+  background: linear-gradient(135deg, #43e97b, #38f9d7);
+}
+
 
 /* Custom styles cho hệ thống sao */
 .star-btn {

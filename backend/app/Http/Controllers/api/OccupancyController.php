@@ -81,6 +81,7 @@ class OccupancyController extends Controller
                 ->select(
                     'bkd.booking_detail_id',
                     'bkd.thanh_toan_truoc',
+                    'bkd.gia_phong',
                     'bk.booking_id',
                     'bk.check_in_date',
                     'bk.check_in_time',
@@ -127,6 +128,7 @@ class OccupancyController extends Controller
                     'total_price' => $booking->total_price,
                     'booking_detail_id' => $booking->booking_detail_id,
                     'thanh_toan_truoc' => $booking->thanh_toan_truoc,
+                    'gia_phong' => $booking->gia_phong,
                     'note' => $booking->note,
                 ],
             ]);
@@ -291,7 +293,7 @@ class OccupancyController extends Controller
             //     'updated_at'         => now(),
             //     'customer_id_number' => $validated['customer_id_number'],
             // ]);
-
+            
             // Sử dụng updateOrCreate để tránh trùng lặp khách hàng
             $customer = Customer::updateOrCreate(
                 ['customer_phone' => $validated['customer_phone']],
@@ -759,6 +761,8 @@ class OccupancyController extends Controller
             // Lấy thời gian và tính toán giá phòng
             $checkIn = Carbon::parse($booking->check_in_date . ' ' . ($booking->check_in_time ?? '14:00'));
             $actualCheckout = now();
+            // $actualCheckout = now()->setTime(16, 0, 0);
+
             $totalHours = $checkIn->floatDiffInHours($actualCheckout);
 
             // Kiểm tra thời gian trả phòng hợp lệ
@@ -921,11 +925,12 @@ class OccupancyController extends Controller
                 $booking_total = DB::table('booking_room_status')
                     ->where('booking_id', $booking->booking_id)
                     ->sum('total_paid');
-
+                $tien = $booking_total + $thanh_toan_truoc;
                 $booking->update([
                     'status' => 'completed',
                     'payment_status' => 'completed',
-                    'total_price' => $tien_chinh,
+                    'total_price' => $tien,
+                    // 'total_price' => $tien_chinh,
                     // 'total_price' => $booking_total,
                     'check_out_time' => $actualCheckout,
                     'updated_at' => $now,
