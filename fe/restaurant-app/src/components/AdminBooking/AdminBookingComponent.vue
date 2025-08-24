@@ -2,7 +2,7 @@
   <div class="page-container">
     <!-- Hiển thị loading khi đang tải trang -->
     <loading v-if="isLoading"></loading>
-    
+
     <!-- Nội dung trang khi đã tải xong -->
     <div v-else>
       <!-- Toast thông báo -->
@@ -50,19 +50,29 @@
                 <option value="confirmed">Đã xác nhận</option>
                 <option value="pending_cancel">Chờ xác nhận hủy</option>
                 <option value="cancelled">Đã hủy</option>
+                <option value="completed">Đã hoàn tất</option>
               </select>
             </div>
             <div class="col-lg-5 col-md-6">
-              <label for="datetime-filter" class="form-label">Kiểm tra tại thời điểm</label>
+              <label class="form-label">Kiểm tra tại thời điểm</label>
               <div class="input-group">
-                <input 
-                  id="datetime-filter" 
-                  v-model="locTaiThoiDiem" 
-                  type="datetime-local" 
-                  class="form-control" 
+                <input
+                  id="date-filter"
+                  v-model="locTheoNgay"
+                  type="date"
+                  class="form-control"
                   @change="locDanhSach"
+                  title="Lọc theo ngày"
                 />
-                <button class="btn btn-outline-secondary" type="button" @click="xoaLocThoiGian" title="Xóa bộ lọc thời gian">
+                <input
+                  id="time-filter"
+                  v-model="locTheoGio"
+                  type="time"
+                  class="form-control"
+                  @change="locDanhSach"
+                  title="Lọc theo giờ (tùy chọn)"
+                />
+                <button class="btn btn-outline-secondary" type="button" @click="xoaLocThoiGian" title="Xóa bộ lọc ngày và giờ">
                   <i class="bi bi-x-lg"></i>
                 </button>
               </div>
@@ -268,7 +278,7 @@
                 {{ dangXuLyHoanTat ? 'Đang xử lý...' : 'Hoàn Tất Xác Nhận' }}
               </button>
               <button
-                v-if="['pending_confirmation', 'confirmed_not_assigned'].includes(datPhongDuocChon.status)"
+                v-if="['pending_confirmation', 'confirmed_not_assigned', 'confirmed'].includes(datPhongDuocChon.status)"
                 @click="openAdminCancelModal(datPhongDuocChon)"
                 class="btn btn-outline-danger"
                 :disabled="dangXuLyHuy"
@@ -333,6 +343,7 @@
     </div>
   </div>
 </template>
+
 <script setup>
 import { ref, onMounted, computed, inject } from 'vue';
 import axios from 'axios';
@@ -340,12 +351,11 @@ import { Toast } from 'bootstrap';
 import loading from '../loading.vue';
 import { debounce } from 'lodash';
 
-
-const getFormattedCurrentDateTime = () => {
+// Helper để lấy ngày hiện tại theo định dạng YYYY-MM-DD
+const getFormattedCurrentDate = () => {
   const now = new Date();
-  const timezoneOffset = now.getTimezoneOffset();
-  const localTime = new Date(now.getTime() - (timezoneOffset * 60 * 1000));
-  return localTime.toISOString().slice(0, 16);
+  now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
+  return now.toISOString().split('T')[0];
 };
 
 const apiUrl = inject('apiUrl');
@@ -367,7 +377,25 @@ const lichSuDatPhong = ref([]);
 const tabHienTai = ref('chiTiet');
 const tuKhoaTimKiem = ref('');
 const locTrangThai = ref('');
-const locTaiThoiDiem = ref(getFormattedCurrentDateTime());
+
+// [START] Sửa đổi logic lọc
+const locTheoNgay = ref(getFormattedCurrentDate()); // Mặc định là ngày hôm nay
+const locTheoGio = ref('');
+
+// Computed property để kết hợp ngày và giờ, đảm bảo lọc theo ngày ngay cả khi không có giờ
+const locTaiThoiDiem = computed(() => {
+  if (!locTheoNgay.value) {
+    return ''; // Nếu không có ngày, không lọc
+  }
+  // Nếu có cả ngày và giờ, kết hợp lại
+  if (locTheoGio.value) {
+    return `${locTheoNgay.value} ${locTheoGio.value}`;
+  }
+  // Nếu chỉ có ngày, trả về ngày đó để API lọc cả ngày
+  return locTheoNgay.value;
+});
+// [END] Sửa đổi logic lọc
+
 const trangHienTai = ref(1);
 const soBanGhiTrenTrang = ref(10);
 const sapXepCot = ref('booking_id');
@@ -517,7 +545,8 @@ const taiDanhSachDatPhong = async () => {
     if (danhSachDatPhong.value.length === 0) {
       thongBaoLoi.value = 'Không có đặt phòng nào trong hệ thống.';
     }
-  } catch (err) {
+  } catch (err)
+ {
     console.error('Lỗi khi tải danh sách đặt phòng:', err);
     thongBaoLoi.value = `Lỗi khi tải danh sách: ${err.response?.data?.message || err.message}`;
     danhSachDatPhong.value = [];
@@ -532,12 +561,16 @@ const timKiemDatPhongDebounced = debounce(() => {
   layDanhSachDatPhong();
 }, 500);
 
+// [START] Sửa đổi logic lọc
+// Cập nhật hàm xóa bộ lọc để xóa cả ngày và giờ
 const xoaLocThoiGian = () => {
-  if (locTaiThoiDiem.value) {
-    locTaiThoiDiem.value = '';
+  if (locTheoNgay.value || locTheoGio.value) {
+    locTheoNgay.value = '';
+    locTheoGio.value = '';
     locDanhSach();
   }
 };
+// [END] Sửa đổi logic lọc
 
 const layDanhSachDatPhong = async () => {
   isLoading.value = true;
@@ -549,7 +582,7 @@ const layDanhSachDatPhong = async () => {
       sort_order: sapXepGiam.value ? 'desc' : 'asc',
       search: tuKhoaTimKiem.value,
       status: locTrangThai.value,
-      active_at: locTaiThoiDiem.value,
+      active_at: locTaiThoiDiem.value, // Giá trị này đến từ computed property đã được cập nhật
     };
     const res = await axios.get(`${apiUrl}/api/bookings`, {
       headers: { 'Accept': 'application/json' },
@@ -754,7 +787,7 @@ const xacNhanDatPhong = async () => {
     thongBaoToast.value = response.data.message || 'Xác nhận đặt phòng thành công!';
     showToast('successToast');
     await taiPhongTrong(datPhongDuocChon.value);
-    await xepPhongNgauNhien(); // Tự động xếp phòng ngẫu nhiên ngay sau khi xác nhận
+    await xepPhongNgauNhien(); 
   } catch (err) {
     console.error('Lỗi khi xác nhận đặt phòng:', {
       message: err.message,
@@ -882,7 +915,8 @@ const dinhDangTrangThai = (trangThai) => ({
   confirmed_not_assigned: 'Xác nhận chưa xếp phòng',
   confirmed: 'Đã xác nhận',
   pending_cancel: 'Chờ xác nhận hủy',
-  cancelled: 'Đã hủy'
+  cancelled: 'Đã hủy',
+  completed: 'Đã hoàn tất',
 }[trangThai] || 'Không rõ');
 
 const dinhDangTrangThaiThanhToan = (trangThai) => ({
@@ -911,6 +945,7 @@ const layLopTrangThai = (trangThai) => {
     case 'confirmed': return 'badge-success';
     case 'pending_cancel': return 'badge-warning';
     case 'cancelled': return 'badge-danger';
+    case 'completed': return 'badge-primary';
     default: return 'badge-secondary';
   }
 };
@@ -964,6 +999,7 @@ onMounted(() => { layDanhSachDatPhong(); });
 .badge-danger { background-color: #fce8e6; color: #e74c3c; }
 .badge-secondary { background-color: #f3f4f6; color: #7f8c8d; }
 .badge-info { background-color: #eaf6fb; color: #3498db; }
+.badge-primary { background-color: #007bff; color: white; }
 
 .pagination .page-link { border: none; border-radius: 8px; margin: 0 4px; color: #7f8c8d; font-weight: 600; transition: all 0.2s ease; }
 .pagination .page-link:hover { background-color: #e9ecef; color: #34495e; }

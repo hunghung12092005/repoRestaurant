@@ -982,7 +982,7 @@ class BookingHotelController extends Controller
                 $statuses = is_array($status) ? $status : [$status];
                 $query->whereIn('booking_hotel.status', $statuses);
             } else {
-                $query->whereIn('booking_hotel.status', ['pending_confirmation', 'confirmed', 'pending_cancel', 'confirmed_not_assigned']);
+                $query->whereIn('booking_hotel.status', ['pending_confirmation', 'confirmed', 'pending_cancel', 'confirmed_not_assigned','cancelled','completed',]);
             }
 
             if ($activeAt) {

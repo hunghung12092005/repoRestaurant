@@ -2,7 +2,7 @@
   <div class="page-container">
     <!-- Tiêu đề trang -->
     <div class="page-header mb-4">
-      <h1 class="page-title">Lịch Sử Đặt Phòng</h1>
+      <h1 class="page-title">Lịch Sử Sử Dụng Phòng</h1>
       <p class="page-subtitle">Tra cứu và xem lại thông tin các lượt lưu trú đã hoàn thành của khách hàng.</p>
     </div>
 
