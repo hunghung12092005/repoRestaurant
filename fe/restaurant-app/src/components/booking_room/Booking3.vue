@@ -1416,10 +1416,10 @@ const confirmBooking = async () => {
     });
     try {
         isLoading.value = true; // Bắt đầu quá trình gửi dữ liệu
-        //console.log('Thông tin đặt phòng:', JSON.stringify(bookingDetails, null, 2));
+        console.log('Thông tin đặt phòng:', JSON.stringify(bookingDetails, null, 2));
         // Gửi yêu cầu đặt phòng
         const response = await axiosWithoutHeader.post(`${apiUrl}/api/booking-client`, bookingDetails);
-        //console.log('Đặt phòng thành công:', response.data);
+        console.log('Đặt phòng thành công:', response);
 
     } catch (error) {
         console.error('Lỗi khi gửi thông tin đặt phòng:', error);
