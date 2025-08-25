@@ -2,8 +2,8 @@
   <div class="page-container">
     <!-- Tiêu đề trang -->
     <div class="page-header mb-4">
-      <h1 class="page-title">Lịch Sử Sử Dụng Phòng</h1>
-      <p class="page-subtitle">Tra cứu và xem lại thông tin các lượt lưu trú đã hoàn thành của khách hàng.</p>
+      <h1 class="page-title">Lịch Sử Đặt Phòng</h1>
+      <p class="page-subtitle">Tra cứu và xem lại thông tin các đơn đặt phòng của khách hàng.</p>
     </div>
 
     <!-- Bộ lọc và tìm kiếm -->
@@ -12,32 +12,37 @@
         <div class="row g-3 align-items-end">
           <div class="col-lg-4 col-md-12">
             <label for="search-input" class="form-label">Tìm kiếm khách hàng</label>
-            <input 
+            <input
               id="search-input"
-              v-model="searchKeyword" 
-              type="text" 
-              class="form-control" 
+              v-model="filters.searchKeyword"
+              type="text"
+              class="form-control"
               placeholder="Nhập tên, SĐT hoặc CCCD..."
-              @keyup.enter="fetchBookings"
-            >
+              @keyup.enter="applyFiltersAndFetch"
+              :disabled="isLoading"
+            />
           </div>
           <div class="col-lg-3 col-md-5">
             <label for="filter-date" class="form-label">Lọc theo ngày trả phòng</label>
-            <input 
+            <input
               id="filter-date"
-              type="date" 
-              v-model="selectedDate" 
+              type="date"
+              v-model="filters.selectedDate"
               class="form-control"
+              :disabled="isLoading"
             />
           </div>
           <div class="col-lg-3 col-md-4">
-            <button @click="fetchBookings" class="btn btn-primary w-100" :disabled="isLoading">
-              <i class="bi bi-search me-2"></i>Tìm Kiếm
+            <button @click="applyFiltersAndFetch" class="btn btn-primary w-100" :disabled="isLoading">
+              <span v-if="isLoading" class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+              <i v-else class="bi bi-search me-2"></i>
+              Tìm Kiếm
             </button>
           </div>
           <div class="col-lg-2 col-md-3">
-            <button @click="clearFilters" class="btn btn-outline-secondary w-100">
-              <i class="bi bi-arrow-clockwise me-2"></i>Xóa lọc
+            <button @click="clearFilters" class="btn btn-outline-secondary w-100" :disabled="isLoading">
+              <i class="bi bi-arrow-clockwise me-2"></i>
+              Xóa lọc
             </button>
           </div>
         </div>
@@ -46,7 +51,6 @@
 
     <!-- Vùng hiển thị kết quả -->
     <div class="results-container">
-      <!-- Trạng thái đang tải -->
       <div v-if="isLoading" class="loading-state">
         <div class="spinner-border text-primary" role="status">
           <span class="visually-hidden">Loading...</span>
@@ -54,72 +58,49 @@
         <p class="mt-3">Đang tải dữ liệu, vui lòng chờ...</p>
       </div>
 
-      <!-- Không có kết quả -->
-      <div v-if="!isLoading && allBookings.length === 0" class="empty-state">
+      <div v-else-if="fetchError" class="error-state">
+        <i class="bi bi-exclamation-triangle-fill error-icon"></i>
+        <h4 class="mt-3">Rất tiếc, đã có lỗi xảy ra</h4>
+        <p class="text-muted">{{ fetchError }}</p>
+        <button @click="fetchBookings(1)" class="btn btn-primary mt-3">
+          <i class="bi bi-arrow-repeat me-2"></i>Thử lại
+        </button>
+      </div>
+
+      <div v-else-if="allBookings.length === 0" class="empty-state">
         <i class="bi bi-journal-x empty-icon"></i>
         <h4 class="mt-3">Không tìm thấy lịch sử</h4>
         <p class="text-muted">Không có lịch sử đặt phòng nào phù hợp với tiêu chí tìm kiếm của bạn.</p>
       </div>
 
-      <!-- Danh sách thẻ đặt phòng -->
-      <div v-if="!isLoading && allBookings.length > 0" class="row g-4">
-        <div class="col-12" v-for="(booking, index) in allBookings" :key="booking.status_id">
-          <div class="booking-card">
-            <div class="card-header d-flex justify-content-between align-items-center">
-              <div>
-                <span class="fw-bold fs-5 me-3">Phòng {{ booking.room_name }}</span>
-                <span class="badge" :class="statusClass(booking.status)">{{ booking.status_display }}</span>
-              </div>
-              <span class="text-muted fw-semibold">Mã Booking: HXH{{ booking.booking_id }}</span>
+      <div v-else class="booking-list">
+        <div
+          class="booking-list-item"
+          v-for="booking in allBookings"
+          :key="booking.booking_id"
+          :class="{ 'is-cancelled': booking.status === 'cancelled' }"
+        >
+          <div class="row align-items-center">
+            <div class="col-lg-3 col-md-12">
+              <div class="fw-bold text-dark">{{ booking.customer_name }}</div>
+              <div class="text-muted small">{{ booking.customer_phone }}</div>
             </div>
-            <div class="card-body">
-              <div class="row g-4">
-                <!-- Cột thông tin khách hàng -->
-                <div class="col-lg-4">
-                  <h6 class="section-title"><i class="bi bi-person-circle me-2"></i>Thông Tin Khách Hàng</h6>
-                  <p class="info-item main-info">{{ booking.customer_name }}</p>
-                  <p class="info-item"><i class="bi bi-telephone me-2"></i>{{ booking.customer_phone }}</p>
-                  <p class="info-item"><i class="bi bi-envelope me-2"></i>{{ booking.customer_email || 'Chưa cung cấp' }}</p>
-                  <p class="info-item"><i class="bi bi-person-badge me-2"></i>CCCD: {{ booking.customer_id_number || 'Chưa cung cấp' }}</p>
-                  <p class="info-item"><i class="bi bi-person-badge me-2"></i>Ghi chu: {{ booking.surcharge_reason || '' }}</p>
-                </div>
-                
-                <!-- Cột thời gian lưu trú -->
-                <div class="col-lg-4">
-                  <h6 class="section-title"><i class="bi bi-calendar-range me-2"></i>Thời Gian Lưu Trú</h6>
-                  <div class="timeline">
-                    <div class="timeline-item check-in">
-                      <div class="timeline-icon"><i class="bi bi-box-arrow-in-right"></i></div>
-                      <div class="timeline-content">
-                        <strong>Nhận phòng:</strong>
-                        <span>{{ formatDate(booking.check_in) }}</span>
-                      </div>
-                    </div>
-                    <div class="timeline-item check-out">
-                      <div class="timeline-icon"><i class="bi bi-box-arrow-left"></i></div>
-                      <div class="timeline-content">
-                        <strong>Trả phòng:</strong>
-                        <span>{{ formatDate(booking.check_out) }}</span>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-                <!-- Cột thanh toán -->
-                <div class="col-lg-4">
-                  <h6 class="section-title"><i class="bi bi-wallet2 me-2"></i>Thông Tin Thanh Toán</h6>
-                   <div class="payment-details">
-                      <div class="payment-row"><span>Phương thức:</span> <strong class="text-dark">{{ booking.payment_method_display }}</strong></div>
-                      <div class="payment-row"><span>Trạng thái:</span> <strong class="text-dark">{{ booking.payment_status_display }}</strong></div>
-                      <hr class="my-2">
-                      <div class="payment-row"><span>Tiền phòng:</span> <span>{{ formatCurrency(booking.room_price) }}</span></div>
-                      <div class="payment-row"><span>Tiền dịch vụ:</span> <span>{{ formatCurrency(booking.service_price) }}</span></div>
-                      <div class="payment-row"><span>Phụ phí:</span> <span>{{ formatCurrency(booking.surcharge) }}</span></div>
-                      <hr class="my-2">
-                      <div class="payment-row total"><span>Tổng cộng:</span> <strong>{{ formatCurrency(booking.total_paid) }}</strong></div>
-                   </div>
-                </div>
+            <div class="col-lg-3 col-md-6">
+              <div class="fw-medium">Mã Đơn: HXH{{ booking.booking_id }}</div>
+              <div class="text-muted small">
+                Ngày đặt: {{ formatDate(booking.check_in_date, true) }} | {{ booking.used_rooms.length }} phòng
               </div>
+            </div>
+            <div class="col-lg-2 col-md-6 mt-2 mt-lg-0">
+              <span class="badge" :class="statusClass(booking.status)">{{ booking.status_display }}</span>
+            </div>
+            <div class="col-lg-2 col-md-6 mt-2 mt-lg-0">
+              <div class="fw-bold text-primary fs-6">{{ formatCurrency(booking.total_price) }}</div>
+            </div>
+            <div class="col-lg-2 col-12 mt-3 mt-lg-0 text-lg-end">
+              <button class="btn btn-sm btn-outline-primary" @click="showDetails(booking)">
+                <i class="bi bi-eye me-1"></i>Xem Chi Tiết
+              </button>
             </div>
           </div>
         </div>
@@ -127,62 +108,141 @@
     </div>
 
     <!-- Phân trang -->
-    <nav v-if="totalPages > 1 && !isLoading" aria-label="Page navigation" class="mt-5">
+    <nav v-if="pagination.totalPages > 1 && !isLoading" aria-label="Page navigation" class="mt-5">
       <ul class="pagination justify-content-center">
-        <li class="page-item" :class="{ disabled: currentPage === 1 }">
-          <a class="page-link" href="#" @click.prevent="chuyenTrang(1)">««</a>
+        <li class="page-item" :class="{ disabled: pagination.currentPage === 1 }">
+          <a class="page-link" href="#" @click.prevent="changePage(1)">««</a>
         </li>
-        <li class="page-item" :class="{ disabled: currentPage === 1 }">
-          <a class="page-link" href="#" @click.prevent="chuyenTrang(currentPage - 1)">«</a>
+        <li class="page-item" :class="{ disabled: pagination.currentPage === 1 }">
+          <a class="page-link" href="#" @click.prevent="changePage(pagination.currentPage - 1)">«</a>
         </li>
-        <li v-for="page in pageRange" :key="page" class="page-item" :class="{ active: page === currentPage }">
-          <a class="page-link" href="#" @click.prevent="chuyenTrang(page)">{{ page }}</a>
+        <li
+          v-for="page in pageRange"
+          :key="page"
+          class="page-item"
+          :class="{ active: page === pagination.currentPage }"
+        >
+          <a class="page-link" href="#" @click.prevent="changePage(page)">{{ page }}</a>
         </li>
-        <li class="page-item" :class="{ disabled: currentPage === totalPages }">
-          <a class="page-link" href="#" @click.prevent="chuyenTrang(currentPage + 1)">»</a>
+        <li class="page-item" :class="{ disabled: pagination.currentPage === pagination.totalPages }">
+          <a class="page-link" href="#" @click.prevent="changePage(pagination.currentPage + 1)">»</a>
         </li>
-        <li class="page-item" :class="{ disabled: currentPage === totalPages }">
-          <a class="page-link" href="#" @click.prevent="chuyenTrang(totalPages)">»»</a>
+        <li class="page-item" :class="{ disabled: pagination.currentPage === pagination.totalPages }">
+          <a class="page-link" href="#" @click.prevent="changePage(pagination.totalPages)">»»</a>
         </li>
       </ul>
     </nav>
   </div>
+
+  <!-- Modal Chi Tiết -->
+  <div v-if="selectedBooking" class="modal-backdrop" @click="closeDetails">
+    <div class="modal-dialog-scrollable modal-lg modal-content" @click.stop>
+      <div class="modal-header">
+        <h5 class="modal-title">Chi Tiết Đơn Đặt Phòng - HXH{{ selectedBooking.booking_id }}</h5>
+        <button type="button" class="btn-close" @click="closeDetails" aria-label="Đóng"></button>
+      </div>
+      <div class="modal-body">
+        <!-- Thông tin chung -->
+        <div class="row g-4">
+          <div class="col-lg-6">
+            <div class="detail-section">
+              <h6 class="section-title"><i class="bi bi-person-circle"></i> Thông Tin Khách Hàng</h6>
+              <ul class="info-list">
+                <li><span>Họ tên:</span> <strong>{{ selectedBooking.customer_name }}</strong></li>
+                <li><span>Số điện thoại:</span> <strong>{{ selectedBooking.customer_phone }}</strong></li>
+                <li><span>Email:</span> {{ selectedBooking.customer_email || 'Chưa cung cấp' }}</li>
+                <li><span>CCCD/Passport:</span> {{ selectedBooking.customer_id_number || 'Chưa cung cấp' }}</li>
+              </ul>
+            </div>
+          </div>
+          <div class="col-lg-6">
+            <div class="detail-section">
+              <h6 class="section-title"><i class="bi bi-wallet2"></i> Thông Tin Thanh Toán</h6>
+              <ul class="info-list">
+                <li><span>Trạng thái đơn:</span> <span class="badge" :class="statusClass(selectedBooking.status)">{{ selectedBooking.status_display }}</span></li>
+                <li><span>Thanh toán:</span> <span class="badge" :class="paymentStatusClass(selectedBooking.payment_status)">{{ selectedBooking.payment_status_display }}</span></li>
+                <li><span>Phương thức:</span> <strong>{{ selectedBooking.payment_method_display }}</strong></li>
+                <li class="total"><span>Tổng Tiền Đơn:</span> <strong>{{ formatCurrency(selectedBooking.total_price) }}</strong></li>
+              </ul>
+            </div>
+          </div>
+        </div>
+
+        <!-- Chi tiết các phòng -->
+        <div class="detail-section mt-4">
+          <h6 class="section-title">
+            <i class="bi bi-door-open-fill"></i> Chi Tiết Các Phòng Đã Sử Dụng ({{ selectedBooking.used_rooms.length }})
+          </h6>
+          <div class="room-list-container">
+            <div v-for="room in selectedBooking.used_rooms" :key="room.status_id" class="room-card">
+              <div class="room-card-header">
+                <div class="room-name">{{ room.room_name }} <small>({{ room.type_name }})</small></div>
+                <div class="room-total">{{ formatCurrency(room.total_paid) }}</div>
+              </div>
+              <div class="room-card-body">
+                <div class="body-section">
+                  <p class="section-label"><i class="bi bi-clock-history"></i> Thời gian</p>
+                  <div class="info-line1"><span>Nhận phòng:</span> <br><span>{{ formatDate(room.check_in) }}</span></div>
+                  <div class="info-line1"><span>Trả phòng:</span> <br><span>{{ formatDate(room.check_out) }}</span></div>
+                </div>
+                <div class="body-section">
+                  <p class="section-label"><i class="bi bi-cash-coin"></i> Chi phí</p>
+                  <div class="info-line"><span>Tiền phòng:</span> <span>{{ formatCurrency(room.room_price) }}</span></div>
+                  <div class="info-line"><span>Tiền dịch vụ:</span> <span>{{ formatCurrency(room.service_price) }}</span></div>
+                  <div class="info-line"><span>Phụ phí:</span> <span>{{ formatCurrency(room.surcharge) }}</span></div>
+                  <div v-if="room.surcharge > 0" class="surcharge-reason">{{ room.surcharge_reason }}</div>
+                </div>
+              </div>
+              <div v-if="room.used_services && room.used_services.length > 0" class="room-card-footer">
+                <p class="section-label"><i class="bi bi-card-checklist"></i> Dịch vụ đã dùng</p>
+                <ul>
+                  <li v-for="service in room.used_services" :key="service.service_name">
+                    <span>{{ service.service_name }} (x{{ service.quantity }})</span>
+                    <span>{{ formatCurrency(service.total) }}</span>
+                  </li>
+                </ul>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" @click="closeDetails">Đóng</button>
+      </div>
+    </div>
+  </div>
 </template>
 
 <script setup>
-import { ref, onMounted, inject, computed } from 'vue';
+import { ref, reactive, onMounted, inject, computed } from 'vue';
 import axios from 'axios';
 
 const apiUrl = inject('apiUrl');
-const selectedDate = ref('');
 const allBookings = ref([]);
-const currentPage = ref(1);
-const totalPages = ref(1);
-const perPage = 10;
-const searchKeyword = ref('');
 const isLoading = ref(true);
+const fetchError = ref(null);
+const selectedBooking = ref(null);
 
-const formatDate = (date) => {
-  if (!date) return 'N/A';
-  return new Date(date).toLocaleString('vi-VN', {
-    year: 'numeric', month: '2-digit', day: '2-digit',
-    hour: '2-digit', minute: '2-digit'
-  });
-};
+const filters = reactive({
+  searchKeyword: '',
+  selectedDate: '',
+});
 
-const formatCurrency = (amount) => {
-  if (amount === null || amount === undefined) return '0 VNĐ';
-  return new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(amount);
-};
+const pagination = reactive({
+  currentPage: 1,
+  totalPages: 1,
+  perPage: 10,
+});
 
 const statusDisplayMap = {
   'pending_confirmation': 'Chờ Xác Nhận',
   'confirmed': 'Đã Xác Nhận',
   'cancelled': 'Đã Hủy',
   'completed': 'Hoàn Thành',
-  'pending_cancel': 'Chờ Hủy'
+  'pending_cancel': 'Chờ Hủy',
+  'checked_in': 'Đã Nhận Phòng',
+  'checked_out': 'Đã Trả Phòng',
 };
-
 const paymentMethodMap = {
   'cash': 'Tiền Mặt',
   'bank_transfer': 'Chuyển Khoản',
@@ -193,7 +253,6 @@ const paymentMethodMap = {
   'thanh_toan_qr': 'Thanh Toán QR',
   'thanh_toan_sau': 'Thanh Toán Sau',
 };
-
 const paymentStatusMap = {
   'pending': 'Chưa Thanh Toán',
   'completed': 'Đã Thanh Toán',
@@ -204,107 +263,119 @@ const paymentStatusMap = {
   'cancelled': 'Đã Hủy',
 };
 
-const statusClass = (status) => {
-  return {
-    'bg-success-light text-success': status === 'completed',
-    'bg-warning-light text-warning': status === 'pending_confirmation',
-    'bg-danger-light text-danger': status === 'cancelled' || status === 'pending_cancel',
-    'bg-info-light text-info': status === 'confirmed'
-  };
+const formatDate = (dateString, dateOnly = false) => {
+  if (!dateString) return 'N/A';
+  const options = dateOnly
+    ? { year: 'numeric', month: '2-digit', day: '2-digit' }
+    : { year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' };
+  return new Date(dateString).toLocaleString('vi-VN', options);
+};
+
+const formatCurrency = (amount) => {
+  if (amount === null || amount === undefined) return '0 VNĐ';
+  return new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(amount);
+};
+
+const statusClass = (status) => ({
+  'bg-success-light text-success': ['completed', 'checked_out'].includes(status),
+  'bg-warning-light text-warning': ['pending_confirmation', 'pending_cancel', 'checked_in'].includes(status),
+  'bg-danger-light text-danger': status === 'cancelled',
+  'bg-info-light text-info': status === 'confirmed',
+  'bg-secondary-light text-secondary': !['completed', 'checked_out', 'pending_confirmation', 'pending_cancel', 'cancelled', 'checked_in', 'confirmed'].includes(status),
+});
+
+const paymentStatusClass = (status) => ({
+  'bg-success-light text-success': status === 'completed',
+  'bg-danger-light text-danger': ['pending', 'unpaid', 'failed'].includes(status),
+  'bg-warning-light text-warning': status === 'partially_paid',
+  'bg-info-light text-info': status === 'refunded',
+  'bg-secondary-light text-secondary': status === 'cancelled',
+});
+
+const transformBookingData = (bookingItem) => ({
+  ...bookingItem,
+  customer_name: bookingItem.customer?.customer_name || 'Khách vãng lai',
+  customer_phone: bookingItem.customer?.customer_phone || 'N/A',
+  customer_email: bookingItem.customer?.customer_email,
+  customer_id_number: bookingItem.customer?.customer_id_number,
+  payment_method_display: paymentMethodMap[bookingItem.payment_method] || bookingItem.payment_method || 'N/A',
+  payment_status_display: paymentStatusMap[bookingItem.payment_status] || bookingItem.payment_status || 'N/A',
+  status_display: statusDisplayMap[bookingItem.status] || bookingItem.status || 'N/A',
+});
+
+const showDetails = (booking) => {
+  selectedBooking.value = booking;
+};
+
+const closeDetails = () => {
+  selectedBooking.value = null;
 };
 
 const clearFilters = () => {
-  selectedDate.value = '';
-  searchKeyword.value = '';
-  currentPage.value = 1;
-  fetchBookings();
+  filters.searchKeyword = '';
+  filters.selectedDate = '';
+  fetchBookings(1);
 };
 
-const fetchBookings = async () => {
+const applyFiltersAndFetch = () => {
+  fetchBookings(1);
+};
+
+const fetchBookings = async (page = 1) => {
   isLoading.value = true;
+  fetchError.value = null;
+  pagination.currentPage = page;
   try {
     const params = {
-      page: currentPage.value,
-      per_page: perPage,
-      status: 'completed'
+      page: pagination.currentPage,
+      per_page: pagination.perPage,
     };
-    if (selectedDate.value) params.date = selectedDate.value;
-    if (searchKeyword.value.trim()) params.search = searchKeyword.value.trim();
+    if (filters.selectedDate) params.date = filters.selectedDate;
+    if (filters.searchKeyword.trim()) params.search = filters.searchKeyword.trim();
     
-    const res = await axios.get(`${apiUrl}/api/booking-histories`, { params });
+    const response = await axios.get(`${apiUrl}/api/booking-histories`, { params });
+    allBookings.value = response.data.data.map(transformBookingData);
+    pagination.totalPages = response.data.last_page;
 
-    allBookings.value = res.data.data.map(b => {
-      const paymentMethodRaw = b.booking?.payment_method;
-      const paymentStatusRaw = b.booking?.payment_status;
-      const statusRaw = b.booking?.status;
-
-      return {
-        status_id: b.status_id,
-        booking_id: b.booking_id,
-        customer_name: b.customer?.customer_name || 'Khách vãng lai',
-        customer_phone: b.customer?.customer_phone || 'N/A',
-        customer_email: b.customer?.customer_email,
-        customer_id_number: b.customer?.customer_id_number,
-        room_name: b.room?.room_name || 'N/A',
-        check_in: b.check_in,
-        check_out: b.check_out,
-        room_price: b.room_price,
-        service_price: b.service_price,
-        surcharge: b.surcharge,
-        total_paid: b.total_paid,
-        surcharge_reason: b.surcharge_reason || 'N/A',
-        payment_method_display: paymentMethodMap[paymentMethodRaw] || paymentMethodRaw || 'N/A',
-        payment_status_display: paymentStatusMap[paymentStatusRaw] || paymentStatusRaw || 'N/A',
-        status_display: statusDisplayMap[statusRaw] || statusRaw || 'N/A',
-        
-        status: statusRaw || 'N/A',
-      }
-    });
-
-    totalPages.value = res.data.last_page;
-    currentPage.value = res.data.current_page;
   } catch (err) {
     console.error("Lỗi khi tải lịch sử đặt phòng:", err);
-    alert("Có lỗi xảy ra, không thể tải được lịch sử đặt phòng.");
+    fetchError.value = "Không thể kết nối đến máy chủ hoặc đã có lỗi xảy ra.";
   } finally {
     isLoading.value = false;
   }
 };
 
 const pageRange = computed(() => {
-  const maxPages = 5;
-  const halfPages = Math.floor(maxPages / 2);
-  let start = Math.max(1, currentPage.value - halfPages);
-  let end = Math.min(totalPages.value, start + maxPages - 1);
-  if (end - start + 1 < maxPages) {
-    start = Math.max(1, end - maxPages + 1);
+  const maxPagesToShow = 5;
+  const half = Math.floor(maxPagesToShow / 2);
+  let start = Math.max(1, pagination.currentPage - half);
+  let end = Math.min(pagination.totalPages, start + maxPagesToShow - 1);
+  if (end - start + 1 < maxPagesToShow) {
+    start = Math.max(1, end - maxPagesToShow + 1);
   }
   return Array.from({ length: end - start + 1 }, (_, i) => start + i);
 });
 
-const chuyenTrang = (page) => {
-  if (page >= 1 && page <= totalPages.value && page !== currentPage.value) {
-    currentPage.value = page;
-    fetchBookings();
+const changePage = (page) => {
+  if (page >= 1 && page <= pagination.totalPages && page !== pagination.currentPage) {
+    fetchBookings(page);
   }
 };
 
-onMounted(fetchBookings);
+onMounted(() => {
+  fetchBookings();
+});
 </script>
 
 <style scoped>
 @import url('https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700&display=swap');
-@import url('https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css');
+@import url('https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css');
 
 .page-container {
   font-family: 'Be Vietnam Pro', sans-serif;
   background-color: #f8fafc;
   padding: 2rem;
-  color: #4a5568;
-  max-width: 1600px;
-  margin: 0 auto;
 }
-
 .page-header .page-title {
   font-size: 2rem;
   font-weight: 700;
@@ -314,173 +385,202 @@ onMounted(fetchBookings);
   font-size: 1rem;
   color: #718096;
 }
-
 .filter-card {
-  background-color: #ffffff;
   border-radius: 12px;
-  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
-  border: none;
-  padding: 1rem;
 }
-
-.form-label {
-  font-weight: 600;
-  font-size: 0.9rem;
-  margin-bottom: 0.5rem;
-}
-.form-control {
-  border-radius: 8px;
-  border-color: #e2e8f0;
-  padding: 0.6rem 1rem;
-}
-.form-control:focus {
-  border-color: #3182ce;
-  box-shadow: 0 0 0 3px rgba(49, 130, 206, 0.2);
-}
-
 .btn {
   border-radius: 8px;
   font-weight: 600;
-  padding: 0.6rem 1rem;
-  transition: all 0.2s ease-in-out;
-}
-.btn-primary {
-  background-color: #3182ce;
-  border-color: #3182ce;
-}
-.btn-primary:hover, .btn-primary:focus {
-  background-color: #2b6cb0;
-  border-color: #2b6cb0;
-}
-.btn-outline-secondary {
-  border-color: #e2e8f0;
-}
-.btn-outline-secondary:hover {
-  background-color: #edf2f7;
-  color: #4a5568;
 }
 
-/* Loading and Empty States */
-.loading-state, .empty-state {
+.booking-list {
   display: flex;
   flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  padding: 4rem;
-  text-align: center;
-  background-color: #fff;
-  border-radius: 12px;
-  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
-  color: #718096;
+  gap: 1rem;
 }
-.empty-icon {
-  font-size: 4rem;
-  color: #a0aec0;
-}
-
-/* Booking Card */
-.booking-card {
+.booking-list-item {
   background-color: #fff;
   border: 1px solid #e2e8f0;
   border-radius: 12px;
-  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  padding: 1.25rem 1.5rem;
   transition: all 0.2s ease-in-out;
+  box-shadow: 0 1px 2px rgba(0,0,0,0.04);
+  border-left: 4px solid #3182ce;
 }
-.booking-card:hover {
-  transform: translateY(-4px);
-  box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1), 0 4px 6px -2px rgba(0,0,0,0.05);
+.booking-list-item:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0,0,0,0.06);
 }
-.booking-card .card-header {
-  background-color: #f7fafc;
-  padding: 1rem 1.5rem;
-  border-bottom: 1px solid #e2e8f0;
-  border-top-left-radius: 12px;
-  border-top-right-radius: 12px;
-}
-.booking-card .card-body {
-  padding: 1.5rem;
-}
-.section-title {
-  font-size: 1rem;
-  font-weight: 700;
-  color: #1a202c;
-  margin-bottom: 1.25rem;
-  display: flex;
-  align-items: center;
-}
-.info-item {
-  display: flex;
-  align-items: center;
-  font-size: 0.95rem;
-  color: #4a5568;
-  margin-bottom: 0.75rem;
-}
-.info-item .bi {
-  color: #718096;
-  margin-right: 0.75rem;
-  font-size: 1.1rem;
-}
-.info-item.main-info {
-  font-weight: 600;
-  font-size: 1.1rem;
-  color: #1a202c;
+.booking-list-item.is-cancelled {
+  border-left-color: #e53e3e;
 }
 
-/* Timeline for Check-in/out */
-.timeline {
-  position: relative;
-  padding-left: 25px;
-}
-.timeline-item {
-  position: relative;
-  margin-bottom: 1.5rem;
-}
-.timeline-item:last-child {
-  margin-bottom: 0;
-}
-.timeline-icon {
-  position: absolute;
-  left: -27px;
+.modal-backdrop {
+  position: fixed;
   top: 0;
-  width: 28px;
-  height: 28px;
-  border-radius: 50%;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background-color: rgba(0, 0, 0, 0.6);
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 1rem;
-  color: #fff;
-  border: 2px solid #fff;
+  z-index: 1050;
+  padding: 1rem;
 }
-.timeline-item.check-in .timeline-icon { background-color: #48bb78; }
-.timeline-item.check-out .timeline-icon { background-color: #f56565; }
-.timeline-content {
+.modal-content {
+  background-color: #fff;
+  border-radius: 12px;
+  box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+  max-height: 90vh;
   display: flex;
   flex-direction: column;
+  width: 100%;
+  max-width: 1000px;
 }
-.timeline-content strong {
-  font-weight: 600;
-  color: #4a5568;
+.modal-header {
+  padding: 1.25rem 1.5rem;
+  border-bottom: 1px solid #e2e8f0;
+  flex-shrink: 0;
 }
-.timeline-content span {
-  font-size: 0.95rem;
+.modal-body {
+  background-color: #f9fafb;
+  padding: 2rem;
+  overflow-y: auto;
+  flex-grow: 1;
+}
+.modal-footer {
+  padding: 1rem 1.5rem;
+  border-top: 1px solid #e2e8f0;
+  background-color: #f8fafb;
+  flex-shrink: 0;
 }
 
-/* Payment Details */
-.payment-details .payment-row {
+.detail-section {
+  margin-bottom: 1.5rem;
+}
+.section-title {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: #1a202c;
+  margin-bottom: 1rem;
+  padding-bottom: 0.5rem;
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  border-bottom: 1px solid #e2e8f0;
+}
+.info-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+.info-list li {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 0.5rem;
-  font-size: 0.95rem;
+  padding: 0.6rem 0.25rem;
+  border-bottom: 1px dashed #e9ecef;
 }
-.payment-details .payment-row.total {
-  font-size: 1.1rem;
+.info-list li:last-child {
+  border-bottom: none;
+}
+.info-list li span:first-child {
+  color: #718096;
+}
+.info-list li.total {
+  font-size: 1.15rem;
+  font-weight: 600;
+}
+.info-list li.total strong {
   color: #3182ce;
 }
-.payment-details .payment-row span:first-child { color: #718096; }
 
-/* Status Badges */
+.room-list-container {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+  gap: 1.5rem;
+}
+.room-card {
+  background: #fff;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+.room-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem 1.25rem;
+  background-color: #f8fafc;
+}
+.room-name {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: #2d3748;
+}
+.room-name small {
+  font-weight: 400;
+  color: #718096;
+}
+.room-total {
+  font-size: 1.2rem;
+  font-weight: 700;
+  color: #2d3748;
+}
+
+.room-card-body {
+  padding: 1.25rem;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem 1.5rem;
+  flex-grow: 1;
+}
+.section-label {
+  font-weight: 600;
+  margin-bottom: 0.75rem;
+  color: #4a5568;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.info-line {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.95rem;
+  margin-bottom: 0.5rem;
+}
+.info-line span:first-child {
+  color: #718096;
+}
+.surcharge-reason {
+  font-size: 0.85rem;
+  font-style: italic;
+  color: #718096;
+  text-align: right;
+  margin-top: 0.5rem;
+}
+.room-card-footer {
+  padding: 1rem 1.25rem;
+  background-color: #fdfdff;
+  border-top: 1px dashed #e2e8f0;
+}
+.room-card-footer ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+.room-card-footer li {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.9rem;
+  padding: 0.25rem 0;
+}
+
 .badge {
   font-weight: 600;
   padding: 0.4em 0.8em;
@@ -496,8 +596,9 @@ onMounted(fetchBookings);
 .text-danger { color: #c53030 !important; }
 .bg-info-light { background-color: rgba(99, 179, 237, 0.15); }
 .text-info { color: #2b6cb0 !important; }
+.bg-secondary-light { background-color: rgba(108, 117, 125, 0.1); }
+.text-secondary { color: #5a6268 !important; }
 
-/* Pagination */
 .pagination .page-link {
   border: none;
   border-radius: 8px;
@@ -510,8 +611,5 @@ onMounted(fetchBookings);
   background-color: #3182ce;
   color: white;
   box-shadow: 0 4px 6px -1px rgba(49,130,206, 0.3);
-}
-.pagination .page-item.disabled .page-link {
-  color: #a0aec0;
 }
 </style>

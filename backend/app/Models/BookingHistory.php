@@ -47,4 +47,5 @@ class BookingHistory extends Model
     {
         return $this->belongsTo(BookingHotelDetail::class, 'booking_detail_id', 'booking_detail_id');
     }
+    
 }
