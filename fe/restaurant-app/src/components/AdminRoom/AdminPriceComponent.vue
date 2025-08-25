@@ -75,7 +75,7 @@
               <button
                 class="btn btn-sm"
                 :class="pricing.is_active ? 'btn-outline-warning' : 'btn-outline-success'"
-                :title="pricing.is_active ? 'Hủy kích hoạt' : 'Kích hoạt'"
+                :title="pricing.is_active ? 'Không hoạt động' : 'Hoạt động'"
                 @click="toggleActivation(pricing)"
               >
                 <i :class="pricing.is_active ? 'bi bi-toggle-off' : 'bi bi-toggle-on'"></i>
@@ -401,7 +401,7 @@ const toggleActivation = async (pricing) => {
 };
 
 const formatStatus = (isActive) => {
-    return isActive ? 'Kích hoạt' : 'Hủy kích hoạt';
+    return isActive ? 'Hoạt động' : 'Không hoạt động';
 }
 
 const getStatusBadge = (isActive) => {

@@ -22,7 +22,7 @@
             />
           </div>
           <div class="col-lg-3 col-md-5">
-            <label for="filter-date" class="form-label">Lọc theo ngày trả phòng</label>
+            <label for="filter-date" class="form-label">Lọc theo ngày</label>
             <input
               id="filter-date"
               type="date"
@@ -222,9 +222,17 @@ const isLoading = ref(true);
 const fetchError = ref(null);
 const selectedBooking = ref(null);
 
+const getTodayDateString = () => {
+  const today = new Date();
+  const year = today.getFullYear();
+  const month = String(today.getMonth() + 1).padStart(2, '0');
+  const day = String(today.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+};
+
 const filters = reactive({
   searchKeyword: '',
-  selectedDate: '',
+  selectedDate: getTodayDateString(),
 });
 
 const pagination = reactive({
@@ -329,8 +337,12 @@ const fetchBookings = async (page = 1) => {
       page: pagination.currentPage,
       per_page: pagination.perPage,
     };
-    if (filters.selectedDate) params.date = filters.selectedDate;
-    if (filters.searchKeyword.trim()) params.search = filters.searchKeyword.trim();
+    if (filters.selectedDate) {
+      params.date = filters.selectedDate;
+    }
+    if (filters.searchKeyword.trim()) {
+      params.search = filters.searchKeyword.trim();
+    }
     
     const response = await axios.get(`${apiUrl}/api/booking-histories`, { params });
     allBookings.value = response.data.data.map(transformBookingData);
@@ -610,5 +622,38 @@ onMounted(() => {
   background-color: #3182ce;
   color: white;
   box-shadow: 0 4px 6px -1px rgba(49,130,206, 0.3);
+}
+
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+  background-color: #ffffff;
+  border: 1px solid #e2e8f0; 
+  border-radius: 12px; 
+  padding: 4rem 2rem; 
+  margin-top: 1.5rem; 
+  color: #718096;
+}
+
+.empty-state .empty-icon {
+  font-size: 4.5rem; 
+  color: #cbd5e0; 
+  margin-bottom: 1.5rem;
+}
+
+.empty-state h4 {
+  font-size: 1.5rem; 
+  font-weight: 600;
+  color: #2d3748; 
+  margin-bottom: 0.5rem;
+}
+
+.empty-state p {
+  color: #718096;
+  max-width: 450px; 
+  line-height: 1.6; 
 }
 </style>
