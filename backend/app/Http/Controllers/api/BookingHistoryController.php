@@ -12,26 +12,22 @@ class BookingHistoryController extends Controller
 {
     /**
      * Lấy danh sách lịch sử booking
-     * GET /api/booking-histories
      */
     public function index(Request $request)
     {
         try {
             $query = BookingHotel::with([
                 'customer',
-                // Thay đổi quan trọng: Lấy dịch vụ thông qua historyRecords
                 'historyRecords' => function ($q) {
                     $q->with([
                         'room.roomType',
-                        // Từ BookingHistory -> BookingHotelDetail -> Services -> Service
                         'bookingDetail.services.service'
                     ]);
                 },
             ])
-            ->whereIn('status', ['completed', 'cancelled'])
+            ->whereIn('status', ['completed'])
             ->orderByDesc('booking_id');
 
-            // Lọc theo ngày trả phòng
             if ($request->filled('date')) {
                 $date = $request->input('date');
                 $query->whereHas('historyRecords', function ($q) use ($date) {
@@ -39,7 +35,6 @@ class BookingHistoryController extends Controller
                 });
             }
 
-            // Lọc theo từ khóa tìm kiếm khách hàng
             if ($request->filled('search')) {
                 $search = $request->input('search');
                 $query->whereHas('customer', function ($q) use ($search) {
@@ -52,7 +47,6 @@ class BookingHistoryController extends Controller
             $perPage = $request->input('per_page', 10);
             $bookings = $query->paginate($perPage);
 
-            // Chuyển đổi dữ liệu trả về cho frontend
             return response()->json([
                 'data' => $bookings->getCollection()->map(function ($booking) {
                     return [
@@ -68,24 +62,22 @@ class BookingHistoryController extends Controller
                             'customer_email' => $booking->customer->customer_email,
                             'customer_id_number' => $booking->customer->customer_id_number,
                         ] : null,
-                        // Tạo một mảng chứa thông tin các phòng đã ở
                         'used_rooms'    => $booking->historyRecords->map(function ($history) {
-                            
-                            // Xử lý dịch vụ cho TỪNG PHÒNG
+                    
                             $servicesForThisRoom = [];
                             if ($history->bookingDetail && $history->bookingDetail->services) {
                                 $servicesForThisRoom = $history->bookingDetail->services->map(function($bookingService) {
                                     if (!$bookingService->service) {
                                         return null;
                                     }
-                                    $quantity = $bookingService->quantity ?? 1; // Giả sử có cột quantity
+                                    $quantity = $bookingService->quantity ?? 1;
                                     return [
                                         'service_name' => $bookingService->service->service_name,
                                         'quantity'     => $quantity,
                                         'price'        => $bookingService->service->price,
                                         'total'        => $quantity * $bookingService->service->price,
                                     ];
-                                })->filter()->values()->all(); // filter() để loại bỏ các service null
+                                })->filter()->values()->all(); 
                             }
 
                             return [
@@ -95,11 +87,11 @@ class BookingHistoryController extends Controller
                                 'check_in'         => $history->check_in,
                                 'check_out'        => $history->check_out,
                                 'room_price'       => $history->room_price,
-                                'service_price'    => $history->service_price, // Tổng tiền DV của phòng này
+                                'service_price'    => $history->service_price, 
                                 'surcharge'        => $history->surcharge,
                                 'surcharge_reason' => $history->surcharge_reason,
-                                'total_paid'       => $history->total_paid, // Tổng tiền của phòng này
-                                'used_services'    => $servicesForThisRoom, // Dịch vụ chi tiết của phòng này
+                                'total_paid'       => $history->total_paid, 
+                                'used_services'    => $servicesForThisRoom, 
                             ];
                         }),
                     ];
@@ -120,7 +112,6 @@ class BookingHistoryController extends Controller
 
     /**
      * Lấy chi tiết booking
-     * GET /api/booking-histories/{status_id}
      */
     public function show($status_id, Request $request)
     {

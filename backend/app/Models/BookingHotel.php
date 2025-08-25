@@ -51,6 +51,4 @@ class BookingHotel extends Model
     {
         return $this->hasMany(BookingHistory::class, 'booking_id', 'booking_id');
     }
-
-    
 }
