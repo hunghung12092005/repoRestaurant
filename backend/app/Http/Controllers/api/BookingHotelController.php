@@ -447,7 +447,7 @@ class BookingHotelController extends Controller
             ->where(function ($query) {
                 $query->whereNull('user_id')
                       ->orWhere('user_id', '');
-            })
+            })->where('booking_type','online')
             ->with('roomTypeInfo')
             ->orderBy('booking_id', 'desc')
             ->get();
