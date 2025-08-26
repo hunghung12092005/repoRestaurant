@@ -225,10 +225,10 @@ import axiosInstance from '../../axiosConfig.js';
 
 // --- CONFIG ---
 const API_BASE_URL = 'http://127.0.0.1:8000';
-const apiClient = axios.create({
-  baseURL: `${API_BASE_URL}/api`,
-  headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' }
-});
+// const apiClient = axios.create({
+//   baseURL: `${API_BASE_URL}/api`,
+//   headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' }
+// });
 
 // --- STATE ---
 const roomTypes = ref([]);
