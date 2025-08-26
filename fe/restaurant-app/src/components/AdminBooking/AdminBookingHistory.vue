@@ -346,6 +346,7 @@ const fetchBookings = async (page = 1) => {
     
     const response = await axios.get(`${apiUrl}/api/booking-histories`, { params });
     allBookings.value = response.data.data.map(transformBookingData);
+    console.log('Lịch sử đặt phòng đã tải:', allBookings.value);
     pagination.totalPages = response.data.last_page;
 
   } catch (err) {
