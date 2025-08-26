@@ -9,7 +9,7 @@
 
     <!-- Content State -->
     <div v-else-if="roomType" class="page-content">
-      <!-- Header Section (Không đổi) -->
+      <!-- Header Section -->
       <header class="page-header">
         <div class="container">
           <div class="row align-items-center gy-3">
@@ -28,32 +28,25 @@
         </div>
       </header>
 
-      <!-- ===== BẮT ĐẦU PHẦN THAY ĐỔI: GALLERY ẢNH TƯƠNG TÁC ===== -->
+      <!-- Interactive Image Gallery -->
       <section class="image-viewer-section" v-if="roomType.images && roomType.images.length > 0">
         <div class="container">
-          <!-- Ảnh chính -->
+          <!-- Main Image -->
           <div class="main-image-wrapper">
             <img :src="mainImageUrl" :alt="`Ảnh chính của ${roomType.type_name}`" class="main-image">
           </div>
 
-          <!-- Dải ảnh nhỏ (Thumbnail Carousel) -->
+          <!-- Thumbnail Carousel -->
           <div v-if="roomType.images.length > 1" class="thumbnail-carousel">
-            <div
-              v-for="(image, index) in roomType.images"
-              :key="image"
-              class="thumbnail-item"
-              :class="{ 'active': index === selectedImageIndex }"
-              @click="selectImage(index)"
-            >
+            <div v-for="(image, index) in roomType.images" :key="image" class="thumbnail-item"
+              :class="{ 'active': index === selectedImageIndex }" @click="selectImage(index)">
               <img :src="`${apiUrl}/images/room_type/${image}`" :alt="`Ảnh nhỏ ${index + 1}`">
             </div>
           </div>
         </div>
       </section>
-      <!-- ===== KẾT THÚC PHẦN THAY ĐỔI ===== -->
 
-
-      <!-- Main Content (Không đổi) -->
+      <!-- Main Content -->
       <div class="container py-5">
         <main class="main-content">
           <div class="row g-4 g-lg-5">
@@ -104,7 +97,7 @@
           </div>
         </main>
 
-        <!-- CTA Section (Không đổi) -->
+        <!-- CTA Section -->
         <section class="cta-section text-center mt-5 pt-5">
           <h2 class="mb-3">Sẵn sàng cho một kỳ nghỉ đáng nhớ?</h2>
           <p class="lead text-muted mb-4">Đặt phòng ngay hôm nay để nhận được những ưu đãi tốt nhất từ chúng tôi.</p>
@@ -115,7 +108,7 @@
       </div>
     </div>
 
-    <!-- Error State (Không đổi) -->
+    <!-- Error State -->
     <div v-else class="loading-container">
       <div class="alert alert-danger text-center">
         <h4 class="alert-heading">Lỗi!</h4>
@@ -166,17 +159,19 @@ const fetchRoomTypeDetails = async () => {
 
   try {
     const response = await axiosConfig.get(`${apiUrl}/api/room-types/${typeId}`);
-    if (response.data) {
+    if (response.data && response.data.data) {
+      const roomData = response.data.data;
+      
       roomType.value = {
-        ...response.data,
-        images: response.data.images && typeof response.data.images === 'string' 
-                ? JSON.parse(response.data.images) 
-                : (response.data.images || []),
-        area: response.data.area || response.data.m2 
+        ...roomData,
+        images: roomData.images && typeof roomData.images === 'string' 
+                ? JSON.parse(roomData.images) 
+                : (roomData.images || []),
+        area: roomData.area || roomData.m2 
       };
-      // Reset về ảnh đầu tiên mỗi khi load phòng mới
       selectedImageIndex.value = 0; 
     }
+
   } catch (error) {
     console.error(`Lỗi khi lấy chi tiết loại phòng ${typeId}:`, error);
     roomType.value = null;
@@ -206,6 +201,7 @@ watch(() => route.params.id, (newId) => {
   background-color: #F9F7F3;
   color: #343a40;
 }
+
 .loading-container {
   min-height: 100vh;
   display: flex;
@@ -214,19 +210,31 @@ watch(() => route.params.id, (newId) => {
   background-color: #F9F7F3;
 }
 
-/* --- Page Header (Không đổi) --- */
+/* --- Page Header --- */
 .page-header {
   background-color: #ffffff;
   padding: 4rem 0;
   border-bottom: 1px solid #e9ecef;
 }
-.header-title { font-size: 3.5rem; font-weight: 800; color: #0A2463; margin-bottom: 0.5rem; }
-.header-subtitle { font-size: 1.25rem; color: #6c757d; margin-bottom: 0; }
 
-/* ===== BẮT ĐẦU PHẦN CSS MỚI: GALLERY ẢNH TƯƠNG TÁC ===== */
+.header-title {
+  font-size: 3.5rem;
+  font-weight: 800;
+  color: #333;
+  margin-bottom: 0.5rem;
+}
+
+.header-subtitle {
+  font-size: 1.25rem;
+  color: #6c757d;
+  margin-bottom: 0;
+}
+
+/* --- Interactive Image Gallery --- */
 .image-viewer-section {
   padding: 2rem 0;
 }
+
 .main-image-wrapper {
   position: relative;
   width: 100%;
@@ -236,6 +244,7 @@ watch(() => route.params.id, (newId) => {
   box-shadow: 0 15px 40px rgba(0, 0, 0, 0.1);
   background-color: #e9ecef;
 }
+
 .main-image {
   width: 100%;
   height: 100%;
@@ -247,70 +256,75 @@ watch(() => route.params.id, (newId) => {
   gap: 1rem;
   padding-top: 1.5rem;
   overflow-x: auto;
-  /* Thêm padding dưới để scrollbar không dính vào ảnh */
-  padding-bottom: 10px; 
+  padding-bottom: 10px;
 }
-/* Tùy chỉnh thanh cuộn cho đẹp hơn */
+
 .thumbnail-carousel::-webkit-scrollbar {
   height: 8px;
 }
+
 .thumbnail-carousel::-webkit-scrollbar-track {
   background: #f1f1f1;
   border-radius: 10px;
 }
+
 .thumbnail-carousel::-webkit-scrollbar-thumb {
   background: #ccc;
   border-radius: 10px;
 }
+
 .thumbnail-carousel::-webkit-scrollbar-thumb:hover {
   background: #b3b3b3;
 }
 
 .thumbnail-item {
-  flex: 0 0 120px; /* Không co giãn, kích thước cố định */
+  flex: 0 0 120px;
   height: 80px;
   border-radius: 8px;
   overflow: hidden;
   cursor: pointer;
-  border: 3px solid transparent; /* Dành chỗ cho border khi active */
+  border: 3px solid transparent;
   transition: all 0.3s ease;
   opacity: 0.6;
 }
+
 .thumbnail-item:hover {
   opacity: 1;
   transform: translateY(-3px);
 }
+
 .thumbnail-item.active {
-  border-color: #3D99A5; /* Màu chính của theme */
+  border-color: #A98A66;
   opacity: 1;
   transform: scale(1.05) translateY(-3px);
-  box-shadow: 0 4px 10px rgba(61, 153, 165, 0.3);
+  box-shadow: 0 4px 10px rgba(181, 134, 93, 0.3);
 }
+
 .thumbnail-item img {
   width: 100%;
   height: 100%;
   object-fit: cover;
 }
-/* ===== KẾT THÚC PHẦN CSS MỚI ===== */
 
-
-/* --- Main Content & Cards (Không đổi) --- */
+/* --- Main Content & Cards --- */
 .detail-card {
   background-color: #fff;
   padding: 2.5rem;
   border-radius: 15px;
-  box-shadow: 0 8px 25px rgba(0,0,0,0.05);
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.05);
   border: 1px solid #e9ecef;
   height: 100%;
 }
+
 .section-title {
   font-weight: 800;
-  color: #0A2463;
+  color: #333;
   margin-bottom: 1.5rem;
   padding-bottom: 0.75rem;
-  border-bottom: 3px solid #3D99A5;
+  border-bottom: 3px solid #a07d5a;
   display: inline-block;
 }
+
 .info-card {
   background-color: #f8f9fa;
   border-radius: 12px;
@@ -318,14 +332,67 @@ watch(() => route.params.id, (newId) => {
   border: 1px solid #e9ecef;
   transition: all 0.3s ease;
 }
-.info-card:hover { transform: translateY(-5px); box-shadow: 0 5px 15px rgba(0,0,0,0.07); }
-.info-icon { font-size: 2.5rem; color: #3D99A5; margin-bottom: 0.75rem; display: block; }
-.info-label { font-size: 0.9rem; color: #6c757d; margin-bottom: 0.25rem; }
-.info-value { font-size: 1.1rem; font-weight: 700; color: #0A2463; }
-.feature-list { columns: 2; -webkit-columns: 2; -moz-columns: 2; column-gap: 2rem; }
-.feature-list li { padding: 0.5rem 0; font-size: 1rem; display: flex; align-items: center; break-inside: avoid; }
-.feature-list li i { color: #3D99A5; margin-right: 0.75rem; font-size: 1.2rem; }
-.cta-section { border-top: 1px solid #e9ecef; }
-.btn-primary { background-color: #3D99A5; border-color: #3D99A5; font-weight: 700; transition: all 0.3s ease; }
-.btn-primary:hover { background-color: #2f7a85; border-color: #2f7a85; transform: translateY(-3px); box-shadow: 0 4px 15px rgba(61, 153, 165, 0.4); }
+
+.info-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.07);
+}
+
+.info-icon {
+  font-size: 2.5rem;
+  color: #a07d5a;
+  margin-bottom: 0.75rem;
+  display: block;
+}
+
+.info-label {
+  font-size: 0.9rem;
+  color: #6c757d;
+  margin-bottom: 0.25rem;
+}
+
+.info-value {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: #333;
+}
+
+.feature-list {
+  columns: 2;
+  -webkit-columns: 2;
+  -moz-columns: 2;
+  column-gap: 2rem;
+}
+
+.feature-list li {
+  padding: 0.5rem 0;
+  font-size: 1rem;
+  display: flex;
+  align-items: center;
+  break-inside: avoid;
+}
+
+.feature-list li i {
+  color: #a07d5a;
+  margin-right: 0.75rem;
+  font-size: 1.2rem;
+}
+
+.cta-section {
+  border-top: 1px solid #e9ecef;
+}
+
+.btn-primary {
+  background-color: #a07d5a;
+  border-color: #a07d5a;
+  font-weight: 700;
+  transition: all 0.3s ease;
+}
+
+.btn-primary:hover {
+  background-color: #9c704c;
+  border-color: #9c704c;
+  transform: translateY(-3px);
+  box-shadow: 0 4px 15px rgba(181, 134, 93, 0.4);
+}
 </style>
