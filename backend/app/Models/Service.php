@@ -28,4 +28,12 @@ class Service extends Model
         return $this->belongsToMany(RoomType::class, 'room_type_services', 'service_id', 'type_id')
                     ->withTimestamps();
     }
+
+    /**
+     * Mối quan hệ một-nhiều với BookingHotelService
+     */
+    public function bookings()
+    {
+        return $this->hasMany(BookingHotelService::class, 'service_id', 'service_id');
+    }
 }
