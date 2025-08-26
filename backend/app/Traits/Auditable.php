@@ -4,7 +4,10 @@ namespace App\Traits;
 
 use App\Models\AuditLog;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Support\Facades\Auth;
+use Tymon\JWTAuth\Facades\JWTAuth;
+use Tymon\JWTAuth\Exceptions\JWTException;
+// Bỏ Log::info đi cho sạch sẽ
+// use Illuminate\Support\Facades\Log;
 
 trait Auditable
 {
@@ -27,7 +30,7 @@ trait Auditable
 
     public function getAuditableName(): string
     {
-        $nameAttributes = ['name', 'title', 'room_name', 'display_name'];
+        $nameAttributes = ['name','code', 'employee_code','type_name','service_name', 'amenity_name','booking_id', 'title', 'room_name', 'display_name'];
         foreach ($nameAttributes as $attribute) {
             if (isset($this->{$attribute})) {
                 return (string) $this->{$attribute};
@@ -38,11 +41,36 @@ trait Auditable
 
     protected static function audit($event, $model)
     {
-        
-        $userId = Auth::guard('api')->id();
+        $userId = null;
+        $user = null;
 
-        
-        // 3. Nếu có userId, tiếp tục ghi log như bình thường.
+        // <<< BẮT ĐẦU PHẦN SỬA ĐỔI QUAN TRỌNG >>>
+        try {
+            // 1. Cố gắng xác thực người dùng từ token trong request
+            if (! $user = JWTAuth::parseToken()->authenticate()) {
+                // Nếu không xác thực được user, không làm gì cả
+                return;
+            }
+
+            // 2. Kiểm tra vai trò của người dùng
+            // Dựa theo logic trong App.vue (isStaff.value = (roleName && roleName !== 'client');)
+            // Nếu người dùng không có vai trò, hoặc có vai trò là 'client', thì không ghi log.
+            if (!$user->role || $user->role->name === 'client') {
+                return; // Dừng lại, không ghi log cho khách hàng
+            }
+            
+            // Nếu vượt qua các kiểm tra trên, đây chắc chắn là Admin/Staff
+            $userId = $user->id;
+
+        } catch (JWTException $e) {
+            // 3. Nếu có bất kỳ lỗi nào về JWT (không có token, token hết hạn,...)
+            // thì đây không phải là một hành động được xác thực của admin/staff.
+            return; // Dừng lại, không ghi log
+        }
+        // <<< KẾT THÚC PHẦN SỬA ĐỔI QUAN TRỌNG >>>
+
+        // Chỉ khi nào $userId được gán (tức là người dùng là Admin/Staff),
+        // thì mới tiến hành tạo AuditLog.
         AuditLog::create([
             'user_id'        => $userId,
             'event'          => $event,

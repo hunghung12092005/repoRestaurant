@@ -177,14 +177,14 @@
 
 <script setup>
 import { ref, computed, watch, onMounted } from 'vue';
-import axios from 'axios';
+import axiosInstance from '../../axiosConfig.js';
 
 // Cấu hình API client
-const apiClient = axios.create({
-  baseURL: 'http://127.0.0.1:8000/api',
-  timeout: 30000,
-  headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' }
-});
+// const axiosInstance = axiosInstance.create({
+//   baseURL: 'http://127.0.0.1:8000/api',
+//   timeout: 30000,
+//   headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' }
+// });
 
 // State
 const rooms = ref([]);
@@ -235,7 +235,7 @@ const fetchRooms = async () => {
       params.append('type_id', filterRoomType.value);
     }
 
-    const response = await apiClient.get(`/rooms?${params.toString()}`);
+    const response = await axiosInstance.get(`/api/rooms?${params.toString()}`);
 
     // Xử lý dữ liệu trả về
     if (Array.isArray(response.data.data)) {
@@ -271,7 +271,7 @@ const fetchRooms = async () => {
 
 const fetchRoomTypes = async () => {
   try {
-    const response = await apiClient.get('/room-types');
+    const response = await axiosInstance.get('/api/room-types');
     roomTypes.value = Array.isArray(response.data.data) ? response.data.data : [];
     if (roomTypes.value.length === 0) {
       console.warn('Không tìm thấy loại phòng nào. Vui lòng thêm loại phòng trước.');
@@ -391,10 +391,10 @@ const saveRoom = async () => {
   };
   try {
     if (currentRoom.value) {
-      await apiClient.put(`/rooms/${currentRoom.value.room_id}`, payload);
+      await axiosInstance.put(`/api/rooms/${currentRoom.value.room_id}`, payload);
       successMessage.value = 'Cập nhật phòng thành công!';
     } else {
-      await apiClient.post('/rooms', payload);
+      await axiosInstance.post('/api/rooms', payload);
       successMessage.value = 'Thêm phòng thành công!';
     }
     closeModal();
@@ -417,7 +417,7 @@ const deleteRoom = async (room_id) => {
   errorMessage.value = '';
   successMessage.value = '';
   try {
-    await apiClient.delete(`/rooms/${room_id}`);
+    await axiosInstance.delete(`/api/rooms/${room_id}`);
     successMessage.value = 'Xóa phòng thành công!';
     await fetchRooms(); // Tải lại dữ liệu
   } catch (error) {

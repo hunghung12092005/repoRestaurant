@@ -119,7 +119,7 @@
 <script setup>
 import { ref, computed, onMounted, watch } from 'vue';
 import { inject } from 'vue';
-import axios from 'axios';
+import axiosInstance from '../../../axiosConfig.js';
 import { Modal } from 'bootstrap';
 
 // State
@@ -136,13 +136,13 @@ let itemModal = null;
 const apiUrl = inject('apiUrl');
 
 // Axios instance with auth
-const axiosInstance = axios.create({
-  baseURL: apiUrl,
-  headers: {
-    'Authorization': `Bearer ${localStorage.getItem('tokenJwt') || ''}`,
-    'Content-Type': 'application/json',
-  },
-});
+// const axiosInstance = axios.create({
+//   baseURL: apiUrl,
+//   headers: {
+//     'Authorization': `Bearer ${localStorage.getItem('tokenJwt') || ''}`,
+//     'Content-Type': 'application/json',
+//   },
+// });
 
 // Helper Functions
 const showNotification = (message, type = 'success') => {

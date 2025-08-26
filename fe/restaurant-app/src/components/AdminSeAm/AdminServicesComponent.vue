@@ -147,13 +147,7 @@
 <script setup>
 // --- TOÀN BỘ SCRIPT CỦA BẠN GIỮ NGUYÊN ---
 import { ref, computed, watch, onMounted } from 'vue';
-import axios from 'axios';
-
-const apiClient = axios.create({
-  baseURL: 'http://127.0.0.1:8000/api',
-  timeout: 30000,
-  headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' }
-});
+import axiosInstance from '../../axiosConfig.js';
 
 const services = ref([]);
 const searchQuery = ref('');
@@ -182,7 +176,7 @@ const formatPrice = (price) => {
 const fetchServices = async (page = 1) => {
   errorMessage.value = '';
   try {
-    const response = await apiClient.get(`/services?page=${page}&per_page=${itemsPerPage}`);
+    const response = await axiosInstance.get(`/api/services?page=${page}&per_page=${itemsPerPage}`);
     console.log('Services API response:', JSON.stringify(response.data, null, 2));
     services.value = Array.isArray(response.data.data) ? response.data.data : (response.data.data?.data || []);
     totalItems.value = response.data.total || 0;
@@ -327,7 +321,7 @@ const saveService = async () => {
   try {
     let response;
     if (currentService.value) {
-      response = await apiClient.put(`/services/${currentService.value.service_id}`, payload);
+      response = await axiosInstance.put(`/api/services/${currentService.value.service_id}`, payload);
       console.log('PUT response:', JSON.stringify(response.data, null, 2));
       const index = services.value.findIndex(s => s.service_id === currentService.value.service_id);
       if (index !== -1) {
@@ -335,7 +329,7 @@ const saveService = async () => {
       }
       successMessage.value = 'Cập nhật dịch vụ thành công!';
     } else {
-      response = await apiClient.post('/services', payload);
+      response = await axiosInstance.post('/api/services', payload);
       console.log('POST response:', JSON.stringify(response.data, null, 2));
       services.value.push(response.data.data);
       successMessage.value = 'Thêm dịch vụ thành công!';
@@ -364,7 +358,7 @@ const deleteService = async (service_id) => {
   if (!confirm('Bạn có chắc chắn muốn xóa dịch vụ này?')) return;
   errorMessage.value = '';
   try {
-    await apiClient.delete(`/services/${service_id}`);
+    await axiosInstance.delete(`/api/services/${service_id}`);
     services.value = services.value.filter(s => s.service_id !== service_id);
     if (displayedServices.value.length === 0 && currentPage.value > 1) {
       currentPage.value--;

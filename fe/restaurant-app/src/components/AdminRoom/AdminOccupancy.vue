@@ -599,7 +599,7 @@
 
 <script setup>
 import { ref, computed, onMounted, watch } from 'vue';
-import axios from 'axios';
+import axiosInstance from '../../axiosConfig.js';
 import { inject } from 'vue';
 import loading from '../loading.vue';
 
@@ -765,7 +765,7 @@ const submitMultiBookings = async () => {
       }))
     };
 
-    const res = await axios.post(`${apiUrl}/api/occupancy/add-multiple`, payload);
+    const res = await axiosInstance.post(`${apiUrl}/api/occupancy/add-multiple`, payload);
     //console.log('Đặt nhiều phòng thành công:', res.data);
     alert(res.data.message + '\nMã booking nhóm: XHX' + res.data.booking_id);
     showMultiBookingModal.value = false;
@@ -782,7 +782,7 @@ const submitMultiBookings = async () => {
 
 const openFutureBookings = async () => {
   try {
-    const res = await axios.get(`${apiUrl}/api/occupancy/future-bookings`);
+    const res = await axiosInstance.get(`${apiUrl}/api/occupancy/future-bookings`);
     futureBookings.value = res.data;
     futureBookingModal.value = true;
   } catch (err) {
@@ -798,7 +798,7 @@ const openCancelNowModal = (booking) => {
 
 const confirmCancelNow = async () => {
   try {
-    await axios.post(`${apiUrl}/api/occupancy/cancel-now`, {
+    await axiosInstance.post(`${apiUrl}/api/occupancy/cancel-now`, {
       detail_id: cancelNowBookingId.value,
       reason: cancelNowReason.value
     });
@@ -854,7 +854,7 @@ const submitEditForm = async () => {
     //   address: editFormData.value.address,
     // }); 
 
-    const res = await axios.post(`${apiUrl}/api/bookings/${guestInfo.value.booking.booking_id}/update-time`, {
+    const res = await axiosInstance.post(`${apiUrl}/api/bookings/${guestInfo.value.booking.booking_id}/update-time`, {
       check_in_date: editFormData.value.check_in_date,
       check_in_time: editFormData.value.check_in_time?.substring(0, 5),
       check_out_date: editFormData.value.check_out_date,
@@ -911,7 +911,7 @@ const checkoutRoom = async (room) => {
   }
   currentBookingDetailId.value = room.booking_detail_id;
   try {
-    const res = await axios.get(`${apiUrl}/api/services/indexAllService`);
+    const res = await axiosInstance.get(`${apiUrl}/api/services/indexAllService`);
     allServices.value = res.data.map(service => ({ ...service, price: Number(service.price) || 0, quantity: 0 }));
     additionalFee.value = 0;
     surchargeReason.value = '';
@@ -943,7 +943,7 @@ const confirmPayment = async () => {
       .filter(s => Number(s.quantity) > 0)
       .map(s => ({ service_id: Number(s.service_id), quantity: Number(s.quantity) }));
 
-    const response = await axios.post(`${apiUrl}/api/booking-details/${currentBookingDetailId.value}/checkout`, {
+    const response = await axiosInstance.post(`${apiUrl}/api/booking-details/${currentBookingDetailId.value}/checkout`, {
       services,
       additional_fee: additionalFee.value,
       surcharge_reason: surchargeReason.value
@@ -1014,7 +1014,7 @@ const fetchRooms = async () => {
       timeValue = `${hours}:${minutes}`;
     }
 
-    const res = await axios.get(`${apiUrl}/api/occupancy/by-date`, {
+    const res = await axiosInstance.get(`${apiUrl}/api/occupancy/by-date`, {
       params: {
         date: selectedDate.value,
         time: timeValue || undefined
@@ -1085,7 +1085,7 @@ const submitCustomerForm = async () => {
       check_out_time: formData.value.check_out_time || '12:00'
     });
 
-    const res = await axios.post(`${apiUrl}/api/rooms/${formData.value.room_id}/add-guest`, {
+    const res = await axiosInstance.post(`${apiUrl}/api/rooms/${formData.value.room_id}/add-guest`, {
       ...formData.value,
       check_in_time: formData.value.check_in_time || '14:00',
       check_out_time: formData.value.check_out_time || '12:00'
@@ -1108,7 +1108,7 @@ const calculateTotalPricePreview = async () => {
     return;
   }
   try {
-    const res = await axios.post(`${apiUrl}/api/rooms/preview-price`, {
+    const res = await axiosInstance.post(`${apiUrl}/api/rooms/preview-price`, {
       ...formData.value,
       check_in_time: formData.value.check_in_time || '14:00',
       check_out_time: formData.value.check_out_time || '12:00',
@@ -1134,7 +1134,7 @@ const calculateTotalPricePreview = async () => {
 
 const showGuestDetails = async (room) => {
   try {
-    const res = await axios.get(`${apiUrl}/api/rooms/${room.room_id}/customer`, {
+    const res = await axiosInstance.get(`${apiUrl}/api/rooms/${room.room_id}/customer`, {
       params: {
         date: selectedDate.value,
         time: selectedTime.value,
@@ -1157,7 +1157,7 @@ const showGuestDetails = async (room) => {
 
 const submitExtendForm = async () => {
   try {
-    const res = await axios.post(`${apiUrl}/api/booking-details/${extendForm.value.booking_detail_id}/extend`, { ...extendForm.value });
+    const res = await axiosInstance.post(`${apiUrl}/api/booking-details/${extendForm.value.booking_detail_id}/extend`, { ...extendForm.value });
     alert(res.data.message + '\nTổng tiền mới: ' + res.data.total_price);
     showExtendModal.value = false;
     await fetchRooms();
@@ -1210,7 +1210,7 @@ const bookingGroupRooms = ref([]);
 // Mở modal
 const openPayGroupModal = async () => {
   try {
-    const res = await axios.get(`${apiUrl}/api/bookings/unpaid-list`);
+    const res = await axiosInstance.get(`${apiUrl}/api/bookings/unpaid-list`);
     unpaidBookings.value = res.data;
     console.log("Unpaid bookings:", unpaidBookings.value);
     selectedBookingId.value = '';
@@ -1255,8 +1255,8 @@ const totalAllRooms = computed(() => {
 const loadBookingGroupRooms = async () => {
   try {
     const [detailsRes, servicesRes] = await Promise.all([
-      axios.get(`${apiUrl}/api/bookings/${selectedBookingId.value}/details`),
-      axios.get(`${apiUrl}/api/services/indexAllService`)
+      axiosInstance.get(`${apiUrl}/api/bookings/${selectedBookingId.value}/details`),
+      axiosInstance.get(`${apiUrl}/api/services/indexAllService`)
     ]);
     console.log("Booking details loaded:", detailsRes.data);
     const services = servicesRes.data.map(s => ({
@@ -1302,7 +1302,7 @@ const submitPayGroup = async () => {
       }))
     };
     console.log("Submitting pay group with payload:", payload);
-    const res = await axios.patch(`${apiUrl}/api/bookings/pay-by-booking`, payload);
+    const res = await axiosInstance.patch(`${apiUrl}/api/bookings/pay-by-booking`, payload);
 
     alert(res.data.message || "Thanh toán nhóm thành công!");
     showPayGroupModal.value = false;
@@ -1327,7 +1327,7 @@ const openRoomChangePopup = async (room) => {
   console.log("Rời phòng:", room.room_type, "Room ID:", room.room_id);
 
   try {
-    const { data } = await axios.get(
+    const { data } = await axiosInstance.get(
       `${apiUrl}/api/rooms/availableleaveroom/${room.room_type}/${room.room_id}`
     );
 
@@ -1355,7 +1355,7 @@ const selectRoom = async (room) => {
   }
 
   try {
-    const res = await axios.post(`${apiUrl}/api/change-room`, {
+    const res = await axiosInstance.post(`${apiUrl}/api/change-room`, {
       booking_detail_id: booking_detail_idLeaveRoom.value,
       new_room_id: room.room_id,
       reason: reason.trim() // gửi thêm lý do

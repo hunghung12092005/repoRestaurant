@@ -228,7 +228,7 @@
 
 <script setup>
 import { ref, onMounted, inject, computed } from 'vue';
-import axios from 'axios';
+import axiosInstance from '../../../axiosConfig.js'; 
 import { Modal } from 'bootstrap';
 import { QuillEditor } from '@vueup/vue-quill';
 import '@vueup/vue-quill/dist/vue-quill.snow.css';
@@ -258,10 +258,10 @@ let detailModalInstance = null;
 
 const apiUrl = inject('apiUrl');
 
-const axiosInstance = axios.create({
-    baseURL: apiUrl,
-    headers: { 'Accept': 'application/json' }
-});
+// const axiosInstance = axios.create({
+//     baseURL: apiUrl,
+//     headers: { 'Accept': 'application/json' }
+// });
 
 const getLoggedInUser = () => {
     const user = localStorage.getItem('userInfo');

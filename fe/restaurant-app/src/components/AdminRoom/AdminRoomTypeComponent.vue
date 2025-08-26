@@ -224,7 +224,7 @@
 
 <script setup>
 import { ref, computed, onMounted } from 'vue';
-import axios from 'axios';
+import axiosInstance from '../../axiosConfig.js';
 
 // API
 const API_BASE_URL = 'http://127.0.0.1:8000';
@@ -249,8 +249,8 @@ const newImageFiles = ref([]); // Mảng các đối tượng File mới đượ
 const fetchData = async () => {
   try {
     const [roomTypesRes, amenitiesRes] = await Promise.all([
-      axios.get(`${API_BASE_URL}/api/room-types`),
-      axios.get(`${API_BASE_URL}/api/amenities`, { params: { per_page: 'all' } }),
+      axiosInstance.get(`${API_BASE_URL}/api/room-types`),
+      axiosInstance.get(`${API_BASE_URL}/api/amenities`, { params: { per_page: 'all' } }),
     ]);
     roomTypes.value = roomTypesRes.data.data || [];
     amenities.value = amenitiesRes.data.data || [];
@@ -422,9 +422,9 @@ const saveType = async () => {
     let response;
     if (editingType.value) {
       formData.append('_method', 'PUT');
-      response = await axios.post(`${API_BASE_URL}/api/room-types/${editingType.value.type_id}`, formData);
+      response = await axiosInstance.post(`${API_BASE_URL}/api/room-types/${editingType.value.type_id}`, formData);
     } else {
-      response = await axios.post(`${API_BASE_URL}/api/room-types`, formData);
+      response = await axiosInstance.post(`${API_BASE_URL}/api/room-types`, formData);
     }
     await fetchData();
     closeModal();
@@ -437,7 +437,7 @@ const saveType = async () => {
 const xoaLoaiPhong = async (id) => {
   if (confirm('Bạn có chắc chắn muốn xóa loại phòng này? Hành động này không thể hoàn tác.')) {
     try {
-      const response = await axios.delete(`${API_BASE_URL}/api/room-types/${id}`);
+      const response = await axiosInstance.delete(`${API_BASE_URL}/api/room-types/${id}`);
       await fetchData();
       if (displayedTypes.value.length === 0 && currentPage.value > 1) {
         currentPage.value--;

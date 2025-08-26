@@ -141,6 +141,7 @@ Route::middleware('auth:api')->group(function () {
 });
 
 Route::get('/admin/dashboard/overview', [AdminDashboardController::class, 'getSystemOverview']);
+Route::get('/admin/dashboard/export-pdf', [AdminDashboardController::class, 'exportPdf']);
 
 Route::get('/rooms', [RoomController::class, 'index']);
 Route::post('/rooms', [RoomController::class, 'store']);

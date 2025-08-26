@@ -543,6 +543,7 @@ class BookingHotelController extends Controller
      */
     public function deleteBookingHistory(Request $request, $id)
     {
+        DB::beginTransaction();
         try {
             $sub = JWTAuth::parseToken()->getPayload()->get('sub');
             $booking = BookingHotel::where('booking_id', $id)->where('customer_id', $sub)->first();
@@ -603,6 +604,30 @@ class BookingHotelController extends Controller
                     'customer_id' => $sub
                 ]);
             }
+
+            $staffRoleIds = Role::where('name', '!=', 'client')->pluck('id');
+        $adminsAndStaff = User::whereIn('role_id', $staffRoleIds)->get();
+
+        foreach ($adminsAndStaff as $adminUser) {
+            $notification = new Notification();
+            $notification->id = Str::uuid();
+            // Đặt một type mới để phân biệt
+            $notification->type = 'BOOKING_CANCEL_REQUEST'; 
+            $notification->notifiable_type = User::class;
+            $notification->notifiable_id = $adminUser->id;
+            $notification->subject_type = BookingHotel::class;
+            $notification->subject_id = $booking->booking_id;
+            $notification->data = [
+                'message' => "KH {$customer->customer_name} đã yêu cầu hủy đặt phòng (Mã: {$booking->booking_id}).",
+                // Link đến trang quản lý booking để admin xử lý
+                'link' => '/admin/bookings' 
+            ];
+            $notification->save();
+
+            // Phát sóng sự kiện để cập nhật real-time
+            broadcast(new NewNotification($notification))->toOthers();
+        }
+        DB::commit(); 
 
             Log::info('Tạo yêu cầu hủy thành công', ['cancel_id' => $cancel->cancel_id, 'booking_id' => $booking->booking_id]);
 

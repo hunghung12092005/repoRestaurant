@@ -129,13 +129,8 @@
 <script setup>
 // --- TOÀN BỘ SCRIPT CỦA BẠN GIỮ NGUYÊN ---
 import { ref, computed, watch, onMounted } from 'vue';
-import axios from 'axios';
+import axiosInstance from '../../axiosConfig.js';
 
-const apiClient = axios.create({
-  baseURL: 'http://127.0.0.1:8000/api',
-  timeout: 30000,
-  headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' }
-});
 
 const amenities = ref([]);
 const searchQuery = ref('');
@@ -158,7 +153,7 @@ const errors = ref({
 const fetchAmenities = async () => {
   errorMessage.value = '';
   try {
-    const response = await apiClient.get('/amenities', {
+    const response = await axiosInstance.get('/api/amenities', {
       params: { per_page: 'all' }
     });
     console.log('Fetch amenities response:', JSON.stringify(response.data, null, 2));
@@ -291,7 +286,7 @@ const saveAmenity = async () => {
   try {
     let response;
     if (currentAmenity.value) {
-      response = await apiClient.put(`/amenities/${currentAmenity.value.amenity_id}`, payload);
+      response = await axiosInstance.put(`/api/amenities/${currentAmenity.value.amenity_id}`, payload);
       console.log('PUT response:', JSON.stringify(response.data, null, 2));
       const index = amenities.value.findIndex((s) => s.amenity_id === currentAmenity.value.amenity_id);
       if (index !== -1) {
@@ -299,7 +294,7 @@ const saveAmenity = async () => {
       }
       successMessage.value = 'Cập nhật tiện nghi thành công!';
     } else {
-      response = await apiClient.post('/amenities', payload);
+      response = await axiosInstance.post('/api/amenities', payload);
       console.log('POST response:', JSON.stringify(response.data, null, 2));
       amenities.value.push(response.data.data);
       totalItems.value++;
@@ -332,7 +327,7 @@ const deleteAmenity = async (amenity_id) => {
   if (!confirm('Bạn có chắc chắn muốn xóa tiện nghi này?')) return;
   errorMessage.value = '';
   try {
-    await apiClient.delete(`/amenities/${amenity_id}`);
+    await axiosInstance.delete(`/api/amenities/${amenity_id}`);
     amenities.value = amenities.value.filter((s) => s.amenity_id !== amenity_id);
     totalItems.value--;
     if (displayedAmenities.value.length === 0 && currentPage.value > 1) {

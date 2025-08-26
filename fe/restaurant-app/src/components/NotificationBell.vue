@@ -158,6 +158,7 @@ const getNotificationDetails = (type) => {
     'NEW_CONTACT': { icon: 'bi bi-person-plus-fill', color: 'var(--bs-primary)' },
     'NEW_COMMENT': { icon: 'bi bi-chat-left-text-fill', color: 'var(--bs-success)' },
     'NEW_BOOKING': { icon: 'bi bi-calendar-check-fill', color: 'var(--bs-warning)' },
+    'BOOKING_CANCEL_REQUEST': { icon: 'bi bi-shield-fill-exclamation', color: 'var(--bs-danger)' },
   };
   return details[type] || { icon: 'bi bi-bell-fill', color: 'var(--bs-secondary)' };
 };

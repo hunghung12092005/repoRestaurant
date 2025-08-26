@@ -183,13 +183,7 @@
 
 <script setup>
 import { ref, computed, watch, onMounted } from 'vue';
-import axios from 'axios';
-
-const apiClient = axios.create({
-  baseURL: 'http://127.0.0.1:8000/api',
-  timeout: 60000,
-  headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' }
-});
+import axiosInstance from '../../axiosConfig.js';
 
 const seasonalPricings = ref([]);
 const roomTypes = ref([]);
@@ -236,7 +230,7 @@ const logSearchKeyword = () => {
 const fetchPricings = async (page = 1) => {
   isLoading.value = true;
   try {
-    const response = await apiClient.get(`/prices?page=${page}&per_page=${itemsPerPage.value}`);
+    const response = await axiosInstance.get(`/api/prices?page=${page}&per_page=${itemsPerPage.value}`);
     seasonalPricings.value = Array.isArray(response.data.data) ? response.data.data.map(item => ({
       ...item,
       is_active: Boolean(item.is_active) // Chuyển thành boolean
@@ -255,7 +249,7 @@ const fetchPricings = async (page = 1) => {
 
 const fetchRoomTypes = async () => {
   try {
-    const response = await apiClient.get('/room-types', { params: { per_page: 'all' } });
+    const response = await axiosInstance.get('/api/room-types', { params: { per_page: 'all' } });
     roomTypes.value = Array.isArray(response.data.data) ? [...response.data.data] : [];
   } catch (error) {
     console.error('Lỗi khi lấy danh sách loại phòng:', error);
@@ -366,7 +360,7 @@ const savePricing = async () => {
   };
   delete payload.is_priority; 
   try {
-    await apiClient.post('/prices', payload);
+    await axiosInstance.post('/api/prices', payload);
     await fetchPricings(currentPage.value);
     closeModal();
     alert('Lưu giá phòng thành công!');
@@ -387,7 +381,7 @@ const toggleActivation = async (pricing) => {
 
   isLoading.value = true;
   try {
-    await apiClient.put(`/prices/${pricing.price_id}`, {
+    await axiosInstance.put(`/api/prices/${pricing.price_id}`, {
       is_active: !pricing.is_active
     });
     await fetchPricings(currentPage.value);
