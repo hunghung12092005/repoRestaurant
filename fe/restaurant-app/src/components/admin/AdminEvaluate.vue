@@ -48,7 +48,7 @@
             <td>{{ (pagination.current_page - 1) * pagination.per_page + index + 1 }}</td>
             <td>
               <a href="#" @click.prevent="showBookingDetail(review.booking_id)" class="fw-bold text-primary text-decoration-none">
-                {{ review.booking_id }}
+                HXH{{ review.booking_id }}
               </a>
             </td>
             <td class="text-center">{{ review.room_rating }}/10</td>
@@ -106,7 +106,7 @@
               </div>
             </div>
             <div v-else>
-              <h5 class="mb-3">Mã Booking: <span class="fw-bold text-primary">{{ bookingDetail.booking_id }}</span></h5>
+              <h5 class="mb-3">Mã Booking: <span class="fw-bold text-primary">HXH{{ bookingDetail.booking_id }}</span></h5>
               
               <div class="border rounded p-3 bg-light mb-3">
                 <h6 class="fw-bold mb-3">Thông tin khách hàng</h6>
