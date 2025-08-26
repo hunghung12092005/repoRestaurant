@@ -122,16 +122,20 @@
                 <h6 class="fw-bold mb-3">Thông tin đặt phòng</h6>
                 <p><strong>Ngày đặt:</strong> {{ new Date(bookingDetail.created_at).toLocaleString('vi-VN') }}</p>
                 <div class="row">
-                  <div class="col-md-6 mb-2"><strong>Check-in:</strong> {{ bookingDetail.check_in_date }} {{ bookingDetail.check_in_time }}</div>
-                  <div class="col-md-6 mb-2"><strong>Check-out:</strong> {{ bookingDetail.check_out_date }} {{ bookingDetail.check_out_time }}</div>
+                  <!-- CHANGED HERE -->
+                  <div class="col-md-6 mb-2"><strong>Check-in:</strong> {{ formatDate(bookingDetail.check_in_date) }} {{ bookingDetail.check_in_time }}</div>
+                  <div class="col-md-6 mb-2"><strong>Check-out:</strong> {{ formatDate(bookingDetail.check_out_date) }} {{ bookingDetail.check_out_time }}</div>
+                  <!-- END CHANGE -->
                   <div class="col-md-6 mb-2"><strong>Người lớn:</strong> {{ bookingDetail.adult }}</div>
                   <div class="col-md-6 mb-2"><strong>Trẻ em:</strong> {{ bookingDetail.child }}</div>
                    <div class="col-md-6 mb-2"><strong>Số phòng:</strong> {{ bookingDetail.total_rooms }}</div>
                    <div class="col-md-6 mb-2">
                      <strong>Trạng thái:</strong>
-                      <span class="badge" :class="bookingDetail.status === 'completed' ? 'badge-success' : 'badge-secondary'">
-                        {{ bookingDetail.status }}
+                      <!-- CHANGED HERE -->
+                      <span class="badge" :class="getBadgeClass(bookingDetail.status)">
+                        {{ translateStatus(bookingDetail.status) }}
                       </span>
+                      <!-- END CHANGE -->
                   </div>
                 </div>
                 <hr>
@@ -169,6 +173,57 @@ const bookingDetail = ref(null);
 
 let detailModalInstance = null;
 
+// --- NEW HELPER FUNCTIONS ---
+/**
+ * Dịch trạng thái booking sang tiếng Việt
+ * @param {string} status Trạng thái tiếng Anh
+ * @returns {string} Trạng thái tiếng Việt
+ */
+const translateStatus = (status) => {
+  const statusMap = {
+    'completed': 'Đã hoàn thành',
+    'pending': 'Đang chờ xử lý',
+    'confirmed': 'Đã xác nhận',
+    'cancelled': 'Đã hủy'
+  };
+  return statusMap[status] || status;
+};
+
+/**
+ * Lấy class CSS cho badge dựa vào trạng thái
+ * @param {string} status Trạng thái booking
+ * @returns {string} Tên class CSS
+ */
+const getBadgeClass = (status) => {
+  switch (status) {
+    case 'completed':
+      return 'badge-success';
+    case 'pending':
+      return 'badge-info'; // Sử dụng badge màu xanh dương cho pending
+    case 'cancelled':
+      return 'badge-danger'; // Sử dụng badge màu đỏ cho cancelled
+    default:
+      return 'badge-secondary';
+  }
+};
+
+/**
+ * Định dạng chuỗi ngày YYYY-MM-DD sang DD/MM/YYYY
+ * @param {string} dateString Chuỗi ngày
+ * @returns {string} Ngày đã định dạng hoặc chuỗi gốc nếu lỗi
+ */
+const formatDate = (dateString) => {
+    if (!dateString) return 'N/A';
+    try {
+        const [year, month, day] = dateString.split('-');
+        return `${day}/${month}/${year}`;
+    } catch (e) {
+        return dateString; // Trả về ngày gốc nếu không thể định dạng
+    }
+};
+// --- END NEW HELPER FUNCTIONS ---
+
+
 const fetchReviews = async (page = 1) => {
   try {
     isLoading.value = true;
@@ -189,8 +244,8 @@ const fetchReviews = async (page = 1) => {
 };
 
 const showBookingDetail = async (bookingId) => {
-  bookingDetail.value = null; // Reset previous detail
-  detailModalInstance.show(); // Show modal immediately
+  bookingDetail.value = null; 
+  detailModalInstance.show(); 
   try {
     const res = await axios.get(`${apiUrl}/api/booking-detailreview/${bookingId}`);
     if (res.data?.status === 'success') {
@@ -211,7 +266,6 @@ const changePage = (page) => {
   fetchReviews(page);
 };
 
-// Computed property for pagination range
 const pageRange = computed(() => {
   const maxPages = 5;
   const currentPage = pagination.value.current_page;
@@ -229,7 +283,6 @@ const pageRange = computed(() => {
 
 onMounted(() => {
   fetchReviews();
-  // Initialize Bootstrap Modal
   const detailModalElement = document.getElementById('bookingDetailModal');
   if (detailModalElement) {
     detailModalInstance = new Modal(detailModalElement);
@@ -331,6 +384,16 @@ onMounted(() => {
 .badge-success {
   background-color: #e6f9f0;
   color: #2ecc71;
+}
+
+/* Thêm class cho các trạng thái mới */
+.badge-info { 
+  background-color: #eaf6fb; 
+  color: #3498db; 
+}
+.badge-danger {
+  background-color: #fce8e6;
+  color: #e74c3c;
 }
 
 .pagination .page-link {
