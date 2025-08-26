@@ -502,7 +502,7 @@
                 </div>
             </div>
         </div>
-                <!-- Booking Modal -->
+        <!-- Booking Modal -->
         <div v-show="showModalBooking" class="modal-backdrop" @click="closeModal">
             <div class="modal-dialog modal-lg" @click.stop>
                 <div class="modal-content">
@@ -1302,7 +1302,7 @@ const goDiscount = async () => {
         }
         console.log(disCount.value);
         console.log(totalCostForAllRooms.value);
-        
+
         codeDiscount.value = '';
     } catch (error) {
         showToast(`❌ Lỗi: ${error.response?.data?.message || error.message}`, 'error');
@@ -1358,8 +1358,12 @@ const confirmBooking = async () => {
         // Nhỏ hơn hoặc bằng 14:00 → lấy 14:00
         currentTime = '14:00';
     }//console.log(currentTime); // Ví dụ: "14:35"
+    const userInfo = JSON.parse(localStorage.getItem('userInfo') || '{}');
+    const idUser = userInfo.id || '';
 
+    //console.log("User ID:", idUser);
     const bookingDetails = {
+        user_id: idUser,
         check_in_date: checkin.value,
         check_out_date: checkOut.value,
         check_in_time: currentTime,
@@ -1553,7 +1557,6 @@ const checkAndSendOtpPayos = () => {
         sendOtpSMS();
     }
 };
-
 
 const verificationId = ref(null);
 const sendOtpSMS = async () => {

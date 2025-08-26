@@ -104,7 +104,7 @@
                 <li class="nav-item"><router-link class="nav-link" to="/contact">Liên hệ</router-link></li>
               </ul>
               <ul class="navbar-nav navbar-nav-right align-items-center">
-                <li class="nav-item"><router-link class="nav-link" to="/HistoryBooking">Lịch Sử Sử Dụng Phòng</router-link>
+                <li class="nav-item"><router-link class="nav-link" to="/HistoryBooking">Lịch Đặt Dụng Phòng</router-link>
                 </li>
                 <template v-if="!isLogin">
                   <li class="nav-item"><router-link class="btn btn-outline-custom" to="/login">Đăng Nhập</router-link>
@@ -272,6 +272,7 @@ const fetchUserInfo = async () => {
 const logout = () => {
   localStorage.removeItem('tokenJwt');
   localStorage.removeItem('userInfo');
+  localStorage.removeItem('BookingAuth');
   setUserRoles(null);
   window.location.href = '/login';
 };

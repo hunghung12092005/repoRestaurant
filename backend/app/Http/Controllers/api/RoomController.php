@@ -13,13 +13,14 @@ class RoomController extends Controller
     /**
      * Lấy danh sách phòng.
      */
-     public function index(Request $request)
+    public function index(Request $request)
     {
         $perPage = $request->query('per_page', 10);
         $searchTerm = $request->query('search');
         $typeId = $request->query('type_id');
-        $query = Room::with('roomType');
+        $query = Room::with('roomType')->withCount('bookings');
         $isSearchingOrFiltering = $searchTerm || $typeId;
+
         if ($searchTerm) {
             $query->where(function ($q) use ($searchTerm) {
                 $q->where('room_name', 'like', '%' . $searchTerm . '%')
@@ -32,7 +33,9 @@ class RoomController extends Controller
         if ($typeId) {
             $query->where('type_id', $typeId);
         }
+
         $query->latest('created_at');
+
         if ($isSearchingOrFiltering) {
             $rooms = $query->get();
             return response()->json([
@@ -61,7 +64,6 @@ class RoomController extends Controller
      */
     public function store(Request $request)
     {
-        Log::info('Store room request:', $request->all());
         $validator = Validator::make($request->all(), [
             'room_name' => 'required|string|max:255|unique:rooms,room_name',
             'type_id' => 'required|exists:room_types,type_id',
@@ -70,18 +72,16 @@ class RoomController extends Controller
         ]);
 
         if ($validator->fails()) {
-            Log::warning('Validation failed:', $validator->errors()->toArray());
-            return response()->json(['success' => false, 'message' => 'Dữ liệu không hợp lệ', 'errors' => $validator->errors()], 422);
+            return response()->json(['message' => 'Dữ liệu không hợp lệ', 'errors' => $validator->errors()], 422);
         }
 
         try {
             $room = Room::create($request->all());
             $room->load('roomType');
-            Log::info('Room created:', $room->toArray());
-            return response()->json(['success' => true, 'data' => $room], 201);
+            return response()->json(['data' => $room, 'message' => 'Thêm phòng thành công!'], 201);
         } catch (\Exception $e) {
             Log::error('Store room error: ' . $e->getMessage());
-            return response()->json(['success' => false, 'message' => 'Lỗi máy chủ khi tạo phòng.'], 500);
+            return response()->json(['message' => 'Lỗi máy chủ khi tạo phòng.'], 500);
         }
     }
 
@@ -91,10 +91,10 @@ class RoomController extends Controller
     public function show($room_id)
     {
         try {
-            $room = Room::with('roomType')->findOrFail($room_id);
-            return response()->json(['success' => true, 'data' => $room], 200);
+            $room = Room::with('roomType')->withCount('bookings')->findOrFail($room_id);
+            return response()->json(['data' => $room], 200);
         } catch (\Exception $e) {
-            return response()->json(['success' => false, 'message' => 'Phòng không tồn tại.'], 404);
+            return response()->json(['message' => 'Phòng không tồn tại.'], 404);
         }
     }
 
@@ -103,7 +103,10 @@ class RoomController extends Controller
      */
     public function update(Request $request, $room_id)
     {
-        Log::info('Update room request:', ['room_id' => $room_id, 'data' => $request->all()]);
+        $room = Room::withCount('bookings')->findOrFail($room_id);
+        if ($room->bookings_count > 0) {
+            return response()->json(['message' => 'Không thể cập nhật phòng đã có lịch sử đặt phòng.'], 409); 
+        }
         $validator = Validator::make($request->all(), [
             'room_name' => 'required|string|max:255|unique:rooms,room_name,' . $room_id . ',room_id',
             'type_id' => 'required|exists:room_types,type_id',
@@ -112,19 +115,16 @@ class RoomController extends Controller
         ]);
 
         if ($validator->fails()) {
-            Log::warning('Validation failed:', $validator->errors()->toArray());
-            return response()->json(['success' => false, 'message' => 'Dữ liệu không hợp lệ', 'errors' => $validator->errors()], 422);
+            return response()->json(['message' => 'Dữ liệu không hợp lệ', 'errors' => $validator->errors()], 422);
         }
 
         try {
-            $room = Room::findOrFail($room_id);
             $room->update($request->all());
             $room->load('roomType');
-            Log::info('Room updated:', $room->toArray());
-            return response()->json(['success' => true, 'data' => $room], 200);
+            return response()->json(['data' => $room, 'message' => 'Cập nhật phòng thành công!'], 200);
         } catch (\Exception $e) {
             Log::error('Update room error: ' . $e->getMessage());
-            return response()->json(['success' => false, 'message' => 'Lỗi máy chủ khi cập nhật phòng.'], 500);
+            return response()->json(['message' => 'Cập nhật phòng thất bại.'], 500);
         }
     }
 
@@ -133,22 +133,19 @@ class RoomController extends Controller
      */
     public function destroy($room_id)
     {
-        Log::info('Delete room request:', ['room_id' => $room_id]);
         try {
-            $room = Room::findOrFail($room_id);
-            $room->delete();
-            Log::info('Room deleted:', ['room_id' => $room_id]);
-            return response()->json(['success' => true, 'message' => 'Xóa phòng thành công'], 200);
-        } catch (\Illuminate\Database\QueryException $e) {
-             Log::error('Delete room error (QueryException): ' . $e->getMessage());
-             // Bắt lỗi khóa ngoại
-            if ($e->errorInfo[1] == 1451) {
-                return response()->json(['success' => false, 'message' => 'Không thể xóa phòng này vì đang có dữ liệu liên quan (ví dụ: đang được đặt).'], 409);
+            $room = Room::withCount('bookings')->findOrFail($room_id);
+            if ($room->bookings_count > 0) {
+                return response()->json(['message' => 'Không thể xóa phòng đã có lịch sử đặt phòng.'], 409); 
             }
-             return response()->json(['success' => false, 'message' => 'Lỗi cơ sở dữ liệu.'], 500);
+
+            $room->delete();
+            return response()->json(['message' => 'Xóa phòng thành công!'], 200);
+        } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
+            return response()->json(['message' => 'Phòng không tồn tại.'], 404);
         } catch (\Exception $e) {
             Log::error('Delete room error: ' . $e->getMessage());
-            return response()->json(['success' => false, 'message' => 'Lỗi máy chủ khi xóa phòng.'], 500);
+            return response()->json(['message' => 'Lỗi máy chủ khi xóa phòng.'], 500);
         }
     }
 }

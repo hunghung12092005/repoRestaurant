@@ -22,7 +22,7 @@ class RoomType extends Model
         'max_occupancy',
         'max_occupancy_child',
         'images',
-        'rate',         // Thêm dòng này
+        'rate',  
         'm2',
     ];
 

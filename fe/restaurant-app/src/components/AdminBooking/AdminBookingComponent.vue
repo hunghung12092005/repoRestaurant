@@ -202,7 +202,7 @@
                   </div>
                   <div class="status-bar">
                     <div>Trạng thái đặt phòng: <span class="badge ms-2" :class="layLopTrangThai(datPhongDuocChon.status)">{{ dinhDangTrangThai(datPhongDuocChon.status) }}</span></div>
-                    <div>Trạng thái thanh toán: <span class="badge ms-2" :class="layLopTrangThaiThanhToan(datPhongDuocChon.payment_status)">{{ datPhongDuocChon.payment_status_display || dinhDangTrangThaiThanhToan(datPhongDuocChon.payment_status) }}</span></div>
+                    <div>Trạng thái thanh toán: <span class="badge ms-2" :class="layLopTrangThaiThanhToan(datPhongDuocChon.payment_status)">{{ dinhDangTrangThaiThanhToan(datPhongDuocChon.payment_status) }}</span></div>
                     <div class="total-price">Tổng cộng: <strong>{{ dinhDangTien(datPhongDuocChon.total_price) }}</strong></div>
                   </div>
                   <h6 class="info-title mt-4">Chi Tiết Các Phòng Đã Đặt</h6>
