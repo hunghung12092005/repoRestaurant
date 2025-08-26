@@ -104,7 +104,7 @@
                 <li class="nav-item"><router-link class="nav-link" to="/contact">Liên hệ</router-link></li>
               </ul>
               <ul class="navbar-nav navbar-nav-right align-items-center">
-                <li class="nav-item"><router-link class="nav-link" to="/HistoryBooking">Lịch Đặt Dụng Phòng</router-link>
+                <li class="nav-item"><router-link class="nav-link" to="/HistoryBooking">Lịch Sử Đặt Phòng</router-link>
                 </li>
                 <template v-if="!isLogin">
                   <li class="nav-item"><router-link class="btn btn-outline-custom" to="/login">Đăng Nhập</router-link>
@@ -206,8 +206,8 @@ const sidebarStructure = [
   {
     section: 'QUẢN LÝ HỆ THỐNG', title: 'Quản Lý Tin Tức', icon: 'bi bi-newspaper', requiredPermission: 'manage_news', key: 'news',
     children: [
-      { title: 'Tin Tức', to: '/admin/news', icon: 'bi bi-newspaper' },
       { title: 'Danh Mục', to: '/admin/news-categories', icon: 'bi bi-tags' },
+      { title: 'Tin Tức', to: '/admin/news', icon: 'bi bi-newspaper' },
       { title: 'Bình Luận', to: '/admin/news-comments', icon: 'bi bi-chat-dots' },
     ]
   },
