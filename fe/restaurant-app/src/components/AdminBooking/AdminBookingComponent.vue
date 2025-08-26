@@ -91,7 +91,7 @@
         <table class="table booking-table align-middle" v-if="danhSachHienThi && danhSachHienThi.length > 0">
           <thead>
             <tr>
-              <th scope="col" @click="sapXep('booking_id')">Mã ĐP <i v-if="sapXepCot === 'booking_id'" :class="sapXepGiam ? 'bi bi-arrow-down' : 'bi bi-arrow-up'"></i></th>
+              <th scope="col" @click="sapXep('booking_id')">Mã Đặt Phòng <i v-if="sapXepCot === 'booking_id'" :class="sapXepGiam ? 'bi bi-arrow-down' : 'bi bi-arrow-up'"></i></th>
               <th scope="col">Khách Hàng</th>
               <th scope="col">Thời Gian Ở</th>
               <th scope="col">Tổng Giá</th>
@@ -101,7 +101,7 @@
           </thead>
           <tbody>
             <tr v-for="datPhong in danhSachHienThi" :key="datPhong.booking_id">
-              <td><span class="booking-id">Mã đơn: {{ datPhong.booking_id }}</span></td>
+              <td><span class="booking-id">Mã đơn: HXH{{ datPhong.booking_id }}</span></td>
               <td>
                 <div class="type-name">{{ datPhong.customer?.customer_name || 'Không xác định' }}</div>
                 <div class="description-text">{{ datPhong.customer?.customer_phone || 'Không có SĐT' }}</div>
@@ -156,7 +156,7 @@
         <div class="modal-dialog modal-xl modal-dialog-centered" role="document">
           <div class="modal-content modal-custom">
             <div class="modal-header modal-header-custom">
-              <h5 class="modal-title">Chi Tiết Đặt Phòng Mã đơn: {{ datPhongDuocChon.booking_id }}</h5>
+              <h5 class="modal-title">Chi Tiết Đặt Phòng Mã đơn: HXH{{ datPhongDuocChon.booking_id }}</h5>
               <button type="button" @click="dongModal" class="btn-close" aria-label="Close"></button>
             </div>
             <div class="modal-body p-4">
@@ -202,7 +202,7 @@
                   </div>
                   <div class="status-bar">
                     <div>Trạng thái đặt phòng: <span class="badge ms-2" :class="layLopTrangThai(datPhongDuocChon.status)">{{ dinhDangTrangThai(datPhongDuocChon.status) }}</span></div>
-                    <div>Trạng thái thanh toán: <span class="badge ms-2" :class="layLopTrangThaiThanhToan(datPhongDuocChon.payment_status)">{{ datPhongDuocChon.payment_status_display || dinhDangTrangThaiThanhToan(datPhongDuocChon.payment_status) }}</span></div>
+                    <div>Trạng thái thanh toán: <span class="badge ms-2" :class="layLopTrangThaiThanhToan(datPhongDuocChon.payment_status)">{{ dinhDangTrangThaiThanhToan(datPhongDuocChon.payment_status) }}</span></div>
                     <div class="total-price">Tổng cộng: <strong>{{ dinhDangTien(datPhongDuocChon.total_price) }}</strong></div>
                   </div>
                   <h6 class="info-title mt-4">Chi Tiết Các Phòng Đã Đặt</h6>

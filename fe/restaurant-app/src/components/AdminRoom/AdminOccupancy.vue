@@ -222,8 +222,8 @@
           <div class="modal-body p-4">
             <div class="row g-4">
               <div class="col-md-6">
-                <h6 class="info-title"> ID Booking: {{ guestInfo.booking.booking_id
-                  }} - ID Booking Detail {{ guestInfo.booking.booking_detail_id }}</h6>
+                <h6 class="info-title"> Mã Booking: HXH{{ guestInfo.booking.booking_id}}</h6>
+                <h6 class="info-title"> Mã Booking Detail: HXH{{ guestInfo.booking.booking_detail_id }}</h6>
                 <ul class="info-list">
                   <li><span>Phòng:</span><strong>{{ guestInfo.room.room_name }} (Tầng {{ guestInfo.room.floor_number
                   }})</strong></li>
@@ -767,7 +767,7 @@ const submitMultiBookings = async () => {
 
     const res = await axios.post(`${apiUrl}/api/occupancy/add-multiple`, payload);
     //console.log('Đặt nhiều phòng thành công:', res.data);
-    alert(res.data.message + '\nMã booking nhóm: ' + res.data.booking_id);
+    alert(res.data.message + '\nMã booking nhóm: XHX' + res.data.booking_id);
     showMultiBookingModal.value = false;
     multiBookings.value = [];
     await fetchRooms();

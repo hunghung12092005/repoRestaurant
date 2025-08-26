@@ -111,9 +111,10 @@ Route::prefix('services')->group(function () {
 Route::prefix('room-types')->group(function () {
     Route::get('/', [RoomTypeController::class, 'index']);
     Route::post('/', [RoomTypeController::class, 'store']);
-    Route::put('/{id}', [RoomTypeController::class, 'update']);
-    Route::delete('/{id}', [RoomTypeController::class, 'destroy']);
+    Route::post('/{type_id}/delete-image', [RoomTypeController::class, 'deleteImage']);
     Route::get('/{type_id}', [RoomTypeController::class, 'show']);
+    Route::put('/{type_id}', [RoomTypeController::class, 'update']);   
+    Route::delete('/{type_id}', [RoomTypeController::class, 'destroy']); 
 });
 
 Route::prefix('prices')->group(function () {
@@ -142,10 +143,9 @@ Route::middleware('auth:api')->group(function () {
 
 Route::get('/admin/dashboard/overview', [AdminDashboardController::class, 'getSystemOverview']);
 
-Route::get('/rooms', [RoomController::class, 'index']);
-Route::post('/rooms', [RoomController::class, 'store']);
-Route::put('/rooms/{id}', [RoomController::class, 'update']);
-Route::delete('/rooms/{id}', [RoomController::class, 'destroy']);
+Route::apiResource('rooms', RoomController::class)->parameters([
+    'rooms' => 'room_id' 
+]);
 
 Route::post('/bookings', [BookingHotelController::class, 'storeBooking']);
 Route::get('/bookings', [BookingHotelController::class, 'getBookings']);

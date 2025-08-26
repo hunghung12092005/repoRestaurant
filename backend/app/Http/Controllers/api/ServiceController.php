@@ -7,38 +7,28 @@ use App\Models\Service;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\DB;
 
 class ServiceController extends Controller
 {
     public function index(Request $request)
     {
         try {
-            $query = Service::query();
-            if ($request->query('per_page') === 'all') {
-                $services = $query->get();
-                $total = $services->count();
-                $currentPage = 1;
-                $data = $services;
-            } else {
-                $perPage = $request->query('per_page', 10);
-                $page = $request->query('page', 1);
-                $services = $query->paginate($perPage, ['*'], 'page', $page);
-                $total = $services->total();
-                $currentPage = $services->currentPage();
-                $data = $services->items(); 
-            }
+            $query = Service::withCount('bookings')->latest(); // Lấy cả số lần được đặt
+
+            $perPage = $request->query('per_page', 10);
+            $paginator = $query->paginate($perPage);
+
             return response()->json([
                 'status' => true,
-                'data' => $data,
-                'total' => $total,
-                'current_page' => $currentPage,
+                'data' => $paginator->items(),
+                'total' => $paginator->total(),
+                'current_page' => $paginator->currentPage(),
+                'last_page' => $paginator->lastPage(),
             ], 200);
         } catch (\Exception $e) {
             Log::error('Fetch services error: ' . $e->getMessage());
-            return response()->json([
-                'status' => false,
-                'message' => 'Lấy danh sách dịch vụ thất bại: ' . $e->getMessage(),
-            ], 500);
+            return response()->json(['status' => false, 'message' => 'Lấy danh sách dịch vụ thất bại.'], 500);
         }
     }
     public function indexAllService()
@@ -49,74 +39,76 @@ class ServiceController extends Controller
 
     public function store(Request $request)
     {
-        Log::info('Store service request:', $request->all());
         $validator = Validator::make($request->all(), [
-            'service_name' => 'required|string|max:100',
+            'service_name' => 'required|string|max:100|unique:services,service_name',
             'price' => 'required|numeric|min:0',
             'description' => 'nullable|string',
         ]);
 
         if ($validator->fails()) {
-            Log::warning('Validation failed:', $validator->errors()->toArray());
             return response()->json(['success' => false, 'message' => 'Dữ liệu không hợp lệ', 'errors' => $validator->errors()], 422);
         }
 
         try {
-            $data = [
-                'service_name' => $request->service_name,
-                'price' => $request->price,
-                'description' => $request->description ?: null
-            ];
-            $service = Service::create($data);
-            Log::info('Service created:', $service->toArray());
-            return response()->json(['success' => true, 'data' => $service], 201);
+            $service = Service::create($request->all());
+            return response()->json(['success' => true, 'data' => $service, 'message' => 'Thêm dịch vụ thành công!'], 201);
         } catch (\Exception $e) {
             Log::error('Store service error: ' . $e->getMessage());
-            return response()->json(['success' => false, 'message' => 'Lỗi: ' . $e->getMessage()], 500);
+            return response()->json(['success' => false, 'message' => 'Lỗi máy chủ khi thêm dịch vụ.'], 500);
         }
     }
 
     public function update(Request $request, $service_id)
     {
-        Log::info('Update service request:', ['service_id' => $service_id, 'data' => $request->all()]);
+        $service = Service::withCount('bookings')->findOrFail($service_id);
+
+        // NẾU CÓ BOOKING, KHÔNG CHO PHÉP CẬP NHẬT
+        if ($service->bookings_count > 0) {
+            return response()->json([
+                'success' => false, 
+                'message' => 'Không thể cập nhật dịch vụ này vì đã được sử dụng.'
+            ], 403); // 403 Forbidden
+        }
+
+        // Nếu không có booking, cho phép cập nhật
         $validator = Validator::make($request->all(), [
-            'service_name' => 'required|string|max:100',
+            'service_name' => 'required|string|max:100|unique:services,service_name,' . $service_id . ',service_id',
             'price' => 'required|numeric|min:0',
             'description' => 'nullable|string',
         ]);
 
         if ($validator->fails()) {
-            Log::warning('Validation failed:', $validator->errors()->toArray());
             return response()->json(['success' => false, 'message' => 'Dữ liệu không hợp lệ', 'errors' => $validator->errors()], 422);
         }
 
         try {
-            $service = Service::findOrFail($service_id);
-            $data = [
-                'service_name' => $request->service_name,
-                'price' => $request->price,
-                'description' => $request->description ?: null
-            ];
-            $service->update($data);
-            Log::info('Service updated:', $service->toArray());
-            return response()->json(['success' => true, 'data' => $service], 200);
+            $service->update($request->all());
+            return response()->json(['success' => true, 'data' => $service, 'message' => 'Cập nhật dịch vụ thành công!'], 200);
         } catch (\Exception $e) {
             Log::error('Update service error: ' . $e->getMessage());
-            return response()->json(['success' => false, 'message' => 'Lỗi: ' . $e->getMessage()], 500);
+            return response()->json(['success' => false, 'message' => 'Lỗi máy chủ khi cập nhật dịch vụ.'], 500);
         }
     }
 
     public function destroy($service_id)
     {
-        Log::info('Delete service request:', ['service_id' => $service_id]);
+        $service = Service::withCount('bookings')->findOrFail($service_id);
+
+        // NẾU CÓ BOOKING, KHÔNG CHO PHÉP XÓA
+        if ($service->bookings_count > 0) {
+            return response()->json([
+                'success' => false, 
+                'message' => 'Không thể xóa dịch vụ này vì đã được sử dụng.'
+            ], 400); // 400 Bad Request
+        }
+
+        // Nếu không có booking, cho phép xóa
         try {
-            $service = Service::findOrFail($service_id);
             $service->delete();
-            Log::info('Service deleted:', ['service_id' => $service_id]);
             return response()->json(['success' => true, 'message' => 'Xóa dịch vụ thành công'], 200);
         } catch (\Exception $e) {
             Log::error('Delete service error: ' . $e->getMessage());
-            return response()->json(['success' => false, 'message' => 'Lỗi: ' . $e->getMessage()], 500);
+            return response()->json(['success' => false, 'message' => 'Lỗi máy chủ khi xóa dịch vụ.'], 500);
         }
     }
 }

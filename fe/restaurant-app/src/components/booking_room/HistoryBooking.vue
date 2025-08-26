@@ -256,8 +256,7 @@
             <!-- CARD ĐANG CHỜ HỦY -->
             <template v-if="booking.status === 'pending_cancel'">
               <div class="card-header">
-                <h4 class="pending-cancel-title"><i class="bi bi-arrow-clockwise"></i> Yêu Cầu Hủy #{{
-                  booking.booking_id }}</h4>
+                <h4 class="pending-cancel-title"><i class="bi bi-arrow-clockwise"></i> Yêu Cầu Hủy HXH {{ booking.booking_id }}</h4>
                 <span class="status-badge" :class="'status-' + booking.status">{{ formatStatus(booking.status) }}</span>
               </div>
               <div class="card-body">
@@ -325,7 +324,7 @@
                   <div class="info-grid">
                     <div class="info-item">
                       <label>Mã Đặt Phòng</label>
-                      <span>#{{ booking.booking_id }}</span>
+                      <span>HXH{{ booking.booking_id }}</span>
                     </div>
                     <div class="info-item">
                       <label>Số Lượng</label>
