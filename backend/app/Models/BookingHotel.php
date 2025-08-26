@@ -12,6 +12,7 @@ class BookingHotel extends Model
     protected $primaryKey = 'booking_id';
     protected $fillable = [
         'customer_id',
+        'user_id',
         'type_id',
         'payment_method',
         'orderCode',

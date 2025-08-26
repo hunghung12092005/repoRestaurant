@@ -43,6 +43,19 @@ class WebhookController extends Controller
                 $booking->save();
 
                 Log::info("💰 Đơn hàng [$orderCode] cập nhật trạng thái [$newStatus]");
+
+                // Nếu thanh toán thành công thì cập nhật booking_hotel_detail
+                if ($newStatus === 'completed') {
+                    $details = \App\Models\BookingHotelDetail::where('booking_id', $booking->booking_id)->get();
+
+                    foreach ($details as $detail) {
+                        $detail->update([
+                            'thanh_toan_truoc' => $detail->gia_phong // copy từ gia_phong sang thanh_toan_truoc
+                        ]);
+                    }
+
+                    Log::info("📌 Đã cập nhật cột thanh_toan_truoc cho booking_id = {$booking->booking_id}");
+                }
             } else {
                 Log::warning("⚠️ Không tìm thấy đơn hàng với orderCode [$orderCode]");
             }

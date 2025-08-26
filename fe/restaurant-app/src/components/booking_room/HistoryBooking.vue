@@ -319,7 +319,7 @@
                 <div class="card-header">
                   <h3>{{ booking.room_type_info ? booking.room_type_info.type_name : 'Thông tin phòng' }}</h3>
                   <span class="status-badge" :class="'status-' + booking.status">{{ formatStatus(booking.status)
-                    }}</span>
+                  }}</span>
                 </div>
                 <div class="card-body">
                   <div class="info-grid">
@@ -416,72 +416,119 @@ const formatPrice = (value) => {
 };
 const curPhone = ref('');
 const showPopUpSMS = ref(false); // Hiển thị popup yêu cầu đăng nhập
+
+// const getHistoryBooking = async () => {
+//   console.log(authSms.value);
+//   let token = localStorage.getItem('BookingAuth');
+//     const userInfo = JSON.parse(localStorage.getItem('userInfo') || '{}');
+//     const idUser = userInfo.id || '';
+//   // if (token === null || token === '') {
+//   //   showPopUpSMS.value = true;
+//   // }
+//   const axiosInstance = axios.create({
+//     headers: { 'Authorization': `Bearer ${token}` }
+//   });
+//   try {
+//     isLoading.value = true;
+//     // if (authSms.value === true) {
+//     //   try {
+//     //     isLoading.value = true;
+//     //     const rawPhone = localStorage.getItem('BookingAuthPhone');
+//     //     const phoneWithZero = rawPhone.startsWith('0') ? rawPhone : '0' + rawPhone;
+//     //     curPhone.value = phoneWithZero;
+//     //     // console.log('Phones gửi lên:', [rawPhone, phoneWithZero]);
+
+//     //     const res = await axios.post(`${apiUrl}/api/booking-historyPhone`, {
+//     //       phones: [rawPhone, phoneWithZero] // gửi mảng phone
+//     //     });
+
+//     //     //console.log('Lịch sử đặt phòng phone:', res.data);
+//     //     if (res.data?.status === 'success') {
+//     //       bookings.value = res.data.data;
+//     //       // Lấy chi tiết huỷ cho các đơn đang pending_cancel
+//     //       for (const b of res.data.data) {
+//     //         if (b.status === 'pending_cancel') {
+//     //           await getCancelBookingDetail(b.booking_id);
+//     //           refundBank.value[b.booking_id] = { bank: '', accountNumber: '' };
+//     //         }
+//     //       }
+//     //       console.log('Lịch sử đặt phòng đã tải thành công addjab:', bookings.value);
+//     //     } else {
+//     //       error.value = res.data.message || 'Không thể tải dữ liệu.';
+//     //     }
+//     //     return;
+//     //   } catch (err) {
+//     //     console.error('Lỗi lấy lịch sử đặt phòng:', err);
+//     //   } finally {
+//     //     isLoading.value = false;
+//     //   }
+//     // }
+//     const res = await axiosInstance.get(`${apiUrl}/api/booking-history`);
+//     // console.log('Lịch sử đặt phòng:', res.data);
+//     if (res.data?.status === 'success') {
+//       bookings.value = res.data.data;
+//       // Lấy chi tiết huỷ cho các đơn đang pending_cancel
+//       for (const b of res.data.data) {
+//         if (b.status === 'pending_cancel') {
+//           await getCancelBookingDetail(b.booking_id);
+//           refundBank.value[b.booking_id] = { bank: '', accountNumber: '' };
+//         }
+//       }
+//       console.log('Lịch sử đặt phòng đã tải thành công 123:', bookings.value);
+
+//     } else {
+//       error.value = res.data.message || 'Không thể tải dữ liệu.';
+//     }
+//   } catch {
+//     error.value = 'Chưa có đơn hàng.';
+//   } finally {
+//     isLoading.value = false;
+//   }
+// };
 const getHistoryBooking = async () => {
-  console.log(authSms.value);
   let token = localStorage.getItem('BookingAuth');
-  // if (token === null || token === '') {
-  //   showPopUpSMS.value = true;
-  // }
+  const userInfo = JSON.parse(localStorage.getItem('userInfo') || '{}');
+  const idUser = userInfo.id || '';
+
   const axiosInstance = axios.create({
     headers: { 'Authorization': `Bearer ${token}` }
   });
+
   try {
     isLoading.value = true;
-    // if (authSms.value === true) {
-    //   try {
-    //     isLoading.value = true;
-    //     const rawPhone = localStorage.getItem('BookingAuthPhone');
-    //     const phoneWithZero = rawPhone.startsWith('0') ? rawPhone : '0' + rawPhone;
-    //     curPhone.value = phoneWithZero;
-    //     // console.log('Phones gửi lên:', [rawPhone, phoneWithZero]);
 
-    //     const res = await axios.post(`${apiUrl}/api/booking-historyPhone`, {
-    //       phones: [rawPhone, phoneWithZero] // gửi mảng phone
-    //     });
+    let res;
+   // console.log('Gọi API với user_id:', idUser);
+    if (idUser && idUser !== '') {
+      console.log('Gọi API với user_id:', idUser);
+      // Gọi API mới có truyền user_id
+      res = await axios.get(`${apiUrl}/api/booking-historyuser/${idUser}`);
+    } else {
+      // Gọi API cũ (dùng SMS hoặc Auth header)
+      console.log('Gọi API không có user_id, dùng token Auth');
+      res = await axiosInstance.get(`${apiUrl}/api/booking-history`);
+    }
 
-    //     //console.log('Lịch sử đặt phòng phone:', res.data);
-    //     if (res.data?.status === 'success') {
-    //       bookings.value = res.data.data;
-    //       // Lấy chi tiết huỷ cho các đơn đang pending_cancel
-    //       for (const b of res.data.data) {
-    //         if (b.status === 'pending_cancel') {
-    //           await getCancelBookingDetail(b.booking_id);
-    //           refundBank.value[b.booking_id] = { bank: '', accountNumber: '' };
-    //         }
-    //       }
-    //       console.log('Lịch sử đặt phòng đã tải thành công addjab:', bookings.value);
-    //     } else {
-    //       error.value = res.data.message || 'Không thể tải dữ liệu.';
-    //     }
-    //     return;
-    //   } catch (err) {
-    //     console.error('Lỗi lấy lịch sử đặt phòng:', err);
-    //   } finally {
-    //     isLoading.value = false;
-    //   }
-    // }
-    const res = await axiosInstance.get(`${apiUrl}/api/booking-history`);
-    // console.log('Lịch sử đặt phòng:', res.data);
     if (res.data?.status === 'success') {
       bookings.value = res.data.data;
-      // Lấy chi tiết huỷ cho các đơn đang pending_cancel
       for (const b of res.data.data) {
         if (b.status === 'pending_cancel') {
           await getCancelBookingDetail(b.booking_id);
           refundBank.value[b.booking_id] = { bank: '', accountNumber: '' };
         }
       }
-      console.log('Lịch sử đặt phòng đã tải thành công 123:', bookings.value);
-
+      console.log('Lịch sử đặt phòng đã tải thành công:', bookings.value);
     } else {
       error.value = res.data.message || 'Không thể tải dữ liệu.';
     }
-  } catch {
-    error.value = 'Chưa có đơn hàng.';
+  } catch (err) {
+    console.error(err);
+    error.value = 'Chưa có đơn hàng hoặc lỗi máy chủ.';
   } finally {
     isLoading.value = false;
   }
 };
+
 const popupDetail = ref(false);
 const bookingDetails = ref('');
 const viewDetailOrder = async (bookingID) => {
@@ -559,7 +606,7 @@ const sendEvaluate = async () => {
     console.log('Số điện thoại khách:', customerPhone)
     const data = {
       booking_id: idBooking.value,
-      customerPhone: customerPhone,
+      //customerPhone: customerPhone,
       hotel_service: form.value.hotel_service,
       staff: form.value.staff,
       room: form.value.room,

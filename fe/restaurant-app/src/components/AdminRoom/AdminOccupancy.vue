@@ -1094,6 +1094,8 @@ const submitCustomerForm = async () => {
     alert(`${res.data.message}\nTổng tiền: ${Number(res.data.total_price).toLocaleString('vi-VN')} VND`);
     showForm.value = false;
     await fetchRooms();
+    window.location.reload();
+
   } catch (e) {
     console.error("Lỗi gửi dữ liệu:", e);
     const errorMessage = e.response?.data?.message || "Không thể lưu thông tin khách.";
@@ -1126,9 +1128,10 @@ const calculateTotalPricePreview = async () => {
     totalPricePreview.value = null;
     pricePreviewError.value = e.response?.data?.message || 'Lỗi tính giá phòng. Vui lòng kiểm tra thời gian đặt phòng.';
     console.error('Lỗi tính giá:', e);
-    if (e.response?.status === 422) {
-      alert('Thời gian đặt phòng không hợp lệ: ' + (e.response.data || 'Vui lòng kiểm tra lại.'));
-    }
+    // if (e.response?.status === 422) {
+    //   alert('Thời gian đặt phòng không hợp lệ , vui lòng chọn lại thời gian ');
+    //   // alert('Thời gian đặt phòng không hợp lệ á: ' + (e.response.data || 'Vui lòng kiểm tra lại.'));
+    // }
   }
 };
 

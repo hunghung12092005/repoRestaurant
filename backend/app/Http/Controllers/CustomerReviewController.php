@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\BookingHotel;
 use App\Models\Customer;
 use App\Models\CustomerReview;
 use Illuminate\Http\Request;
@@ -22,7 +23,7 @@ class CustomerReviewController extends Controller
         // Validate input
         $request->validate([
             'booking_id'     => 'required|integer',
-            'customerPhone'  => 'required|string',
+            //'customerPhone'  => 'required|string',
             'hotel_service'  => 'required|integer|min:1|max:10',
             'staff'          => 'required|integer|min:1|max:10',
             'room'           => 'required|integer|min:1|max:10',
@@ -31,21 +32,21 @@ class CustomerReviewController extends Controller
         ]);
 
         // Tìm customer theo phone
-        $customer = Customer::where('customer_phone', $request->customerPhone)->first();
-        // return[
-        //     'customer' => $customer
-        // ];
-        if (!$customer) {
-            return response()->json([
-                'message' => 'Khách hàng không tồn tại'
-            ], 404);
-        }
+        // $customer = Customer::where('customer_phone', $request->customerPhone)->first();
+        // // return[
+        // //     'customer' => $customer
+        // // ];
+        // if (!$customer) {
+        //     return response()->json([
+        //         'message' => 'Khách hàng không tồn tại'
+        //     ], 404);
+        // }
 
         // Lưu review
         $review = CustomerReview::updateOrCreate(
             ['booking_id' => $request->booking_id], // điều kiện tìm
             [
-                'customer_id'    => $customer->customer_id,
+                // 'customer_id'    => $customer->customer_id,
                 'room_rating'    => $request->room,
                 'service_rating' => $request->hotel_service,
                 'staff_rating' => $request->staff,
@@ -59,4 +60,23 @@ class CustomerReviewController extends Controller
             'data'    => $review
         ], 201);
     }
+    public function getBookingDetail($id)
+{
+    try {
+        $booking = BookingHotel::with(['roomTypeInfo', 'customer']) // load luôn customer
+            ->findOrFail($id);
+
+        return response()->json([
+            'status' => 'success',
+            'data' => $booking,
+        ]);
+    } catch (\Exception $e) {
+        return response()->json([
+            'status' => 'error',
+            'message' => 'Không tìm thấy thông tin booking.',
+        ], 404);
+    }
+}
+
+
 }

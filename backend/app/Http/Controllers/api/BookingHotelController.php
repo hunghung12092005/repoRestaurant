@@ -273,6 +273,7 @@ class BookingHotelController extends Controller
         DB::beginTransaction();
         try {
             $bookingDetails = $request->validate([
+                'user_id' => 'nullable|integer',
                 'check_in_date' => 'required|date',
                 'check_out_date' => 'required|date',
                 'check_in_time' => 'required',
@@ -309,10 +310,11 @@ class BookingHotelController extends Controller
             }
 
             $customerId = $user->customer_id;
-                    //    return response()->json(['message' => $customerId]);
+            //    return response()->json(['message' => $customerId]);
 
             $booking = BookingHotel::create([
                 'customer_id' => $customerId,
+                'user_id' => $bookingDetails['user_id'] ?? null,
                 'payment_method' => $bookingDetails['payment_method'],
                 'booking_type' => $bookingDetails['booking_type'],
                 'adult' => $bookingDetails['adult'],
@@ -352,7 +354,7 @@ class BookingHotelController extends Controller
 
             foreach ($bookingDetails['roomDetails'] as $roomDetail) {
                 // Giá gốc phòng
-                $giaPhong = $roomDetail['price'];// lay tu chi tiet fe gui vao
+                $giaPhong = $roomDetail['price']; // lay tu chi tiet fe gui vao
 
                 // Nếu là phòng đầu tiên và có giảm giá
                 if ($index === 0 && !empty($bookingDetails['giam_gia_1_phong'])) {
@@ -437,29 +439,34 @@ class BookingHotelController extends Controller
      * Lấy lịch sử booking của khách hàng
      */
     public function getBookingHistory(Request $request)
-    {
-        try {
-            $sub = JWTAuth::parseToken()->getPayload()->get('sub');
+{
+    try {
+        $sub = JWTAuth::parseToken()->getPayload()->get('sub');
 
-            $bookings = BookingHotel::where('customer_id', $sub)
-                ->with('roomTypeInfo')
-                ->orderBy('booking_id', 'desc')
-                ->get();
-            
-            return response()->json([
-                'status' => 'success',
-                'data' => $bookings,
-            ], 200);
-        } catch (\Exception $e) {
-            Log::error('Lỗi khi lấy lịch sử booking: ' . $e->getMessage(), [
-                'trace' => $e->getTraceAsString()
-            ]);
-            return response()->json([
-                'status' => 'error',
-                'message' => 'Không thể lấy dữ liệu booking: ' . $e->getMessage(),
-            ], 500);
-        }
+        $bookings = BookingHotel::where('customer_id', $sub)
+            ->where(function ($query) {
+                $query->whereNull('user_id')
+                      ->orWhere('user_id', '');
+            })
+            ->with('roomTypeInfo')
+            ->orderBy('booking_id', 'desc')
+            ->get();
+
+        return response()->json([
+            'status' => 'success',
+            'data' => $bookings,
+        ], 200);
+    } catch (\Exception $e) {
+        Log::error('Lỗi khi lấy lịch sử booking: ' . $e->getMessage(), [
+            'trace' => $e->getTraceAsString()
+        ]);
+        return response()->json([
+            'status' => 'error',
+            'message' => 'Không thể lấy dữ liệu booking: ' . $e->getMessage(),
+        ], 500);
     }
+}
+
     public function getBookingHistoryByPhone(Request $request)
     {
         try {
@@ -504,6 +511,27 @@ class BookingHotelController extends Controller
             ], 500);
         }
     }
+    //lay lich su cho user
+    public function bookingHistoryUser($id)
+    {
+        try {
+            $bookings = BookingHotel::where('user_id', $id)
+                ->with('roomTypeInfo') // nếu có liên kết roomType
+                ->orderBy('booking_id', 'desc')
+                ->get();
+
+            return response()->json([
+                'status' => 'success',
+                'data' => $bookings,
+            ], 200);
+        } catch (\Exception $e) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Không thể lấy dữ liệu booking: ' . $e->getMessage(),
+            ], 500);
+        }
+    }
+
     //lay chi tiet booking theo booking_id
     public function getBookingDetail($bookingID)
     {
@@ -982,7 +1010,7 @@ class BookingHotelController extends Controller
                 $statuses = is_array($status) ? $status : [$status];
                 $query->whereIn('booking_hotel.status', $statuses);
             } else {
-                $query->whereIn('booking_hotel.status', ['pending_confirmation', 'confirmed', 'pending_cancel', 'confirmed_not_assigned','cancelled','completed',]);
+                $query->whereIn('booking_hotel.status', ['pending_confirmation', 'confirmed', 'pending_cancel', 'confirmed_not_assigned', 'cancelled', 'completed',]);
             }
 
             if ($activeAt) {

@@ -178,6 +178,8 @@ Route::post('/generate-token', [BookingHotelController::class, 'generateToken'])
 //tra ve lich su cho khach hàng
 Route::get('/booking-history', [BookingHotelController::class, 'getBookingHistory']);
 Route::post('/booking-historyPhone', [BookingHotelController::class, 'getBookingHistoryByPhone']);
+Route::get('/booking-historyuser/{id}', [BookingHotelController::class, 'bookingHistoryUser']);
+
 Route::get('/booking-history/{id}', [BookingHotelController::class, 'getBookingDetail']);
 Route::delete('/booking-history/{id}', [BookingHotelController::class, 'deleteBookingHistory']);
 Route::delete('/booking-history/{id}', [BookingHotelController::class, 'deleteBookingHistory']);
@@ -214,3 +216,4 @@ Route::prefix('discount-codes')->controller(CouponsController::class)->group(fun
 //them đánh giá khách hàng
 Route::post('/customer-reviews', [CustomerReviewController::class, 'store']);// routes/api.php
 Route::get('/customer-reviewsget', [CustomerReviewController::class, 'index']);
+Route::get('/booking-detailreview/{id}', [CustomerReviewController::class, 'getBookingDetail']);

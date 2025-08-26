@@ -872,7 +872,7 @@ class OccupancyController extends Controller
                         'service_price' => $totalServiceFee,
                         'surcharge' => $additionalFee,
                         //'surcharge_reason' => $surchargeReason,
-                        'total_paid' => $actualTotal,
+                        'total_paid' => $tien_chinh,
                         'check_out' => $actualCheckout,
                         'updated_at' => $now,
                     ]);
@@ -888,7 +888,7 @@ class OccupancyController extends Controller
                     'service_price' => $totalServiceFee,
                     'surcharge' => $additionalFee,
                     'surcharge_reason' => $surchargeReason,
-                    'total_paid' => $actualTotal,
+                    'total_paid' => $tien_chinh,
                     'created_at' => $now,
                     'updated_at' => $now,
                 ]);

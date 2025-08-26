@@ -272,6 +272,7 @@ const fetchUserInfo = async () => {
 const logout = () => {
   localStorage.removeItem('tokenJwt');
   localStorage.removeItem('userInfo');
+  localStorage.removeItem('BookingAuth');
   setUserRoles(null);
   window.location.href = '/login';
 };
