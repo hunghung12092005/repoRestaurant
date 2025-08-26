@@ -1094,7 +1094,7 @@ const submitCustomerForm = async () => {
     alert(`${res.data.message}\nTổng tiền: ${Number(res.data.total_price).toLocaleString('vi-VN')} VND`);
     showForm.value = false;
     await fetchRooms();
-    window.location.reload();
+    // window.location.reload();
 
   } catch (e) {
     console.error("Lỗi gửi dữ liệu:", e);
@@ -1197,6 +1197,8 @@ const clearFilters = () => {
   selectedStatus.value = 'Tất cả';
   selectedRoomType.value = 'Tất cả';
   selectedFloor.value = 'Tất cả';
+   // Lấy ngày hôm nay dạng yyyy-mm-dd
+  selectedDate.value = new Date().toISOString().split('T')[0];
   selectedTime.value = new Date().toLocaleTimeString('it-IT', { hour: '2-digit', minute: '2-digit' });
   fetchRooms();
 };
