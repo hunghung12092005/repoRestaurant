@@ -76,8 +76,8 @@
               <input v-model="messageContent" @keyup.enter="sendMessageToUser" type="text" class="form-control"
                 placeholder="Nhập tin nhắn..." />
 
-              <input ref="imageInput" type="file" accept="image/*" @change="handleImageUpload" class="form-control"
-                style="max-width: 150px;" />
+              <!-- <input ref="imageInput" type="file" accept="image/*" @change="handleImageUpload" class="form-control"
+                style="max-width: 150px;" /> -->
 
               <button class="btn btn-primary" @click="sendMessageToUser">
                 <i class="fa fa-paper-plane"></i>

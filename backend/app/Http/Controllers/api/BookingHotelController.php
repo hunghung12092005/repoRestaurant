@@ -439,33 +439,33 @@ class BookingHotelController extends Controller
      * Lấy lịch sử booking của khách hàng
      */
     public function getBookingHistory(Request $request)
-{
-    try {
-        $sub = JWTAuth::parseToken()->getPayload()->get('sub');
+    {
+        try {
+            $sub = JWTAuth::parseToken()->getPayload()->get('sub');
 
-        $bookings = BookingHotel::where('customer_id', $sub)
-            ->where(function ($query) {
-                $query->whereNull('user_id')
-                      ->orWhere('user_id', '');
-            })->where('booking_type','online')
-            ->with('roomTypeInfo')
-            ->orderBy('booking_id', 'desc')
-            ->get();
+            $bookings = BookingHotel::where('customer_id', $sub)
+                ->where(function ($query) {
+                    $query->whereNull('user_id')
+                        ->orWhere('user_id', '');
+                })->where('booking_type','online')
+                ->with('roomTypeInfo')
+                ->orderBy('booking_id','desc')
+                ->get();
 
-        return response()->json([
-            'status' => 'success',
-            'data' => $bookings,
-        ], 200);
-    } catch (\Exception $e) {
-        Log::error('Lỗi khi lấy lịch sử booking: ' . $e->getMessage(), [
-            'trace' => $e->getTraceAsString()
-        ]);
-        return response()->json([
-            'status' => 'error',
-            'message' => 'Không thể lấy dữ liệu booking: ' . $e->getMessage(),
-        ], 500);
+            return response()->json([
+                'status' => 'success',
+                'data' => $bookings,
+            ], 200);
+        } catch (\Exception $e) {
+            Log::error('Lỗi khi lấy lịch sử booking: ' . $e->getMessage(), [
+                'trace' => $e->getTraceAsString()
+            ]);
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Không thể lấy dữ liệu booking: ' . $e->getMessage(),
+            ], 500);
+        }
     }
-}
 
     public function getBookingHistoryByPhone(Request $request)
     {
@@ -533,35 +533,37 @@ class BookingHotelController extends Controller
     }
 
     //lay chi tiet booking theo booking_id
-    public function getBookingDetail($bookingID)
-    {
-        try {
-            // Lấy tất cả chi tiết phòng trong booking
-            $bookingDetails = BookingHotelDetail::where('booking_id', $bookingID)
-                ->get()
-                ->map(function ($detail) {
-                    // Nếu gia_dich_vu > 0 thì lấy danh sách dịch vụ
-                    if ($detail->gia_dich_vu > 0) {
-                        $detail->services = BookingHotelService::with('serviceInfo')
-                            ->where('booking_detail_id', $detail->booking_detail_id)
-                            ->get();
-                    } else {
-                        $detail->services = collect(); // trả về Collection rỗng
-                    }
-                    return $detail;
-                });
+   public function getBookingDetail($bookingID)
+{
+    try {
+        // Lấy tất cả chi tiết phòng trong booking + kèm room
+        $bookingDetails = BookingHotelDetail::where('booking_id', $bookingID)
+            ->with('room') // lấy thông tin room dựa vào room_id
+            ->get()
+            ->map(function ($detail) {
+                // Nếu có dịch vụ thì lấy danh sách dịch vụ kèm serviceInfo
+                if ($detail->gia_dich_vu > 0) {
+                    $detail->services = BookingHotelService::with('serviceInfo')
+                        ->where('booking_detail_id', $detail->booking_detail_id)
+                        ->get();
+                } else {
+                    $detail->services = collect(); // trả về Collection rỗng
+                }
+                return $detail;
+            });
 
-            return response()->json([
-                'status' => 'success',
-                'data' => $bookingDetails,
-            ], 200);
-        } catch (\Exception $e) {
-            return response()->json([
-                'status' => 'error',
-                'message' => 'Không thể lấy chi tiết booking: ' . $e->getMessage(),
-            ], 500);
-        }
+        return response()->json([
+            'status' => 'success',
+            'data' => $bookingDetails,
+        ], 200);
+    } catch (\Exception $e) {
+        return response()->json([
+            'status' => 'error',
+            'message' => 'Không thể lấy chi tiết booking: ' . $e->getMessage(),
+        ], 500);
     }
+}
+
 
     /**
      * Xóa lịch sử booking
@@ -631,28 +633,28 @@ class BookingHotelController extends Controller
             }
 
             $staffRoleIds = Role::where('name', '!=', 'client')->pluck('id');
-        $adminsAndStaff = User::whereIn('role_id', $staffRoleIds)->get();
+            $adminsAndStaff = User::whereIn('role_id', $staffRoleIds)->get();
 
-        foreach ($adminsAndStaff as $adminUser) {
-            $notification = new Notification();
-            $notification->id = Str::uuid();
-            // Đặt một type mới để phân biệt
-            $notification->type = 'BOOKING_CANCEL_REQUEST'; 
-            $notification->notifiable_type = User::class;
-            $notification->notifiable_id = $adminUser->id;
-            $notification->subject_type = BookingHotel::class;
-            $notification->subject_id = $booking->booking_id;
-            $notification->data = [
-                'message' => "KH {$customer->customer_name} đã yêu cầu hủy đặt phòng (Mã: {$booking->booking_id}).",
-                // Link đến trang quản lý booking để admin xử lý
-                'link' => '/admin/bookings' 
-            ];
-            $notification->save();
+            foreach ($adminsAndStaff as $adminUser) {
+                $notification = new Notification();
+                $notification->id = Str::uuid();
+                // Đặt một type mới để phân biệt
+                $notification->type = 'BOOKING_CANCEL_REQUEST';
+                $notification->notifiable_type = User::class;
+                $notification->notifiable_id = $adminUser->id;
+                $notification->subject_type = BookingHotel::class;
+                $notification->subject_id = $booking->booking_id;
+                $notification->data = [
+                    'message' => "KH {$customer->customer_name} đã yêu cầu hủy đặt phòng (Mã: {$booking->booking_id}).",
+                    // Link đến trang quản lý booking để admin xử lý
+                    'link' => '/admin/bookings'
+                ];
+                $notification->save();
 
-            // Phát sóng sự kiện để cập nhật real-time
-            broadcast(new NewNotification($notification))->toOthers();
-        }
-        DB::commit(); 
+                // Phát sóng sự kiện để cập nhật real-time
+                broadcast(new NewNotification($notification))->toOthers();
+            }
+            DB::commit();
 
             Log::info('Tạo yêu cầu hủy thành công', ['cancel_id' => $cancel->cancel_id, 'booking_id' => $booking->booking_id]);
 

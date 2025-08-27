@@ -107,7 +107,7 @@
           <div class="tools">
             <button @click="toggleSuggestions">+</button>
             <div v-if="showSuggestions" class="suggestions">
-              <input type="file" @change="handleFileUpload" accept="image/*" :disabled="activeTab === 'ai'" />
+              <!-- <input type="file" @change="handleFileUpload" accept="image/*" :disabled="activeTab === 'ai'" /> -->
               <button v-for="suggestion in suggestions" :key="suggestion" @click="sendMessage(suggestion)">
                 {{ suggestion }}
               </button>
@@ -137,8 +137,9 @@ const toggleChatContainer = () => {
   fetchAiSuggestions();
   showChat.value = !showChat.value;
 };
+// console.log(import.meta.env.VITE_API_GEMINI);
 
-const API_KEY = 'AIzaSyCjQJbHsnVRT-rExPn0MX_grBKnhAySI6M';
+const API_KEY = import.meta.env.VITE_API_GEMINI;
 const apiUrl = inject('apiUrl');
 const showPopup = ref(false);
 
