@@ -19,7 +19,7 @@ class CancelBooking extends Model
     'cancellation_date',
     'refund_amount',
     'status',
-     'refund_bank',
+    'refund_bank',
     'refund_account_number',
     'refund_account_name'
 ];
