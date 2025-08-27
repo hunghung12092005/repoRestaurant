@@ -145,7 +145,7 @@
               <div class="card-body">
                 <div class="d-flex justify-content-between align-items-center mb-2">
                   <h6 class="card-title mb-0 fs-5">
-                    Phòng: <strong class="text-primary">{{ room.room.room_name ?? 'Chưa có phòng' }}</strong>
+                    Phòng: <strong class="text-primary">{{ room?.room?.room_name || 'Chưa có phòng' }}</strong>
                   </h6>
                   <!-- <span class="badge" :class="{'bg-success': room.trang_thai === 'Hoàn thành', 'bg-warning text-dark': room.trang_thai !== 'Hoàn thành'}">
                   {{ room.trang_thai ?? 'Chưa rõ' }}
@@ -256,7 +256,8 @@
             <!-- CARD ĐANG CHỜ HỦY -->
             <template v-if="booking.status === 'pending_cancel'">
               <div class="card-header">
-                <h4 class="pending-cancel-title"><i class="bi bi-arrow-clockwise"></i> Yêu Cầu Hủy HXH {{ booking.booking_id }}</h4>
+                <h4 class="pending-cancel-title"><i class="bi bi-arrow-clockwise"></i> Yêu Cầu Hủy HXH {{
+                  booking.booking_id }}</h4>
                 <span class="status-badge" :class="'status-' + booking.status">{{ formatStatus(booking.status) }}</span>
               </div>
               <div class="card-body">
@@ -318,7 +319,7 @@
                 <div class="card-header">
                   <h3>{{ booking.room_type_info ? booking.room_type_info.type_name : 'Thông tin phòng' }}</h3>
                   <span class="status-badge" :class="'status-' + booking.status">{{ formatStatus(booking.status)
-                  }}</span>
+                    }}</span>
                 </div>
                 <div class="card-body">
                   <div class="info-grid">
@@ -497,7 +498,7 @@ const getHistoryBooking = async () => {
     isLoading.value = true;
 
     let res;
-   // console.log('Gọi API với user_id:', idUser);
+    // console.log('Gọi API với user_id:', idUser);
     if (idUser && idUser !== '') {
       console.log('Gọi API với user_id:', idUser);
       // Gọi API mới có truyền user_id

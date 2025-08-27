@@ -238,7 +238,7 @@ const socketId = ref('');
 const file = ref(null);
 const MAX_FILE_SIZE = 2 * 1024 * 1024; // 0.5 MB
 var user = JSON.parse(localStorage.getItem('userInfo'))?.name || 'HXH CLIENT';
-var userId = JSON.parse(localStorage.getItem('userInfo'))?.id || 'defaultUserId';
+var userId = JSON.parse(localStorage.getItem('userInfo'))?.id2 || 'defaultUserId';
 
 // Computed property to display messages based on active tab
 const currentMessages = computed(() => {
@@ -249,7 +249,7 @@ const currentMessages = computed(() => {
 // Popup Functions
 const saveName = () => {
   if (userName.value) {
-    localStorage.setItem('userInfo', JSON.stringify({ name: userName.value, id: socket.id }));
+    localStorage.setItem('userInfo', JSON.stringify({ name: userName.value, id2: socket.id }));
     showPopup.value = false;
     window.location.reload();
   } else {
