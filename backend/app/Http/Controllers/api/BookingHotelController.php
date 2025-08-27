@@ -533,35 +533,37 @@ class BookingHotelController extends Controller
     }
 
     //lay chi tiet booking theo booking_id
-    public function getBookingDetail($bookingID)
-    {
-        try {
-            // Lấy tất cả chi tiết phòng trong booking
-            $bookingDetails = BookingHotelDetail::where('booking_id', $bookingID)
-                ->get()
-                ->map(function ($detail) {
-                    // Nếu gia_dich_vu > 0 thì lấy danh sách dịch vụ
-                    if ($detail->gia_dich_vu > 0) {
-                        $detail->services = BookingHotelService::with('serviceInfo')
-                            ->where('booking_detail_id', $detail->booking_detail_id)
-                            ->get();
-                    } else {
-                        $detail->services = collect(); // trả về Collection rỗng
-                    }
-                    return $detail;
-                });
+   public function getBookingDetail($bookingID)
+{
+    try {
+        // Lấy tất cả chi tiết phòng trong booking + kèm room
+        $bookingDetails = BookingHotelDetail::where('booking_id', $bookingID)
+            ->with('room') // lấy thông tin room dựa vào room_id
+            ->get()
+            ->map(function ($detail) {
+                // Nếu có dịch vụ thì lấy danh sách dịch vụ kèm serviceInfo
+                if ($detail->gia_dich_vu > 0) {
+                    $detail->services = BookingHotelService::with('serviceInfo')
+                        ->where('booking_detail_id', $detail->booking_detail_id)
+                        ->get();
+                } else {
+                    $detail->services = collect(); // trả về Collection rỗng
+                }
+                return $detail;
+            });
 
-            return response()->json([
-                'status' => 'success',
-                'data' => $bookingDetails,
-            ], 200);
-        } catch (\Exception $e) {
-            return response()->json([
-                'status' => 'error',
-                'message' => 'Không thể lấy chi tiết booking: ' . $e->getMessage(),
-            ], 500);
-        }
+        return response()->json([
+            'status' => 'success',
+            'data' => $bookingDetails,
+        ], 200);
+    } catch (\Exception $e) {
+        return response()->json([
+            'status' => 'error',
+            'message' => 'Không thể lấy chi tiết booking: ' . $e->getMessage(),
+        ], 500);
     }
+}
+
 
     /**
      * Xóa lịch sử booking

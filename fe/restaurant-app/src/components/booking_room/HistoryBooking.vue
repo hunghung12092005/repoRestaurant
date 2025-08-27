@@ -145,7 +145,7 @@
               <div class="card-body">
                 <div class="d-flex justify-content-between align-items-center mb-2">
                   <h6 class="card-title mb-0 fs-5">
-                    Phòng: <strong class="text-primary">{{ room.room_id ?? 'Chưa có phòng' }}</strong>
+                    Phòng: <strong class="text-primary">{{ room.room.room_name ?? 'Chưa có phòng' }}</strong>
                   </h6>
                   <!-- <span class="badge" :class="{'bg-success': room.trang_thai === 'Hoàn thành', 'bg-warning text-dark': room.trang_thai !== 'Hoàn thành'}">
                   {{ room.trang_thai ?? 'Chưa rõ' }}
