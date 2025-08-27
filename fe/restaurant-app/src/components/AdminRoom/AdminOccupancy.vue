@@ -356,6 +356,8 @@
                 class="form-control" /></div>
             <div class="mb-3"><label class="form-label">Email:</label><input v-model="editFormData.customer_email"
                 class="form-control" /></div>
+            <div class="mb-3"><label class="form-label">Số CCCD:</label><input v-model="editFormData.customer_id_number"
+                class="form-control" /></div>
             <div class="mb-3"><label class="form-label">Địa chỉ:</label><input v-model="editFormData.address"
                 class="form-control" /></div>
           </div>
@@ -621,10 +623,10 @@ const pricePreviewError = ref('');
 //     }).format(value);
 // };
 const formData = ref({
-  customer_name: 'HÙNG ĐỒNG MẠNH',
+  customer_name: 'clientHXH',
   customer_phone: '0325697601',
-  customer_email: 'hxh@gmail.com',
-  address: '123 sam son',
+  customer_email: 'clientHXH@gmail.com',
+  address: 'Thanh Hoa',
   customer_id_number: '123456789122',
   room_id: null,
   check_in_date: '',
@@ -636,11 +638,12 @@ const formData = ref({
 const showEditForm = ref(false);
 const editFormData = ref({
   customer_id: null,
-  customer_name: 'HÙNG ĐỒNG MẠNH',
+  customer_name: 'clientHXH',
   customer_phone: '0325697601',
-  customer_email: 'hxh@gmail.com',
-  address: 'adda',
-  check_in_date: '123 sam son',
+  customer_email: 'clientHXH@gmail.com',
+  address: '',
+  customer_id_number: '',
+  check_in_date: '',
   check_in_time: '',
   check_out_date: '',
   check_out_time: ''
@@ -692,9 +695,9 @@ const openMultiBookingModal = () => {
   showMultiBookingModal.value = true;
   multiBookings.value = [{
     room_id: null,
-    customer_name: 'HÙNG ĐỒNG MẠNH',
+    customer_name: 'clientHXH',
     customer_phone: '0325697601',
-    customer_email: 'hxh@gmail.com',
+    customer_email: 'clientHXH@gmail.com',
     customer_id_number: '123456789122',
     check_in_date: checkInDate,
     check_in_time: checkInTime,
@@ -767,7 +770,7 @@ const submitMultiBookings = async () => {
 
     const res = await axiosInstance.post(`${apiUrl}/api/occupancy/add-multiple`, payload);
     //console.log('Đặt nhiều phòng thành công:', res.data);
-    alert(res.data.message + '\nMã booking nhóm: XHX' + res.data.booking_id);
+    alert(res.data.message + '\nMã booking nhóm: HXH' + res.data.booking_id);
     showMultiBookingModal.value = false;
     multiBookings.value = [];
     await fetchRooms();
@@ -828,6 +831,7 @@ const editCustomerInfo = (customer) => {
     customer_phone: customer.customer_phone || '',
     customer_email: customer.customer_email || '',
     address: customer.address || '',
+    customer_id_number: customer.customer_id_number || '',
     check_in_date: booking.check_in_date || '',
     check_in_time: booking.check_in_time || '',
     check_out_date: booking.check_out_date || '',
@@ -863,6 +867,7 @@ const submitEditForm = async () => {
       customer_phone: editFormData.value.customer_phone,
       customer_email: editFormData.value.customer_email,
       address: editFormData.value.address,
+      customer_id_number: editFormData.value.customer_id_number,
     });
     console.log("Cập nhật thành công:", res.data);
 
@@ -1057,10 +1062,10 @@ const showAddGuest = (room_id) => {
   const checkOutDate = out.toISOString().slice(0, 10);
 
   formData.value = {
-    customer_name: 'tesst',
+    customer_name: 'clientHXH',
     customer_phone: '0325697601',
-    customer_email: '0325697601@gmail.com',
-    address: '0325697601',
+    customer_email: 'clientHXH@gmail.com',
+    address: 'Thanh Hoa',
     customer_id_number: '032569760112',
     room_id,
     check_in_date: checkInDate,
