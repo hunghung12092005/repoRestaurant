@@ -623,11 +623,11 @@ const pricePreviewError = ref('');
 //     }).format(value);
 // };
 const formData = ref({
-  customer_name: 'clientHXH',
-  customer_phone: '0325697601',
-  customer_email: 'clientHXH@gmail.com',
-  address: 'Thanh Hoa',
-  customer_id_number: '123456789122',
+  customer_name: '',
+  customer_phone: '',
+  customer_email: '',
+  address: '',
+  customer_id_number: '',
   room_id: null,
   check_in_date: '',
   check_in_time: '11:00',
@@ -638,9 +638,9 @@ const formData = ref({
 const showEditForm = ref(false);
 const editFormData = ref({
   customer_id: null,
-  customer_name: 'clientHXH',
-  customer_phone: '0325697601',
-  customer_email: 'clientHXH@gmail.com',
+  customer_name: '',
+  customer_phone: '',
+  customer_email: '',
   address: '',
   customer_id_number: '',
   check_in_date: '',
@@ -658,8 +658,10 @@ const showExtendModal = ref(false);
 const extendForm = ref({ booking_detail_id: null, check_out_date: '' });
 const additionalFee = ref(0);
 const surchargeReason = ref('');
-const apiKey = 'UIOieiMUjnqR7UCrJrtF30wQaw8Jc4ys';
+const apiKey = import.meta.env.VITE_API_CCCD;
+// const apiKey = 'UIOieiMUjnqR7UCrJrtF30wQaw8Jc4ys';
 const imageFile = ref(null);
+//  console.log(apiKey);
 
 const serviceTotal = computed(() => allServices.value.reduce((sum, s) => sum + s.price * s.quantity, 0));
 const increaseQty = (index) => { allServices.value[index].quantity++; };
@@ -695,10 +697,10 @@ const openMultiBookingModal = () => {
   showMultiBookingModal.value = true;
   multiBookings.value = [{
     room_id: null,
-    customer_name: 'clientHXH',
-    customer_phone: '0325697601',
-    customer_email: 'clientHXH@gmail.com',
-    customer_id_number: '123456789122',
+    customer_name: '',
+    customer_phone: '',
+    customer_email: '',
+    customer_id_number: '',
     check_in_date: checkInDate,
     check_in_time: checkInTime,
     check_out_date: checkOutDate,
@@ -1062,11 +1064,11 @@ const showAddGuest = (room_id) => {
   const checkOutDate = out.toISOString().slice(0, 10);
 
   formData.value = {
-    customer_name: 'clientHXH',
-    customer_phone: '0325697601',
-    customer_email: 'clientHXH@gmail.com',
-    address: 'Thanh Hoa',
-    customer_id_number: '032569760112',
+    customer_name: '',
+    customer_phone: '',
+    customer_email: '',
+    address: '',
+    customer_id_number: '',
     room_id,
     check_in_date: checkInDate,
     check_in_time: checkInTime,
