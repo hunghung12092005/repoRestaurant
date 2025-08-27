@@ -24,3 +24,4 @@ class CancelBooking extends Model
     'refund_account_name'
 ];
 }
+
