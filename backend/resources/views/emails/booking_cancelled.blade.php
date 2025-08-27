@@ -34,7 +34,7 @@
                         <td style="padding: 30px 40px; color: #333333;">
                             <h2 style="font-size: 22px; color: #A98C58; margin-top: 0; font-family: 'Merriweather', serif;">Mã đơn: HXH{{ $booking->booking_id }}</h2>
                             <p style="font-size: 16px; line-height: 1.6;">Kính gửi {{ $booking->customer->customer_name ?? 'Quý khách' }},</p>
-                            <p style="font-size: 16px; line-height: 1.6;">Chúng tôi xác nhận đơn đặt phòng đã được hủy thành công theo yêu cầu của quý khách. Hy vọng sẽ có dịp đồng hành cùng quý khách trong lần đặt phòng tới!</p>
+                            <p style="font-size: 16px; line-height: 1.6;">Chúng tôi xác nhận đơn đặt phòng đã được hủy thành công theo yêu cầu của bạn.</p>
                             
                             <table border="0" cellpadding="0" cellspacing="0" width="100%" style="margin: 20px 0;">
                                 <tr>
