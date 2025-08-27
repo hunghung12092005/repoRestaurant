@@ -826,9 +826,9 @@ const xacNhanHuyDatPhong = async () => {
     const cancelId = thongTinHuy.value.cancel_id;
     const response = await axiosInstance.patch(`${apiUrl}/api/booking-cancel/${cancelId}`, {
       status: 'processed',
-      refund_bank: '',
-      refund_account_number: '',
-      refund_account_name: ''
+      refund_bank: thongTinHuy.value.refund_bank || '',
+      refund_account_number: thongTinHuy.value.refund_account_number || '',
+      refund_account_name: thongTinHuy.value.refund_account_name || ''
     }, {
       headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' }
     });
