@@ -1,11 +1,7 @@
 <template>
   <div class="page-container">
-    <!-- Hiển thị loading khi đang tải trang -->
     <loading v-if="isLoading"></loading>
-
-    <!-- Nội dung trang khi đã tải xong -->
     <div v-else>
-      <!-- Toast thông báo -->
       <div class="toast-container position-fixed top-0 end-0 p-3">
         <div id="successToast" class="toast align-items-center text-white bg-success border-0" role="alert" aria-live="assertive" aria-atomic="true">
           <div class="d-flex">
@@ -335,7 +331,6 @@ import { Toast } from 'bootstrap';
 import loading from '../loading.vue';
 import { debounce } from 'lodash';
 
-// Helper để lấy ngày hiện tại theo định dạng YYYY-MM-DD
 const getFormattedCurrentDate = () => {
   const now = new Date();
   now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
@@ -362,23 +357,18 @@ const tabHienTai = ref('chiTiet');
 const tuKhoaTimKiem = ref('');
 const locTrangThai = ref('');
 
-// [START] Sửa đổi logic lọc
-const locTheoNgay = ref(getFormattedCurrentDate()); // Mặc định là ngày hôm nay
+const locTheoNgay = ref(getFormattedCurrentDate());
 const locTheoGio = ref('');
 
-// Computed property để kết hợp ngày và giờ, đảm bảo lọc theo ngày ngay cả khi không có giờ
 const locTaiThoiDiem = computed(() => {
   if (!locTheoNgay.value) {
-    return ''; // Nếu không có ngày, không lọc
+    return ''; 
   }
-  // Nếu có cả ngày và giờ, kết hợp lại
   if (locTheoGio.value) {
     return `${locTheoNgay.value} ${locTheoGio.value}`;
   }
-  // Nếu chỉ có ngày, trả về ngày đó để API lọc cả ngày
   return locTheoNgay.value;
 });
-// [END] Sửa đổi logic lọc
 
 const trangHienTai = ref(1);
 const soBanGhiTrenTrang = ref(10);
@@ -424,7 +414,7 @@ const executeAdminCancel = debounce(async () => {
     hienModal.value = false;
     thongBaoToast.value = response.data.message || 'Hủy thành công! Đơn hàng đã được chuyển vào lịch sử.';
     showToast('successToast');
-    await layDanhSachDatPhong(); // Cập nhật lại danh sách
+    await layDanhSachDatPhong();
   } catch (err) {
     console.error('Lỗi khi admin hủy đơn hàng:', {
       message: err.message,
@@ -544,8 +534,6 @@ const timKiemDatPhongDebounced = debounce(() => {
   layDanhSachDatPhong();
 }, 500);
 
-// [START] Sửa đổi logic lọc
-// Cập nhật hàm xóa bộ lọc để xóa cả ngày và giờ
 const xoaLocThoiGian = () => {
   if (locTheoNgay.value || locTheoGio.value) {
     locTheoNgay.value = '';
@@ -553,7 +541,6 @@ const xoaLocThoiGian = () => {
     locDanhSach();
   }
 };
-// [END] Sửa đổi logic lọc
 
 const layDanhSachDatPhong = async () => {
   isLoading.value = true;
@@ -565,7 +552,7 @@ const layDanhSachDatPhong = async () => {
       sort_order: sapXepGiam.value ? 'desc' : 'asc',
       search: tuKhoaTimKiem.value,
       status: locTrangThai.value,
-      active_at: locTaiThoiDiem.value, // Giá trị này đến từ computed property đã được cập nhật
+      active_at: locTaiThoiDiem.value, 
     };
     const res = await axiosInstance.get(`${apiUrl}/api/bookings`, {
       headers: { 'Accept': 'application/json' },
@@ -826,9 +813,9 @@ const xacNhanHuyDatPhong = async () => {
     const cancelId = thongTinHuy.value.cancel_id;
     const response = await axiosInstance.patch(`${apiUrl}/api/booking-cancel/${cancelId}`, {
       status: 'processed',
-      refund_bank: '',
-      refund_account_number: '',
-      refund_account_name: ''
+      refund_bank: thongTinHuy.value.refund_bank || '',
+      refund_account_number: thongTinHuy.value.refund_account_number || '',
+      refund_account_name: thongTinHuy.value.refund_account_name || ''
     }, {
       headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' }
     });

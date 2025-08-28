@@ -26,8 +26,12 @@ class BookingHotelService extends Model
         return $this->belongsTo(Service::class, 'service_id');
     }
     public function serviceInfo()
+    {
+        return $this->belongsTo(Service::class, 'service_id', 'service_id');
+    }
+    public function room()
 {
-    return $this->belongsTo(Service::class, 'service_id', 'service_id');
+    return $this->belongsTo(Room::class, 'room_id', 'room_id');
 }
 
 }

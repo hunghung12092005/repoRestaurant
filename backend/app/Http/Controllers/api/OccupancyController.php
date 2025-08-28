@@ -94,6 +94,7 @@ class OccupancyController extends Controller
                     'c.customer_phone',
                     'c.customer_email',
                     'c.address',
+                    'c.customer_id_number',
                     'rt.type_name',
                     'rooms.room_name',
                     'rooms.floor_number'
@@ -117,6 +118,7 @@ class OccupancyController extends Controller
                     'customer_name' => $booking->customer_name,
                     'customer_phone' => $booking->customer_phone,
                     'customer_email' => $booking->customer_email,
+                    'customer_id_number' => $booking->customer_id_number,
                     'address' => $booking->address,
                 ],
                 'booking' => [
@@ -293,7 +295,7 @@ class OccupancyController extends Controller
             //     'updated_at'         => now(),
             //     'customer_id_number' => $validated['customer_id_number'],
             // ]);
-            
+
             // Sử dụng updateOrCreate để tránh trùng lặp khách hàng
             $customer = Customer::updateOrCreate(
                 ['customer_phone' => $validated['customer_phone']],
@@ -512,6 +514,7 @@ class OccupancyController extends Controller
             'customer_phone' => 'nullable|string|max:20',
             'customer_email' => 'nullable|email',
             'address' => 'nullable|string',
+            'customer_id_number' => 'required|digits:12',
         ]);
 
         try {
@@ -541,6 +544,7 @@ class OccupancyController extends Controller
                     'customer_phone' => $request->customer_phone,
                     'customer_email' => $request->customer_email,
                     'address' => $request->address,
+                    'customer_id_number' => $request->customer_id_number,
                     'updated_at' => now(),
                 ]);
             }
@@ -926,10 +930,11 @@ class OccupancyController extends Controller
                     ->where('booking_id', $booking->booking_id)
                     ->sum('total_paid');
                 $tien = $booking_total + $thanh_toan_truoc;
+                $tien2 = $booking_total;
                 $booking->update([
                     'status' => 'completed',
                     'payment_status' => 'completed',
-                    'total_price' => $tien,
+                    'total_price' => $tien2,
                     // 'total_price' => $tien_chinh,
                     // 'total_price' => $booking_total,
                     'check_out_time' => $actualCheckout,
@@ -1447,24 +1452,51 @@ class OccupancyController extends Controller
         }
     }
     //roi phong
+    // public function getAvailableRoomsLeaveRoom($typeId, $roomId)
+    // {
+    //     // Cập nhật phòng hiện tại thành Available
+    //     DB::table('rooms')
+    //         ->where('room_id', $roomId)
+    //         ->update(['status' => 'Available']);
+
+    //     // Lấy danh sách phòng trống theo loại
+    //     $rooms = DB::table('rooms')
+    //         ->where('type_id', $typeId)
+    //         ->where('status', 'Available')
+    //         ->select('room_id', 'room_name', 'floor_number', 'status')
+    //         ->orderBy('floor_number')
+    //         ->orderBy('room_name')
+    //         ->get();
+
+    //     return response()->json($rooms);
+    // }
     public function getAvailableRoomsLeaveRoom($typeId, $roomId)
     {
-        // Cập nhật phòng hiện tại thành Available
+        // 1. Cập nhật phòng hiện tại thành Available
         DB::table('rooms')
             ->where('room_id', $roomId)
             ->update(['status' => 'Available']);
 
-        // Lấy danh sách phòng trống theo loại
-        $rooms = DB::table('rooms')
-            ->where('type_id', $typeId)
-            ->where('status', 'Available')
-            ->select('room_id', 'room_name', 'floor_number', 'status')
-            ->orderBy('floor_number')
-            ->orderBy('room_name')
+        // 2. Lấy danh sách phòng còn trống
+        $rooms = DB::table('rooms as r')
+            ->where('r.type_id', $typeId)
+            ->where('r.status', 'Available')
+            ->whereNotExists(function ($query) {
+                $query->select(DB::raw(1))
+                    ->from('booking_hotel_detail as bd') // 
+                    ->join('booking_hotel as b', 'bd.booking_id', '=', 'b.booking_id')
+                    ->whereColumn('bd.room_id', 'r.room_id')
+                    ->whereRaw("NOW() BETWEEN CONCAT(b.check_in_date, ' ', b.check_in_time) 
+                                    AND CONCAT(b.check_out_date, ' ', IFNULL(b.check_out_time, '23:59:59'))");
+            })
+            ->select('r.room_id', 'r.room_name', 'r.floor_number', 'r.status')
+            ->orderBy('r.floor_number')
+            ->orderBy('r.room_name')
             ->get();
 
         return response()->json($rooms);
     }
+
     public function changeRoom(Request $request)
     {
         $request->validate([

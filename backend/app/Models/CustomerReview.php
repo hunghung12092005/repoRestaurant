@@ -11,7 +11,7 @@ class CustomerReview extends Model
 
     protected $fillable = [
         'booking_id',
-        'customer_id',
+        // 'customer_id',
         'room_rating',
         'service_rating',
         'star_rating',
