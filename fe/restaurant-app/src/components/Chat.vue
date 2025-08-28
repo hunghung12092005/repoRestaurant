@@ -238,8 +238,17 @@ const socketId = ref('');
 const file = ref(null);
 const MAX_FILE_SIZE = 2 * 1024 * 1024; // 0.5 MB
 var user = JSON.parse(localStorage.getItem('userInfo'))?.name || 'HXH CLIENT';
-var userId = JSON.parse(localStorage.getItem('userInfo'))?.id2 || 'defaultUserId';
+// var userId = JSON.parse(localStorage.getItem('userInfo'))?.id2 || 'defaultUserId';
+let userInfoStr = localStorage.getItem('userInfo');
+if (userInfoStr) {
+  try {
+    userInfo = JSON.parse(userInfoStr);
+  } catch (e) {
+    console.error('Failed to parse userInfo:', e);
+  }
+}
 
+var userId = userInfo?.id2 || userInfo?.id || 'defaultUserId';
 // Computed property to display messages based on active tab
 const currentMessages = computed(() => {
   if (activeTab.value === 'ai') return aiMessages.value;
