@@ -71,7 +71,7 @@
                                     <td style="padding: 10px 0; border-top: 1px solid #eeeeee; text-align: right;">{{ \Carbon\Carbon::parse($booking->check_out_date)->format('d/m/Y') }}</td>
                                 </tr>
                                 <tr>
-                                    <td style="padding: 10px 0; border-top: 1px solid #eeeeee; font-weight: bold;">Số phòng:</td>
+                                    <td style="padding: 10px 0; border-top: 1px solid #eeeeee; font-weight: bold;">Số lượng phòng:</td>
                                     <td style="padding: 10px 0; border-top: 1px solid #eeeeee; text-align: right;">{{ $booking->total_rooms }}</td>
                                 </tr>
                                 <tr>
