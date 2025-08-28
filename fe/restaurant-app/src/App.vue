@@ -299,7 +299,31 @@ const handleUrlParams = () => {
   }
 };
 // const notifications = ref([]);
+const showToast = ref(false);
+const latestNotification = ref({});
 
+// Hàm addNotification giờ chỉ cần cập nhật toast và tự động ẩn
+const addNotification = (message) => {
+  const timestamp = new Date().toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' });
+  latestNotification.value = { message, timestamp };
+  showToast.value = true;
+
+  // Tự động ẩn toast sau 7 giây
+  setTimeout(() => {
+    showToast.value = false;
+  }, 7000);
+};
+
+
+
+
+socket.on('connect', () => { console.log(`Connected with socket ID: ${socket.id}`); });
+socket.on('notification', (data) => { 
+    // Chỉ hiển thị toast cho nhân viên/admin
+    if(isStaff.value || isAdmin.value) {
+        addNotification(data.message); 
+    }
+});
 onMounted(() => {
   handleUrlParams();
   restoreUserSession();
@@ -311,6 +335,8 @@ onMounted(() => {
 onUnmounted(() => {
   window.removeEventListener('scroll', handleScroll);
   document.removeEventListener('click', handleOutsideClick);
+  socket.off('connect');
+  socket.off('notification');
 });
 </script>
 

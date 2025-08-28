@@ -1,79 +1,49 @@
 <template>
-  <!-- Bọc mọi thứ trong một thẻ div để có một root element duy nhất -->
-  <div>
-    <!-- ====================================================== -->
-    <!-- BẮT ĐẦU: GIAO DIỆN TOAST POP-UP -->
-    <!-- ====================================================== -->
-    <div class="toast-container position-fixed top-0 end-0 p-3" style="z-index: 1100;">
-      <transition name="toast-fade">
-        <div v-if="showToast" class="toast show custom-notification-toast" role="alert" aria-live="assertive" aria-atomic="true">
-          <div class="toast-header">
-            <i class="bi bi-bell-fill me-2 text-primary"></i>
-            <strong class="me-auto">Thông báo mới</strong>
-            <small class="text-muted">{{ latestToastNotification.timestamp }}</small>
-            <button type="button" class="btn-close" @click="showToast = false" aria-label="Close"></button>
+  <div class="notification-bell-wrapper dropdown" ref="notificationWrapper">
+    <i class="bi bi-bell-fill mx-3" @click="toggleDropdown" data-bs-toggle="dropdown" aria-expanded="false" title="Thông báo">
+      <span v-if="unreadCount > 0" class="badge rounded-pill bg-danger notification-badge">{{ unreadCount > 9 ? '9+' : unreadCount }}</span>
+    </i>
+
+    <transition name="fade">
+      <ul v-if="isOpen" class="dropdown-menu dropdown-menu-end notification-dropdown show">
+        <li class="dropdown-header d-flex justify-content-between align-items-center">
+          <span class="fw-bold">Thông báo</span>
+          <button v-if="hasUnreadInDropdown" @click.prevent="markAllAsRead" class="btn btn-link btn-sm p-0">
+             Đánh dấu tất cả đã đọc
+          </button>
+        </li>
+        <li><hr class="dropdown-divider my-0"></li>
+
+        <div class="notification-list-container">
+          <div v-if="isLoading" class="d-flex justify-content-center align-items-center p-5">
+            <div class="spinner-border text-primary" role="status"><span class="visually-hidden">Loading...</span></div>
           </div>
-          <div class="toast-body">
-            {{ latestToastNotification.message }}
+          <div v-else-if="notifications.length === 0" class="empty-state">
+            <i class="bi bi-check2-circle empty-icon"></i>
+            <p class="text-muted mb-0">Không có thông báo mới.</p>
           </div>
+          <ul v-else class="list-unstyled mb-0">
+            <li v-for="notification in notifications" :key="notification.id">
+              <a class="dropdown-item d-flex align-items-start" :class="{ 'unread': !notification.read_at }" @click.prevent="handleNotificationClick(notification)">
+                <div class="icon-wrapper flex-shrink-0" :style="{ backgroundColor: getNotificationDetails(notification.type).color }">
+                  <i :class="getNotificationDetails(notification.type).icon"></i>
+                </div>
+                <div class="notification-content flex-grow-1">
+                  <p class="mb-1 message-text" :class="{ 'fw-bold': !notification.read_at }">{{ notification.data.message }}</p>
+                  <small class="text-muted">{{ timeAgo(notification.created_at) }}</small>
+                </div>
+                <span v-if="!notification.read_at" class="unread-dot" title="Chưa đọc"></span>
+              </a>
+            </li>
+          </ul>
         </div>
-      </transition>
-    </div>
-    <!-- ====================================================== -->
-    <!-- KẾT THÚC: GIAO DIỆN TOAST POP-UP -->
-    <!-- ====================================================== -->
 
-    <!-- GIAO DIỆN CHUÔNG VÀ DROPDOWN (như cũ) -->
-    <div class="notification-bell-wrapper dropdown" ref="notificationWrapper">
-      <i class="bi bi-bell-fill mx-3" @click="toggleDropdown" data-bs-toggle="dropdown" aria-expanded="false" title="Thông báo">
-        <span v-if="unreadCount > 0" class="badge rounded-pill bg-danger notification-badge">{{ unreadCount > 9 ? '9+' : unreadCount }}</span>
-      </i>
-
-      <transition name="fade">
-        <ul v-if="isOpen" class="dropdown-menu dropdown-menu-end notification-dropdown show">
-          <!-- Header -->
-          <li class="dropdown-header d-flex justify-content-between align-items-center">
-            <span class="fw-bold">Thông báo</span>
-            <button v-if="hasUnreadInDropdown" @click.prevent="markAllAsRead" class="btn btn-link btn-sm p-0">
-               Đánh dấu tất cả đã đọc
-            </button>
-          </li>
-          <li><hr class="dropdown-divider my-0"></li>
-
-          <!-- Vùng nội dung có thể cuộn -->
-          <div class="notification-list-container">
-            <!-- ... Các trạng thái loading, empty, list ... -->
-             <div v-if="isLoading" class="d-flex justify-content-center align-items-center p-5">
-              <div class="spinner-border text-primary" role="status"><span class="visually-hidden">Loading...</span></div>
-            </div>
-            <div v-else-if="notifications.length === 0" class="empty-state">
-              <i class="bi bi-check2-circle empty-icon"></i>
-              <p class="text-muted mb-0">Không có thông báo mới.</p>
-            </div>
-            <ul v-else class="list-unstyled mb-0">
-              <li v-for="notification in notifications" :key="notification.id">
-                <a class="dropdown-item d-flex align-items-start" :class="{ 'unread': !notification.read_at }" @click.prevent="handleNotificationClick(notification)">
-                  <div class="icon-wrapper flex-shrink-0" :style="{ backgroundColor: getNotificationDetails(notification.type).color }">
-                    <i :class="getNotificationDetails(notification.type).icon"></i>
-                  </div>
-                  <div class="notification-content flex-grow-1">
-                    <p class="mb-1 message-text" :class="{ 'fw-bold': !notification.read_at }">{{ notification.data.message }}</p>
-                    <small class="text-muted">{{ timeAgo(notification.created_at) }}</small>
-                  </div>
-                  <span v-if="!notification.read_at" class="unread-dot" title="Chưa đọc"></span>
-                </a>
-              </li>
-            </ul>
-          </div>
-
-          <!-- Footer -->
-          <li><hr class="dropdown-divider my-0"></li>
-          <li class="dropdown-footer text-center">
-              <a href="#" @click.prevent="viewAllNotifications" class="view-all-link">Xem tất cả thông báo</a>
-          </li>
-        </ul>
-      </transition>
-    </div>
+        <li><hr class="dropdown-divider my-0"></li>
+        <li class="dropdown-footer text-center">
+            <a href="#" @click.prevent="viewAllNotifications" class="view-all-link">Xem tất cả thông báo</a>
+        </li>
+      </ul>
+    </transition>
   </div>
 </template>
 
@@ -81,62 +51,30 @@
 import { ref, onMounted, onUnmounted, computed } from 'vue';
 import { useRouter } from 'vue-router';
 import axiosConfig from '../axiosConfig.js';
-import socket from '../socket.js'; // SỬ DỤNG SOCKET.IO
 
-// --- STATE CỦA DROPDOWN ---
 const router = useRouter();
 const notifications = ref([]);
+const unreadCount = ref(0);
 const isOpen = ref(false);
 const isLoading = ref(true);
+let pollingInterval = null;
 const notificationWrapper = ref(null);
+
 const hasUnreadInDropdown = computed(() => notifications.value.some(n => !n.read_at));
 
-// --- STATE CỦA TOAST ---
-const showToast = ref(false);
-const latestToastNotification = ref({});
-
-// --- STATE CHUNG ---
-const unreadCount = ref(0);
-let pollingInterval = null;
-
-/**
- * Lấy số lượng thông báo chưa đọc từ API.
- * Dùng cho lần tải đầu tiên và polling dự phòng.
- */
-const fetchUnreadCount = async () => {
+const pollForUpdates = async () => {
   try {
     const response = await axiosConfig.get('/api/notifications/unread-count');
     if (response.data.status) {
-      unreadCount.value = response.data.unread_count;
+      const newCount = response.data.unread_count;
+      if (newCount !== unreadCount.value && isOpen.value) {
+        fetchNotificationsList();
+      }
+      unreadCount.value = newCount;
     }
-  } catch (error) {
-    // Không log lỗi để tránh spam console
-  }
+  } catch (error) {}
 };
 
-/**
- * Xử lý khi có thông báo mới từ Socket.IO.
- * @param {object} data - Dữ liệu nhận từ socket.
- */
-const handleNewNotification = (data) => {
-  // 1. Hiển thị toast
-  const timestamp = new Date().toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' });
-  latestToastNotification.value = { message: data.message, timestamp };
-  showToast.value = true;
-  setTimeout(() => { showToast.value = false; }, 7000);
-
-  // 2. Tăng số đếm trên chuông ngay lập tức
-  unreadCount.value++;
-
-  // 3. Nếu dropdown đang mở, làm mới danh sách để hiển thị thông báo mới
-  if (isOpen.value) {
-    fetchNotificationsList();
-  }
-};
-
-/**
- * Lấy danh sách thông báo chi tiết cho dropdown.
- */
 const fetchNotificationsList = async () => {
   try {
     isLoading.value = true;
@@ -151,27 +89,27 @@ const fetchNotificationsList = async () => {
   }
 };
 
-// --- CÁC HÀM XỬ LÝ SỰ KIỆN (giữ nguyên) ---
 const toggleDropdown = () => {
   isOpen.value = !isOpen.value;
   if (isOpen.value) {
     fetchNotificationsList();
-    fetchUnreadCount(); // Cập nhật lại số đếm khi mở
   }
 };
 
 const handleNotificationClick = async (notification) => {
   const wasUnread = !notification.read_at;
   isOpen.value = false;
+  
   if (notification.data.link) {
     router.push(notification.data.link);
   }
+  
   if (wasUnread) {
     try {
       await axiosConfig.post(`/api/notifications/${notification.id}/mark-as-read`);
-      await fetchUnreadCount(); // Lấy lại số đếm chính xác từ server
+      await pollForUpdates(); // Cập nhật lại số lượng chính xác
     } catch (error) {
-      console.error('Lỗi khi đánh dấu đã đọc:', error);
+      console.error('Lỗi khi đánh dấu đã đọc trên server:', error);
     }
   }
 };
@@ -179,8 +117,15 @@ const handleNotificationClick = async (notification) => {
 const markAllAsRead = async () => {
   try {
     await axiosConfig.post('/api/notifications/mark-all-as-read');
-    notifications.value.forEach(n => { n.read_at = new Date().toISOString(); });
+    
+    // Cập nhật giao diện ngay lập tức
+    notifications.value.forEach(n => {
+      if (!n.read_at) n.read_at = new Date().toISOString();
+    });
+    
+    // Cập nhật unreadCount về 0
     unreadCount.value = 0;
+    
   } catch (error) {
     console.error('Lỗi khi đánh dấu tất cả đã đọc:', error);
   }
@@ -197,29 +142,17 @@ const handleClickOutside = (event) => {
   }
 };
 
-// --- LIFECYCLE HOOKS ---
 onMounted(() => {
-  // 1. Lấy trạng thái ban đầu
-  fetchUnreadCount();
-
-  // 2. Lắng nghe sự kiện real-time từ socket
-  socket.on('notification', handleNewNotification);
-
-  // 3. Thiết lập polling như một cơ chế dự phòng để đồng bộ hóa
-  pollingInterval = setInterval(fetchUnreadCount, 30000); // 30 giây một lần
-
-  // 4. Thêm listener để đóng dropdown khi click ra ngoài
+  pollForUpdates();
+  pollingInterval = setInterval(pollForUpdates, 15000);
   document.addEventListener('mousedown', handleClickOutside);
 });
 
 onUnmounted(() => {
-  // Dọn dẹp tất cả khi component bị hủy
-  socket.off('notification', handleNewNotification);
   if (pollingInterval) clearInterval(pollingInterval);
   document.removeEventListener('mousedown', handleClickOutside);
 });
 
-// --- HELPER FUNCTIONS ---
 const getNotificationDetails = (type) => {
   const details = {
     'NEW_CONTACT': { icon: 'bi bi-person-plus-fill', color: 'var(--bs-primary)' },
@@ -245,7 +178,6 @@ const timeAgo = (dateString) => {
 </script>
 
 <style scoped>
-/* CSS cho dropdown (giữ nguyên) */
 .fade-enter-active, .fade-leave-active { transition: opacity 0.2s ease, transform 0.2s ease; }
 .fade-enter-from, .fade-leave-to { opacity: 0; transform: translateY(-10px); }
 .notification-bell-wrapper { position: relative; }
@@ -272,39 +204,4 @@ const timeAgo = (dateString) => {
 .dropdown-footer { padding: 0.75rem; background-color: #f8f9fa; }
 .view-all-link { font-weight: 500; color: var(--bs-primary); text-decoration: none; }
 .view-all-link:hover { text-decoration: underline; }
-
-/* ====================================================== */
-/* BẮT ĐẦU: CSS MỚI CHO TOAST VÀ HIỆU ỨNG */
-/* ====================================================== */
-.custom-notification-toast {
-  width: 380px;
-  max-width: 90vw;
-  background-color: #fff;
-  border: 1px solid #e9ecef;
-  box-shadow: 0 8px 24px rgba(0,0,0,0.12);
-  border-radius: 0.75rem;
-  background-clip: padding-box;
-  opacity: 1; 
-}
-.custom-notification-toast .toast-header {
-  background-color: #f8f9fa;
-  border-bottom: 1px solid #e9ecef;
-  color: #212529;
-}
-.custom-notification-toast .toast-body {
-    color: #495057;
-    font-size: 0.95rem;
-}
-.toast-fade-enter-active,
-.toast-fade-leave-active {
-  transition: opacity 0.4s ease, transform 0.4s ease;
-}
-.toast-fade-enter-from,
-.toast-fade-leave-to {
-  opacity: 0;
-  transform: translateX(100%); /* Trượt từ bên phải vào */
-}
-/* ====================================================== */
-/* KẾT THÚC: CSS MỚI */
-/* ====================================================== */
 </style>
