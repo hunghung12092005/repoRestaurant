@@ -166,7 +166,12 @@
 
 <script setup>
 import { ref, computed, watch, onMounted } from 'vue';
-import axiosInstance from '../../axiosConfig.js';
+import axios from 'axios';
+
+const apiClient = axios.create({
+  baseURL: 'http://127.0.0.1:8000/api',
+  headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' }
+});
 
 const rooms = ref([]);
 const roomTypes = ref([]);
@@ -200,7 +205,7 @@ const fetchRooms = async () => {
     if (searchQuery.value.trim()) params.append('search', searchQuery.value.trim());
     if (filterRoomType.value) params.append('type_id', filterRoomType.value);
 
-    const response = await axiosInstance.get(`/api/rooms?${params.toString()}`);
+    const response = await apiClient.get(`/rooms?${params.toString()}`);
 
     rooms.value = (response.data.data || []).map(room => ({
       ...room,
@@ -224,11 +229,8 @@ const fetchRooms = async () => {
 
 const fetchRoomTypes = async () => {
   try {
-    const response = await axiosInstance.get('/api/room-types');
-    roomTypes.value = Array.isArray(response.data.data) ? response.data.data : [];
-    if (roomTypes.value.length === 0) {
-      console.warn('Không tìm thấy loại phòng nào. Vui lòng thêm loại phòng trước.');
-    }
+    const response = await apiClient.get('/room-types'); 
+    roomTypes.value = response.data.data || [];
   } catch (error) {
     console.error('Không thể tải danh sách loại phòng:', error);
   }
@@ -285,11 +287,9 @@ const saveRoom = async () => {
   try {
     let response;
     if (currentRoom.value) {
-      await axiosInstance.put(`/api/rooms/${currentRoom.value.room_id}`, payload);
-      successMessage.value = 'Cập nhật phòng thành công!';
+      response = await apiClient.put(`/rooms/${currentRoom.value.room_id}`, form.value);
     } else {
-      await axiosInstance.post('/api/rooms', payload);
-      successMessage.value = 'Thêm phòng thành công!';
+      response = await apiClient.post('/rooms', form.value);
     }
     successMessage.value = response.data.message;
     closeModal();
@@ -312,9 +312,12 @@ const deleteRoom = async (room) => {
   successMessage.value = '';
   errorMessage.value = '';
   try {
-    await axiosInstance.delete(`/api/rooms/${room_id}`);
-    successMessage.value = 'Xóa phòng thành công!';
-    await fetchRooms(); 
+    const response = await apiClient.delete(`/rooms/${room.room_id}`);
+    successMessage.value = response.data.message;
+    if (displayedRooms.value.length === 1 && currentPage.value > 1) {
+      currentPage.value--;
+    }
+    await fetchRooms();
   } catch (error) {
     errorMessage.value = error.response?.data?.message || 'Xóa phòng thất bại.';
   } finally {

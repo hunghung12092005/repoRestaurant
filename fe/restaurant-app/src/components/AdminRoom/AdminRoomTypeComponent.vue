@@ -156,15 +156,11 @@
                     <label class="form-label">Mô Tả</label>
                     <textarea v-model="form.description" class="form-control" rows="3"></textarea>
                   </div>
-
-                  <!-- Giao diện upload nhiều ảnh -->
                   <div class="col-12">
                     <label class="form-label d-block mb-2">Ảnh Loại Phòng</label>
                     <input type="file" accept="image/*" ref="fileInput" @change="handleImageUpload"
                       style="display: none" multiple />
                     <div v-if="imagePreviews.length > 0" class="image-previews-container mb-3">
-
-                      <!-- === THAY ĐỔI QUAN TRỌNG: Truyền cả đối tượng 'preview' vào hàm xóa === -->
                       <div v-for="preview in imagePreviews" :key="preview.url" class="image-preview-item">
                         <img :src="preview.url" alt="Preview" class="image-preview" />
                         <button @click="removeImage(preview)" class="btn-remove-image" title="Xóa ảnh">
@@ -229,7 +225,6 @@ const apiClient = axios.create({
   headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' }
 });
 
-// --- STATE ---
 const roomTypes = ref([]);
 const amenities = ref([]);
 const tuKhoaTim = ref('');
@@ -267,7 +262,6 @@ const fetchData = async () => {
 };
 onMounted(fetchData);
 
-// --- LỌC VÀ PHÂN TRANG ---
 const filteredTypes = computed(() => {
   if (!tuKhoaTim.value) return roomTypes.value || [];
   const searchTerm = tuKhoaTim.value.toLowerCase();
@@ -296,7 +290,6 @@ const paginationPages = computed(() => {
   return Array.from({ length: end - start + 1 }, (_, i) => start + i);
 });
 
-// --- QUẢN LÝ MODAL ---
 const resetForm = () => {
   form.value = { bed_count: 1, max_occupancy: 1, max_occupancy_child: 0, amenity_ids: [] };
   existingImages.value = [];
@@ -329,10 +322,6 @@ const moModalSua = (type) => {
 };
 
 const closeModal = () => { isModalOpen.value = false; };
-
-// --- XỬ LÝ ẢNH ---
-// Logic xử lý ảnh (imagePreviews, handleFiles, ...) giữ nguyên như phiên bản trước
-// vì nó đã đúng.
 const imagePreviews = computed(() => {
     const existing = existingImages.value.map(name => ({
         type: 'existing',
@@ -383,7 +372,6 @@ const removeImage = async (imageToRemove) => {
     }
 };
 
-// --- TIỆN ÍCH ---
 const isAllAmenitiesSelected = computed(() => {
   if (!amenities.value || amenities.value.length === 0) return false;
   return form.value. amenity_ids?.length === amenities.value.length;
@@ -392,11 +380,7 @@ const toggleAllAmenities = (event) => {
   form.value.amenity_ids = event.target.checked ? amenities.value.map((a) => a.amenity_id) : [];
 };
 
-// --- CRUD ---
-
-// [VIẾT LẠI HOÀN TOÀN] Hàm saveType để sửa lỗi
 const saveType = async () => {
-  // 1. Kiểm tra validation cơ bản ở client-side
   if (!form.value.type_name || !form.value.type_name.trim() || form.value.bed_count < 1 || form.value.max_occupancy < 1) {
     modalErrorMessage.value = 'Vui lòng điền đầy đủ thông tin bắt buộc (Tên, số giường, sức chứa).';
     return;
@@ -428,8 +412,6 @@ const saveType = async () => {
         'Content-Type': 'multipart/form-data',
       }
     });
-    
-    // 8. Xử lý kết quả
     await fetchData();
     closeModal();
     successMessage.value = response.data.message || 'Lưu loại phòng thành công!';

@@ -145,7 +145,12 @@
 
 <script setup>
 import { ref, computed, watch, onMounted } from 'vue';
-import axiosInstance from '../../axiosConfig.js';
+import axios from 'axios';
+
+const apiClient = axios.create({
+  baseURL: 'http://127.0.0.1:8000/api',
+  headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' }
+});
 
 const services = ref([]);
 const searchQuery = ref('');
@@ -173,9 +178,8 @@ const fetchServices = async (page = 1) => {
   isLoading.value = true;
   errorMessage.value = '';
   try {
-    const response = await axiosInstance.get(`/api/services?page=${page}&per_page=${itemsPerPage}`);
-    console.log('Services API response:', JSON.stringify(response.data, null, 2));
-    services.value = Array.isArray(response.data.data) ? response.data.data : (response.data.data?.data || []);
+    const response = await apiClient.get(`/services?page=${page}&per_page=${itemsPerPage}`);
+    services.value = response.data.data || [];
     totalItems.value = response.data.total || 0;
     currentPage.value = response.data.current_page || 1;
     lastPage.value = response.data.last_page || 1;
@@ -196,7 +200,7 @@ watch(currentPage, (newPage) => {
 
 const filteredServices = computed(() => {
   if (!Array.isArray(services.value)) return [];
-  if (!searchQuery.value) return []; // Trả về mảng rỗng nếu không tìm kiếm
+  if (!searchQuery.value) return [];
   return services.value.filter(service =>
     (service.service_name?.toLowerCase() || '').includes(searchQuery.value.toLowerCase()) ||
     (service.description?.toLowerCase() || '').includes(searchQuery.value.toLowerCase())
@@ -204,11 +208,9 @@ const filteredServices = computed(() => {
 });
 
 const displayedServices = computed(() => {
-  // Nếu có từ khóa tìm kiếm, hiển thị kết quả lọc
   if (searchQuery.value.trim()) {
     return filteredServices.value;
   }
-  // Nếu không, hiển thị danh sách từ API (đã được phân trang)
   return services.value;
 });
 
@@ -253,19 +255,9 @@ const saveService = async () => {
   try {
     let response;
     if (currentService.value) {
-      response = await axiosInstance.put(`/api/services/${currentService.value.service_id}`, payload);
-      console.log('PUT response:', JSON.stringify(response.data, null, 2));
-      const index = services.value.findIndex(s => s.service_id === currentService.value.service_id);
-      if (index !== -1) {
-        services.value[index] = response.data.data;
-      }
-      successMessage.value = 'Cập nhật dịch vụ thành công!';
+      response = await apiClient.put(`/services/${currentService.value.service_id}`, form.value);
     } else {
-      response = await axiosInstance.post('/api/services', payload);
-      console.log('POST response:', JSON.stringify(response.data, null, 2));
-      services.value.push(response.data.data);
-      successMessage.value = 'Thêm dịch vụ thành công!';
-      await fetchServices(currentPage.value);
+      response = await apiClient.post('/services', form.value);
     }
     successMessage.value = response.data.message;
     closeModal();
@@ -282,9 +274,9 @@ const deleteService = async (service_id) => {
   successMessage.value = '';
   errorMessage.value = '';
   try {
-    await axiosInstance.delete(`/api/services/${service_id}`);
-    services.value = services.value.filter(s => s.service_id !== service_id);
-    if (displayedServices.value.length === 0 && currentPage.value > 1) {
+    const response = await apiClient.delete(`/services/${service_id}`);
+    successMessage.value = response.data.message;
+    if (services.value.length === 1 && currentPage.value > 1) {
       currentPage.value--;
     }
     await fetchServices(currentPage.value);
@@ -459,13 +451,11 @@ const handleApiError = (message, error, context = 'page') => {
   padding: 1rem 1.5rem;
 }
 
-/* STYLE MỚI CHO HUY HIỆU KHÓA */
 .badge-in-use {
   display: inline-flex;
   align-items: center;
   justify-content: center;
   width: 70px;
-  /* Bằng kích thước nút small */
   height: 31px;
   background-color: #f3f4f6;
   color: #7f8c8d;
