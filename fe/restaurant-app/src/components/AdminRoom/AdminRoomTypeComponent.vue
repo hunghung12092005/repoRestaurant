@@ -155,15 +155,11 @@
                     <label class="form-label">Mô Tả</label>
                     <textarea v-model="form.description" class="form-control" rows="3"></textarea>
                   </div>
-
-                  <!-- Giao diện upload nhiều ảnh -->
                   <div class="col-12">
                     <label class="form-label d-block mb-2">Ảnh Loại Phòng</label>
                     <input type="file" accept="image/*" ref="fileInput" @change="handleImageUpload"
                       style="display: none" multiple />
                     <div v-if="imagePreviews.length > 0" class="image-previews-container mb-3">
-
-                      <!-- === THAY ĐỔI QUAN TRỌNG: Truyền cả đối tượng 'preview' vào hàm xóa === -->
                       <div v-for="preview in imagePreviews" :key="preview.url" class="image-preview-item">
                         <img :src="preview.url" alt="Preview" class="image-preview" />
                         <button @click="removeImage(preview)" class="btn-remove-image" title="Xóa ảnh">
@@ -220,16 +216,14 @@
 
 <script setup>
 import { ref, computed, onMounted } from 'vue';
-import axiosInstance from '../../axiosConfig.js';
+import axios from 'axios';
 
-// --- CONFIG ---
 const API_BASE_URL = 'http://127.0.0.1:8000';
-// const apiClient = axios.create({
-//   baseURL: `${API_BASE_URL}/api`,
-//   headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' }
-// });
+const apiClient = axios.create({
+  baseURL: `${API_BASE_URL}/api`,
+  headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' }
+});
 
-// --- STATE ---
 const roomTypes = ref([]);
 const amenities = ref([]);
 const tuKhoaTim = ref('');
@@ -249,14 +243,13 @@ const form = ref({});
 const existingImages = ref([]);
 const newImageFiles = ref([]);
 
-// --- API CALLS ---
 const fetchData = async () => {
   isLoading.value = true;
   errorMessage.value = '';
   try {
     const [roomTypesRes, amenitiesRes] = await Promise.all([
-      axiosInstance.get(`${API_BASE_URL}/api/room-types`),
-      axiosInstance.get(`${API_BASE_URL}/api/amenities`, { params: { per_page: 'all' } }),
+      apiClient.get('/room-types'),
+      apiClient.get('/amenities', { params: { per_page: 'all' } }),
     ]);
     roomTypes.value = roomTypesRes.data.data || [];
     amenities.value = amenitiesRes.data.data || [];
@@ -268,7 +261,6 @@ const fetchData = async () => {
 };
 onMounted(fetchData);
 
-// --- LỌC VÀ PHÂN TRANG ---
 const filteredTypes = computed(() => {
   if (!tuKhoaTim.value) return roomTypes.value || [];
   const searchTerm = tuKhoaTim.value.toLowerCase();
@@ -297,7 +289,6 @@ const paginationPages = computed(() => {
   return Array.from({ length: end - start + 1 }, (_, i) => start + i);
 });
 
-// --- QUẢN LÝ MODAL ---
 const resetForm = () => {
   form.value = { bed_count: 1, max_occupancy: 1, max_occupancy_child: 0, amenity_ids: [] };
   existingImages.value = [];
@@ -330,10 +321,6 @@ const moModalSua = (type) => {
 };
 
 const closeModal = () => { isModalOpen.value = false; };
-
-// --- XỬ LÝ ẢNH ---
-// Logic xử lý ảnh (imagePreviews, handleFiles, ...) giữ nguyên như phiên bản trước
-// vì nó đã đúng.
 const imagePreviews = computed(() => {
   const existing = existingImages.value.map(name => ({
     type: 'existing',
@@ -384,7 +371,6 @@ const removeImage = async (imageToRemove) => {
   }
 };
 
-// --- TIỆN ÍCH ---
 const isAllAmenitiesSelected = computed(() => {
   if (!amenities.value || amenities.value.length === 0) return false;
   return form.value.amenity_ids?.length === amenities.value.length;
@@ -393,11 +379,7 @@ const toggleAllAmenities = (event) => {
   form.value.amenity_ids = event.target.checked ? amenities.value.map((a) => a.amenity_id) : [];
 };
 
-// --- CRUD ---
-
-// [VIẾT LẠI HOÀN TOÀN] Hàm saveType để sửa lỗi
 const saveType = async () => {
-  // 1. Kiểm tra validation cơ bản ở client-side
   if (!form.value.type_name || !form.value.type_name.trim() || form.value.bed_count < 1 || form.value.max_occupancy < 1) {
     modalErrorMessage.value = 'Vui lòng điền đầy đủ thông tin bắt buộc (Tên, số giường, sức chứa).';
     return;
@@ -406,41 +388,29 @@ const saveType = async () => {
   isSaving.value = true;
   modalErrorMessage.value = '';
   successMessage.value = '';
-
-  // 2. Tạo đối tượng FormData để gửi dữ liệu
   const formData = new FormData();
-
-  // 3. [SỬA LỖI] Vòng lặp này sẽ thêm các trường dữ liệu vào formData
-  //    NHƯNG sẽ bỏ qua các trường không cần thiết như 'images' (là JSON string) và 'amenities' (là mảng object)
   Object.keys(form.value).forEach(key => {
     const ignoredKeys = ['images', 'amenity_ids', 'amenities', 'rooms_count', 'rooms_with_bookings_count'];
     if (!ignoredKeys.includes(key) && form.value[key] !== null && form.value[key] !== undefined) {
       formData.append(key, form.value[key]);
     }
   });
-
-  // 4. Thêm các file ảnh MỚI vào formData với key 'images[]'
   newImageFiles.value.forEach(file => formData.append('images[]', file));
-
-  // 5. Thêm danh sách các ID tiện ích
   (form.value.amenity_ids || []).forEach(id => formData.append('amenity_ids[]', id));
-
-  // 6. Xử lý logic cho việc CẬP NHẬT
   if (editingType.value) {
-    // Thêm danh sách tên các file ảnh CŨ được giữ lại
     existingImages.value.forEach(imageName => formData.append('existing_images[]', imageName));
-    // Laravel cần trường này để nhận diện request PUT khi gửi qua FormData
-    formData.append('_method', 'PUT');
+    formData.append('_method', 'PUT'); 
   }
 
   try {
-    let response;
-    if (editingType.value) {
-      formData.append('_method', 'PUT');
-      response = await axiosInstance.post(`${API_BASE_URL}/api/room-types/${editingType.value.type_id}`, formData);
-    } else {
-      response = await axiosInstance.post(`${API_BASE_URL}/api/room-types`, formData);
-    }
+    const url = editingType.value
+      ? `${API_BASE_URL}/api/room-types/${editingType.value.type_id}`
+      : `${API_BASE_URL}/api/room-types`;
+    const response = await axios.post(url, formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+      }
+    });
     await fetchData();
     closeModal();
     successMessage.value = response.data.message || 'Lưu loại phòng thành công!';
@@ -455,7 +425,7 @@ const saveType = async () => {
 const xoaLoaiPhong = async (id) => {
   if (confirm('Bạn có chắc chắn muốn xóa loại phòng này? Hành động này không thể hoàn tác.')) {
     try {
-      const response = await axiosInstance.delete(`${API_BASE_URL}/api/room-types/${id}`);
+      const response = await apiClient.delete(`/room-types/${id}`);
       await fetchData();
       if (displayedTypes.value.length === 0 && currentPage.value > 1) {
         currentPage.value--;
@@ -467,13 +437,12 @@ const xoaLoaiPhong = async (id) => {
   }
 };
 
-// --- HELPERS ---
 const getFirstImageUrl = (imagesJson) => {
   if (!imagesJson) return null;
   try {
     const images = JSON.parse(imagesJson);
     if (Array.isArray(images) && images.length > 0) return `${API_BASE_URL}/images/room_type/${images[0]}`;
-  } catch (e) { /* silent fail */ }
+  } catch (e) { }
   return null;
 };
 const onImageError = (event) => { event.target.src = 'https://via.placeholder.com/70x50.png?text=Loi'; };
@@ -481,7 +450,6 @@ const handleApiError = (message, error) => {
   const serverMessage = error.response?.data?.message || 'Có lỗi xảy ra.';
   let errorDetails = '';
   if (error.response?.data?.errors) {
-    // Lấy lỗi đầu tiên của mỗi trường
     errorDetails = Object.values(error.response.data.errors).map(e => e[0]).join(' ');
   }
   const finalMessage = `${message}: ${serverMessage} ${errorDetails}`;
@@ -494,7 +462,6 @@ const handleApiError = (message, error) => {
 </script>
 
 <style scoped>
-/* CSS của bạn đã rất tốt, giữ nguyên không thay đổi */
 @import url('https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@300;400;500;600;700&display=swap');
 @import url('https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css');
 
