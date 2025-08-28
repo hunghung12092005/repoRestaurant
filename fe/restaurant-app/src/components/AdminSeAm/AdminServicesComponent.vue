@@ -50,19 +50,16 @@
                 <span class="price-tag">{{ formatPrice(service.price) }}</span>
               </td>
               <td class="text-center action-buttons">
-                <button class="btn btn-outline-primary btn-sm" title="Xem & Sửa" @click="openEditModal(service)">
+                <button class="btn btn-outline-primary btn-sm"
+                  :title="service.bookings_count > 0 ? 'Dịch vụ đã được sử dụng, không thể chỉnh sửa.' : 'Xem & Sửa'"
+                  @click="openEditModal(service)" :disabled="service.bookings_count > 0">
                   <i class="bi bi-pencil-fill"></i> Sửa
                 </button>
-
-                <!-- SỬA LỖI: LOGIC HIỂN THỊ NÚT XÓA / KHÓA MỚI -->
-                <button v-if="service.bookings_count === 0" class="btn btn-outline-danger btn-sm" title="Xóa"
-                  @click="deleteService(service.service_id)">
+                <button class="btn btn-outline-danger btn-sm"
+                  :title="service.bookings_count > 0 ? 'Dịch vụ đã được sử dụng, không thể xóa.' : 'Xóa'"
+                  @click="deleteService(service.service_id)" :disabled="service.bookings_count > 0">
                   <i class="bi bi-trash-fill"></i> Xóa
                 </button>
-                <span v-else class="badge-in-use" title="Không thể xóa vì dịch vụ này đã được sử dụng.">
-                  <i class="bi bi-lock-fill"></i>
-                </span>
-
               </td>
             </tr>
             <tr v-if="displayedServices.length === 0">
@@ -109,24 +106,23 @@
               </div>
               <div v-if="modalErrorMessage" class="alert alert-danger">{{ modalErrorMessage }}</div>
 
-              <fieldset :disabled="isFormLocked">
-                <div class="mb-3">
-                  <label class="form-label">Tên Dịch Vụ</label>
-                  <input type="text" v-model.trim="form.service_name" class="form-control" required
-                    :class="{ 'is-invalid': errors.service_name }" />
-                  <div v-if="errors.service_name" class="invalid-feedback">{{ errors.service_name[0] }}</div>
-                </div>
-                <div class="mb-3">
-                  <label class="form-label">Giá (VNĐ)</label>
-                  <input type="number" v-model.number="form.price" class="form-control" required min="0"
-                    :class="{ 'is-invalid': errors.price }" />
-                  <div v-if="errors.price" class="invalid-feedback">{{ errors.price[0] }}</div>
-                </div>
-                <div class="mb-3">
-                  <label class="form-label">Mô Tả</label>
-                  <textarea v-model="form.description" class="form-control" rows="3"></textarea>
-                </div>
-              </fieldset>
+              <!-- Dùng disabled trực tiếp trên từng input thay vì fieldset -->
+              <div class="mb-3">
+                <label class="form-label">Tên Dịch Vụ</label>
+                <input type="text" v-model.trim="form.service_name" class="form-control" required
+                  :class="{ 'is-invalid': errors.service_name }" :disabled="isFormLocked" />
+                <div v-if="errors.service_name" class="invalid-feedback">{{ errors.service_name[0] }}</div>
+              </div>
+              <div class="mb-3">
+                <label class="form-label">Giá (VNĐ)</label>
+                <input type="number" v-model.number="form.price" class="form-control" required min="0"
+                  :class="{ 'is-invalid': errors.price }" :disabled="isFormLocked" />
+                <div v-if="errors.price" class="invalid-feedback">{{ errors.price[0] }}</div>
+              </div>
+              <div class="mb-3">
+                <label class="form-label">Mô Tả</label>
+                <textarea v-model="form.description" class="form-control" rows="3" :disabled="isFormLocked"></textarea>
+              </div>
             </div>
             <div class="modal-footer modal-footer-custom">
               <button type="button" class="btn btn-secondary" @click="closeModal">{{ isFormLocked ? 'Đóng' : 'Hủy'
@@ -165,7 +161,7 @@ const totalItems = ref(0);
 const lastPage = ref(1);
 const isLoading = ref(false);
 const isSaving = ref(false);
-const isFormLocked = ref(false);
+const isFormLocked = ref(false); 
 
 const form = ref({ service_name: '', price: 0, description: '' });
 const errors = ref({});
@@ -192,26 +188,23 @@ const fetchServices = async (page = 1) => {
 
 onMounted(fetchServices);
 
-watch(currentPage, (newPage) => {
-  if (!searchQuery.value.trim()) {
-    fetchServices(newPage);
-  }
+watch(searchQuery, () => {
+  currentPage.value = 1; 
 });
 
 const filteredServices = computed(() => {
   if (!Array.isArray(services.value)) return [];
-  if (!searchQuery.value) return [];
+  if (!searchQuery.value.trim()) return services.value; 
+  const lowerCaseQuery = searchQuery.value.toLowerCase();
   return services.value.filter(service =>
-    (service.service_name?.toLowerCase() || '').includes(searchQuery.value.toLowerCase()) ||
-    (service.description?.toLowerCase() || '').includes(searchQuery.value.toLowerCase())
+    (service.service_name?.toLowerCase() || '').includes(lowerCaseQuery) ||
+    (service.description?.toLowerCase() || '').includes(lowerCaseQuery)
   );
 });
 
+
 const displayedServices = computed(() => {
-  if (searchQuery.value.trim()) {
-    return filteredServices.value;
-  }
-  return services.value;
+  return filteredServices.value;
 });
 
 const totalPages = computed(() => lastPage.value);
@@ -227,7 +220,7 @@ const resetForm = () => {
   form.value = { service_name: '', price: 0, description: '' };
   errors.value = {};
   currentService.value = null;
-  isFormLocked.value = false;
+  isFormLocked.value = false; 
   modalErrorMessage.value = '';
 };
 
@@ -247,6 +240,10 @@ const openEditModal = (service) => {
 const closeModal = () => { isModalOpen.value = false; };
 
 const saveService = async () => {
+  if (isFormLocked.value) { 
+    modalErrorMessage.value = 'Bạn không thể lưu thay đổi khi dịch vụ này đã được sử dụng.';
+    return;
+  }
   isSaving.value = true;
   modalErrorMessage.value = '';
   errors.value = {};
@@ -270,7 +267,13 @@ const saveService = async () => {
 };
 
 const deleteService = async (service_id) => {
-  if (!confirm('Bạn có chắc chắn muốn xóa dịch vụ này?')) return;
+  const serviceToDelete = services.value.find(s => s.service_id === service_id);
+  if (serviceToDelete && serviceToDelete.bookings_count > 0) {
+    errorMessage.value = 'Không thể xóa dịch vụ này vì nó đã được sử dụng trong các lượt đặt phòng.';
+    return;
+  }
+
+  if (!confirm('Bạn có chắc chắn muốn xóa dịch vụ này? Hành động này không thể hoàn tác.')) return;
   successMessage.value = '';
   errorMessage.value = '';
   try {
