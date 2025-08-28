@@ -130,74 +130,77 @@
               </div>
             </div>
             <div v-if="modalErrorMessage" class="alert alert-danger">{{ modalErrorMessage }}</div>
-
-            <fieldset :disabled="isFormLocked">
-              <form @submit.prevent="saveType">
-                <div class="row g-3">
-                  <div class="col-12">
-                    <label class="form-label">Tên Loại Phòng</label>
-                    <input type="text" v-model="form.type_name" class="form-control" required />
-                  </div>
-                  <div class="col-md-4">
-                    <label class="form-label">Số Giường</label>
-                    <input type="number" v-model.number="form.bed_count" class="form-control" min="1" required />
-                  </div>
-                  <div class="col-md-4">
-                    <label class="form-label">Sức Chứa Người Lớn</label>
-                    <input type="number" v-model.number="form.max_occupancy" class="form-control" min="1" required />
-                  </div>
-                  <div class="col-md-4">
-                    <label class="form-label">Sức Chứa Trẻ Em</label>
-                    <input type="number" v-model.number="form.max_occupancy_child" class="form-control" min="0"
-                      required />
-                  </div>
-                  <div class="col-12">
-                    <label class="form-label">Mô Tả</label>
-                    <textarea v-model="form.description" class="form-control" rows="3"></textarea>
-                  </div>
-                  <div class="col-12">
-                    <label class="form-label d-block mb-2">Ảnh Loại Phòng</label>
-                    <input type="file" accept="image/*" ref="fileInput" @change="handleImageUpload"
-                      style="display: none" multiple />
-                    <div v-if="imagePreviews.length > 0" class="image-previews-container mb-3">
-                      <div v-for="preview in imagePreviews" :key="preview.url" class="image-preview-item">
-                        <img :src="preview.url" alt="Preview" class="image-preview" />
-                        <button @click="removeImage(preview)" class="btn-remove-image" title="Xóa ảnh">
-                          <i class="bi bi-x-lg"></i>
-                        </button>
-                      </div>
-
+            <form @submit.prevent="saveType">
+              <div class="row g-3">
+                <div class="col-12">
+                  <label class="form-label">Tên Loại Phòng</label>
+                  <input type="text" v-model="form.type_name" class="form-control" required :disabled="isFormLocked" />
+                </div>
+                <div class="col-md-4">
+                  <label class="form-label">Số Giường</label>
+                  <input type="number" v-model.number="form.bed_count" class="form-control" min="1" required
+                    :disabled="isFormLocked" />
+                </div>
+                <div class="col-md-4">
+                  <label class="form-label">Sức Chứa Người Lớn</label>
+                  <input type="number" v-model.number="form.max_occupancy" class="form-control" min="1" required
+                    :disabled="isFormLocked" />
+                </div>
+                <div class="col-md-4">
+                  <label class="form-label">Sức Chứa Trẻ Em</label>
+                  <input type="number" v-model.number="form.max_occupancy_child" class="form-control" min="0"
+                    required :disabled="isFormLocked" />
+                </div>
+                <div class="col-12">
+                  <label class="form-label">Mô Tả</label>
+                  <textarea v-model="form.description" class="form-control" rows="3"
+                    :disabled="isFormLocked"></textarea>
+                </div>
+                <div class="col-12">
+                  <label class="form-label d-block mb-2">Ảnh Loại Phòng</label>
+                  <input type="file" accept="image/*" ref="fileInput" @change="handleImageUpload"
+                    style="display: none" multiple :disabled="isFormLocked" />
+                  <div v-if="imagePreviews.length > 0" class="image-previews-container mb-3">
+                    <div v-for="preview in imagePreviews" :key="preview.url" class="image-preview-item">
+                      <img :src="preview.url" alt="Preview" class="image-preview" />
+                      <button v-if="!isFormLocked" @click="removeImage(preview)" class="btn-remove-image"
+                        title="Xóa ảnh">
+                        <i class="bi bi-x-lg"></i>
+                      </button>
                     </div>
-                    <div class="image-uploader" @click="triggerFileInput" @dragover.prevent @dragleave.prevent
-                      @drop.prevent="handleDrop">
-                      <div class="uploader-instructions">
-                        <i class="bi bi-cloud-arrow-up-fill uploader-icon"></i>
-                        <span>Kéo & Thả ảnh vào đây hoặc <strong>nhấn để chọn ảnh</strong></span>
-                      </div>
+
+                  </div>
+                  <div v-if="!isFormLocked" class="image-uploader" @click="triggerFileInput" @dragover.prevent
+                    @dragleave.prevent @drop.prevent="handleDrop">
+                    <div class="uploader-instructions">
+                      <i class="bi bi-cloud-arrow-up-fill uploader-icon"></i>
+                      <span>Kéo & Thả ảnh vào đây hoặc <strong>nhấn để chọn ảnh</strong></span>
                     </div>
                   </div>
-
-                  <!-- Checkbox Tiện Ích -->
-                  <div class="col-12">
-                    <label class="form-label">Tiện Ích</label>
-                    <div class="checkbox-list">
-                      <div class="form-check form-switch select-all-switch">
-                        <input class="form-check-input" type="checkbox" role="switch" id="select-all-amenities"
-                          :checked="isAllAmenitiesSelected" @change="toggleAllAmenities" />
-                        <label class="form-check-label" for="select-all-amenities">Chọn Tất Cả Tiện Ích</label>
-                      </div>
-                      <hr class="my-2" />
-                      <div class="form-check" v-for="amenity in amenities" :key="amenity.amenity_id">
-                        <input class="form-check-input" type="checkbox" :value="amenity.amenity_id"
-                          v-model="form.amenity_ids" :id="'amenity-' + amenity.amenity_id" />
-                        <label class="form-check-label" :for="'amenity-' + amenity.amenity_id">{{ amenity.amenity_name
-                        }}</label>
-                      </div>
+                  <div v-else class="alert alert-info text-center mt-3">
+                    Bạn không thể thêm hoặc xóa ảnh khi loại phòng đã có lượt đặt.
+                  </div>
+                </div>
+                <!-- Checkbox Tiện Ích -->
+                <div class="col-12">
+                  <label class="form-label">Tiện Ích</label>
+                  <div class="checkbox-list">
+                    <div class="form-check form-switch select-all-switch">
+                      <input class="form-check-input" type="checkbox" role="switch" id="select-all-amenities"
+                        :checked="isAllAmenitiesSelected" @change="toggleAllAmenities" />
+                      <label class="form-check-label" for="select-all-amenities">Chọn Tất Cả Tiện Ích</label>
+                    </div>
+                    <hr class="my-2" />
+                    <div class="form-check" v-for="amenity in amenities" :key="amenity.amenity_id">
+                      <input class="form-check-input" type="checkbox" :value="amenity.amenity_id"
+                        v-model="form.amenity_ids" :id="'amenity-' + amenity.amenity_id" />
+                      <label class="form-check-label" :for="'amenity-' + amenity.amenity_id">{{ amenity.amenity_name
+                      }}</label>
                     </div>
                   </div>
                 </div>
-              </form>
-            </fieldset>
+              </div>
+            </form>
           </div>
           <div class="modal-footer modal-footer-custom">
             <button type="button" class="btn btn-secondary" @click="closeModal">
@@ -234,7 +237,7 @@ const currentPage = ref(1);
 const itemsPerPage = 10;
 const isLoading = ref(false);
 const isSaving = ref(false);
-const isFormLocked = ref(false);
+const isFormLocked = ref(false); 
 const successMessage = ref('');
 const errorMessage = ref('');
 const modalErrorMessage = ref('');
@@ -315,7 +318,6 @@ const moModalSua = (type) => {
   } catch (e) {
     existingImages.value = [];
   }
-
   isFormLocked.value = type.rooms_with_bookings_count > 0;
   isModalOpen.value = true;
 };
@@ -343,7 +345,13 @@ const handleFiles = (files) => {
   }
 };
 const handleImageUpload = (event) => { handleFiles(event.target.files); event.target.value = ''; };
-const triggerFileInput = () => fileInput.value?.click();
+const triggerFileInput = () => {
+  if (isFormLocked.value) { 
+    modalErrorMessage.value = 'Bạn không thể thêm ảnh khi loại phòng này đã có lượt đặt.';
+    return;
+  }
+  fileInput.value?.click();
+};
 const handleDrop = (event) => { handleFiles(event.dataTransfer.files); };
 
 const removeImage = async (imageToRemove) => {
@@ -376,10 +384,15 @@ const isAllAmenitiesSelected = computed(() => {
   return form.value.amenity_ids?.length === amenities.value.length;
 });
 const toggleAllAmenities = (event) => {
+  if (isFormLocked.value) return; 
   form.value.amenity_ids = event.target.checked ? amenities.value.map((a) => a.amenity_id) : [];
 };
 
 const saveType = async () => {
+  if (isFormLocked.value) { 
+    modalErrorMessage.value = 'Bạn không thể lưu thay đổi khi loại phòng này đã có lượt đặt.';
+    return;
+  }
   if (!form.value.type_name || !form.value.type_name.trim() || form.value.bed_count < 1 || form.value.max_occupancy < 1) {
     modalErrorMessage.value = 'Vui lòng điền đầy đủ thông tin bắt buộc (Tên, số giường, sức chứa).';
     return;
@@ -399,7 +412,7 @@ const saveType = async () => {
   (form.value.amenity_ids || []).forEach(id => formData.append('amenity_ids[]', id));
   if (editingType.value) {
     existingImages.value.forEach(imageName => formData.append('existing_images[]', imageName));
-    formData.append('_method', 'PUT'); 
+    formData.append('_method', 'PUT');
   }
 
   try {
@@ -423,6 +436,12 @@ const saveType = async () => {
 
 
 const xoaLoaiPhong = async (id) => {
+  const typeToDelete = roomTypes.value.find(type => type.type_id === id);
+  if (typeToDelete && typeToDelete.rooms_count > 0) {
+    errorMessage.value = 'Không thể xóa loại phòng này vì nó đang được sử dụng bởi một hoặc nhiều phòng.';
+    return;
+  }
+
   if (confirm('Bạn có chắc chắn muốn xóa loại phòng này? Hành động này không thể hoàn tác.')) {
     try {
       const response = await apiClient.delete(`/room-types/${id}`);
