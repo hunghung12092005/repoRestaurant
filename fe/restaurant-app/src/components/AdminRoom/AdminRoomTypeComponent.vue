@@ -73,13 +73,14 @@
                 </div>
               </td>
               <td class="text-center action-buttons">
-                <button class="btn btn-outline-primary btn-sm" title="Xem & Sửa" @click="moModalSua(type)"
-                  :disabled="type.rooms_with_bookings_count > 0">
+                <button class="btn btn-outline-primary btn-sm" @click="moModalSua(type)"
+                  :disabled="type.rooms_count > 0"
+                  :title="type.rooms_count > 0 ? 'Không thể sửa loại phòng đã có phòng sử dụng' : 'Xem & Sửa'">
                   <i class="bi bi-pencil-fill"></i>
                 </button>
-                <button class="btn btn-outline-danger btn-sm"
-                  :title="type.rooms_count > 0 ? 'Không thể xóa vì loại phòng này đang được sử dụng bởi một hoặc nhiều phòng.' : 'Xóa'"
-                  @click="xoaLoaiPhong(type.type_id)" :disabled="type.rooms_count > 0">
+                <button class="btn btn-outline-danger btn-sm" @click="xoaLoaiPhong(type.type_id)"
+                  :disabled="type.rooms_count > 0"
+                  :title="type.rooms_count > 0 ? 'Không thể xóa loại phòng đã có phòng sử dụng' : 'Xóa'">
                   <i class="bi bi-trash-fill"></i>
                 </button>
               </td>
@@ -180,22 +181,21 @@
                     Bạn không thể thêm hoặc xóa ảnh khi loại phòng đã có lượt đặt.
                   </div>
                 </div>
-
                 <!-- Checkbox Tiện Ích -->
                 <div class="col-12">
                   <label class="form-label">Tiện Ích</label>
                   <div class="checkbox-list">
                     <div class="form-check form-switch select-all-switch">
                       <input class="form-check-input" type="checkbox" role="switch" id="select-all-amenities"
-                        :checked="isAllAmenitiesSelected" @change="toggleAllAmenities" :disabled="isFormLocked" />
+                        :checked="isAllAmenitiesSelected" @change="toggleAllAmenities" />
                       <label class="form-check-label" for="select-all-amenities">Chọn Tất Cả Tiện Ích</label>
                     </div>
                     <hr class="my-2" />
                     <div class="form-check" v-for="amenity in amenities" :key="amenity.amenity_id">
                       <input class="form-check-input" type="checkbox" :value="amenity.amenity_id"
-                        v-model="form.amenity_ids" :id="'amenity-' + amenity.amenity_id" :disabled="isFormLocked" />
+                        v-model="form.amenity_ids" :id="'amenity-' + amenity.amenity_id" />
                       <label class="form-check-label" :for="'amenity-' + amenity.amenity_id">{{ amenity.amenity_name
-                        }}</label>
+                      }}</label>
                     </div>
                   </div>
                 </div>
@@ -324,29 +324,25 @@ const moModalSua = (type) => {
 
 const closeModal = () => { isModalOpen.value = false; };
 const imagePreviews = computed(() => {
-    const existing = existingImages.value.map(name => ({
-        type: 'existing',
-        name: name,
-        url: `${API_BASE_URL}/images/room_type/${name}`
-    }));
-    const news = newImageFiles.value.map(file => ({
-        type: 'new',
-        file: file,
-        url: URL.createObjectURL(file)
-    }));
-    return [...existing, ...news];
+  const existing = existingImages.value.map(name => ({
+    type: 'existing',
+    name: name,
+    url: `${API_BASE_URL}/images/room_type/${name}`
+  }));
+  const news = newImageFiles.value.map(file => ({
+    type: 'new',
+    file: file,
+    url: URL.createObjectURL(file)
+  }));
+  return [...existing, ...news];
 });
 
 const handleFiles = (files) => {
-    if (isFormLocked.value) { 
-        modalErrorMessage.value = 'Bạn không thể thêm ảnh khi loại phòng này đã có lượt đặt.';
-        return;
+  for (const file of files) {
+    if (file && file.type.startsWith('image/')) {
+      newImageFiles.value.push(file);
     }
-    for (const file of files) {
-        if (file && file.type.startsWith('image/')) {
-            newImageFiles.value.push(file);
-        }
-    }
+  }
 };
 const handleImageUpload = (event) => { handleFiles(event.target.files); event.target.value = ''; };
 const triggerFileInput = () => {
@@ -359,37 +355,33 @@ const triggerFileInput = () => {
 const handleDrop = (event) => { handleFiles(event.dataTransfer.files); };
 
 const removeImage = async (imageToRemove) => {
-    if (isFormLocked.value) { 
-        modalErrorMessage.value = 'Bạn không thể xóa ảnh khi loại phòng này đã có lượt đặt.';
-        return;
+  if (imageToRemove.type === 'new') {
+    newImageFiles.value = newImageFiles.value.filter(f => f !== imageToRemove.file);
+    return;
+  }
+  if (imageToRemove.type === 'existing') {
+    if (!confirm('Bạn có chắc chắn muốn xóa vĩnh viễn ảnh này?')) return;
+    isSaving.value = true;
+    modalErrorMessage.value = '';
+    try {
+      const response = await apiClient.post(`/room-types/${editingType.value.type_id}/delete-image`, {
+        image_name: imageToRemove.name
+      });
+      const updatedImagesJson = response.data.data.images;
+      existingImages.value = updatedImagesJson ? JSON.parse(updatedImagesJson) : [];
+      await fetchData();
+      successMessage.value = response.data.message;
+    } catch (error) {
+      handleApiError('Xóa ảnh thất bại', error);
+    } finally {
+      isSaving.value = false;
     }
-    if (imageToRemove.type === 'new') {
-        newImageFiles.value = newImageFiles.value.filter(f => f !== imageToRemove.file);
-        return;
-    }
-    if (imageToRemove.type === 'existing') {
-        if (!confirm('Bạn có chắc chắn muốn xóa vĩnh viễn ảnh này?')) return;
-        isSaving.value = true;
-        modalErrorMessage.value = '';
-        try {
-            const response = await apiClient.post(`/room-types/${editingType.value.type_id}/delete-image`, {
-                image_name: imageToRemove.name
-            });
-            const updatedImagesJson = response.data.data.images;
-            existingImages.value = updatedImagesJson ? JSON.parse(updatedImagesJson) : [];
-            await fetchData();
-            successMessage.value = response.data.message;
-        } catch (error) {
-            handleApiError('Xóa ảnh thất bại', error);
-        } finally {
-            isSaving.value = false;
-        }
-    }
+  }
 };
 
 const isAllAmenitiesSelected = computed(() => {
   if (!amenities.value || amenities.value.length === 0) return false;
-  return form.value. amenity_ids?.length === amenities.value.length;
+  return form.value.amenity_ids?.length === amenities.value.length;
 });
 const toggleAllAmenities = (event) => {
   if (isFormLocked.value) return; 

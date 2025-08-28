@@ -55,11 +55,12 @@
                   @click="openEditModal(service)" :disabled="service.bookings_count > 0">
                   <i class="bi bi-pencil-fill"></i> Sửa
                 </button>
-                <button class="btn btn-outline-danger btn-sm"
-                  :title="service.bookings_count > 0 ? 'Dịch vụ đã được sử dụng, không thể xóa.' : 'Xóa'"
-                  @click="deleteService(service.service_id)" :disabled="service.bookings_count > 0">
+                <button class="btn btn-outline-danger btn-sm" @click="deleteService(service.service_id)"
+                  :disabled="service.bookings_count > 0"
+                  :title="service.bookings_count > 0 ? 'Không thể xóa dịch vụ đã được sử dụng' : 'Xóa'">
                   <i class="bi bi-trash-fill"></i> Xóa
                 </button>
+
               </td>
             </tr>
             <tr v-if="displayedServices.length === 0">
@@ -105,8 +106,6 @@
                 </div>
               </div>
               <div v-if="modalErrorMessage" class="alert alert-danger">{{ modalErrorMessage }}</div>
-
-              <!-- Dùng disabled trực tiếp trên từng input thay vì fieldset -->
               <div class="mb-3">
                 <label class="form-label">Tên Dịch Vụ</label>
                 <input type="text" v-model.trim="form.service_name" class="form-control" required
@@ -126,7 +125,7 @@
             </div>
             <div class="modal-footer modal-footer-custom">
               <button type="button" class="btn btn-secondary" @click="closeModal">{{ isFormLocked ? 'Đóng' : 'Hủy'
-                }}</button>
+              }}</button>
               <button type="submit" class="btn btn-primary" v-if="!isFormLocked" :disabled="isSaving">
                 <span v-if="isSaving" class="spinner-border spinner-border-sm me-2"></span>
                 Lưu
@@ -141,12 +140,7 @@
 
 <script setup>
 import { ref, computed, watch, onMounted } from 'vue';
-import axios from 'axios';
-
-const apiClient = axios.create({
-  baseURL: 'http://127.0.0.1:8000/api',
-  headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' }
-});
+import axiosInstance from '../../axiosConfig.js';
 
 const services = ref([]);
 const searchQuery = ref('');
@@ -174,8 +168,9 @@ const fetchServices = async (page = 1) => {
   isLoading.value = true;
   errorMessage.value = '';
   try {
-    const response = await apiClient.get(`/services?page=${page}&per_page=${itemsPerPage}`);
-    services.value = response.data.data || [];
+    const response = await axiosInstance.get(`/api/services?page=${page}&per_page=${itemsPerPage}`);
+    console.log('Services API response:', JSON.stringify(response.data, null, 2));
+    services.value = Array.isArray(response.data.data) ? response.data.data : (response.data.data?.data || []);
     totalItems.value = response.data.total || 0;
     currentPage.value = response.data.current_page || 1;
     lastPage.value = response.data.last_page || 1;
@@ -194,8 +189,7 @@ watch(searchQuery, () => {
 
 const filteredServices = computed(() => {
   if (!Array.isArray(services.value)) return [];
-  if (!searchQuery.value.trim()) return services.value; 
-  const lowerCaseQuery = searchQuery.value.toLowerCase();
+  if (!searchQuery.value) return [];
   return services.value.filter(service =>
     (service.service_name?.toLowerCase() || '').includes(lowerCaseQuery) ||
     (service.description?.toLowerCase() || '').includes(lowerCaseQuery)
@@ -204,7 +198,10 @@ const filteredServices = computed(() => {
 
 
 const displayedServices = computed(() => {
-  return filteredServices.value;
+  if (searchQuery.value.trim()) {
+    return filteredServices.value;
+  }
+  return services.value;
 });
 
 const totalPages = computed(() => lastPage.value);
@@ -252,9 +249,19 @@ const saveService = async () => {
   try {
     let response;
     if (currentService.value) {
-      response = await apiClient.put(`/services/${currentService.value.service_id}`, form.value);
+      response = await axiosInstance.put(`/api/services/${currentService.value.service_id}`, form.value);
+      console.log('PUT response:', JSON.stringify(response.data, null, 2));
+      const index = services.value.findIndex(s => s.service_id === currentService.value.service_id);
+      if (index !== -1) {
+        services.value[index] = response.data.data;
+      }
+      successMessage.value = 'Cập nhật dịch vụ thành công!';
     } else {
-      response = await apiClient.post('/services', form.value);
+      response = await axiosInstance.post('/api/services', form.value);
+      console.log('POST response:', JSON.stringify(response.data, null, 2));
+      services.value.push(response.data.data);
+      successMessage.value = 'Thêm dịch vụ thành công!';
+      await fetchServices(currentPage.value);
     }
     successMessage.value = response.data.message;
     closeModal();
@@ -277,9 +284,9 @@ const deleteService = async (service_id) => {
   successMessage.value = '';
   errorMessage.value = '';
   try {
-    const response = await apiClient.delete(`/services/${service_id}`);
-    successMessage.value = response.data.message;
-    if (services.value.length === 1 && currentPage.value > 1) {
+    await axiosInstance.delete(`/api/services/${service_id}`);
+    services.value = services.value.filter(s => s.service_id !== service_id);
+    if (displayedServices.value.length === 0 && currentPage.value > 1) {
       currentPage.value--;
     }
     await fetchServices(currentPage.value);
@@ -454,11 +461,13 @@ const handleApiError = (message, error, context = 'page') => {
   padding: 1rem 1.5rem;
 }
 
+/* STYLE MỚI CHO HUY HIỆU KHÓA */
 .badge-in-use {
   display: inline-flex;
   align-items: center;
   justify-content: center;
   width: 70px;
+  /* Bằng kích thước nút small */
   height: 31px;
   background-color: #f3f4f6;
   color: #7f8c8d;

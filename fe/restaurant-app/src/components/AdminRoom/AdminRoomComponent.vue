@@ -166,13 +166,16 @@
 
 <script setup>
 import { ref, computed, watch, onMounted } from 'vue';
-import axios from 'axios';
+import axiosInstance from '../../axiosConfig.js';
 
-const apiClient = axios.create({
-  baseURL: 'http://127.0.0.1:8000/api',
-  headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' }
-});
+// Cấu hình API client
+// const axiosInstance = axiosInstance.create({
+//   baseURL: 'http://127.0.0.1:8000/api',
+//   timeout: 30000,
+//   headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' }
+// });
 
+// --- STATE MANAGEMENT ---
 const rooms = ref([]);
 const roomTypes = ref([]);
 const searchQuery = ref('');
@@ -194,6 +197,7 @@ const form = ref({
 });
 const errors = ref({});
 
+// --- API CALLS ---
 const fetchRooms = async () => {
   isLoading.value = true;
   errorMessage.value = '';
@@ -205,7 +209,7 @@ const fetchRooms = async () => {
     if (searchQuery.value.trim()) params.append('search', searchQuery.value.trim());
     if (filterRoomType.value) params.append('type_id', filterRoomType.value);
 
-    const response = await apiClient.get(`/rooms?${params.toString()}`);
+    const response = await axiosInstance.get(`/api/rooms?${params.toString()}`);
 
     rooms.value = (response.data.data || []).map(room => ({
       ...room,
@@ -229,19 +233,25 @@ const fetchRooms = async () => {
 
 const fetchRoomTypes = async () => {
   try {
-    const response = await apiClient.get('/room-types'); 
-    roomTypes.value = response.data.data || [];
+    const response = await axiosInstance.get('/api/room-types');
+    roomTypes.value = Array.isArray(response.data.data) ? response.data.data : [];
+    if (roomTypes.value.length === 0) {
+      console.warn('Không tìm thấy loại phòng nào. Vui lòng thêm loại phòng trước.');
+    }
   } catch (error) {
+    // Có thể tạm ẩn lỗi này nếu không quá nghiêm trọng
     console.error('Không thể tải danh sách loại phòng:', error);
   }
 };
 
+// --- LIFECYCLE & WATCHERS ---
 onMounted(() => { Promise.all([fetchRooms(), fetchRoomTypes()]); });
 watch([searchQuery, filterRoomType], () => {
   currentPage.value = 1;
   fetchRooms();
 });
 
+// --- COMPUTED PROPERTIES ---
 const totalPages = computed(() => lastPage.value);
 const displayedRooms = computed(() => rooms.value);
 const pageRange = computed(() => {
@@ -252,6 +262,7 @@ const pageRange = computed(() => {
   return Array.from({ length: end - start + 1 }, (_, i) => start + i);
 });
 
+// --- MODAL & FORM LOGIC ---
 const resetForm = () => {
   form.value = { room_name: '', type_id: '', floor_number: 1, description: '' };
   errors.value = {};
@@ -284,19 +295,25 @@ const saveRoom = async () => {
   modalErrorMessage.value = '';
   errors.value = {};
   successMessage.value = '';
+
   try {
     let response;
+    // Dữ liệu cần gửi là `form.value`, không phải `payload`
     if (currentRoom.value) {
-      response = await apiClient.put(`/rooms/${currentRoom.value.room_id}`, form.value);
+      // Logic Sửa (UPDATE)
+      response = await axiosInstance.put(`/api/rooms/${currentRoom.value.room_id}`, form.value);
     } else {
-      response = await apiClient.post('/rooms', form.value);
+      // Logic Thêm mới (CREATE)
+      response = await axiosInstance.post('/api/rooms', form.value);
     }
-    successMessage.value = response.data.message;
+
+    // Lấy thông báo thành công từ server
+    successMessage.value = response.data.message || 'Thao tác thành công!';
     closeModal();
-    await fetchRooms();
+    await fetchRooms(); // Tải lại danh sách phòng sau khi lưu
   } catch (error) {
     modalErrorMessage.value = error.response?.data?.message || 'Lưu phòng thất bại.';
-    if (error.response?.status === 422) {
+    if (error.response?.status === 422) { // Lỗi validation từ server
       errors.value = error.response.data.errors;
     }
   } finally {
@@ -308,20 +325,21 @@ const deleteRoom = async (room) => {
   if (room.bookings_count > 0) return;
   if (!confirm(`Bạn có chắc chắn muốn xóa vĩnh viễn phòng "${room.room_name}" không?`)) return;
 
-  isSaving.value = true;
   successMessage.value = '';
   errorMessage.value = '';
   try {
-    const response = await apiClient.delete(`/rooms/${room.room_id}`);
-    successMessage.value = response.data.message;
+    // Sử dụng `room.room_id` để lấy ID, không phải `room_id`
+    const response = await axiosInstance.delete(`/api/rooms/${room.room_id}`);
+    successMessage.value = response.data.message || 'Xóa phòng thành công!';
+    
+    // Tải lại dữ liệu ở trang hiện tại, hoặc lùi trang nếu trang hiện tại trống
     if (displayedRooms.value.length === 1 && currentPage.value > 1) {
-      currentPage.value--;
+        currentPage.value--;
     }
     await fetchRooms();
+
   } catch (error) {
     errorMessage.value = error.response?.data?.message || 'Xóa phòng thất bại.';
-  } finally {
-    isSaving.value = false;
   }
 };
 
