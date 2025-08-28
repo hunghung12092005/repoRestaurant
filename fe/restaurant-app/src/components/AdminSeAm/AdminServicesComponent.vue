@@ -55,13 +55,11 @@
                 </button>
 
                 <!-- SỬA LỖI: LOGIC HIỂN THỊ NÚT XÓA / KHÓA MỚI -->
-                <button v-if="service.bookings_count === 0" class="btn btn-outline-danger btn-sm" title="Xóa"
-                  @click="deleteService(service.service_id)">
+                <button class="btn btn-outline-danger btn-sm" @click="deleteService(service.service_id)"
+                  :disabled="service.bookings_count > 0"
+                  :title="service.bookings_count > 0 ? 'Không thể xóa dịch vụ đã được sử dụng' : 'Xóa'">
                   <i class="bi bi-trash-fill"></i> Xóa
                 </button>
-                <span v-else class="badge-in-use" title="Không thể xóa vì dịch vụ này đã được sử dụng.">
-                  <i class="bi bi-lock-fill"></i>
-                </span>
 
               </td>
             </tr>
@@ -130,7 +128,7 @@
             </div>
             <div class="modal-footer modal-footer-custom">
               <button type="button" class="btn btn-secondary" @click="closeModal">{{ isFormLocked ? 'Đóng' : 'Hủy'
-                }}</button>
+              }}</button>
               <button type="submit" class="btn btn-primary" v-if="!isFormLocked" :disabled="isSaving">
                 <span v-if="isSaving" class="spinner-border spinner-border-sm me-2"></span>
                 Lưu
@@ -253,7 +251,7 @@ const saveService = async () => {
   try {
     let response;
     if (currentService.value) {
-      response = await axiosInstance.put(`/api/services/${currentService.value.service_id}`, payload);
+      response = await axiosInstance.put(`/api/services/${currentService.value.service_id}`, form.value);
       console.log('PUT response:', JSON.stringify(response.data, null, 2));
       const index = services.value.findIndex(s => s.service_id === currentService.value.service_id);
       if (index !== -1) {
@@ -261,7 +259,7 @@ const saveService = async () => {
       }
       successMessage.value = 'Cập nhật dịch vụ thành công!';
     } else {
-      response = await axiosInstance.post('/api/services', payload);
+      response = await axiosInstance.post('/api/services', form.value);
       console.log('POST response:', JSON.stringify(response.data, null, 2));
       services.value.push(response.data.data);
       successMessage.value = 'Thêm dịch vụ thành công!';

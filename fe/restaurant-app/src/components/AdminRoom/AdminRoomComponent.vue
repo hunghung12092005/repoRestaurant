@@ -295,21 +295,25 @@ const saveRoom = async () => {
   modalErrorMessage.value = '';
   errors.value = {};
   successMessage.value = '';
+
   try {
     let response;
+    // Dữ liệu cần gửi là `form.value`, không phải `payload`
     if (currentRoom.value) {
-      await axiosInstance.put(`/api/rooms/${currentRoom.value.room_id}`, payload);
-      successMessage.value = 'Cập nhật phòng thành công!';
+      // Logic Sửa (UPDATE)
+      response = await axiosInstance.put(`/api/rooms/${currentRoom.value.room_id}`, form.value);
     } else {
-      await axiosInstance.post('/api/rooms', payload);
-      successMessage.value = 'Thêm phòng thành công!';
+      // Logic Thêm mới (CREATE)
+      response = await axiosInstance.post('/api/rooms', form.value);
     }
-    successMessage.value = response.data.message;
+
+    // Lấy thông báo thành công từ server
+    successMessage.value = response.data.message || 'Thao tác thành công!';
     closeModal();
-    await fetchRooms();
+    await fetchRooms(); // Tải lại danh sách phòng sau khi lưu
   } catch (error) {
     modalErrorMessage.value = error.response?.data?.message || 'Lưu phòng thất bại.';
-    if (error.response?.status === 422) {
+    if (error.response?.status === 422) { // Lỗi validation từ server
       errors.value = error.response.data.errors;
     }
   } finally {
@@ -321,17 +325,21 @@ const deleteRoom = async (room) => {
   if (room.bookings_count > 0) return;
   if (!confirm(`Bạn có chắc chắn muốn xóa vĩnh viễn phòng "${room.room_name}" không?`)) return;
 
-  isSaving.value = true;
   successMessage.value = '';
   errorMessage.value = '';
   try {
-    await axiosInstance.delete(`/api/rooms/${room_id}`);
-    successMessage.value = 'Xóa phòng thành công!';
-    await fetchRooms(); // Tải lại dữ liệu
+    // Sử dụng `room.room_id` để lấy ID, không phải `room_id`
+    const response = await axiosInstance.delete(`/api/rooms/${room.room_id}`);
+    successMessage.value = response.data.message || 'Xóa phòng thành công!';
+    
+    // Tải lại dữ liệu ở trang hiện tại, hoặc lùi trang nếu trang hiện tại trống
+    if (displayedRooms.value.length === 1 && currentPage.value > 1) {
+        currentPage.value--;
+    }
+    await fetchRooms();
+
   } catch (error) {
     errorMessage.value = error.response?.data?.message || 'Xóa phòng thất bại.';
-  } finally {
-    isSaving.value = false;
   }
 };
 

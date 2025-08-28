@@ -73,17 +73,16 @@
                 </div>
               </td>
               <td class="text-center action-buttons">
-                <button class="btn btn-outline-primary btn-sm" title="Xem & Sửa" @click="moModalSua(type)">
+                <button class="btn btn-outline-primary btn-sm" @click="moModalSua(type)"
+                  :disabled="type.rooms_count > 0"
+                  :title="type.rooms_count > 0 ? 'Không thể sửa loại phòng đã có phòng sử dụng' : 'Xem & Sửa'">
                   <i class="bi bi-pencil-fill"></i>
                 </button>
-                <button v-if="type.rooms_count === 0" class="btn btn-outline-danger btn-sm" title="Xóa"
-                  @click="xoaLoaiPhong(type.type_id)">
+                <button class="btn btn-outline-danger btn-sm" @click="xoaLoaiPhong(type.type_id)"
+                  :disabled="type.rooms_count > 0"
+                  :title="type.rooms_count > 0 ? 'Không thể xóa loại phòng đã có phòng sử dụng' : 'Xóa'">
                   <i class="bi bi-trash-fill"></i>
                 </button>
-                <span v-else class="badge-in-use"
-                  title="Không thể xóa vì loại phòng này đang được sử dụng bởi một hoặc nhiều phòng.">
-                  <i class="bi bi-lock-fill"></i>
-                </span>
               </td>
             </tr>
           </tbody>
@@ -196,7 +195,7 @@
                         <input class="form-check-input" type="checkbox" :value="amenity.amenity_id"
                           v-model="form.amenity_ids" :id="'amenity-' + amenity.amenity_id" />
                         <label class="form-check-label" :for="'amenity-' + amenity.amenity_id">{{ amenity.amenity_name
-                          }}</label>
+                        }}</label>
                       </div>
                     </div>
                   </div>
@@ -336,59 +335,59 @@ const closeModal = () => { isModalOpen.value = false; };
 // Logic xử lý ảnh (imagePreviews, handleFiles, ...) giữ nguyên như phiên bản trước
 // vì nó đã đúng.
 const imagePreviews = computed(() => {
-    const existing = existingImages.value.map(name => ({
-        type: 'existing',
-        name: name,
-        url: `${API_BASE_URL}/images/room_type/${name}`
-    }));
-    const news = newImageFiles.value.map(file => ({
-        type: 'new',
-        file: file,
-        url: URL.createObjectURL(file)
-    }));
-    return [...existing, ...news];
+  const existing = existingImages.value.map(name => ({
+    type: 'existing',
+    name: name,
+    url: `${API_BASE_URL}/images/room_type/${name}`
+  }));
+  const news = newImageFiles.value.map(file => ({
+    type: 'new',
+    file: file,
+    url: URL.createObjectURL(file)
+  }));
+  return [...existing, ...news];
 });
 
 const handleFiles = (files) => {
-    for (const file of files) {
-        if (file && file.type.startsWith('image/')) {
-            newImageFiles.value.push(file);
-        }
+  for (const file of files) {
+    if (file && file.type.startsWith('image/')) {
+      newImageFiles.value.push(file);
     }
+  }
 };
 const handleImageUpload = (event) => { handleFiles(event.target.files); event.target.value = ''; };
 const triggerFileInput = () => fileInput.value?.click();
 const handleDrop = (event) => { handleFiles(event.dataTransfer.files); };
 
 const removeImage = async (imageToRemove) => {
-    if (imageToRemove.type === 'new') {
-        newImageFiles.value = newImageFiles.value.filter(f => f !== imageToRemove.file);
-        return;
+  if (imageToRemove.type === 'new') {
+    newImageFiles.value = newImageFiles.value.filter(f => f !== imageToRemove.file);
+    return;
+  }
+  if (imageToRemove.type === 'existing') {
+    if (!confirm('Bạn có chắc chắn muốn xóa vĩnh viễn ảnh này?')) return;
+    isSaving.value = true;
+    modalErrorMessage.value = '';
+    try {
+      const response = await apiClient.post(`/room-types/${editingType.value.type_id}/delete-image`, {
+        image_name: imageToRemove.name
+      });
+      const updatedImagesJson = response.data.data.images;
+      existingImages.value = updatedImagesJson ? JSON.parse(updatedImagesJson) : [];
+      await fetchData();
+      successMessage.value = response.data.message;
+    } catch (error) {
+      handleApiError('Xóa ảnh thất bại', error);
+    } finally {
+      isSaving.value = false;
     }
-    if (imageToRemove.type === 'existing') {
-        if (!confirm('Bạn có chắc chắn muốn xóa vĩnh viễn ảnh này?')) return;
-        isSaving.value = true;
-        modalErrorMessage.value = '';
-        try {
-            const response = await apiClient.post(`/room-types/${editingType.value.type_id}/delete-image`, {
-                image_name: imageToRemove.name
-            });
-            const updatedImagesJson = response.data.data.images;
-            existingImages.value = updatedImagesJson ? JSON.parse(updatedImagesJson) : [];
-            await fetchData();
-            successMessage.value = response.data.message;
-        } catch (error) {
-            handleApiError('Xóa ảnh thất bại', error);
-        } finally {
-            isSaving.value = false;
-        }
-    }
+  }
 };
 
 // --- TIỆN ÍCH ---
 const isAllAmenitiesSelected = computed(() => {
   if (!amenities.value || amenities.value.length === 0) return false;
-  return form.value. amenity_ids?.length === amenities.value.length;
+  return form.value.amenity_ids?.length === amenities.value.length;
 });
 const toggleAllAmenities = (event) => {
   form.value.amenity_ids = event.target.checked ? amenities.value.map((a) => a.amenity_id) : [];
@@ -422,7 +421,7 @@ const saveType = async () => {
 
   // 4. Thêm các file ảnh MỚI vào formData với key 'images[]'
   newImageFiles.value.forEach(file => formData.append('images[]', file));
-  
+
   // 5. Thêm danh sách các ID tiện ích
   (form.value.amenity_ids || []).forEach(id => formData.append('amenity_ids[]', id));
 
@@ -431,7 +430,7 @@ const saveType = async () => {
     // Thêm danh sách tên các file ảnh CŨ được giữ lại
     existingImages.value.forEach(imageName => formData.append('existing_images[]', imageName));
     // Laravel cần trường này để nhận diện request PUT khi gửi qua FormData
-    formData.append('_method', 'PUT'); 
+    formData.append('_method', 'PUT');
   }
 
   try {
