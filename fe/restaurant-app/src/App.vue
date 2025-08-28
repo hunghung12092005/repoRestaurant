@@ -2,25 +2,20 @@
   <div>
     <!-- ========== PHẦN GIAO DIỆN QUẢN TRỊ (ADMIN & STAFF) ========== -->
     <div v-if="$route.path.startsWith('/admin')">
-      <div class="toast-container position-fixed top-0 start-0 p-3">
-        <div v-if="showToast" class="toast align-items-center text-bg-light show" role="alert" aria-live="assertive"
-          aria-atomic="true">
-          <div class="d-flex">
+       <div class="toast-container position-fixed top-0 end-0 p-3" style="z-index: 1100;">
+        <transition name="toast-fade">
+          <div v-if="showToast" class="toast show custom-notification-toast" role="alert" aria-live="assertive" aria-atomic="true">
             <div class="toast-header">
+              <i class="bi bi-bell-fill me-2 text-primary"></i>
               <strong class="me-auto">Thông báo mới</strong>
+              <small class="text-muted">{{ latestNotification.timestamp }}</small>
               <button type="button" class="btn-close" @click="showToast = false" aria-label="Close"></button>
             </div>
+            <div class="toast-body">
+              {{ latestNotification.message }}
+            </div>
           </div>
-          <div class="toast-body">{{ latestNotification.message }} - {{ latestNotification.timestamp }}</div>
-          <div class="toast-footer"><button class="btn btn-light mt-2" @click="showMoreNotifications">Xem thêm</button>
-          </div>
-        </div>
-        <div v-if="showMore" class="mt-3">
-          <div v-for="(notification, index) in recentNotifications" :key="index"
-            class="toast align-items-center text-bg-light show mb-2" role="alert">
-            <div class="toast-body">{{ notification.message }} - {{ notification.timestamp }}</div>
-          </div>
-        </div>
+        </transition>
       </div>
 
       <!-- ===== SIDEBAR ĐỘNG CHO ADMIN & STAFF ===== -->
@@ -303,25 +298,8 @@ const handleUrlParams = () => {
     catch (e) { console.error('Error parsing user from URL:', e); }
   }
 };
-const notifications = ref([]);
-const showToast = ref(false);
-const showMore = ref(false);
-const latestNotification = ref({});
-const recentNotifications = ref([]);
-const addNotification = (message) => {
-  const timestamp = new Date().toLocaleString('vi-VN');
-  const newNotif = { message, timestamp };
-  notifications.value.unshift(newNotif);
-  if (notifications.value.length > 10) { notifications.value.pop(); }
-  latestNotification.value = newNotif;
-  showToast.value = true;
-};
-const showMoreNotifications = () => {
-  showMore.value = !showMore.value;
-  recentNotifications.value = notifications.value;
-};
-socket.on('connect', () => { console.log(`Connected with socket ID: ${socket.id}`); });
-socket.on('notification', (data) => { addNotification(data.message); });
+// const notifications = ref([]);
+
 onMounted(() => {
   handleUrlParams();
   restoreUserSession();
@@ -333,8 +311,6 @@ onMounted(() => {
 onUnmounted(() => {
   window.removeEventListener('scroll', handleScroll);
   document.removeEventListener('click', handleOutsideClick);
-  socket.off('connect');
-  socket.off('notification');
 });
 </script>
 
@@ -738,4 +714,5 @@ footer {
     width: 100%;
   }
 }
+
 </style>

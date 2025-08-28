@@ -27,9 +27,6 @@ Chúng tôi xin chân thành cảm ơn bạn đã dành thời gian liên hệ v
     </p>
 </div>
 
-<x-mail::button :url="config('app.url')" color="success">
-Ghé thăm Website
-</x-mail::button>
 
 Một lần nữa, cảm ơn bạn đã tin tưởng.
 
