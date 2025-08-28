@@ -168,14 +168,6 @@
 import { ref, computed, watch, onMounted } from 'vue';
 import axiosInstance from '../../axiosConfig.js';
 
-// Cấu hình API client
-// const axiosInstance = axiosInstance.create({
-//   baseURL: 'http://127.0.0.1:8000/api',
-//   timeout: 30000,
-//   headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' }
-// });
-
-// --- STATE MANAGEMENT ---
 const rooms = ref([]);
 const roomTypes = ref([]);
 const searchQuery = ref('');
@@ -197,7 +189,6 @@ const form = ref({
 });
 const errors = ref({});
 
-// --- API CALLS ---
 const fetchRooms = async () => {
   isLoading.value = true;
   errorMessage.value = '';
@@ -239,19 +230,16 @@ const fetchRoomTypes = async () => {
       console.warn('Không tìm thấy loại phòng nào. Vui lòng thêm loại phòng trước.');
     }
   } catch (error) {
-    // Có thể tạm ẩn lỗi này nếu không quá nghiêm trọng
     console.error('Không thể tải danh sách loại phòng:', error);
   }
 };
 
-// --- LIFECYCLE & WATCHERS ---
 onMounted(() => { Promise.all([fetchRooms(), fetchRoomTypes()]); });
 watch([searchQuery, filterRoomType], () => {
   currentPage.value = 1;
   fetchRooms();
 });
 
-// --- COMPUTED PROPERTIES ---
 const totalPages = computed(() => lastPage.value);
 const displayedRooms = computed(() => rooms.value);
 const pageRange = computed(() => {
@@ -262,7 +250,6 @@ const pageRange = computed(() => {
   return Array.from({ length: end - start + 1 }, (_, i) => start + i);
 });
 
-// --- MODAL & FORM LOGIC ---
 const resetForm = () => {
   form.value = { room_name: '', type_id: '', floor_number: 1, description: '' };
   errors.value = {};
@@ -327,7 +314,7 @@ const deleteRoom = async (room) => {
   try {
     await axiosInstance.delete(`/api/rooms/${room_id}`);
     successMessage.value = 'Xóa phòng thành công!';
-    await fetchRooms(); // Tải lại dữ liệu
+    await fetchRooms(); 
   } catch (error) {
     errorMessage.value = error.response?.data?.message || 'Xóa phòng thất bại.';
   } finally {
