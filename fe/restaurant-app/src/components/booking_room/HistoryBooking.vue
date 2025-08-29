@@ -256,7 +256,7 @@
             <!-- CARD ĐANG CHỜ HỦY -->
             <template v-if="booking.status === 'pending_cancel'">
               <div class="card-header">
-                <h4 class="pending-cancel-title"><i class="bi bi-arrow-clockwise"></i> Yêu Cầu Hủy HXH {{
+                <h4 class="pending-cancel-title"><i class="bi bi-arrow-clockwise"></i> Yêu Cầu Hủy HXH{{
                   booking.booking_id }}</h4>
                 <span class="status-badge" :class="'status-' + booking.status">{{ formatStatus(booking.status) }}</span>
               </div>
@@ -1273,6 +1273,7 @@ onMounted(getHistoryBooking);
   display: flex;
   align-items: center;
   gap: 0.5rem;
+  padding-right: 10px;
 }
 
 .cancellation-details {
